@@ -52,7 +52,8 @@ begin
 end $$;
 
 -- ---------- Текущий пользователь по токену ----------
-create or replace function public.app_me(p_token uuid)
+drop function if exists public.app_me(uuid);
+create function public.app_me(p_token uuid)
 returns table (user_id uuid, login text, full_name text, role text)
 language sql security definer set search_path = public
 as $$

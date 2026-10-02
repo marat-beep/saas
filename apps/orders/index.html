@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Заявки — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=2">
+<style>
+  .ocard { background:#fff; border:1px solid var(--border); border-radius:var(--r); padding:14px 16px; cursor:pointer; transition:.15s; }
+  .ocard:hover { border-color:var(--accent); transform:translateY(-1px); }
+  .olist { display:flex; flex-direction:column; gap:12px; }
+  .b { font-size:.68rem; font-weight:700; border-radius:999px; padding:3px 10px; }
+  .b.new { background:#dbeafe; color:#1d4ed8; }
+  .b.in_progress { background:#fef3c7; color:#92400e; }
+  .b.done { background:var(--accent-100); color:var(--accent-700); }
+  .b.cancelled { background:#fee2e2; color:#b91c1c; }
+  .b.high { background:#fee2e2; color:#b91c1c; }
+  .b.normal { background:#f1f5f9; color:#475569; }
+  .b.low { background:#f1f5f9; color:#64748b; }
+  .kvr { display:flex; gap:10px; padding:8px 0; border-top:1px solid var(--border); font-size:.85rem; }
+  .kvr:first-child { border-top:none; } .kvr .k { color:var(--muted); min-width:140px; }
+  .back { background:none;border:none;color:var(--accent-700);font-weight:700;cursor:pointer;font-size:.84rem;margin-bottom:10px; }
+  .chips { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; }
+  .chips .chip { font-size:.76rem;font-weight:600;border:1px solid var(--border);background:#fff;border-radius:999px;padding:6px 13px;cursor:pointer; }
+  .chips .chip.active { background:var(--accent-100); border-color:var(--accent); color:var(--accent-700); }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">📥</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <section class="screen active" id="s-list">
+      <div class="hero"><h1>Заявки</h1><p>Единый приём заявок из модулей и сервисов: создавайте, отслеживайте статусы.</p></div>
+      <div class="card">
+        <div class="chips" id="filters">
+          <span class="chip active" data-f="all">Все</span>
+          <span class="chip" data-f="new">Новые</span>
+          <span class="chip" data-f="in_progress">В работе</span>
+          <span class="chip" data-f="done">Выполнены</span>
+        </div>
+        <button class="btn" id="toCreate" style="width:auto;padding:11px 18px;">＋ Новая заявка</button>
+        <div id="listMsg"></div>
+        <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="s-create">
+      <button class="back" id="backToList1">← К списку</button>
+      <div class="card">
+        <h2>Новая заявка</h2>
+        <div class="msg" id="cMsg"></div>
+        <div class="field"><label>Тема *</label><input type="text" id="fTitle" placeholder="Например: Изготовление оснастки"></div>
+        <div class="field"><label>Описание</label><input type="text" id="fDesc" placeholder="Детали, требования, сроки…"></div>
+        <div class="grid2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="field"><label>Источник</label><input type="text" id="fSource" placeholder="модуль/сервис (напр. eco:A1)"></div>
+          <div class="field"><label>Приоритет</label>
+            <select id="fPriority"><option value="normal">Обычный</option><option value="high">Высокий</option><option value="low">Низкий</option></select>
+          </div>
+        </div>
+        <div class="grid2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="field"><label>Заказчик</label><input type="text" id="fCustomer" placeholder="ООО …"></div>
+          <div class="field"><label>Контакт</label><input type="text" id="fContact" placeholder="Иванов И.И."></div>
+        </div>
+        <button class="btn" id="createBtn">Создать заявку</button>
+      </div>
+    </section>
+
+    <section class="screen" id="s-detail">
+      <button class="back" id="backToList2">← К списку</button>
+      <div class="card" id="detail"></div>
+      <div class="card">
+        <h2>История</h2>
+        <div id="history"><span class="note">—</span></div>
+        <div class="field mt"><label>Изменить статус</label>
+          <select id="stStatus">
+            <option value="new">Новая</option><option value="in_progress">В работе</option>
+            <option value="done">Выполнена</option><option value="cancelled">Отменена</option>
+          </select>
+        </div>
+        <div class="field"><label>Комментарий</label><input type="text" id="stComment" placeholder="необязательно"></div>
+        <button class="btn" id="stBtn">Сохранить статус</button>
+        <div class="msg" id="stMsg"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">3DMP Service · заявки</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=1"></script>
+  <script src="../../assets/js/auth.js?v=2"></script>
+  <script src="../../assets/js/router.js?v=1"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=1"></script>
+  <script src="orders.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>

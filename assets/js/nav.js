@@ -28,6 +28,7 @@
     var items = [
       ['🏠', 'Главная', ROOT + 'index.html', true],
       ['📊', 'Личный кабинет', ROOT + 'apps/dashboard/index.html', true],
+      ['📥', 'Заявки', ROOT + 'apps/orders/index.html', true],
       ['📦', 'Портал закупок', ROOT + 'apps/supplier/index.html', true],
       ['🌐', 'Прототипы экосистемы', ROOT + 'eco/index.html', true],
       ['🛡', 'Администрирование', ROOT + 'apps/admin/index.html', role === 'admin'],

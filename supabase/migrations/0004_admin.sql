@@ -18,7 +18,8 @@ as $$
 $$;
 
 -- ---------- Список пользователей ----------
-create or replace function public.admin_list_users(p_token uuid)
+drop function if exists public.admin_list_users(uuid);
+create function public.admin_list_users(p_token uuid)
 returns table (id uuid, login text, full_name text, role text, active boolean, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
