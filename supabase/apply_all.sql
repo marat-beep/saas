@@ -1,4 +1,5 @@
 -- 3DMP Service · apply_all.sql — единая схема (0001..0007), идемпотентно.
+-- Логины: admin/admin, owner/owner, manager/manager, supplier/supplier.
 
 -- >>>>>>>>>> 0001_init.sql >>>>>>>>>>
 -- ============================================================
@@ -265,10 +266,10 @@ grant execute on function public.app_logout(uuid)      to anon, authenticated;
 
 -- ---------- Демо-пользователи (пароли хешируются) ----------
 insert into public.app_users (login, password_hash, full_name, role) values
-  ('admin',    extensions.crypt('admin',         extensions.gen_salt('bf')), 'Администратор',     'admin'),
-  ('owner',    extensions.crypt('Owner12345',    extensions.gen_salt('bf')), 'Собственник 3DMP', 'owner'),
-  ('manager',  extensions.crypt('Manager12345',  extensions.gen_salt('bf')), 'Менеджер закупок',  'manager'),
-  ('supplier', extensions.crypt('Supplier12345', extensions.gen_salt('bf')), 'Поставщик Демо',    'supplier')
+  ('admin',    extensions.crypt('admin',    extensions.gen_salt('bf')), 'Администратор',     'admin'),
+  ('owner',    extensions.crypt('owner',    extensions.gen_salt('bf')), 'Собственник 3DMP', 'owner'),
+  ('manager',  extensions.crypt('manager',  extensions.gen_salt('bf')), 'Менеджер закупок',  'manager'),
+  ('supplier', extensions.crypt('supplier', extensions.gen_salt('bf')), 'Поставщик Демо',    'supplier')
 on conflict (login) do update
   set password_hash = excluded.password_hash,
       full_name     = excluded.full_name,
