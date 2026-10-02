@@ -2,32 +2,25 @@
 
 ## 1. GitHub (репозиторий `marat-beep/saas`, ветка `main`)
 
-Репозиторий уже привязан локально: папка `SAAS/` → `origin` = `https://github.com/marat-beep/saas.git`.
+Репозиторий привязан локально: папка `SAAS/` → `origin` = `https://github.com/marat-beep/saas.git`, ветка `main`.
+Push уже работает через сохранённые учётные данные (Git Credential Manager). Первый каркас отправлен коммитом `6fa76f8`.
 
-Чтение работает без авторизации (репозиторий публичный). **Для push нужен токен:**
-
-1. github.com → аватар → **Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)** → **Generate new token (classic)**.
-2. Name: `3dmp-saas`, Expiration: по желанию, Scope: ✅ **repo** (при необходимости ✅ `workflow` для Actions).
-3. Сгенерировать и **скопировать токен** (показывается один раз).
-4. Передать токен мне — я выполню `commit` и `push` без сохранения токена в файлы. Либо сохрани сам и не передавай: тогда push сделаешь вручную.
-
-Токен **не коммитится**: `.gitignore` уже исключает `.env` и `.env.*`.
+Если push перестанет авторизовываться: github.com → **Settings → Developer settings → Personal access tokens → Tokens (classic)** → Generate, scope **`repo`** — и ввести токен по запросу Git. В файлы токен не сохраняется (`.gitignore` исключает `.env` и `.env.*`).
 
 ## 2. Supabase (проект `saas`)
 
-1. Открыть проект `saas` → **Project Settings** (шестерёнка) → **API** (или **Data API**).
-2. Скопировать:
-   - **Project URL** — вида `https://<project-ref>.supabase.co`;
-   - **anon / public** key — длинный JWT, начинается на `eyJ...`.
-3. Вставить их в `assets/js/config.js`:
-   ```js
-   SUPABASE_URL: 'https://<project-ref>.supabase.co',
-   SUPABASE_ANON_KEY: 'eyJ...'
-   ```
-   `anon` — публичный ключ, его нормально держать в клиенте. Доступ к данным ограничивает **RLS**.
-   `service_role` сюда **не** вставлять никогда.
+Настроено и проверено (auth endpoint отвечает 200, REST принимает ключ):
 
-> Важно: хост проекта должен резолвиться (`https://<ref>.supabase.co`). На текущий момент `zfkbzmtbrueaksqafdbf.supabase.co` не резолвится (DNS: non-existent) — проверь точный ref в Dashboard и пришли строкой.
+```js
+// assets/js/config.js
+SUPABASE_URL: 'https://zfkbzzmtbrueaksfaqbf.supabase.co',
+SUPABASE_ANON_KEY: 'sb_publishable_akJbBxWd13audl8KMtdB5Q_0_kT51pa'
+```
+
+`sb_publishable_*` — новый публичный клиентский ключ, аналог `anon`. Его нормально держать в клиенте; доступ к данным ограничивает **RLS**.
+`service_role` / `sb_secret_*` сюда **не** вставлять никогда.
+
+Если ключ менялся: проект `saas` → **Project Settings → API** → скопировать Project URL и **publishable/anon** key.
 
 ## 3. Схема БД
 
