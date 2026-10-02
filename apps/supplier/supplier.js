@@ -143,6 +143,7 @@
       var row = r.data && r.data[0];
       if (!row || !row.ok) { msg('#bidMsg', (row && row.message) || 'Не удалось сохранить.', 'err'); return; }
       msg('#bidMsg', row.message || 'Предложение сохранено.', 'ok');
+      window.Auth.log('Подача КП', cur.title);
       return reload().then(function () { $('#bidTitle').textContent = 'Изменить предложение'; });
     }).catch(function (e) { msg('#bidMsg', 'Ошибка: ' + (e.message || e), 'err'); });
   });

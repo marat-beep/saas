@@ -10,6 +10,11 @@
   var ROLES = [['admin', 'Администратор'], ['owner', 'Собственник'], ['manager', 'Менеджер'], ['supplier', 'Поставщик']];
   function roleLabel(r) { for (var i = 0; i < ROLES.length; i++) if (ROLES[i][0] === r) return ROLES[i][1]; return r || '—'; }
   function esc(v) { return ui.esc(v); }
+  function fmtDT(ts) {
+    if (!ts) return '—';
+    var d = new Date(ts); if (isNaN(d.getTime())) return '—';
+    return d.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  }
   function msg(id, t, k) { var e = $(id); e.className = 'msg show ' + (k || 'info'); e.textContent = t; }
   function clearMsg(id) { var e = $(id); e.className = 'msg'; e.textContent = ''; }
 
@@ -38,18 +43,31 @@
         '<td>' + esc(u.full_name || '—') + '</td>' +
         '<td><select data-role="' + u.id + '">' + opts + '</select></td>' +
         '<td><span class="pill ' + (u.active ? 'on' : 'off') + '">' + (u.active ? 'активен' : 'выключен') + '</span></td>' +
+        '<td>' + fmtDT(u.last_login_at) + '</td>' +
         '<td style="white-space:nowrap;">' +
         '<button class="act" data-toggle="' + u.id + '" data-active="' + (!u.active) + '">' + (u.active ? 'Выключить' : 'Включить') + '</button>' +
         '<button class="act" data-pass="' + u.id + '" data-login="' + esc(u.login) + '">Пароль</button>' +
         (isMe ? '' : '<button class="act danger" data-del="' + u.id + '" data-login="' + esc(u.login) + '">Удалить</button>') +
         '</td></tr>';
     }).join('');
-    $('#users').innerHTML = '<thead><tr><th>Логин</th><th>Имя</th><th>Роль</th><th>Статус</th><th>Действия</th></tr></thead><tbody>' + rows + '</tbody>';
+    $('#users').innerHTML = '<thead><tr><th>Логин</th><th>Имя</th><th>Роль</th><th>Статус</th><th>Вход</th><th>Действия</th></tr></thead><tbody>' + rows + '</tbody>';
+  }
+
+  function renderEvents() {
+    rpc('admin_list_events', { p_token: token, p_limit: 50 }).then(function (list) {
+      list = list || [];
+      if (!list.length) { $('#events').innerHTML = '<span class="note">Событий нет.</span>'; return; }
+      $('#events').innerHTML = list.map(function (e) {
+        return '<div class="tenant"><span><b>' + esc(e.login || '—') + '</b> — ' + esc(e.action) +
+          (e.detail ? ' <span class="note">(' + esc(e.detail) + ')</span>' : '') +
+          '</span><span style="margin-left:auto;font-size:.72rem;color:var(--muted);">' + fmtDT(e.created_at) + '</span></div>';
+      }).join('');
+    }).catch(function (e) { msg('#evMsg', 'Ошибка журнала: ' + e.message, 'err'); });
   }
 
   function load() {
     return rpc('admin_list_users', { p_token: token }).then(function (data) {
-      users = data || []; render();
+      users = data || []; render(); renderEvents();
     }).catch(function (e) { msg('#listMsg', 'Ошибка: ' + e.message, 'err'); });
   }
 
@@ -63,6 +81,7 @@
       p_full_name: $('#nName').value.trim(), p_role: $('#nRole').value
     }).then(function (data) {
       if (resultMsg('#createMsg', data)) {
+        window.Auth.log('Создан пользователь', login);
         $('#nLogin').value = ''; $('#nPass').value = ''; $('#nName').value = '';
         load();
       }
@@ -73,25 +92,25 @@
   $('#users').addEventListener('change', function (e) {
     var sel = e.target.closest('[data-role]'); if (!sel) return;
     rpc('admin_update_user', { p_token: token, p_user_id: sel.dataset.role, p_role: sel.value, p_active: null, p_full_name: null })
-      .then(function (d) { resultMsg('#listMsg', d); load(); })
+      .then(function (d) { if (d && d[0] && d[0].ok) window.Auth.log('Смена роли', sel.value); resultMsg('#listMsg', d); load(); })
       .catch(function (err) { msg('#listMsg', 'Ошибка: ' + err.message, 'err'); });
   });
   $('#users').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     if (b.dataset.toggle) {
       rpc('admin_update_user', { p_token: token, p_user_id: b.dataset.toggle, p_role: null, p_active: b.dataset.active === 'true', p_full_name: null })
-        .then(function (d) { resultMsg('#listMsg', d); load(); })
+        .then(function (d) { if (d && d[0] && d[0].ok) window.Auth.log('Изменён доступ', b.dataset.active === 'true' ? 'включён' : 'выключен'); resultMsg('#listMsg', d); load(); })
         .catch(function (err) { msg('#listMsg', 'Ошибка: ' + err.message, 'err'); });
     } else if (b.dataset.pass) {
       var np = window.prompt('Новый пароль для «' + b.dataset.login + '»:', '');
       if (np == null) return;
       rpc('admin_reset_password', { p_token: token, p_user_id: b.dataset.pass, p_password: np })
-        .then(function (d) { resultMsg('#listMsg', d); })
+        .then(function (d) { if (d && d[0] && d[0].ok) window.Auth.log('Сброс пароля', b.dataset.login); resultMsg('#listMsg', d); })
         .catch(function (err) { msg('#listMsg', 'Ошибка: ' + err.message, 'err'); });
     } else if (b.dataset.del) {
       if (!window.confirm('Удалить пользователя «' + b.dataset.login + '»?')) return;
       rpc('admin_delete_user', { p_token: token, p_user_id: b.dataset.del })
-        .then(function (d) { resultMsg('#listMsg', d); load(); })
+        .then(function (d) { if (d && d[0] && d[0].ok) window.Auth.log('Удалён пользователь', b.dataset.login); resultMsg('#listMsg', d); load(); })
         .catch(function (err) { msg('#listMsg', 'Ошибка: ' + err.message, 'err'); });
     }
   });

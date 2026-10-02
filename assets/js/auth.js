@@ -43,10 +43,18 @@
         if (r.error) return null; // сеть/ошибка — не разлогиниваем
         var row = r.data && r.data[0];
         if (!row) { clear(); return null; }
-        s.login = row.login; s.full_name = row.full_name; s.role = row.role;
+        s.login = row.login; s.full_name = row.full_name; s.role = row.role; s.last_login_at = row.last_login_at;
         write(s);
         return s;
       }).catch(function () { return null; });
+    },
+
+    // запись действия в журнал (fire-and-forget)
+    log: function (action, detail) {
+      var s = read();
+      if (g.SB && s && s.token) {
+        try { g.SB.rpc('app_log_event', { p_token: s.token, p_action: action, p_detail: detail || '' }); } catch (e) {}
+      }
     },
 
     guard: function (redirect) {
@@ -59,7 +67,10 @@
 
     logout: function () {
       var t = this.token();
-      if (g.SB && t) { try { g.SB.rpc('app_logout', { p_token: t }); } catch (e) {} }
+      if (g.SB && t) {
+        try { g.SB.rpc('app_log_event', { p_token: t, p_action: 'Выход', p_detail: '' }); } catch (e) {}
+        try { g.SB.rpc('app_logout', { p_token: t }); } catch (e) {}
+      }
       clear();
     }
   };

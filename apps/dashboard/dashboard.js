@@ -11,6 +11,24 @@
   function kv(k, v) {
     return '<div class="tenant"><span class="note">' + ui.esc(k) + '</span><b style="margin-left:auto;">' + ui.esc(v) + '</b></div>';
   }
+  function fmtDT(ts) {
+    if (!ts) return '—';
+    var d = new Date(ts); if (isNaN(d.getTime())) return String(ts);
+    return d.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  function renderEvents(session) {
+    if (!window.SB) return;
+    window.SB.rpc('app_my_events', { p_token: session.token, p_limit: 8 }).then(function (r) {
+      var list = (r && !r.error && r.data) || [];
+      if (!list.length) { $('#events').innerHTML = '<span class="note">Действий пока нет.</span>'; return; }
+      $('#events').innerHTML = list.map(function (e) {
+        return '<div class="tenant"><span><b>' + ui.esc(e.action) + '</b>' +
+          (e.detail ? ' <span class="note">— ' + ui.esc(e.detail) + '</span>' : '') +
+          '</span><span class="rel" style="margin-left:auto;font-size:.72rem;color:var(--muted);">' + fmtDT(e.created_at) + '</span></div>';
+      }).join('');
+    }).catch(function () { $('#events').innerHTML = '<span class="note">Журнал недоступен.</span>'; });
+  }
 
   function renderModules(session) {
     var apps = (window.AppCatalog && window.AppCatalog.apps) || [];
@@ -37,7 +55,9 @@
     out.addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
     $('#profile').innerHTML =
-      kv('Логин', s.login) + kv('Имя', s.full_name || '—') + kv('Роль', roleLabel(s.role));
+      kv('Логин', s.login) + kv('Имя', s.full_name || '—') + kv('Роль', roleLabel(s.role)) +
+      kv('Последний вход', fmtDT(s.last_login_at));
     renderModules(s);
+    renderEvents(s);
   });
 })();
