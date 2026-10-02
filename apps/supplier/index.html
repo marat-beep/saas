@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Портал закупок — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css">
+<style>
+  .topnav { display:flex; gap:4px; flex-wrap:wrap; }
+  .topnav button { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.3); color:#fff; border-radius:9px; padding:7px 12px; font-size:.78rem; font-weight:600; cursor:pointer; }
+  .topnav button.active { background:#fff; color:#065f46; }
+  .tlist { display:flex; flex-direction:column; gap:12px; }
+  .tcard { background:#fff; border:1px solid var(--border); border-radius:var(--r); padding:16px; cursor:pointer; transition:.15s; }
+  .tcard:hover { border-color:var(--accent); transform:translateY(-1px); }
+  .tcard h3 { font-size:.96rem; }
+  .tmeta { display:flex; flex-wrap:wrap; gap:6px 14px; color:var(--muted); font-size:.76rem; margin-top:6px; }
+  .tfoot { display:flex; align-items:center; gap:10px; margin-top:10px; }
+  .tfoot .dl { margin-left:auto; font-size:.76rem; color:var(--muted); }
+  .badge { font-size:.68rem; font-weight:700; border-radius:999px; padding:3px 10px; }
+  .badge.open { background:var(--accent-100); color:var(--accent-700); }
+  .badge.closed { background:#f1f5f9; color:var(--muted); }
+  .badge.awarded { background:#fef3c7; color:#92400e; }
+  .badge.submitted { background:#dbeafe; color:#1d4ed8; }
+  .badge.accepted { background:var(--accent-100); color:var(--accent-700); }
+  .badge.rejected { background:#fee2e2; color:#b91c1c; }
+  .chips { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; }
+  .chips .chip { font-size:.76rem; font-weight:600; border:1px solid var(--border); background:#fff; border-radius:999px; padding:6px 13px; cursor:pointer; }
+  .chips .chip.active { background:var(--accent-100); border-color:var(--accent); color:var(--accent-700); }
+  .kv { display:flex; gap:10px; padding:8px 0; border-top:1px solid var(--border); font-size:.84rem; }
+  .kv:first-child { border-top:none; }
+  .kv .k { color:var(--muted); min-width:130px; }
+  .back { background:none; border:none; color:var(--accent-700); font-weight:700; cursor:pointer; font-size:.84rem; margin-bottom:10px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:560px){ .grid2 { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">📦</span> <a href="../../index.html">3DMP Service</a></div>
+    <nav class="topnav" id="nav">
+      <button class="active" data-go="s-list">Витрина</button>
+      <button data-go="s-bids">Мои предложения</button>
+    </nav>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <!-- ВИТРИНА -->
+    <section class="screen active" id="s-list">
+      <div class="hero"><h1>Портал закупок</h1><p>Открытые закупки 3DMP: изучайте, подавайте предложения, следите за статусом.</p></div>
+      <div class="card">
+        <div class="field" style="margin-bottom:0;">
+          <input type="text" id="q" placeholder="Поиск: название, материал, заказчик…">
+        </div>
+        <div class="chips" id="filters">
+          <span class="chip active" data-f="all">Все</span>
+          <span class="chip" data-f="open">Открытые</span>
+          <span class="chip" data-f="awarded">С победителем</span>
+        </div>
+        <div id="listMsg"></div>
+        <div class="tlist" id="list"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <!-- КАРТОЧКА -->
+    <section class="screen" id="s-tender">
+      <button class="back" id="backToList">← К витрине</button>
+      <div class="card" id="tender"></div>
+      <div class="card">
+        <h2 id="bidTitle">Подать предложение</h2>
+        <div class="msg" id="bidMsg"></div>
+        <div class="grid2">
+          <div class="field"><label>Цена, ₽</label><input type="text" id="bidPrice" inputmode="numeric" placeholder="например 184000"></div>
+          <div class="field"><label>Срок, дней</label><input type="text" id="bidTerm" inputmode="numeric" placeholder="например 14"></div>
+        </div>
+        <div class="field"><label>Комментарий</label>
+          <input type="text" id="bidComment" placeholder="Условия, материалы, вопросы…">
+        </div>
+        <button class="btn" id="bidSubmit">Отправить предложение</button>
+      </div>
+    </section>
+
+    <!-- МОИ ПРЕДЛОЖЕНИЯ -->
+    <section class="screen" id="s-bids">
+      <div class="hero"><h1>Мои предложения</h1><p>Все ваши КП по закупкам и их статус.</p></div>
+      <div class="card"><div id="bidsMsg"></div><div class="tlist" id="myBids"><span class="note">Загрузка…</span></div></div>
+    </section>
+  </main>
+
+  <footer class="foot">3DMP Service · портал закупок</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js"></script>
+  <script src="../../assets/js/supabase-client.js"></script>
+  <script src="../../assets/js/ui.js"></script>
+  <script src="../../assets/js/session.js"></script>
+  <script src="../../assets/js/router.js"></script>
+  <script src="supplier.js"></script>
+</body>
+</html>

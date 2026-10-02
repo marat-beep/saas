@@ -25,8 +25,10 @@ SUPABASE_ANON_KEY: 'sb_publishable_akJbBxWd13audl8KMtdB5Q_0_kT51pa'
 ## 3. Схема БД
 
 1. Supabase → **SQL Editor** → **New query**.
-2. Вставить содержимое `supabase/migrations/0001_init.sql` целиком → **Run**.
-3. Проверить: **Table Editor** покажет `tenants`, `profiles`, `memberships`.
+2. Вставить содержимое миграций по порядку и выполнить каждую:
+   - `supabase/migrations/0001_init.sql` → таблицы `tenants`, `profiles`, `memberships`;
+   - `supabase/migrations/0002_supplier.sql` → таблицы `tenders`, `bids` + демо-закупки.
+3. Проверить: **Table Editor** покажет `tenants`, `profiles`, `memberships`, `tenders`, `bids`.
 
 Позже удобно перейти на Supabase CLI (`supabase db push`), но он не обязателен — миграции применяются вручную.
 
