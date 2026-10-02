@@ -41,8 +41,8 @@ declare
   u  public.app_users;
   tk uuid;
 begin
-  select * into u from public.app_users
-   where lower(login) = lower(trim(p_login)) and active
+  select * into u from public.app_users au
+   where lower(au.login) = lower(trim(p_login)) and au.active
    limit 1;
   if u.id is null then return; end if;
   if u.password_hash <> extensions.crypt(p_password, u.password_hash) then return; end if;
@@ -89,6 +89,7 @@ on conflict (login) do update
 -- ============================================================
 
 -- Закупки: открытые читает кто угодно (публичная витрина).
+grant select on public.tenders to anon, authenticated;
 drop policy if exists tenders_read_anon on public.tenders;
 create policy tenders_read_anon on public.tenders for select to anon
   using (status = 'open');
