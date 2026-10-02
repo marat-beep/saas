@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M1 · Маркетплейс мощностей — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  .mode-toggle { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+  .mode { border:2px solid var(--border); border-radius:var(--r-sm); padding:12px; text-align:center; cursor:pointer; background:var(--surface); transition:all var(--t-fast); }
+  .mode.active { border-color:var(--accent); background:var(--accent-50); }
+  .mode .mi { font-size:1.4rem; }
+  .mode .mt { font-size:.8rem; font-weight:700; margin-top:2px; }
+  .mode .mc { font-size:.68rem; color:var(--muted); }
+  .rating { color:#f59e0b; font-weight:700; font-size:.78rem; }
+  .escrow { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--border-2); align-items:center; }
+  .escrow:last-child { border-bottom:none; }
+  .escrow .en { width:26px;height:26px;border-radius:50%;background:var(--accent-100);color:var(--accent-700);font-weight:800;font-size:.72rem;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+</style>
+</head>
+<body class="app-body" data-audience="marketplace">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Маркетплейс мощностей</h1><div class="subtitle" id="headerSubtitle">3DMP · Кооперация и субподряд</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="mode-toggle" id="modeToggle">
+        <div class="mode active" data-m="demand"><div class="mi">📥</div><div class="mt">Заказы</div><div class="mc">спрос · ищу исполнителя</div></div>
+        <div class="mode" data-m="supply"><div class="mi">⚙️</div><div class="mt">Мощности</div><div class="mc">предложение · свободные станки</div></div>
+      </div>
+      <input class="input mb-12" id="search" placeholder="Поиск: технология, материал, регион…">
+      <div class="chips" id="filters">
+        <div class="chip active" data-f="all">Все</div>
+        <div class="chip" data-f="cnc">ЧПУ</div>
+        <div class="chip" data-f="laser">Лазер</div>
+        <div class="chip" data-f="heat">Термо</div>
+        <div class="chip" data-f="sub">Гальваника</div>
+      </div>
+      <div class="section-title" id="listTitle">Заказы <span class="count" id="listCount"></span></div>
+      <div id="list"></div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="card accent-left mb-12">
+        <div class="row between"><span class="badge" id="iType">—</span><span class="rating" id="iRating">★ —</span></div>
+        <h3 class="mt-8" id="iTitle">—</h3>
+        <div class="tag-row mt-8" id="iTags"></div>
+      </div>
+      <div class="section-title">Детали</div>
+      <div class="card" id="iInfo"></div>
+      <div class="section-title">Описание</div>
+      <div class="card" id="iDesc"></div>
+      <div class="section-title">Публикует</div>
+      <div class="card" id="iPublisher"></div>
+      <button class="btn btn-primary mt-12" id="respondBtn">Откликнуться →</button>
+      <button class="btn btn-secondary mt-8" id="chatBtn">💬 Задать вопрос</button>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="callout info mb-12"><span class="ci">📝</span><div>Предложение фиксируется на платформе. Сделка и оплата защищены (эскроу-концепция).</div></div>
+      <div class="card">
+        <div class="input-row">
+          <div class="field"><label>Цена, ₽</label><input type="number" id="rPrice" min="0" placeholder="0"></div>
+          <div class="field"><label>Срок, дней</label><input type="number" id="rDays" min="1" placeholder="7"></div>
+        </div>
+        <div class="field"><label>Комментарий</label><textarea id="rComment" placeholder="Условия, опыт, нюансы производства…"></textarea></div>
+        <div class="field mb-0"><label>Гарантия качества</label>
+          <select id="rWarranty"><option>Соответствие чертежу</option><option>Протокол ОТК</option><option>Протокол ОТК + паспорт изделия</option></select>
+        </div>
+      </div>
+      <div class="price-highlight mt-12">
+        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--accent-700);margin-bottom:6px;">Ваше предложение</div>
+        <div id="rTotal" style="font-size:1.4rem;font-weight:800;color:#9a3412;">0 ₽</div>
+        <div class="hint" id="rHint">—</div>
+      </div>
+      <button class="btn btn-primary mt-12" id="sendBtn" disabled>Отправить предложение →</button>
+      <button class="btn btn-secondary mt-8" id="backItem">Назад</button>
+    </section>
+
+    <section class="screen" id="s4">
+      <div class="result-hero"><div class="check">✓</div><h2 id="succTitle">Предложение отправлено!</h2><p id="succText">Публикующий получит отклик и сможет принять его.</p></div>
+      <div class="ticket mb-16" style="background:var(--accent-50);border-color:var(--accent-200);"><div class="t-label" style="color:var(--accent-700);">Номер сделки</div><div class="t-num" id="dealNum">—</div></div>
+      <div class="section-title">Как это работает</div>
+      <div class="card">
+        <div class="escrow"><div class="en">1</div><div style="font-size:.8rem;">Заказчик принимает отклик и создаёт сделку</div></div>
+        <div class="escrow"><div class="en">2</div><div style="font-size:.8rem;">Средства резервируются на платформе (эскроу)</div></div>
+        <div class="escrow"><div class="en">3</div><div style="font-size:.8rem;">Исполнитель выполняет работу, качество фиксируется в ОТК</div></div>
+        <div class="escrow"><div class="en">4</div><div style="font-size:.8rem;">Оплата высвобождается, обе стороны ставят оценки</div></div>
+      </div>
+      <button class="btn btn-primary mt-16" id="toList">К витрине</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Маркетплейс мощностей · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="m1.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

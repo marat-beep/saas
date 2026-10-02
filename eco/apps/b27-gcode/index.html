@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B27 · База УП и G-код — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  .g-row { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid var(--border-2); cursor:pointer; }
+  .g-row:last-child { border-bottom:none; }
+  pre.gcode { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; font-size:.72rem; overflow:auto; font-family:var(--mono); line-height:1.55; }
+  pre.gcode .g { color:#60a5fa; } pre.gcode .m { color:#f472b6; } pre.gcode .ax { color:#fbbf24; }
+  pre.gcode .fs { color:#34d399; } pre.gcode .cm { color:#94a3b8; } pre.gcode .n { color:#c084fc; }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">База УП и G-код</h1><div class="subtitle" id="headerSubtitle">3DMP · Siemens · Fanuc · Heidenhain</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <input class="input mb-12" id="search" placeholder="Поиск: операция, цикл, G-код…">
+      <div class="chips" id="ctrlF">
+        <div class="chip active" data-f="all">Все стойки</div>
+        <div class="chip" data-f="Fanuc">Fanuc</div>
+        <div class="chip" data-f="Siemens">Siemens</div>
+        <div class="chip" data-f="Heidenhain">Heidenhain</div>
+      </div>
+      <div class="chips" id="catF">
+        <div class="chip active" data-f="all">Все операции</div>
+        <div class="chip" data-f="setup">Наладка</div>
+        <div class="chip" data-f="contour">Контур</div>
+        <div class="chip" data-f="drill">Сверление</div>
+        <div class="chip" data-f="thread">Резьба</div>
+      </div>
+      <div class="section-title">Шаблоны <span class="count" id="gCount"></span></div>
+      <div class="card" id="gList"></div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="card accent-left mb-12">
+        <div class="row between"><span class="faint" style="font-family:var(--mono);font-size:.72rem;" id="dId">—</span><span class="badge accent" id="dCtrl">—</span></div>
+        <h3 class="mt-8" id="dTitle">—</h3>
+        <div class="tag-row mt-8" id="dTags"></div>
+      </div>
+      <div class="section-title">Программа (шаблон)</div>
+      <pre class="gcode" id="dCode"></pre>
+      <div class="callout info mt-8"><span class="ci">💡</span><div id="dNote">—</div></div>
+      <button class="btn btn-primary mt-12" id="copyBtn">Скопировать шаблон</button>
+      <button class="btn btn-secondary mt-8" id="saveBtn">Сохранить в мои УП</button>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="result-hero"><div class="check">✓</div><h2 id="actTitle">Готово</h2><p id="actText">Шаблон сохранён.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Шаблон</div><div class="t-num" id="actNum">—</div></div>
+      <button class="btn btn-primary mt-16" id="toList">К базе</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · База УП и G-код · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="b27.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

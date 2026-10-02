@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P11 · Инструкция по работе с системой — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  body.web-body { display:flex; flex-direction:column; min-height:100vh; }
+  .topbar { background:var(--accent-grad); color:#fff; padding:14px 22px; display:flex; align-items:center; gap:14px; position:sticky; top:0; z-index:20; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:800; }
+  .brand .logo { width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,.18); display:flex; align-items:center; justify-content:center; }
+  .main { flex:1; padding:26px 0 50px; }
+  .toc { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:18px; }
+  .toc a { font-size:.74rem; font-weight:600; padding:6px 11px; border:1px solid var(--border); border-radius:999px; text-decoration:none; color:var(--text-2); }
+  .toc a:hover { border-color:var(--accent); color:var(--accent-700); }
+  .sec { margin-bottom:22px; }
+  .sec h2 { font-size:1.05rem; font-weight:800; margin-bottom:8px; }
+  .steps { padding-left:18px; font-size:.86rem; line-height:1.9; color:var(--text-2); }
+  .app-chip { display:inline-block; font-size:.74rem; font-weight:600; background:var(--accent-50); color:var(--accent-700); border:1px solid var(--accent-200); border-radius:999px; padding:5px 11px; margin:4px 4px 0 0; text-decoration:none; }
+  .faq { font-size:.84rem; }
+  .faq b { display:block; margin-top:10px; }
+</style>
+</head>
+<body class="web-body" data-audience="platform">
+
+<header class="topbar">
+  <div class="brand"><span class="logo">📘</span> Инструкция по работе с системой</div>
+  <div style="margin-left:auto;"><button class="btn btn-ghost btn-sm" data-guide style="color:#fff;border-color:rgba(255,255,255,.4);">🧭 Гид</button><button class="btn btn-ghost btn-sm" id="homeBtn" style="color:#fff;border-color:rgba(255,255,255,.4);margin-left:6px;">← Хаб</button></div>
+</header>
+
+<main class="main">
+  <div class="web-container">
+    <div class="page-sub" style="max-width:720px;">Пошаговое руководство: с чего начать, как устроены роли, клиентский путь, производственный контур, платформа и диагностика. Ссылки открывают соответствующие приложения.</div>
+    <div class="toc" id="toc"></div>
+    <div id="manual"></div>
+  </div>
+</main>
+
+<footer class="app-footer">3DMP · Инструкция по работе с системой · демо-режим</footer>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="p11.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

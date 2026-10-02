@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B35 · Справочники — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  .tabs2 { display:flex; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--r-sm); padding:3px; margin-bottom:12px; }
+  .tabs2 button { flex:1; border:none; background:transparent; padding:9px 4px; border-radius:7px; font-weight:700; font-size:.7rem; color:var(--muted); cursor:pointer; }
+  .tabs2 button.active { background:var(--surface); color:var(--accent-700); box-shadow:var(--sh-xs); }
+  .ref { display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px solid var(--border-2); font-size:.8rem; }
+  .ref:last-child { border-bottom:none; }
+  .ref .r { text-align:right; color:var(--muted); font-family:var(--mono); font-size:.74rem; }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Справочники</h1><div class="subtitle" id="headerSubtitle">3DMP · Нормативные данные</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+    <section class="screen active" id="s1">
+      <input class="input mb-12" id="search" placeholder="Поиск по справочнику…">
+      <div class="tabs2" id="tabs">
+        <button class="active" data-t="mat">Материалы</button>
+        <button data-t="tool">Инструмент</button>
+        <button data-t="op">Операции</button>
+        <button data-t="unit">Единицы</button>
+        <button data-t="norm">Нормативы</button>
+      </div>
+      <div class="card" id="list"></div>
+    </section>
+  </div>
+
+  <footer class="app-footer">3DMP · Справочники · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="b35.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

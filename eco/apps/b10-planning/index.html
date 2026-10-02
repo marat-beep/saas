@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B10 · Планирование производства — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  .machine-load { margin-bottom:12px; }
+  .machine-load .ml { display:flex; justify-content:space-between; font-size:.8rem; margin-bottom:4px; }
+  .gantt { overflow-x:auto; }
+  .gantt-grid { min-width:640px; display:grid; grid-template-columns:120px repeat(10,1fr); gap:3px; align-items:center; }
+  .gantt-grid .h { font-size:.62rem; color:var(--faint); text-align:center; padding-bottom:4px; }
+  .gantt-grid .m { font-size:.72rem; font-weight:600; padding-right:6px; }
+  .gantt-grid .cell { height:26px; background:var(--surface-2); border-radius:5px; }
+  .gantt-grid .bar { height:26px; border-radius:5px; background:var(--accent-grad); color:#fff; font-size:.62rem; font-weight:700; display:flex; align-items:center; padding:0 6px; overflow:hidden; white-space:nowrap; cursor:pointer; }
+  .gantt-grid .bar.warn { background:linear-gradient(135deg,#b45309,#f59e0b); }
+  .gantt-grid .bar.done { background:linear-gradient(135deg,#166534,#22c55e); }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Планирование производства</h1><div class="subtitle" id="headerSubtitle">3DMP · Станки и Гант</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="stats mb-16">
+        <div class="stat"><div class="num accent" id="mLoad">—</div><div class="label">Ср. загрузка</div></div>
+        <div class="stat"><div class="num warning" id="mLate">—</div><div class="label">Риск просрочки</div></div>
+        <div class="stat"><div class="num success" id="mFree">—</div><div class="label">Свободных слотов</div></div>
+      </div>
+      <div class="section-title">Загрузка станков</div>
+      <div class="card" id="loadList"></div>
+      <div class="section-title">Диаграмма Ганта <span class="count">10 дней · нажмите слот</span></div>
+      <div class="card"><div class="gantt"><div class="gantt-grid" id="gantt"></div></div></div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="card accent-left mb-12">
+        <div class="row between"><span class="faint" style="font-family:var(--mono);font-size:.72rem;" id="slNum">—</span><span class="badge" id="slStatus">—</span></div>
+        <h3 class="mt-8" id="slTitle">—</h3>
+      </div>
+      <div class="section-title">Слот</div>
+      <div class="card" id="slInfo"></div>
+      <div class="btn-row"><button class="btn btn-primary" id="shiftBtn">Сдвинуть срок</button></div>
+      <button class="btn btn-secondary mt-8" id="escBtn">⚠️ Эскалировать задержку</button>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="result-hero"><div class="check">✓</div><h2 id="actTitle">Готово</h2><p id="actText">Изменения внесены в план.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Слот</div><div class="t-num" id="actNum">—</div></div>
+      <button class="btn btn-primary mt-16" id="toPlan">К плану</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Планирование производства · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="b10.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

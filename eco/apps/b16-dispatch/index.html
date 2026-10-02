@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B16 · Диспетчер обращений — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  .tk { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border-2); cursor:pointer; }
+  .tk:last-child { border-bottom:none; }
+  .ch { display:inline-flex; align-items:center; justify-content:center; width:30px;height:30px;border-radius:9px;background:var(--accent-100);color:var(--accent-700);font-size:1rem;flex-shrink:0; }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Диспетчер обращений</h1><div class="subtitle" id="headerSubtitle">3DMP · Единый контакт-центр</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="stats mb-16">
+        <div class="stat"><div class="num accent" id="kOpen">—</div><div class="label">Новые</div></div>
+        <div class="stat"><div class="num warning" id="kWork">—</div><div class="label">В работе</div></div>
+        <div class="stat"><div class="num success" id="kClosed">—</div><div class="label">Закрыто</div></div>
+      </div>
+      <div class="chips" id="filters">
+        <div class="chip active" data-f="all">Все</div>
+        <div class="chip" data-f="new">Новые</div>
+        <div class="chip" data-f="work">В работе</div>
+        <div class="chip" data-f="sale">Продажи</div>
+        <div class="chip" data-f="service">Сервис</div>
+      </div>
+      <div class="card" id="tkList"></div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="card accent-left mb-12">
+        <div class="row between"><span class="faint" style="font-family:var(--mono);font-size:.72rem;" id="tNum">—</span><span class="badge" id="tStatus">—</span></div>
+        <h3 class="mt-8" id="tSubject">—</h3>
+        <div class="tag-row mt-8" id="tTags"></div>
+      </div>
+      <div class="section-title">Обращение</div>
+      <div class="card" id="tBody"></div>
+      <div class="section-title">Маршрутизация</div>
+      <div class="card">
+        <div class="field mb-0"><label>Отдел</label>
+          <select id="tDept"><option>Продажи</option><option>Сервис</option><option>Закупки</option><option>Финансы</option><option>HR</option><option>Техподдержка</option></select>
+        </div>
+      </div>
+      <button class="btn btn-primary mt-12" id="routeBtn">Назначить отдел →</button>
+      <div class="btn-row"><button class="btn btn-secondary" id="replyBtn">Ответить</button><button class="btn btn-secondary" id="closeBtn">Закрыть</button></div>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="result-hero"><div class="check">✓</div><h2 id="actTitle">Готово</h2><p id="actText">Обращение обработано.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Обращение</div><div class="t-num" id="actNum">—</div></div>
+      <button class="btn btn-primary mt-16" id="toList">К обращениям</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Диспетчер обращений · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="b16.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

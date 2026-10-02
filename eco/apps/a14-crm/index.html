@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A14 · CRM клиента и доступы — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  .tabs2 { display:flex; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--r-sm); padding:3px; margin-bottom:14px; }
+  .tabs2 button { flex:1; border:none; background:transparent; padding:10px 6px; border-radius:7px; font-weight:700; font-size:.76rem; color:var(--muted); cursor:pointer; }
+  .tabs2 button.active { background:var(--surface); color:var(--accent-700); box-shadow:var(--sh-xs); }
+  .contact { display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid var(--border-2); }
+  .contact:last-child { border-bottom:none; }
+  .member { border:2px solid var(--border); border-radius:var(--r-md); padding:14px; margin-bottom:10px; }
+  .member .mh { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .fn { display:inline-block; font-size:.74rem; font-weight:600; padding:6px 11px; border:2px solid var(--border); border-radius:999px; margin:3px 4px 0 0; cursor:pointer; user-select:none; }
+  .fn.on { border-color:var(--accent); background:var(--accent-50); color:var(--accent-700); }
+</style>
+</head>
+<body class="app-body" data-audience="clients">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">CRM и доступы</h1><div class="subtitle" id="headerSubtitle">3DMP · Контакты и команда</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="tabs2" id="tabs">
+        <button class="active" data-t="contacts">👥 Контакты</button>
+        <button data-t="team">🔑 Команда</button>
+        <button data-t="req">📝 Заявки</button>
+        <button data-t="log">🧾 Журнал</button>
+      </div>
+
+      <div id="tab-contacts">
+        <div class="callout info mb-12"><span class="ci">👥</span><div>Простая CRM: контакты вашей компании и история заявок по ним.</div></div>
+        <div class="card mb-12">
+          <div class="input-row">
+            <div class="field"><label>Имя / должность</label><input type="text" id="cName" placeholder="Иванов И.И., снабжение"></div>
+          </div>
+          <div class="input-row">
+            <div class="field"><label>Телефон</label><input type="tel" id="cPhone" placeholder="+7..."></div>
+            <div class="field"><label>Email</label><input type="email" id="cEmail" placeholder="mail@company.ru"></div>
+          </div>
+          <button class="btn btn-primary btn-sm" id="addContact" disabled>＋ Добавить контакт</button>
+        </div>
+        <div class="section-title">Контакты <span class="count" id="ctCount"></span></div>
+        <div class="card" id="ctList"></div>
+      </div>
+
+      <div id="tab-team" class="hidden">
+        <div class="callout info mb-12"><span class="ci">🔑</span><div>Делегируйте сотрудникам доступ по функциям: отметьте, какие сервисы доступны каждому.</div></div>
+        <div class="card mb-12">
+          <div class="input-row">
+            <div class="field"><label>Сотрудник</label><input type="text" id="mName" placeholder="Петров П.П."></div>
+            <div class="field"><label>Роль</label>
+              <select id="mRole"><option>Снабженец</option><option>Инженер</option><option>Менеджер</option><option>Сервис</option><option>Бухгалтер</option></select>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" id="addMember" disabled>＋ Добавить сотрудника</button>
+        </div>
+        <div class="section-title">Команда и доступы <span class="count" id="tmCount"></span></div>
+        <div id="tmList"></div>
+      </div>
+
+      <div id="tab-req" class="hidden">
+        <div class="section-title">Заявки компании <span class="count" id="rqCount"></span></div>
+        <div id="rqList"></div>
+      </div>
+
+      <div id="tab-log" class="hidden">
+        <div class="section-title">Журнал доступа и действий <span class="count" id="lgCount"></span></div>
+        <div class="card" id="lgList"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="card accent-left mb-12">
+        <div class="row between"><span class="faint" style="font-family:var(--mono);font-size:.72rem;" id="cardId">—</span><span class="badge accent">Карточка клиента</span></div>
+        <h3 class="mt-8" id="cardName">—</h3>
+        <div class="tag-row mt-8" id="cardContacts"></div>
+      </div>
+      <div class="section-title">Сводка</div>
+      <div class="card" id="cardSummary"></div>
+      <div class="section-title">Заявки</div>
+      <div class="card" id="cardRequests"></div>
+      <div class="section-title">Заказы</div>
+      <div class="card" id="cardOrders"></div>
+      <button class="btn btn-secondary mt-12" id="backCrm">← К CRM</button>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="result-hero"><div class="check">✓</div><h2 id="actTitle">Сохранено</h2><p id="actText">Изменения применены.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Сотрудник</div><div class="t-num" id="actNum">—</div></div>
+      <button class="btn btn-primary mt-16" id="toCrm">К CRM</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · CRM клиента и доступы · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="a14.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

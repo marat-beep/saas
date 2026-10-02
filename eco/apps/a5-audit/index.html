@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A5 · Аудит цифровой зрелости — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  .gauge-wrap { text-align:center; padding: 8px 0 4px; }
+  .gauge { width: 150px; height: 150px; margin: 0 auto; position: relative; }
+  .gauge svg { transform: rotate(-90deg); }
+  .gauge .g-val { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .gauge .g-val b { font-size: 2rem; font-weight: 800; }
+  .gauge .g-val span { font-size:.7rem; color:var(--muted); }
+  .level-badge { display:inline-block; margin-top:10px; padding:5px 14px; border-radius:var(--r-pill); font-weight:800; font-size:.8rem; }
+  .axis { margin-bottom: 12px; }
+  .axis .lbl { display:flex; justify-content:space-between; font-size:.76rem; margin-bottom:4px; }
+  .rec { display:flex; gap:10px; padding:10px 0; border-bottom:1px solid var(--border-2); }
+  .rec:last-child { border-bottom:none; }
+</style>
+</head>
+<body class="app-body" data-audience="clients">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block">
+      <h1 id="headerTitle">Аудит зрелости</h1>
+      <div class="subtitle" id="headerSubtitle">3DMP · Оценка за 2 минуты</div>
+    </div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s-intro">
+      <div class="result-hero" style="padding-top:10px;">
+        <div style="width:70px;height:70px;border-radius:20px;background:var(--accent-grad);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.9rem;margin:0 auto 16px;">📊</div>
+        <h2>Оцените цифровую зрелость</h2>
+        <p>6 вопросов о вашем производстве. На выходе — уровень, узкие места и план первоочередных шагов.</p>
+      </div>
+      <button class="btn btn-primary" id="startBtn">Начать аудит →</button>
+      <div class="callout info mt-12"><span class="ci">🔒</span><div>Ответы не публикуются и используются только для формирования рекомендаций.</div></div>
+    </section>
+
+    <section class="screen" id="s-quiz">
+      <div class="section-title" id="qStep">Вопрос 1 из 6</div>
+      <div class="progress mb-16"><span id="qBar" style="width:16%"></span></div>
+      <h2 id="qTitle" style="font-size:1.1rem;font-weight:800;margin-bottom:14px;"></h2>
+      <div class="option-grid" id="qOptions"></div>
+    </section>
+
+    <section class="screen" id="s-result">
+      <div class="gauge-wrap">
+        <div class="gauge">
+          <svg width="150" height="150" viewBox="0 0 150 150">
+            <circle cx="75" cy="75" r="66" fill="none" stroke="#e2e8f0" stroke-width="12"/>
+            <circle id="gArc" cx="75" cy="75" r="66" fill="none" stroke="var(--accent)" stroke-width="12" stroke-linecap="round" stroke-dasharray="414" stroke-dashoffset="414"/>
+          </svg>
+          <div class="g-val"><b id="gScore">0</b><span>из 100</span></div>
+        </div>
+        <div class="level-badge" id="levelBadge">—</div>
+      </div>
+      <div class="section-title">По направлениям</div>
+      <div class="card" id="axes"></div>
+      <div class="section-title">Узкие места</div>
+      <div id="weakList"></div>
+      <div class="section-title">Рекомендации</div>
+      <div class="card" id="recList"></div>
+      <button class="btn btn-primary mt-16" id="consultBtn">Получить консультацию →</button>
+      <button class="btn btn-secondary mt-8" id="restartBtn">Пройти заново</button>
+    </section>
+
+    <section class="screen" id="s-success">
+      <div class="result-hero">
+        <div class="check">✓</div>
+        <h2>Заявка на консультацию</h2>
+        <p>Специалист 3DMP свяжется с вами и предложит план цифровизации.</p>
+      </div>
+      <div class="ticket mb-16"><div class="t-label">Номер обращения</div><div class="t-num" id="ticketNum">—</div></div>
+      <div class="card">
+        <div class="row between"><span class="muted">Ваш уровень</span><b id="resLevel">—</b></div>
+        <div class="row between mt-8"><span class="muted">Балл зрелости</span><b id="resScore">—</b></div>
+        <div class="row between mt-8"><span class="muted">Фокус</span><b id="resFocus">—</b></div>
+      </div>
+      <button class="btn btn-primary mt-16" id="newBtn">Пройти заново</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Аудит цифровой зрелости · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="a5.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B22 · Мобильный пульт оператора — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  .p-row { display:flex; justify-content:space-between; align-items:center; padding:13px 0; border-bottom:1px solid var(--border-2); cursor:pointer; }
+  .p-row:last-child { border-bottom:none; }
+  .act-btn { display:flex; align-items:center; gap:12px; padding:16px; border-radius:var(--r-md); border:2px solid var(--border); background:var(--surface); cursor:pointer; margin-bottom:10px; text-align:left; width:100%; }
+  .act-btn.active { border-color:var(--accent); background:var(--accent-50); }
+  .act-btn .ai { font-size:1.5rem; }
+  .act-btn b { font-size:.9rem; } .act-btn span { font-size:.72rem; color:var(--muted); display:block; }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Мобильный пульт</h1><div class="subtitle" id="headerSubtitle">3DMP · Оператор у станка</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="section-title">Мои станки</div>
+      <div class="card" id="pList"></div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="card accent-left mb-12">
+        <div class="row between"><span class="faint" style="font-family:var(--mono);font-size:.72rem;" id="dId">—</span><span class="badge" id="dState">—</span></div>
+        <h3 class="mt-8" id="dTitle">—</h3>
+      </div>
+      <div class="section-title">Действие</div>
+      <div id="actions"></div>
+      <div class="field" id="commentWrap"><label>Комментарий / описание</label><textarea id="comment" placeholder="Опишите проблему, деталь или ситуацию"></textarea></div>
+      <button class="btn btn-primary" id="sendBtn" disabled>Отправить →</button>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="result-hero"><div class="check">✓</div><h2 id="actTitle">Отправлено</h2><p id="actText">Мастер получил уведомление.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Обращение</div><div class="t-num" id="actNum">—</div></div>
+      <button class="btn btn-primary mt-16" id="toList">К станкам</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Мобильный пульт оператора · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="b22.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

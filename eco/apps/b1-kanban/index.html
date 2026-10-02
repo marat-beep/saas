@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B1 · Канбан-доска производства — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  body.web-body { display:flex; flex-direction:column; min-height:100vh; }
+  .kb-header { background:var(--accent-grad); color:#fff; padding:14px 20px; display:flex; align-items:center; gap:14px; }
+  .kb-header .back { width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.16);border:none;color:#fff;font-size:1.05rem;cursor:pointer; }
+  .kb-header h1 { font-size:1.05rem; font-weight:800; }
+  .kb-header .sub { font-size:.72rem; opacity:.85; }
+  .kb-main { flex:1; padding:16px 20px 30px; overflow-y:auto; display:flex; flex-direction:column; }
+  .kb-toolbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
+  .board { display:flex; gap:12px; overflow-x:auto; flex:1; padding-bottom:8px; }
+  .col { min-width:270px; width:270px; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--r-md); display:flex; flex-direction:column; }
+  .col-head { padding:12px 14px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); }
+  .col-head b { font-size:.84rem; }
+  .col-head .cnt { font-size:.7rem; font-weight:700; background:var(--surface); border:1px solid var(--border); border-radius:var(--r-pill); padding:1px 8px; color:var(--muted); }
+  .col-body { padding:10px; display:flex; flex-direction:column; gap:8px; overflow-y:auto; flex:1; min-height:120px; }
+  .tcard { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-sm); padding:12px; cursor:pointer; box-shadow:var(--sh-xs); transition:transform var(--t-fast), box-shadow var(--t-fast); }
+  .tcard:hover { transform:translateY(-2px); box-shadow:var(--sh-md); }
+  .tcard.overdue { border-left:4px solid var(--danger); }
+  .tcard .num { font-family:var(--mono); font-size:.66rem; color:var(--faint); }
+  .tcard h4 { font-size:.82rem; font-weight:700; margin:4px 0 8px; line-height:1.35; }
+  .tcard .tags { display:flex; gap:5px; flex-wrap:wrap; }
+  .tcard .tag { font-size:.64rem; padding:2px 6px; }
+  .tcard .foot { display:flex; justify-content:space-between; align-items:center; margin-top:10px; }
+  .avatar { width:24px; height:24px; border-radius:50%; background:var(--accent-100); color:var(--accent-700); font-size:.62rem; font-weight:800; display:flex; align-items:center; justify-content:center; }
+  .due { font-size:.68rem; font-weight:600; color:var(--muted); }
+  .due.overdue { color:var(--danger); }
+  .alerts { display:flex; gap:8px; flex-wrap:wrap; }
+  .alert-pill { font-size:.74rem; font-weight:600; padding:6px 11px; border-radius:var(--r-pill); background:var(--danger-bg); color:#b91c1c; }
+  .alert-pill.ok { background:var(--success-bg); color:#15803d; }
+  .wb { max-width:760px; margin:0 auto; width:100%; }
+</style>
+</head>
+<body class="web-body" data-audience="staff">
+
+<header class="kb-header">
+  <button class="back" id="backBtn" hidden>←</button>
+  <div><h1 id="headerTitle">Канбан-доска производства</h1><div class="sub" id="headerSubtitle">3DMP · Цех · синхронизировано с 1С</div></div>
+  <div style="margin-left:auto;"><button class="header-action" id="homeBtn" style="background:rgba(255,255,255,.16);border:none;color:#fff;padding:7px 11px;border-radius:6px;cursor:pointer;font-weight:600;font-size:.74rem;">Хаб</button></div>
+</header>
+
+<main class="kb-main" id="content">
+
+  <!-- Доска -->
+  <section class="screen active" id="s1">
+    <div class="kb-toolbar">
+      <div class="chips" style="margin:0;" id="filters">
+        <div class="chip active" data-f="all">Все</div>
+        <div class="chip" data-f="mine">Мои</div>
+        <div class="chip" data-f="urgent">Срочные</div>
+        <div class="chip" data-f="cnc">ЧПУ</div>
+      </div>
+      <div class="alerts" style="margin-left:auto;" id="alerts"></div>
+    </div>
+    <div class="board" id="board"></div>
+  </section>
+
+  <!-- Задача -->
+  <section class="screen" id="s2">
+    <div class="wb">
+      <div class="card accent-left">
+        <div class="row between"><span class="faint" style="font-family:var(--mono);font-size:.72rem;" id="tkNum">—</span><span class="badge" id="tkPrio">—</span></div>
+        <h3 class="mt-8" id="tkTitle">—</h3>
+        <div class="tag-row mt-8" id="tkTags"></div>
+      </div>
+
+      <div class="section-title">Этапы</div>
+      <div class="card">
+        <div class="progress mb-12"><span id="tkProgress" style="width:0%"></span></div>
+        <div id="tkStages"></div>
+      </div>
+
+      <div class="section-title">Информация</div>
+      <div class="card" id="tkInfo"></div>
+
+      <div class="section-title">Действия</div>
+      <div class="btn-row" style="margin-top:0;">
+        <button class="btn btn-primary" id="advanceBtn">Перевести на этап →</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary btn-sm" id="commentBtn" style="width:auto;flex:1;">💬 Комментарий</button>
+        <button class="btn btn-secondary btn-sm" id="fileBtn" style="width:auto;flex:1;">📎 Файл</button>
+        <button class="btn btn-secondary btn-sm" id="problemBtn" style="width:auto;flex:1;">⚠️ Проблема</button>
+        <button class="btn btn-secondary btn-sm" id="drawingBtn" style="width:auto;flex:1;">📐 Чертёж</button>
+      </div>
+
+      <div class="section-title">Комментарии <span class="count" id="cmCount"></span></div>
+      <div id="tkComments"></div>
+      <div class="row mt-12">
+        <input class="input" id="commentInput" placeholder="Написать комментарий…" style="flex:1;">
+        <button class="btn btn-primary" id="sendComment" style="width:auto;padding:12px 16px;">→</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="app-footer">3DMP · Канбан-доска производства · демо-режим</footer>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="b1.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

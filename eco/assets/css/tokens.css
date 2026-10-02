@@ -1,0 +1,137 @@
+/* ============================================================
+   3DMP · Экосистема цифровых сервисов
+   Дизайн-токены: цвета, типографика, отступы, тени, радиусы
+   ============================================================ */
+
+:root {
+  /* Бренд (основной — зелёный, тема клиентов) */
+  --brand-50:  #ecfdf5;
+  --brand-100: #d1fae5;
+  --brand-200: #a7f3d0;
+  --brand-300: #6ee7b7;
+  --brand-400: #34d399;
+  --brand-500: #10b981;
+  --brand-600: #059669;
+  --brand-700: #047857;
+  --brand-800: #065f46;
+  --brand-900: #064e3b;
+
+  /* Нейтральные */
+  --bg:       #f6f8fb;
+  --surface:  #ffffff;
+  --surface-2:#f8fafc;
+  --text:     #0f172a;
+  --text-2:   #475569;
+  --muted:    #64748b;
+  --faint:    #94a3b8;
+  --border:   #e2e8f0;
+  --border-2: #f1f5f9;
+
+  /* Статусы */
+  --success:  #16a34a;
+  --success-bg:#dcfce7;
+  --warning:  #d97706;
+  --warning-bg:#fef3c7;
+  --danger:   #dc2626;
+  --danger-bg:#fee2e2;
+  --info:     #0369a1;
+  --info-bg:  #e0f2fe;
+
+  /* Акцент по аудитории (переопределяется через data-audience) */
+  --accent:     var(--brand-500);
+  --accent-600: var(--brand-600);
+  --accent-700: var(--brand-700);
+  --accent-50:  var(--brand-50);
+  --accent-100: var(--brand-100);
+  --accent-200: var(--brand-200);
+  --accent-grad: linear-gradient(135deg, var(--brand-800) 0%, var(--brand-500) 100%);
+
+  /* Радиусы */
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --r-xl: 26px;
+  --r-pill: 999px;
+
+  /* Тени */
+  --sh-xs: 0 1px 2px rgba(15, 23, 42, .06);
+  --sh-sm: 0 1px 3px rgba(15, 23, 42, .08);
+  --sh-md: 0 6px 18px rgba(15, 23, 42, .08);
+  --sh-lg: 0 18px 48px rgba(15, 23, 42, .16);
+  --sh-accent: 0 6px 18px rgba(16, 185, 129, .35);
+
+  /* Типографика */
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+
+  /* Размеры оболочки */
+  --shell-w: 460px;
+  --shell-h: 880px;
+  --header-h: 60px;
+
+  /* Анимации */
+  --t-fast: .15s ease;
+  --t: .22s ease;
+}
+
+/* Аудитория: клиенты — зелёный (по умолчанию) */
+[data-audience="clients"] {
+  --accent: #10b981; --accent-600: #059669; --accent-700: #047857;
+  --accent-50: #ecfdf5; --accent-100: #d1fae5; --accent-200: #a7f3d0;
+  --accent-grad: linear-gradient(135deg, #064e3b 0%, #10b981 100%);
+}
+
+/* Аудитория: сотрудники — индиго */
+[data-audience="staff"] {
+  --accent: #6366f1; --accent-600: #4f46e5; --accent-700: #4338ca;
+  --accent-50: #eef2ff; --accent-100: #e0e7ff; --accent-200: #c7d2fe;
+  --accent-grad: linear-gradient(135deg, #312e81 0%, #6366f1 100%);
+}
+
+/* Аудитория: партнёры — бирюза */
+[data-audience="partners"] {
+  --accent: #0891b2; --accent-600: #0e7490; --accent-700: #155e75;
+  --accent-50: #ecfeff; --accent-100: #cffafe; --accent-200: #a5f3fc;
+  --accent-grad: linear-gradient(135deg, #164e63 0%, #06b6d4 100%);
+}
+
+/* Аудитория: платформа SaaS — фиолетовый */
+[data-audience="platform"] {
+  --accent: #7c3aed; --accent-600: #6d28d9; --accent-700: #5b21b6;
+  --accent-50: #f5f3ff; --accent-100: #ede9fe; --accent-200: #ddd6fe;
+  --accent-grad: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
+}
+
+/* Аудитория: маркетплейс — оранжевый */
+[data-audience="marketplace"] {
+  --accent: #ea580c; --accent-600: #c2410c; --accent-700: #9a3412;
+  --accent-50: #fff7ed; --accent-100: #ffedd5; --accent-200: #fed7aa;
+  --accent-grad: linear-gradient(135deg, #9a3412 0%, #ea580c 100%);
+}
+
+/* ============================================================
+   Тёмная тема (сквозная, включается через data-theme="dark")
+   ============================================================ */
+html[data-theme="dark"], html.dark {
+  color-scheme: dark;
+  --bg:        #0b1120;
+  --surface:   #111827;
+  --surface-2: #0f172a;
+  --text:      #e5e7eb;
+  --text-2:    #cbd5e1;
+  --muted:     #94a3b8;
+  --faint:     #64748b;
+  --border:    #1f2937;
+  --border-2:  #1e293b;
+
+  --success-bg:#052e16; --warning-bg:#3f2d0a; --danger-bg:#3f1414; --info-bg:#082f49;
+
+  --sh-xs: 0 1px 2px rgba(0,0,0,.4);
+  --sh-sm: 0 1px 3px rgba(0,0,0,.5);
+  --sh-md: 0 6px 18px rgba(0,0,0,.5);
+  --sh-lg: 0 18px 48px rgba(0,0,0,.6);
+}
+html[data-theme="dark"] .content::-webkit-scrollbar-thumb, html.dark .content::-webkit-scrollbar-thumb { background:#334155; }
+html[data-theme="dark"] body.web-body, html.dark body.web-body { background: var(--bg); }
+html[data-theme="dark"] .app-footer, html.dark .app-footer { background:#0d1424; }

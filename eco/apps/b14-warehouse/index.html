@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B14 · Склад материалов и закупки — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  .mat-row { display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid var(--border-2); }
+  .mat-row:last-child { border-bottom:none; }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Склад материалов</h1><div class="subtitle" id="headerSubtitle">3DMP · Остатки и закупки</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="stats mb-16">
+        <div class="stat"><div class="num accent" id="wSku">—</div><div class="label">Позиций</div></div>
+        <div class="stat"><div class="num danger" id="wLow">—</div><div class="label">Ниже минимума</div></div>
+        <div class="stat"><div class="num info" id="wReq">—</div><div class="label">Заявок</div></div>
+      </div>
+      <div class="section-title">Остатки материалов <span class="count" id="matCount"></span></div>
+      <div class="card" id="matList"></div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="card accent-left mb-12">
+        <div class="row between"><span class="faint" style="font-family:var(--mono);font-size:.72rem;" id="mNum">—</span><span class="badge" id="mBadge">—</span></div>
+        <h3 class="mt-8" id="mTitle">—</h3>
+        <div class="tag-row mt-8" id="mTags"></div>
+      </div>
+      <div class="section-title">Остаток</div>
+      <div class="card" id="mInfo"></div>
+      <div class="section-title">Последние движения</div>
+      <div class="card" id="mMoves"></div>
+      <div class="btn-row"><button class="btn btn-primary" id="reqBtn">Заявка на закупку</button></div>
+      <button class="btn btn-secondary mt-8" id="issueBtn">Списать в производство</button>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="result-hero"><div class="check">✓</div><h2 id="actTitle">Готово</h2><p id="actText">Операция выполнена.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Документ</div><div class="t-num" id="actNum">—</div></div>
+      <button class="btn btn-primary mt-16" id="toList">Назад</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Склад материалов · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="b14.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

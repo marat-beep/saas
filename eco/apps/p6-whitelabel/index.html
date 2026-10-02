@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P6 · White-label порталы — 3DMP Cloud</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  body.web-body { display:flex; flex-direction:column; min-height:100vh; }
+  .topbar { background:var(--accent-grad); color:#fff; padding:14px 22px; display:flex; align-items:center; gap:18px; position:sticky; top:0; z-index:20; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:800; }
+  .brand .logo { width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,.18); display:flex; align-items:center; justify-content:center; }
+  .main { flex:1; padding:26px 0 50px; }
+  .portal-row { display:flex; align-items:center; gap:12px; padding:14px; border:1px solid var(--border); border-radius:var(--r-md); background:var(--surface); margin-bottom:10px; cursor:pointer; }
+  .portal-row:hover { border-color:var(--accent); }
+  .portal-logo { width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; color:#fff; flex-shrink:0; }
+  .swatches { display:flex; gap:8px; }
+  .swatch { width:34px; height:34px; border-radius:50%; cursor:pointer; border:3px solid transparent; }
+  .swatch.on { border-color:var(--text); }
+  .preview-shell { max-width:360px; border:1px solid var(--border); border-radius:var(--r-md); overflow:hidden; box-shadow:var(--sh-md); }
+  .preview-shell .p-head { color:#fff; padding:16px; display:flex; align-items:center; gap:10px; }
+  .preview-shell .p-body { padding:16px; background:var(--surface); }
+</style>
+</head>
+<body class="web-body" data-audience="platform">
+
+<header class="topbar">
+  <div class="brand"><span class="logo">🎨</span> White-label порталы</div>
+  <div style="margin-left:auto;"><button class="btn btn-ghost btn-sm" id="homeBtn" style="color:#fff;border-color:rgba(255,255,255,.4);">← Хаб</button></div>
+</header>
+
+<main class="main">
+  <div class="web-container">
+
+    <section class="screen active" id="s1">
+      <div class="page-title">Порталы тенанта</div>
+      <div class="page-sub">Брендированные порталы для клиентов и партнёров вашего завода.</div>
+      <div id="portalList"></div>
+      <button class="btn btn-primary" style="width:auto;padding:13px 22px;margin-top:8px;" id="createPortal">＋ Новый портал</button>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="page-title">Настройка бренда</div>
+      <div class="page-sub">Название, иконка, цвет и домен портала.</div>
+      <div class="card mb-12">
+        <div class="field"><label>Название портала</label><input type="text" id="wlName" value="Портал Пресс-Технологии"></div>
+        <div class="field"><label>Иконка</label><select id="wlIcon"><option>🏭</option><option>⚙️</option><option>🛠</option><option>📦</option><option>🚀</option></select></div>
+        <div class="field"><label>Поддомен</label><input type="text" id="wlDomain" value="press-tech"></div>
+        <div class="field mb-0"><label>Акцентный цвет</label>
+          <div class="swatches" id="swatches"></div>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:auto;padding:13px 22px;" id="toPreview">Предпросмотр →</button>
+      <button class="btn btn-secondary" style="width:auto;padding:13px 22px;margin-left:8px;" id="cancel">Отмена</button>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="page-title">Предпросмотр портала</div>
+      <div class="page-sub">Так портал увидят ваши клиенты.</div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
+        <div class="preview-shell" id="previewShell">
+          <div class="p-head" id="pvHead"></div>
+          <div class="p-body">
+            <div class="card mb-8"><b>Личный кабинет заказчика</b><div class="muted" style="font-size:.78rem;margin-top:4px;">Заказы, статусы, документы</div></div>
+            <div class="card mb-8"><b>Портал закупок</b><div class="muted" style="font-size:.78rem;margin-top:4px;">Витрина и подача КП</div></div>
+            <div class="card"><b>Маркетплейс мощностей</b><div class="muted" style="font-size:.78rem;margin-top:4px;">Кооперация и субподряд</div></div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:220px;">
+          <div class="card"><div class="muted" style="font-size:.78rem;">Адрес</div><div id="pvDomain" style="font-weight:700;margin-top:4px;">—</div></div>
+          <button class="btn btn-primary mt-16" id="publish">Опубликовать портал →</button>
+          <button class="btn btn-secondary mt-8" id="backBrand">Назад</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="s4">
+      <div class="result-hero"><div class="check">✓</div><h2>Портал опубликован</h2><p>White-label портал доступен по вашему поддомену.</p></div>
+      <div class="ticket mb-16" style="max-width:420px;margin:0 auto 16px;"><div class="t-label">Адрес</div><div class="t-num" id="pubDomain">—</div></div>
+      <div class="text-center"><button class="btn btn-primary" style="width:auto;padding:13px 22px;" id="backList">К порталам</button></div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="app-footer">3DMP Cloud · White-label · демо-режим</footer>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="p6.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

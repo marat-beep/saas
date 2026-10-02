@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P14 · Нормирование PRO (SaaS) — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  body.web-body { display:flex; flex-direction:column; min-height:100vh; }
+  .topbar { background:var(--accent-grad); color:#fff; padding:14px 22px; display:flex; align-items:center; gap:14px; position:sticky; top:0; z-index:20; flex-wrap:wrap; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:800; }
+  .brand .logo { width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,.18); display:flex; align-items:center; justify-content:center; }
+  .topnav { display:flex; gap:4px; flex-wrap:wrap; margin-left:8px; }
+  .topnav button { background:transparent; border:none; color:rgba(255,255,255,.85); font-weight:600; font-size:.8rem; padding:8px 11px; border-radius:8px; cursor:pointer; }
+  .topnav button:hover, .topnav button.active { background:rgba(255,255,255,.16); color:#fff; }
+  .main { flex:1; padding:24px 0 50px; }
+  .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; }
+  .mrow { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border-2); font-size:.84rem; }
+  .mrow:last-child { border-bottom:none; }
+  .mrow .nm { flex:1; }
+  .badge.r { background:var(--success-bg); color:var(--success); }
+  .badge.p { background:var(--warning-bg); color:var(--warning); }
+  .badge.x { background:var(--border-2); color:var(--text-2); }
+</style>
+</head>
+<body class="web-body" data-audience="platform">
+
+<header class="topbar">
+  <div class="brand"><span class="logo">🧮</span> Нормирование PRO · SaaS</div>
+  <nav class="topnav" id="nav">
+    <button class="active" data-s="s-ov">Обзор</button>
+    <button data-s="s-mod">Модули</button>
+    <button data-s="s-plan">Тенант и план</button>
+    <button data-s="s-road">Дорожная карта</button>
+  </nav>
+  <div style="margin-left:auto;"><button class="btn btn-ghost btn-sm" id="homeBtn" style="color:#fff;border-color:rgba(255,255,255,.4);">← Хаб</button></div>
+</header>
+
+<main class="main">
+  <div class="web-container">
+
+    <section class="screen active" id="s-ov">
+      <div class="page-title">Нормирование PRO в экосистеме 3DMP</div>
+      <div class="page-sub">ERP-логика «Нормирования» перенесена в мультитенантную SaaS-модель экосистемы: расчёты, спецификации, планирование, экономика, справочники, отчёты.</div>
+      <div class="kpi-grid mb-16" id="kpi"></div>
+      <div class="section-title">Ключевые модули</div>
+      <div class="card" id="ovList"></div>
+    </section>
+
+    <section class="screen" id="s-mod">
+      <div class="page-title">Карта модулей</div>
+      <div class="page-sub">Соответствие модулей «Нормирования PRO» приложениям экосистемы.</div>
+      <div class="card" id="modList"></div>
+    </section>
+
+    <section class="screen" id="s-plan">
+      <div class="page-title">Тенант и план</div>
+      <div class="page-sub">Продукт продаётся тенантам по модулям; тарифы, white-label и биллинг — в P1/P5/P6.</div>
+      <div class="card mb-16" id="planCard"></div>
+      <div class="section-title">Состав модулей (feature flags)</div>
+      <div class="card" id="flagCard"></div>
+      <div class="btn-row" style="margin-top:16px;"><a class="btn btn-primary" href="../p15-export/index.html" style="text-decoration:none;width:auto;padding:12px 20px;">🗂 Центр экспорта и отчётов</a><a class="btn btn-secondary" href="../p1-cloud/index.html" style="text-decoration:none;width:auto;padding:12px 20px;">Открыть P1 Cloud</a></div>
+    </section>
+
+    <section class="screen" id="s-road">
+      <div class="page-title">Дорожная карта интеграции</div>
+      <div class="page-sub">Сессии переноса и закрытия пробелов.</div>
+      <div class="card" id="roadList"></div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="app-footer">3DMP · Нормирование PRO (SaaS) · демо-режим</footer>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="p14.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

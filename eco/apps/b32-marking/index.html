@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B32 · Маркировка: децимальные номера и QR — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  #qrBox { display:flex; align-items:center; justify-content:center; }
+  #qrBox canvas, #qrBox img { display:block; }
+  .label-preview { background:#fff; color:#0f172a; border:2px solid #0f172a; border-radius:10px; padding:12px; display:flex; gap:12px; align-items:center; }
+  .label-preview .lp { font-family:var(--mono); }
+  .label-preview .lp .big { font-size:.95rem; font-weight:800; }
+  .label-preview .lp .sm { font-size:.68rem; color:#334155; }
+  .dec { font-family:var(--mono); font-size:1.05rem; font-weight:800; letter-spacing:.5px; }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Маркировка</h1><div class="subtitle" id="headerSubtitle">3DMP · Децимальные номера и QR</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="field"><label>Тип объекта</label><select id="type">
+        <option value="drawing">Чертёж</option><option value="part">Деталь</option><option value="assembly">Сборочная единица</option>
+        <option value="tool">Инструмент</option><option value="fixture">Оснастка</option><option value="machine">Станок / оборудование</option>
+      </select></div>
+      <div class="field"><label>Код организации (4 знака)</label><input type="text" id="org" maxlength="4" value="ЗДМП"></div>
+      <div class="field"><label>Классификационная характеристика</label><select id="cls"></select></div>
+      <div class="input-row">
+        <div class="field"><label>Порядковый номер (3)</label><input type="number" id="serial" min="1" max="999" value="1"></div>
+        <div class="field"><label>Код документа (2)</label><input type="text" id="doc" maxlength="2" value="00"></div>
+      </div>
+      <div class="field"><label>Наименование</label><input type="text" id="name" placeholder="Формообразующая плита"></div>
+      <button class="btn btn-primary mt-12" id="genBtn">Сформировать номер и QR →</button>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="card mb-12">
+        <div class="faint" style="font-size:.7rem;">Децимальный номер (ГОСТ 2.201)</div>
+        <div class="dec" id="decNum">—</div>
+      </div>
+      <div class="section-title">Ярлык</div>
+      <div class="label-preview mb-12" id="labelPrev">
+        <div id="qrBox" style="width:120px;height:120px;flex-shrink:0;"></div>
+        <div class="lp"><div class="big" id="lpName">—</div><div class="sm" id="lpDec">—</div><div class="sm" id="lpType">—</div><div class="sm" id="lpDate">—</div></div>
+      </div>
+      <div class="section-title">Содержимое QR</div>
+      <div class="card"><pre class="gcode" id="qrPayload" style="background:#0f172a;color:#e2e8f0;padding:12px;border-radius:10px;font-size:.72rem;overflow:auto;font-family:var(--mono);">—</pre></div>
+      <div class="btn-row"><button class="btn btn-primary" id="dlPng">⬇ Скачать PNG</button><button class="btn btn-secondary" id="printBtn">🖨 Печать</button></div>
+      <button class="btn btn-secondary mt-8" id="saveBtn">Сохранить в реестр →</button>
+      <button class="btn btn-secondary mt-8" id="editBtn">Изменить</button>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="result-hero"><div class="check">✓</div><h2>Маркировка сохранена</h2><p>Ярлык добавлен в реестр, QR доступен для печати.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Децимальный номер</div><div class="t-num" id="actNum">—</div></div>
+      <button class="btn btn-primary mt-16" id="againBtn">Новый ярлык</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Маркировка и децимальные номера · демо-режим</footer>
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="b32.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

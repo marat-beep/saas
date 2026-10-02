@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P9 · Административная панель — 3DMP Cloud</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  body.web-body { display:flex; flex-direction:column; min-height:100vh; }
+  .topbar { background:var(--accent-grad); color:#fff; padding:14px 22px; display:flex; align-items:center; gap:14px; position:sticky; top:0; z-index:20; flex-wrap:wrap; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:800; }
+  .brand .logo { width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,.18); display:flex; align-items:center; justify-content:center; }
+  .topnav { display:flex; gap:4px; flex-wrap:wrap; margin-left:8px; }
+  .topnav button { background:transparent; border:none; color:rgba(255,255,255,.85); font-weight:600; font-size:.8rem; padding:8px 11px; border-radius:8px; cursor:pointer; }
+  .topnav button:hover, .topnav button.active { background:rgba(255,255,255,.16); color:#fff; }
+  .main { flex:1; padding:24px 0 50px; }
+  .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; }
+  .svc { display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid var(--border-2); }
+  .svc:last-child { border-bottom:none; }
+  .trow { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border-2); }
+  .trow:last-child { border-bottom:none; }
+  .tlogo { width:38px;height:38px;border-radius:10px;background:var(--accent-100);color:var(--accent-700);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0; }
+  .switch { width:42px;height:24px;border-radius:999px;background:var(--border);position:relative;cursor:pointer;flex-shrink:0;transition:background .2s; }
+  .switch::after { content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2); }
+  .switch.on { background:var(--accent); } .switch.on::after { left:21px; }
+  .mod-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border-2); font-size:.82rem; }
+  .mod-row:last-child { border-bottom:none; }
+  .log-row { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border-2); font-size:.8rem; }
+  .log-row:last-child { border-bottom:none; }
+</style>
+</head>
+<body class="web-body" data-audience="platform">
+
+<header class="topbar">
+  <div class="brand"><span class="logo">🛡</span> 3DMP Cloud · Админ</div>
+  <nav class="topnav" id="nav">
+    <button class="active" data-s="s-overview">Обзор</button>
+    <button data-s="s-org">Организация</button>
+    <button data-s="s-tenants">Тенанты</button>
+    <button data-s="s-users">Пользователи</button>
+    <button data-s="s-modules">Модули</button>
+    <button data-s="s-dash">Дашборды</button>
+    <button data-s="s-audit">Аудит</button>
+    <button data-s="s-settings">Настройки</button>
+  </nav>
+  <div style="margin-left:auto;"><button class="btn btn-ghost btn-sm" id="homeBtn" style="color:#fff;border-color:rgba(255,255,255,.4);">← Хаб</button></div>
+</header>
+
+<main class="main">
+  <div class="web-container">
+
+    <section class="screen active" id="s-overview">
+      <div class="page-title">Обзор платформы</div>
+      <div class="page-sub">Ключевые показатели и статус сервисов.</div>
+      <div class="kpi-grid mb-16" id="kpiGrid"></div>
+      <div class="section-title">Статус сервисов</div>
+      <div class="card" id="svcList"></div>
+      <div class="section-title">Мониторинг и поддержка</div>
+      <div class="card" id="supportCard"></div>
+    </section>
+
+    <section class="screen" id="s-org">
+      <div class="page-title">Организация</div>
+      <div class="page-sub">Размер предприятия и рекомендуемый набор модулей.</div>
+      <div class="card mb-12" id="orgCard"></div>
+      <div class="section-title">Рекомендуемые модули</div>
+      <div class="card mb-16" id="orgModules"></div>
+      <div class="btn-row" style="max-width:640px;">
+        <button class="btn btn-primary" id="applyPreset">Применить пресет</button>
+        <a class="btn btn-secondary" href="../p13-org/index.html" style="text-decoration:none;">Подразделения и иерархия (P13)</a>
+      </div>
+    </section>
+
+    <section class="screen" id="s-dash">
+      <div class="page-title">Дашборды</div>
+      <div class="page-sub">Сводные показатели платформы.</div>
+      <div class="kpi-grid mb-16" id="dashKpi"></div>
+      <div class="section-title">Тенанты по тарифам</div>
+      <div class="card mb-16" id="dashPlans"></div>
+      <div class="section-title">Модули по группам</div>
+      <div class="card" id="dashGroups"></div>
+    </section>
+
+    <section class="screen" id="s-tenants">
+      <div class="page-title">Тенанты и подписки</div>
+      <div class="page-sub">Заводы на платформе, тарифы и модули.</div>
+      <div class="card" id="tenantList"></div>
+    </section>
+
+    <section class="screen" id="s-users">
+      <div class="page-title">Пользователи и доступы</div>
+      <div class="page-sub">Платформенные роли и делегирование внутри компаний клиентов.</div>
+      <div class="section-title">Пользователи платформы</div>
+      <div class="card" id="userList"></div>
+      <div class="section-title">Делегирование (A14)</div>
+      <div class="card" id="delegList"></div>
+    </section>
+
+    <section class="screen" id="s-modules">
+      <div class="page-title">Модули и feature flags</div>
+      <div class="page-sub">Включение и выключение приложений экосистемы.</div>
+      <div class="grid two" id="moduleGroups"></div>
+    </section>
+
+    <section class="screen" id="s-audit">
+      <div class="page-title">Аудит действий</div>
+      <div class="page-sub">Журнал доступа и изменений (единый слой).</div>
+      <div class="row mb-8" style="gap:10px;flex-wrap:wrap;">
+        <select id="auditUser" style="width:auto;"><option value="">Все пользователи</option></select>
+        <select id="auditPeriod" style="width:auto;"><option value="all">За всё время</option><option value="today">Сегодня</option><option value="7">Последние 7 дней</option></select>
+      </div>
+      <div class="chips" id="auditFilters">
+        <div class="chip active" data-f="all">Все</div>
+        <div class="chip" data-f="access">Доступы</div>
+        <div class="chip" data-f="other">Прочее</div>
+      </div>
+      <div class="card" id="logList"></div>
+      <div class="btn-row" style="max-width:520px;">
+        <button class="btn btn-secondary" id="expLog">Экспорт журнала</button>
+        <button class="btn btn-secondary" id="clrLog">Очистить журнал</button>
+      </div>
+    </section>
+
+    <section class="screen" id="s-settings">
+      <div class="page-title">Настройки системы</div>
+      <div class="page-sub">Тема, демо-данные, версия каталога.</div>
+      <div class="card mb-12">
+        <div class="row between"><div><b>Тема интерфейса</b><div class="faint" style="font-size:.74rem;">Светлая / тёмная, сохраняется локально</div></div><button class="btn btn-secondary btn-sm" data-theme-toggle="label">🌙 Тема</button></div>
+      </div>
+      <div class="card mb-12">
+        <div class="row between"><div><b>Демо-данные</b><div class="faint" style="font-size:.74rem;">Профиль, заявки, команда, журнал</div></div><button class="btn btn-secondary btn-sm" id="resetAll">↺ Сбросить всё</button></div>
+      </div>
+      <div class="card mb-12">
+        <div class="row between"><div><b>Режим разработки</b><div class="faint" style="font-size:.74rem;">Быстрый доступ к диагностике self-test</div></div><div class="row" style="gap:10px;"><div class="switch" id="devSwitchAdmin"></div><a class="tag" href="../p10-diagnostics/index.html">Открыть P10</a></div></div>
+      </div>
+      <div class="card mb-12">
+        <div class="row between"><div><b>Размер шрифта</b><div class="faint" style="font-size:.74rem;">Масштаб интерфейса (80–150%)</div></div>
+          <div class="row" style="gap:8px;"><button class="btn btn-secondary btn-sm" id="fontMinus">A−</button><b data-font-scale style="min-width:48px;text-align:center;">100%</b><button class="btn btn-secondary btn-sm" id="fontPlus">A+</button><button class="btn btn-secondary btn-sm" id="fontReset">Сброс</button></div>
+        </div>
+      </div>
+      <div class="section-title">Версия каталога</div>
+      <div class="card" id="verCard"></div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="app-footer">3DMP Cloud · Административная панель · демо-режим</footer>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="p9.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

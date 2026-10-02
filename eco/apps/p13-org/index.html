@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P13 · Подразделения и иерархия — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  .tabs2 { display:flex; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--r-sm); padding:3px; margin-bottom:12px; }
+  .tabs2 button { flex:1; border:none; background:transparent; padding:9px 4px; border-radius:7px; font-weight:700; font-size:.72rem; color:var(--muted); cursor:pointer; }
+  .tabs2 button.active { background:var(--surface); color:var(--accent-700); box-shadow:var(--sh-xs); }
+  .row2 { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border-2); font-size:.82rem; }
+  .row2:last-child { border-bottom:none; }
+  .tree { font-size:.82rem; line-height:1.9; }
+  .tree .n0 { font-weight:800; }
+  .tree .n1 { margin-left:16px; font-weight:700; color:var(--accent-700); }
+  .tree .n2 { margin-left:34px; }
+</style>
+</head>
+<body class="app-body" data-audience="platform">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Подразделения и иерархия</h1><div class="subtitle" id="headerSubtitle">3DMP · Структура предприятия</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+    <section class="screen active" id="s1">
+      <div class="tabs2" id="tabs">
+        <button class="active" data-t="org">Подразделения</button>
+        <button data-t="staff">Сотрудники</button>
+        <button data-t="chart">Схема</button>
+        <button data-t="access">Доступы</button>
+      </div>
+      <div id="body"></div>
+    </section>
+  </div>
+
+  <footer class="app-footer">3DMP · Подразделения и иерархия · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="p13.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

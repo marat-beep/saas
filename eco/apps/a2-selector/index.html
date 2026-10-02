@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A2 · Мастер подбора технологии — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  .quiz-progress { margin: 2px 0 16px; }
+  .quiz-progress .lbl { display: flex; justify-content: space-between; font-size: .72rem; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+  .tech-card { border-left: 4px solid var(--accent); }
+  .tech-card.best { border-left-width: 5px; box-shadow: 0 6px 20px rgba(16,185,129,.15); }
+  .match { font-size: .72rem; font-weight: 800; color: var(--accent-700); }
+  .preview3d {
+    height: 120px; border-radius: var(--r-sm); margin-bottom: 12px;
+    background:
+      linear-gradient(rgba(15,23,42,.05) 1px, transparent 1px) 0 0 / 20px 20px,
+      linear-gradient(90deg, rgba(15,23,42,.05) 1px, transparent 1px) 0 0 / 20px 20px,
+      linear-gradient(135deg, var(--accent-50), var(--accent-100));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.4rem; border: 1px solid var(--accent-200);
+  }
+</style>
+</head>
+<body class="app-body" data-audience="clients">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden title="Назад">←</button>
+    <div class="title-block">
+      <h1 id="headerTitle">Мастер подбора технологии</h1>
+      <div class="subtitle" id="headerSubtitle">3DMP · 4 вопроса</div>
+    </div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <!-- Старт -->
+    <section class="screen active" id="s-intro">
+      <div class="result-hero" style="padding-top:10px;">
+        <div style="width:70px;height:70px;border-radius:20px;background:var(--accent-grad);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.9rem;margin:0 auto 16px;">🧭</div>
+        <h2>Подберём технологию</h2>
+        <p>Ответьте на 4 вопроса — система предложит подходящие способы производства с оценкой совпадения и ориентиром по цене.</p>
+      </div>
+      <div class="card">
+        <div class="row between"><span class="muted">🎯 Задача</span><span>изготовление</span></div>
+        <div class="row between mt-8"><span class="muted">🧱 Материал</span><span>металл</span></div>
+        <div class="row between mt-8"><span class="muted">🎚 Точность</span><span>стандарт</span></div>
+        <div class="row between mt-8"><span class="muted">📦 Объём</span><span>единично</span></div>
+      </div>
+      <button class="btn btn-primary mt-16" id="startBtn">Начать подбор →</button>
+    </section>
+
+    <!-- Квиз (динамический) -->
+    <section class="screen" id="s-quiz">
+      <div class="quiz-progress">
+        <div class="lbl"><span id="qStep">Вопрос 1 из 4</span><span id="qPct">25%</span></div>
+        <div class="progress"><span id="qBar" style="width:25%"></span></div>
+      </div>
+      <h2 id="qTitle" style="font-size:1.1rem;font-weight:800;margin-bottom:14px;"></h2>
+      <div class="option-grid" id="qOptions"></div>
+    </section>
+
+    <!-- Результат -->
+    <section class="screen" id="s-result">
+      <div class="section-title">Рекомендации <span class="count" id="resCount"></span></div>
+      <div id="resList"></div>
+      <button class="btn btn-primary mt-12" id="requestBtn">Оформить заявку на лучшую →</button>
+      <button class="btn btn-secondary mt-8" id="restartBtn">Пройти заново</button>
+      <div class="callout info mt-12"><span class="ci">ℹ️</span><div>Итоговую технологию подтвердит инженер после анализа чертежа.</div></div>
+    </section>
+
+    <!-- Успех -->
+    <section class="screen" id="s-success">
+      <div class="result-hero">
+        <div class="check">✓</div>
+        <h2>Заявка оформлена!</h2>
+        <p>Инженер проверит деталь и предложит оптимальный техпроцесс.</p>
+      </div>
+      <div class="ticket mb-16">
+        <div class="t-label">Номер заявки</div>
+        <div class="t-num" id="ticketNum">—</div>
+      </div>
+      <div class="card" id="successTech"></div>
+      <button class="btn btn-primary mt-16" id="newBtn">Новый подбор</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Мастер подбора технологии · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="a2.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

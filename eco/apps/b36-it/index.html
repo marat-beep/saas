@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B36 · ИТ-инфраструктура предприятия — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  .tabs2 { display:flex; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--r-sm); padding:3px; margin-bottom:12px; }
+  .tabs2 button { flex:1; border:none; background:transparent; padding:9px 3px; border-radius:7px; font-weight:700; font-size:.68rem; color:var(--muted); cursor:pointer; }
+  .tabs2 button.active { background:var(--surface); color:var(--accent-700); box-shadow:var(--sh-xs); }
+  .ref { display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px solid var(--border-2); font-size:.8rem; }
+  .ref:last-child { border-bottom:none; }
+  .ref .r { text-align:right; color:var(--muted); font-size:.74rem; }
+  .chk { display:flex; gap:10px; align-items:center; padding:9px 0; border-bottom:1px solid var(--border-2); cursor:pointer; font-size:.82rem; }
+  .chk:last-child { border-bottom:none; }
+  .chk .box { width:20px;height:20px;border-radius:5px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.62rem;flex-shrink:0; }
+  .chk.done .box { background:var(--accent); border-color:var(--accent); }
+  .chk.done .lbl { text-decoration:line-through; color:var(--muted); }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">ИТ-инфраструктура</h1><div class="subtitle" id="headerSubtitle">3DMP · Сеть и администрирование</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+    <section class="screen active" id="s1">
+      <div class="callout info mb-12"><span class="ci">🛡</span><div>Как организовать ИТ и сеть на предприятии: сегментация, оборудование, подключение станков, резервное копирование и чек-лист. Технический путь — в P12.</div></div>
+      <div class="tabs2" id="tabs">
+        <button class="active" data-t="net">Сеть</button>
+        <button data-t="equip">Оборудование</button>
+        <button data-t="cnc">Станки</button>
+        <button data-t="backup">Резерв</button>
+        <button data-t="check">Чек-лист</button>
+      </div>
+      <div class="card" id="list"></div>
+      <a class="btn btn-secondary mt-12" href="../p12-techroad/index.html" style="text-decoration:none;">🗺 Технический путь (P12)</a>
+    </section>
+  </div>
+
+  <footer class="app-footer">3DMP · ИТ-инфраструктура предприятия · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="b36.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A3 · Кабинет заказчика — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  .tracker { position: relative; padding-left: 28px; }
+  .tracker::before { content:''; position:absolute; left:9px; top:6px; bottom:6px; width:2px; background:var(--border); }
+  .tr-item { position: relative; padding: 0 0 16px; }
+  .tr-item:last-child { padding-bottom: 0; }
+  .tr-item .dot { position:absolute; left:-24px; top:2px; width:18px; height:18px; border-radius:50%; background:var(--surface); border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:.6rem; color:#fff; }
+  .tr-item.done .dot { background:var(--accent); border-color:var(--accent); }
+  .tr-item.current .dot { background:var(--accent); border-color:var(--accent); box-shadow:0 0 0 4px var(--accent-100); }
+  .tr-item.done .tr-title, .tr-item.current .tr-title { color:var(--text); font-weight:700; }
+  .tr-title { font-size:.84rem; font-weight:600; color:var(--muted); }
+  .tr-date { font-size:.7rem; color:var(--faint); }
+  .doc-item { display:flex; align-items:center; gap:12px; padding:10px; background:var(--surface-2); border-radius:var(--r-sm); margin-bottom:6px; cursor:pointer; }
+</style>
+</head>
+<body class="app-body" data-audience="clients">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block">
+      <h1 id="headerTitle">Кабинет заказчика</h1>
+      <div class="subtitle" id="headerSubtitle">3DMP · Личный кабинет</div>
+    </div>
+    <div class="spacer"></div>
+    <button class="header-action" id="logoutBtn" hidden>Выйти</button>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <!-- Вход -->
+    <section class="screen active" id="s-login">
+      <div class="result-hero" style="padding-top:6px;">
+        <div style="width:66px;height:66px;border-radius:18px;background:var(--accent-grad);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 14px;">🖥</div>
+        <h2>Вход в кабинет</h2>
+        <p>Отслеживайте статус заказов, документы и отгрузку.</p>
+      </div>
+      <div class="card">
+        <div class="field"><label>Email или телефон</label><input type="text" id="loginUser" placeholder="ivanov@company.ru"></div>
+        <div class="field"><label>Пароль</label><input type="password" id="loginPass" placeholder="••••••••"></div>
+        <button class="btn btn-primary" id="loginBtn" disabled>Войти →</button>
+      </div>
+      <div class="callout info mt-12"><span class="ci">💡</span><div>Демо-режим: введите любые данные для входа.</div></div>
+    </section>
+
+    <!-- Дашборд -->
+    <section class="screen" id="s-dashboard">
+      <div class="mb-16">
+        <div class="muted" style="font-size:.82rem;">Добро пожаловать,</div>
+        <div style="font-size:1.15rem;font-weight:800;" id="companyName">ООО «Ваша компания»</div>
+        <span class="badge success mt-8">✓ Проверенный клиент</span>
+      </div>
+      <div class="stats mb-16">
+        <div class="stat"><div class="num accent" id="stActive">0</div><div class="label">В работе</div></div>
+        <div class="stat"><div class="num success" id="stDone">0</div><div class="label">Выполнено</div></div>
+        <div class="stat"><div class="num info" id="stMoney">0</div><div class="label">Сумма, ₽</div></div>
+      </div>
+      <div class="section-title">Новые заявки <span class="count" id="reqCount"></span></div>
+      <div id="reqList" class="mb-16"></div>
+      <div class="section-title">Мои заказы <span class="count" id="ordersCount"></span></div>
+      <div class="chips" id="filterChips">
+        <div class="chip active" data-f="all">Все</div>
+        <div class="chip" data-f="work">В работе</div>
+        <div class="chip" data-f="done">Выполнено</div>
+      </div>
+      <div id="ordersList"></div>
+    </section>
+
+    <!-- Детали заказа -->
+    <section class="screen" id="s-order">
+      <div class="card accent-left mb-12">
+        <div class="row between"><span class="faint" style="font-family:var(--mono);font-size:.72rem;" id="oNum">—</span><span class="badge" id="oBadge">—</span></div>
+        <h3 class="mt-8" id="oTitle">—</h3>
+        <div class="tag-row mt-8" id="oTags"></div>
+      </div>
+      <div class="section-title">Статус выполнения</div>
+      <div class="card"><div class="tracker" id="tracker"></div></div>
+      <div class="section-title">Информация</div>
+      <div class="card" id="oInfo"></div>
+      <div class="section-title">Документы</div>
+      <div class="card" id="oDocs"></div>
+      <button class="btn btn-secondary mt-12" id="supportBtn">💬 Задать вопрос по заказу</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Кабинет заказчика · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="a3.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

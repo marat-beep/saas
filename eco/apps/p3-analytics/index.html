@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P3 · Отраслевая аналитика — 3DMP Cloud</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  body.web-body { display:flex; flex-direction:column; min-height:100vh; }
+  .topbar { background:var(--accent-grad); color:#fff; padding:14px 22px; display:flex; align-items:center; gap:14px; position:sticky; top:0; z-index:20; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:800; }
+  .brand .logo { width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,.18); display:flex; align-items:center; justify-content:center; }
+  .main { flex:1; padding:26px 0 50px; }
+  .seg-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+  .bm { margin-bottom:16px; }
+  .bm .lbl { display:flex; justify-content:space-between; font-size:.82rem; margin-bottom:6px; }
+  .bm .track { height:10px; background:var(--border-2); border-radius:999px; overflow:hidden; display:flex; }
+  .bm .track i { display:block; height:100%; }
+  .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; }
+</style>
+</head>
+<body class="web-body" data-audience="platform">
+
+<header class="topbar">
+  <div class="brand"><span class="logo">📊</span> Отраслевая аналитика</div>
+  <div style="margin-left:auto;"><button class="btn btn-ghost btn-sm" id="homeBtn" style="color:#fff;border-color:rgba(255,255,255,.4);">← Хаб</button></div>
+</header>
+
+<main class="main">
+  <div class="web-container">
+
+    <section class="screen active" id="s1">
+      <div class="page-title">Обзор отрасли</div>
+      <div class="page-sub">Агрегированные данные платформы: цены, сроки, загрузка, качество. Данные обезличены.</div>
+      <div class="seg-row" id="industryTabs">
+        <div class="chip active" data-ind="mech">Механообработка</div>
+        <div class="chip" data-ind="tool">Инструмент и штампы</div>
+        <div class="chip" data-ind="laser">Лазерная резка</div>
+        <div class="chip" data-ind="heat">Термообработка</div>
+      </div>
+      <div class="kpi-grid mb-16" id="kpiGrid"></div>
+      <button class="btn btn-primary" style="width:auto;padding:13px 22px;" id="toBench">Бенчмарки по технологиям →</button>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="page-title">Бенчмарки</div>
+      <div class="page-sub">Ваши показатели против средних по платформе.</div>
+      <div class="card mb-16" id="benchList"></div>
+      <button class="btn btn-primary" style="width:auto;padding:13px 22px;" id="toReport">Отчёт и выгрузка →</button>
+      <button class="btn btn-secondary" style="width:auto;padding:13px 22px;margin-left:8px;" id="back1">Назад</button>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="page-title">Отчёт</div>
+      <div class="page-sub">Сводка по отрасли «<span id="repInd">—</span>».</div>
+      <div class="card mb-16" id="repBody"></div>
+      <button class="btn btn-primary" style="width:auto;padding:13px 22px;" id="exportBtn">Скачать отчёт (XLSX/PDF) →</button>
+      <div class="callout info mt-16" style="max-width:640px;"><span class="ci">ℹ️</span><div>Данные агрегированы по всем тенантам платформы, обезличены и обновляются еженедельно.</div></div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="app-footer">3DMP Cloud · Отраслевая аналитика · демо-режим</footer>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="p3.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

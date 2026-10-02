@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P8 · Доступ и роли — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  .role-card { display:flex; gap:12px; align-items:flex-start; padding:14px; border:2px solid var(--border); border-radius:var(--r-md); background:var(--surface); cursor:pointer; margin-bottom:10px; }
+  .role-card.active { border-color:var(--accent); background:var(--accent-50); }
+  .role-card .ri { font-size:1.6rem; }
+  .role-card b { font-size:.92rem; } .role-card span { font-size:.74rem; color:var(--muted); display:block; }
+  .u-row { display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid var(--border-2); }
+  .u-row:last-child { border-bottom:none; }
+  .matrix td, .matrix th { padding:9px; font-size:.76rem; text-align:center; border-bottom:1px solid var(--border-2); }
+  .matrix th:first-child, .matrix td:first-child { text-align:left; }
+  .yes { color:var(--success); font-weight:800; } .no { color:var(--faint); }
+</style>
+</head>
+<body class="app-body" data-audience="platform">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Доступ и роли</h1><div class="subtitle" id="headerSubtitle">3DMP · Права и режимы</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="callout info mb-16"><span class="ci">🛡</span><div>Режим доступа определяет, какие группы приложений видны в хабе. Выберите роль ниже.</div></div>
+      <div id="roleList"></div>
+      <div class="section-title">Матрица доступа</div>
+      <div class="card" style="overflow:auto;"><table class="matrix" id="matrix"></table></div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="section-title">Пользователи <span class="count" id="uCount"></span></div>
+      <div class="card" id="userList"></div>
+      <div class="section-title">Делегирование внутри клиентов (A14)</div>
+      <div class="card" id="delegList"></div>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="result-hero"><div class="check">✓</div><h2>Роль обновлена</h2><p>Режим доступа применён в системе.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Текущий режим</div><div class="t-num" id="curRole">—</div></div>
+      <button class="btn btn-primary mt-16" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Доступ и роли · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+  <script defer src="p8.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B33 · Конструктор документов — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  .rowitem { display:grid; grid-template-columns:1fr 60px 90px 28px; gap:6px; margin-bottom:6px; align-items:center; }
+  .rowitem input { min-height:38px; padding:8px 10px; font-size:.8rem; }
+  .rowitem .rm { border:none; background:transparent; color:var(--danger); cursor:pointer; font-size:1rem; }
+  .doc { background:#fff; color:#0f172a; padding:22px; border-radius:10px; font-size:.8rem; line-height:1.5; }
+  .doc h1 { font-size:1.05rem; text-align:center; margin-bottom:4px; }
+  .doc .meta { text-align:center; color:#475569; font-size:.72rem; margin-bottom:14px; }
+  .doc table { width:100%; border-collapse:collapse; margin:10px 0; }
+  .doc th, .doc td { border:1px solid #cbd5e1; padding:6px 8px; font-size:.74rem; text-align:left; }
+  .doc th { background:#f1f5f9; }
+  .doc .tot { text-align:right; font-weight:700; }
+  .doc .sign { margin-top:18px; display:flex; justify-content:space-between; font-size:.72rem; }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Конструктор документов</h1><div class="subtitle" id="headerSubtitle">3DMP · КП · договоры · наряды · техкарты</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="field"><label>Тип документа</label><select id="dtype">
+        <option value="kp">Коммерческое предложение (КП)</option>
+        <option value="contract">Договор</option>
+        <option value="naryad">Наряд</option>
+        <option value="techcard">Технологическая карта</option>
+      </select></div>
+      <div class="input-row">
+        <div class="field"><label>Номер</label><input type="text" id="dnum"></div>
+        <div class="field"><label>Дата</label><input type="text" id="ddate"></div>
+      </div>
+      <div class="input-row">
+        <div class="field"><label>Заказчик</label><input type="text" id="dclient" placeholder="ООО «Привод»"></div>
+        <div class="field"><label>Контакт</label><input type="text" id="dcontact" placeholder="Иванов И.И."></div>
+      </div>
+      <div class="field"><label>Предмет / примечание</label><textarea id="dsubject" placeholder="Изготовление пресс-формы втулки"></textarea></div>
+      <div class="section-title">Позиции <span class="count" id="rowCount"></span></div>
+      <div id="items"></div>
+      <button class="btn btn-secondary btn-sm mt-8" id="addRow">＋ Добавить позицию</button>
+      <div class="row between mt-12" style="font-size:.86rem;"><span class="muted">Итого с НДС 22%</span><b id="dTotal">0 ₽</b></div>
+      <button class="btn btn-primary mt-12" id="buildBtn">Сформировать документ →</button>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="doc mb-12" id="docView"></div>
+      <div class="btn-row"><button class="btn btn-primary" id="printBtn">🖨 Печать / PDF</button><button class="btn btn-secondary" id="copyBtn">Копировать</button></div>
+      <button class="btn btn-secondary mt-8" id="saveBtn">Сохранить в реестр →</button>
+      <button class="btn btn-secondary mt-8" id="editBtn">Изменить</button>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="result-hero"><div class="check">✓</div><h2>Документ сохранён</h2><p>Документ добавлен в реестр и готов к печати.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Документ</div><div class="t-num" id="actNum">—</div></div>
+      <button class="btn btn-primary mt-16" id="againBtn">Новый документ</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Конструктор документов · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="b33.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B34 · Калькулятор металлопроката — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  body.web-body { display:flex; flex-direction:column; min-height:100vh; }
+  .topbar { background:var(--accent-grad); color:#fff; padding:14px 22px; display:flex; align-items:center; gap:14px; position:sticky; top:0; z-index:20; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:800; }
+  .brand .logo { width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,.18); display:flex; align-items:center; justify-content:center; }
+  .main { flex:1; padding:22px 0 50px; }
+  .calc-grid { display:grid; grid-template-columns: 1.1fr .9fr; gap:16px; align-items:start; }
+  @media (max-width: 900px) { .calc-grid { grid-template-columns: 1fr; } }
+  .panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); padding:16px; margin-bottom:16px; }
+  .panel h3 { font-size:.78rem; text-transform:uppercase; letter-spacing:.5px; color:var(--text-2); margin-bottom:12px; }
+  .seg { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .seg button { padding:12px 6px; border:2px solid var(--border); background:var(--surface-2); border-radius:10px; font-weight:700; font-size:.84rem; color:var(--text-2); cursor:pointer; }
+  .seg button.active { border-color:var(--accent); background:var(--accent-50); color:var(--accent-700); }
+  .presets { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .presets button { padding:5px 9px; border:1px solid var(--border); background:var(--surface-2); border-radius:7px; font-size:.74rem; font-weight:600; color:var(--text-2); cursor:pointer; }
+  .presets button:hover { border-color:var(--accent); color:var(--accent-700); }
+  .res-row { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border-2); font-size:.84rem; }
+  .res-row:last-child { border-bottom:none; }
+  .res-row.total { border-top:2px solid var(--border); margin-top:6px; padding-top:12px; font-weight:800; }
+  .res-big { background:var(--accent-grad); color:#fff; border-radius:12px; padding:16px; text-align:center; margin-bottom:12px; }
+  .res-big .n { font-size:2rem; font-weight:800; }
+  .scheme svg { width:100%; height:180px; }
+</style>
+</head>
+<body class="web-body" data-audience="staff">
+
+<header class="topbar">
+  <div class="brand"><span class="logo">📦</span> Калькулятор металлопроката</div>
+  <div style="margin-left:auto;"><button class="btn btn-ghost btn-sm" id="homeBtn" style="color:#fff;border-color:rgba(255,255,255,.4);">← Хаб</button></div>
+</header>
+
+<main class="main">
+  <div class="web-container">
+    <div class="calc-grid">
+
+      <div>
+        <div class="panel">
+          <h3>Тип заготовки</h3>
+          <div class="seg" id="typeSeg">
+            <button class="active" data-t="round">Круг</button>
+            <button data-t="rect">Прямоугольник</button>
+            <button data-t="pipe">Труба</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Параметры (мм)</h3>
+          <div id="params"></div>
+
+          <div class="field mt-12"><label>Длина заготовки, мм</label><input type="number" id="len" value="1000"></div>
+          <div class="presets" id="lenPresets"></div>
+
+          <div class="field mt-12"><label>Количество</label><input type="number" id="qty" value="1" min="1"></div>
+        </div>
+
+        <div class="panel">
+          <h3>Материал и цена</h3>
+          <div class="field"><label>Материал</label><select id="mat"></select><div class="hint" id="matHint"></div></div>
+          <label class="row" style="cursor:pointer;font-size:.82rem;font-weight:600;"><input type="checkbox" id="manualRho" style="width:auto;margin-right:8px;"> Плотность вручную</label>
+          <div class="field mt-8" id="rhoWrap" style="display:none;"><label>Плотность, кг/м³</label><input type="number" id="rho" value="7850"></div>
+          <div class="input-row mt-8">
+            <div class="field"><label>Цена, ₽/кг без НДС</label><input type="number" id="price" value="800"></div>
+            <div class="field"><label>НДС</label><select id="vat"><option value="20">20%</option><option value="22" selected>22%</option><option value="10">10%</option><option value="0">Без НДС</option></select></div>
+          </div>
+          <div class="btn-row" style="margin-top:12px;">
+            <button class="btn btn-primary" id="applyBtn">📋 Применить к позиции</button>
+            <button class="btn btn-secondary" id="clearBtn">Очистить</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <h3>Результат</h3>
+          <div class="res-big"><div style="font-size:.74rem;opacity:.9;">Вес партии</div><div class="n" id="batchOut">— кг</div><div style="font-size:.72rem;opacity:.9;" id="batchSub">—</div></div>
+          <div id="resList"></div>
+        </div>
+        <div class="panel scheme">
+          <h3>Схема</h3>
+          <div id="scheme"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<footer class="app-footer">3DMP · Калькулятор металлопроката · демо-режим</footer>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="b34.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

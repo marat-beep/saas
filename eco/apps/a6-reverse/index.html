@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A6 · Реверс-инжиниринг — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  .method { display:flex; gap:12px; align-items:flex-start; padding:13px; background:var(--surface); border:2px solid var(--border); border-radius:var(--r-sm); cursor:pointer; transition:all var(--t-fast); }
+  .method.selected { border-color:var(--accent); background:var(--accent-50); }
+  .method .m-check { width:22px; height:22px; border-radius:6px; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; color:#fff; font-size:.7rem; flex-shrink:0; margin-top:1px; }
+  .method.selected .m-check { background:var(--accent); border-color:var(--accent); }
+  .step-plan { display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--border-2); }
+  .step-plan:last-child { border-bottom:none; }
+  .step-plan .n { width:28px; height:28px; border-radius:50%; background:var(--accent-100); color:var(--accent-700); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:.78rem; flex-shrink:0; }
+</style>
+</head>
+<body class="app-body" data-audience="clients">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block">
+      <h1 id="headerTitle">Реверс-инжиниринг</h1>
+      <div class="subtitle" id="headerSubtitle">3DMP · Восстановление по образцу</div>
+    </div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="callout info mb-16"><span class="ci">🔍</span><div>Нет чертежа? Изготовим деталь по образцу: обмерим, построим CAD-модель и воспроизведём.</div></div>
+      <div class="section-title">Образец</div>
+      <div class="card text-center" id="sampleZone" style="cursor:pointer;border-style:dashed;">
+        <div style="font-size:2rem;">📦</div>
+        <h3 class="mt-8">Прикрепите фото / 3D-скан образца</h3>
+        <p class="muted" style="font-size:.76rem;margin-top:4px;">JPG, PNG, STL, OBJ · нажмите, чтобы добавить</p>
+      </div>
+      <div id="sampleList" class="mt-12"></div>
+      <div class="field mt-16"><label>Название детали / назначение</label><input type="text" id="partName" placeholder="Напр. шестерня редуктора"></div>
+      <div class="field mb-0"><label>Материал (если известен)</label><input type="text" id="partMat" placeholder="Сталь 40Х"></div>
+      <button class="btn btn-primary mt-16" id="toS2">Далее →</button>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="section-title">Методы обмера <span class="count">выберите нужные</span></div>
+      <div class="option-grid" id="methods"></div>
+      <button class="btn btn-primary mt-16" id="toS3">Построить план работ →</button>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="callout success mb-16"><span class="ci">📐</span><div>Предварительный план работ сформирован. Итог уточнит инженер после осмотра образца.</div></div>
+      <div class="section-title">Этапы работ</div>
+      <div class="card" id="planCard"></div>
+      <div class="section-title">Оценка</div>
+      <div class="card" id="costCard"></div>
+      <button class="btn btn-primary mt-16" id="submitBtn">Отправить заявку →</button>
+      <button class="btn btn-secondary mt-8" id="editBtn">Изменить методы</button>
+    </section>
+
+    <section class="screen" id="s4">
+      <div class="result-hero"><div class="check">✓</div><h2>Заявка отправлена!</h2><p>Инженер свяжется для уточнения деталей и сроков.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Номер заявки</div><div class="t-num" id="ticketNum">—</div></div>
+      <div class="card" id="resCard"></div>
+      <button class="btn btn-primary mt-16" id="newBtn">Новая заявка</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Реверс-инжиниринг · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="a6.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

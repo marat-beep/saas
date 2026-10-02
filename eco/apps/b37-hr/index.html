@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B37 · Кадры: личные дела — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  .emp { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid var(--border-2); cursor:pointer; }
+  .emp:last-child { border-bottom:none; }
+  .avatar { width:38px;height:38px;border-radius:10px;background:var(--accent-100);color:var(--accent-700);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0; }
+  .tl { position:relative; padding-left:24px; }
+  .tl::before { content:''; position:absolute; left:7px; top:6px; bottom:6px; width:2px; background:var(--border); }
+  .tl-item { position:relative; padding-bottom:12px; }
+  .tl-item:last-child { padding-bottom:0; }
+  .tl-item .dot { position:absolute; left:-21px; top:2px; width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid var(--surface); }
+  .tl-t { font-size:.82rem; font-weight:600; }
+  .tl-m { font-size:.68rem; color:var(--faint); }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Кадры: личные дела</h1><div class="subtitle" id="headerSubtitle">3DMP · HR и история</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <input class="input mb-12" id="search" placeholder="Поиск сотрудника…">
+      <div class="section-title">Сотрудники <span class="count" id="eCount"></span></div>
+      <div class="card" id="empList"></div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="card accent-left mb-12">
+        <div class="row" style="gap:12px;"><div class="avatar" id="dAv">—</div><div><h3 class="mb-0" id="dName">—</h3><div class="faint" style="font-size:.72rem;" id="dRole">—</div></div></div>
+        <div class="tag-row mt-8" id="dTags"></div>
+      </div>
+      <div class="section-title">Личные данные</div>
+      <div class="card" id="dInfo"></div>
+      <div class="section-title">История</div>
+      <div class="card"><div class="tl" id="dHistory"></div></div>
+      <div class="section-title">Добавить запись</div>
+      <div class="card">
+        <div class="input-row">
+          <div class="field"><label>Тип</label><select id="recType"><option>Приём на работу</option><option>Обучение</option><option>Аттестация</option><option>Повышение</option><option>Награда</option><option>Замечание</option><option>Перевод</option></select></div>
+          <div class="field"><label>Дата</label><input type="text" id="recDate" value=""></div>
+        </div>
+        <div class="field mb-0"><label>Описание</label><input type="text" id="recText" placeholder="Напр. Повышение разряда"></div>
+        <button class="btn btn-primary btn-sm mt-12" id="addRec" disabled>＋ Добавить в дело</button>
+      </div>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="result-hero"><div class="check">✓</div><h2>Запись добавлена</h2><p>История сотрудника обновлена.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Сотрудник</div><div class="t-num" id="actNum">—</div></div>
+      <button class="btn btn-primary mt-16" id="toList">К сотрудникам</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Кадры: личные дела · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="b37.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

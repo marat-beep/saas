@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B7 · Бережливое производство — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  .kpi-5s { background:var(--accent-grad); color:#fff; border-radius:var(--r-md); padding:16px; margin-bottom:14px; }
+  .kpi-5s .big { font-size:2rem; font-weight:800; }
+  .idea { border-left:4px solid var(--accent); }
+  .idea.done { border-left-color:var(--success); }
+  .idea.rejected { border-left-color:var(--muted); }
+  .s5-item { padding:12px 0; border-bottom:1px solid var(--border-2); }
+  .s5-item:last-child { border-bottom:none; }
+  .s5-scale { display:flex; gap:6px; margin-top:8px; }
+  .s5-scale button { flex:1; padding:9px 0; border:2px solid var(--border); background:var(--surface); border-radius:8px; font-weight:700; font-size:.8rem; cursor:pointer; color:var(--muted); }
+  .s5-scale button.on { border-color:var(--accent); background:var(--accent-50); color:var(--accent-700); }
+  .tabs2 { display:flex; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--r-sm); padding:3px; margin-bottom:12px; }
+  .tabs2 button { flex:1; border:none; background:transparent; padding:9px 4px; border-radius:7px; font-weight:700; font-size:.74rem; color:var(--muted); cursor:pointer; }
+  .tabs2 button.active { background:var(--surface); color:var(--accent-700); box-shadow:var(--sh-xs); }
+  .init { padding:10px 0; border-bottom:1px solid var(--border-2); }
+  .init:last-child { border-bottom:none; }
+  .init .bar { height:6px; border-radius:3px; background:var(--accent-grad); margin-top:6px; }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Бережливое производство</h1><div class="subtitle" id="headerSubtitle">3DMP · Кайдзен и 5S</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="tabs2" id="lvTabs">
+        <button class="active" data-l="strat">🎯 Стратег.</button>
+        <button data-l="tact">📊 Тактич.</button>
+        <button data-l="oper">🔧 Операц.</button>
+      </div>
+      <div id="lvBody" class="mb-16"></div>
+
+      <div class="section-title">Ежедневный инструмент · Журнал потерь</div>
+      <div class="card mb-16">
+        <div class="input-row">
+          <div class="field"><label>Вид потерь</label><select id="lossType"></select></div>
+          <div class="field"><label>Стоимость, ₽</label><input type="number" id="lossCost" value="0"></div>
+        </div>
+        <div class="field mb-0"><label>Описание</label><input type="text" id="lossText" placeholder="Напр. ожидание материала, мин/руб"></div>
+        <button class="btn btn-secondary btn-sm mt-8" id="addLoss" disabled>＋ Зафиксировать потерю</button>
+        <div id="lossList" class="mt-12"></div>
+      </div>
+
+      <div class="kpi-5s">
+        <div class="row between"><span style="font-size:.8rem;opacity:.9;">Индекс 5S цеха</span><span class="badge" style="background:rgba(255,255,255,.2);color:#fff;" id="s5Badge">—</span></div>
+        <div class="big" id="s5Score">—</div>
+        <div style="font-size:.74rem;opacity:.9;">последний аудит: <span id="s5Date">—</span></div>
+      </div>
+      <div class="stats mb-16">
+        <div class="stat"><div class="num accent" id="kIdeas">0</div><div class="label">Предложений</div></div>
+        <div class="stat"><div class="num success" id="kDone">0</div><div class="label">Внедрено</div></div>
+        <div class="stat"><div class="num info" id="kSave">0</div><div class="label">Экономия, ₽</div></div>
+      </div>
+      <div class="btn-row" style="margin-top:0;">
+        <button class="btn btn-primary" id="newIdeaBtn">💡 Предложить улучшение</button>
+        <button class="btn btn-secondary" id="auditBtn">📋 Провести 5S-аудит</button>
+      </div>
+      <div class="section-title">Кайдзен-предложения <span class="count" id="ideaCount"></span></div>
+      <div class="chips" id="filters">
+        <div class="chip active" data-f="all">Все</div>
+        <div class="chip" data-f="new">Новые</div>
+        <div class="chip" data-f="done">Внедрено</div>
+      </div>
+      <div id="ideaList"></div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="card idea" id="ideaHero">
+        <div class="row between"><span class="faint" style="font-family:var(--mono);font-size:.72rem;" id="iNum">—</span><span class="badge" id="iStatus">—</span></div>
+        <h3 class="mt-8" id="iTitle">—</h3>
+        <div class="tag-row mt-8" id="iTags"></div>
+      </div>
+      <div class="section-title">Суть предложения</div>
+      <div class="card" id="iDesc"></div>
+      <div class="section-title">Эффект</div>
+      <div class="card" id="iEffect"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="approveBtn">Одобрить</button>
+        <button class="btn btn-secondary" id="rejectBtn">Отклонить</button>
+      </div>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="section-title">Новое предложение</div>
+      <div class="card">
+        <div class="field"><label>Тема</label><input type="text" id="nTitle" placeholder="Кратко: что улучшить"></div>
+        <div class="field"><label>Тип улучшения</label>
+          <select id="nCat"><option>Организация рабочих мест</option><option>Снижение брака</option><option>Ускорение операций</option><option>Экономия материалов</option><option>Безопасность</option></select>
+        </div>
+        <div class="field mb-0"><label>Описание и ожидаемый эффект</label><textarea id="nDesc" placeholder="Что предлагаете и какой эффект ожидаете"></textarea></div>
+      </div>
+      <button class="btn btn-primary mt-12" id="sendIdea" disabled>Отправить предложение →</button>
+      <button class="btn btn-secondary mt-8" id="backDash">Назад</button>
+    </section>
+
+    <section class="screen" id="s4">
+      <div class="section-title">5S-аудит рабочего участка</div>
+      <div class="card" id="s5List"></div>
+      <div class="price-highlight mt-12">
+        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--accent-700);margin-bottom:6px;">Текущий балл</div>
+        <div id="s5Total" style="font-size:1.4rem;font-weight:800;color:#4338ca;">—</div>
+      </div>
+      <button class="btn btn-primary mt-12" id="saveAudit">Сохранить аудит →</button>
+      <button class="btn btn-secondary mt-8" id="backDash2">Назад</button>
+    </section>
+
+    <section class="screen" id="s5">
+      <div class="result-hero"><div class="check">✓</div><h2 id="successTitle">Готово</h2><p id="successText">Запись сохранена.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Номер</div><div class="t-num" id="successNum">—</div></div>
+      <button class="btn btn-primary mt-16" id="toDash">На главную</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Бережливое производство · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="b7.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

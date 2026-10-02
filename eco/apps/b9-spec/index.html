@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B9 · Спецификации и BOM — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  .item-row { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border-2); font-size:.8rem; }
+  .item-row:last-child { border-bottom:none; }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Спецификации</h1><div class="subtitle" id="headerSubtitle">3DMP · Состав и смета</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="callout info mb-16"><span class="ci">📋</span><div>Спецификации заказов: состав позиций, нормы и итоговая смета. Новые позиции приходят из нормирования (B8).</div></div>
+      <div class="section-title">Заказы <span class="count" id="specCount"></span></div>
+      <div id="specList"></div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="card accent-left mb-12">
+        <div class="row between"><span class="faint" style="font-family:var(--mono);font-size:.72rem;" id="dOrder">—</span><span class="badge" id="dStatus">—</span></div>
+        <h3 class="mt-8" id="dTitle">—</h3>
+      </div>
+      <div class="section-title">Позиции <span class="count" id="dItemsCount"></span></div>
+      <div class="card" id="dItems"></div>
+      <div class="section-title">Смета</div>
+      <div class="card" id="dTotals"></div>
+      <button class="btn btn-primary mt-12" id="kpBtn">Оформить КП →</button>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="result-hero"><div class="check">✓</div><h2>Спецификация сформирована</h2><p>Смета и состав переданы менеджеру для коммерческого предложения.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Спецификация</div><div class="t-num" id="specNum">—</div></div>
+      <div class="card" id="specCard"></div>
+      <button class="btn btn-primary mt-16" id="toList">К спецификациям</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Спецификации и BOM · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="b9.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

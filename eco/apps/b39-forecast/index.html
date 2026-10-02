@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B39 · Прогноз загрузки — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  .bars { display:flex; align-items:flex-end; gap:8px; height:160px; padding:10px 0; overflow-x:auto; }
+  .bars .b { flex:1; min-width:38px; background:var(--accent-grad); border-radius:6px 6px 0 0; position:relative; min-height:4px; }
+  .bars .b.over { background:linear-gradient(135deg,#991b1b,#ef4444); }
+  .bars .b.low { background:linear-gradient(135deg,#b45309,#f59e0b); }
+  .bars .b span { position:absolute; top:-15px; left:0; right:0; text-align:center; font-size:.6rem; color:var(--muted); }
+  .bars .b i { position:absolute; bottom:-18px; left:0; right:0; text-align:center; font-size:.6rem; color:var(--faint); font-style:normal; }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Прогноз загрузки</h1><div class="subtitle" id="headerSubtitle">3DMP · Мощности</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+    <section class="screen active" id="s1">
+      <div class="input-row">
+        <div class="field"><label>Текущая загрузка, %</label><input type="number" id="base" value="72" min="0" max="200"></div>
+        <div class="field"><label>Тренд, %/мес</label><input type="number" id="trend" value="3" step="0.5"></div>
+      </div>
+      <div class="input-row">
+        <div class="field"><label>Ёмкость, ч/мес</label><input type="number" id="cap" value="3600"></div>
+        <div class="field"><label>Горизонт, мес</label><input type="number" id="hor" value="6" min="1" max="12"></div>
+      </div>
+      <div class="field"><label>Сезонность (мин/макс загрузка)</label><div class="segmented" id="season"><button data-k="0.9" class="active">Спад</button><button data-k="1">Ровно</button><button data-k="1.15">Пик</button></div></div>
+      <button class="btn btn-primary" id="calcBtn">Спрогнозировать →</button>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="section-title">Прогноз загрузки по месяцам</div>
+      <div class="card"><div class="bars" id="bars"></div><div style="height:16px;"></div></div>
+      <div class="section-title">Оценка</div>
+      <div class="card" id="verdict"></div>
+      <div class="section-title">Рекомендации</div>
+      <div class="card" id="recs"></div>
+      <button class="btn btn-primary mt-12" id="saveBtn">Сохранить прогноз →</button>
+      <button class="btn btn-secondary mt-8" id="editBtn">Изменить параметры</button>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="result-hero"><div class="check">✓</div><h2>Прогноз сохранён</h2><p>Данные добавлены в аналитику.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Запись</div><div class="t-num" id="actNum">—</div></div>
+      <button class="btn btn-primary mt-16" id="againBtn">Новый прогноз</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+  </div>
+
+  <footer class="app-footer">3DMP · Прогноз загрузки · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="b39.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

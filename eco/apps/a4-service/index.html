@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A4 · Заявка на сервис — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+</head>
+<body class="app-body" data-audience="clients">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block">
+      <h1 id="headerTitle">Заявка на сервис</h1>
+      <div class="subtitle" id="headerSubtitle">3DMP · Ремонт и обслуживание</div>
+    </div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="section-title">Тип обращения</div>
+      <div class="option-grid" id="typeOptions"></div>
+      <button class="btn btn-primary mt-16" id="toS2" disabled>Далее →</button>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="section-title">Что случилось?</div>
+      <div class="field"><label>Оборудование / станок</label><input type="text" id="equipment" placeholder="Напр. фрезерный станок DMG Mori"></div>
+      <div class="field"><label>Описание проблемы</label><textarea id="desc" placeholder="Опишите симптом: шум, вибрация, ошибка на пульте…"></textarea></div>
+      <div class="section-title">Фото / видео <span class="count">необязательно</span></div>
+      <div class="card text-center" id="photoZone" style="cursor:pointer;border-style:dashed;">
+        <div style="font-size:1.8rem;">📷</div>
+        <h3 class="mt-8" style="font-size:.9rem;">Прикрепить фото или видео</h3>
+      </div>
+      <div id="photoList" class="mt-12"></div>
+      <button class="btn btn-primary mt-16" id="toS3">Далее →</button>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="section-title">Срочность</div>
+      <div class="option-grid" id="prioOptions"></div>
+      <div class="callout info mt-12" id="slaInfo"><span class="ci">⏱</span><div>—</div></div>
+      <div class="section-title">Контакты</div>
+      <div class="card">
+        <div class="field"><label>Контактное лицо</label><input type="text" id="contactName" placeholder="Иванов И.И."></div>
+        <div class="field mb-0"><label>Телефон</label><input type="tel" id="contactPhone" placeholder="+7 (___) ___-__-__"></div>
+      </div>
+      <button class="btn btn-primary mt-16" id="submitBtn">Отправить заявку →</button>
+    </section>
+
+    <section class="screen" id="s4">
+      <div class="result-hero">
+        <div class="check">✓</div>
+        <h2>Заявка принята!</h2>
+        <p>Дежурный инженер уже видит её. Мы свяжемся по указанному телефону.</p>
+      </div>
+      <div class="ticket mb-16">
+        <div class="t-label">Номер тикета</div>
+        <div class="t-num" id="ticketNum">—</div>
+      </div>
+      <div class="card" id="slaCard"></div>
+      <button class="btn btn-primary mt-16" id="newBtn">Новая заявка</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Сервисная служба · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="a4.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

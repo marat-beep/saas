@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B30 · КД и изменения — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  .d-row { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid var(--border-2); cursor:pointer; }
+  .d-row:last-child { border-bottom:none; }
+  .ecn { padding:9px 0; border-bottom:1px solid var(--border-2); font-size:.8rem; }
+  .ecn:last-child { border-bottom:none; }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">КД и изменения</h1><div class="subtitle" id="headerSubtitle">3DMP · Конструктор / технолог</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="section-title">Комплекты КД <span class="count" id="dCount"></span></div>
+      <div class="card" id="docList"></div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="card accent-left mb-12">
+        <div class="row between"><span class="faint" style="font-family:var(--mono);font-size:.72rem;" id="dId">—</span><span class="badge" id="dStatus">—</span></div>
+        <h3 class="mt-8" id="dTitle">—</h3>
+        <div class="tag-row mt-8" id="dTags"></div>
+      </div>
+      <div class="section-title">Состав</div>
+      <div class="card" id="dItems"></div>
+      <div class="section-title">Изменения (ECN)</div>
+      <div class="card" id="dChanges"></div>
+      <div class="section-title">Нормоконтроль</div>
+      <div class="card" id="dCheck"></div>
+      <div class="btn-row"><button class="btn btn-primary" id="ecnBtn">＋ Создать ECN</button></div>
+      <div class="btn-row"><button class="btn btn-secondary" id="reviewBtn">На нормоконтроль</button><button class="btn btn-secondary" id="approveBtn">Утвердить</button></div>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="result-hero"><div class="check">✓</div><h2 id="actTitle">Готово</h2><p id="actText">КД обновлена.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Комплект</div><div class="t-num" id="actNum">—</div></div>
+      <button class="btn btn-primary mt-16" id="toList">К комплектам</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · КД и изменения · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="b30.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

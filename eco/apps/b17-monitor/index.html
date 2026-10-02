@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B17 · Монитор станков (OEE) — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  .m-row { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border-2); cursor:pointer; }
+  .m-row:last-child { border-bottom:none; }
+  .m-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+  .m-dot.run { background:#22c55e; box-shadow:0 0 0 4px rgba(34,197,94,.2); }
+  .m-dot.idle { background:#94a3b8; }
+  .m-dot.setup { background:#f59e0b; }
+  .m-dot.alarm { background:#ef4444; box-shadow:0 0 0 4px rgba(239,68,68,.2); }
+  .oee-bar { height:6px; background:var(--border-2); border-radius:3px; overflow:hidden; margin-top:6px; }
+  .oee-bar > i { display:block; height:100%; background:var(--accent-grad); }
+  .kpi3 { display:flex; gap:10px; }
+  .kpi3 > div { flex:1; text-align:center; background:var(--surface-2); border-radius:10px; padding:10px; }
+  .kpi3 b { font-size:1.1rem; display:block; } .kpi3 span { font-size:.62rem; color:var(--muted); }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Монитор станков</h1><div class="subtitle" id="headerSubtitle">3DMP · OEE и простои</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="stats mb-16">
+        <div class="stat"><div class="num accent" id="kOee">—</div><div class="label">OEE цеха</div></div>
+        <div class="stat"><div class="num success" id="kRun">—</div><div class="label">Работают</div></div>
+        <div class="stat"><div class="num danger" id="kAlarm">—</div><div class="label">Аварии</div></div>
+      </div>
+      <div class="section-title">Станки <span class="count" id="mCount"></span></div>
+      <div class="card" id="machines"></div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="card accent-left mb-12">
+        <div class="row between"><span class="faint" style="font-family:var(--mono);font-size:.72rem;" id="dName">—</span><span class="badge" id="dState">—</span></div>
+        <h3 class="mt-8" id="dTitle">—</h3>
+        <div class="tag-row mt-8" id="dTags"></div>
+      </div>
+      <div class="section-title">OEE</div>
+      <div class="card"><div class="kpi3" id="dOee"></div></div>
+      <div class="section-title">Текущий запуск</div>
+      <div class="card" id="dRun"></div>
+      <div class="section-title">Смены</div>
+      <div class="card" id="dShifts"></div>
+      <div class="btn-row"><button class="btn btn-primary" id="stopBtn">⛔ Зарегистрировать простой</button></div>
+      <button class="btn btn-secondary mt-8" id="resetBtn">✅ Снять аварию</button>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="result-hero"><div class="check">✓</div><h2 id="actTitle">Готово</h2><p id="actText">Данные обновлены.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Станок</div><div class="t-num" id="actNum">—</div></div>
+      <button class="btn btn-primary mt-16" id="toList">К монитору</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Монитор станков · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="b17.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

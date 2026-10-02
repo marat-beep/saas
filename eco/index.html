@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3DMP — Экосистема цифровых сервисов</title>
+<link rel="stylesheet" href="assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="assets/css/components.css?v=1">
+<style>
+  .hub-hero { background: linear-gradient(135deg, #064e3b 0%, #047857 55%, #10b981 100%); color: #fff; padding: 48px 0 40px; }
+  .hub-hero .web-container { position: relative; }
+  .hub-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+  .hub-logo { width: 46px; height: 46px; border-radius: 13px; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.3); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+  .hub-brand b { font-size: 1.05rem; }
+  .hub-brand span { font-size: .74rem; opacity: .8; display: block; }
+  .hub-hero h1 { font-size: clamp(1.5rem, 4vw, 2.2rem); font-weight: 800; line-height: 1.15; margin-bottom: 10px; }
+  .hub-hero p { font-size: .95rem; opacity: .9; max-width: 660px; line-height: 1.6; }
+  .hub-hero .stats { margin-top: 26px; max-width: 560px; }
+  .hub-hero .stat { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.22); }
+  .hub-hero .stat .num { color: #fff; }
+  .hub-hero .stat .label { color: rgba(255,255,255,.75); }
+  .hub-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+  .hub-actions .hbtn { background: rgba(255,255,255,.16); color: #fff; border: 1px solid rgba(255,255,255,.35); border-radius: 10px; padding: 11px 18px; font-weight: 700; font-size: .84rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+  .hub-actions .hbtn:hover { background: rgba(255,255,255,.28); }
+  .hub-actions .hbtn.solid { background: #fff; color: #065f46; border-color: #fff; }
+
+  .hub-toolbar { position: sticky; top: 0; z-index: 20; background: var(--bg); padding: 14px 0 12px; border-bottom: 1px solid var(--border); }
+  .hub-search { width: 100%; padding: 13px 16px; border: 2px solid var(--border); border-radius: 12px; font-size: .92rem; background: var(--surface); color: var(--text); }
+  .hub-search:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-100); }
+  .hub-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .hub-filters .chip { font-size: .78rem; }
+  .hub-roles { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
+  .hub-roles .chip { font-size: .76rem; }
+  .hub-empty { text-align: center; color: var(--muted); padding: 40px 0; }
+
+  .hub-body { padding: 24px 0 60px; }
+  .group-label { display: flex; align-items: center; gap: 10px; margin: 28px 0 14px; }
+  .group-label h2 { font-size: 1.05rem; font-weight: 800; }
+  .group-label .pill { font-size: .68rem; font-weight: 700; padding: 3px 9px; border-radius: var(--r-pill); background: var(--accent-100); color: var(--accent-700); }
+  .apps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .app-card { position: relative; display: flex; flex-direction: column; height: 100%; cursor: pointer; }
+  .app-card .app-num { font-size: .68rem; font-weight: 800; font-family: var(--mono); color: var(--accent-700); letter-spacing: .5px; }
+  .app-card .app-icon { font-size: 1.6rem; margin: 8px 0 6px; }
+  .app-card h3 { font-size: .98rem; }
+  .app-card p { font-size: .8rem; color: var(--muted); line-height: 1.5; margin: 4px 0 12px; flex: 1; }
+  .fav-btn { position: absolute; top: 12px; right: 12px; border: none; background: transparent; cursor: pointer; font-size: 1.05rem; line-height: 1; padding: 4px; color: var(--faint); }
+  .fav-btn.on { color: #f59e0b; }
+  .hub-footer { padding: 24px 0; text-align: center; color: var(--faint); font-size: .76rem; border-top: 1px solid var(--border); }
+  .changelog { margin-top: 10px; text-align: left; max-width: 720px; margin-left: auto; margin-right: auto; }
+  .changelog div { font-size: .72rem; color: var(--muted); padding: 3px 0; }
+
+  #hubPanels { margin-top: 16px; }
+  .hub-panel { background: var(--surface); border: 2px solid var(--border); border-radius: var(--r-md); padding: 16px; }
+  .hub-panel.hidden { display: none; }
+  .hub-panel h4 { margin-bottom: 10px; }
+  .notif-item { padding: 9px 0; border-bottom: 1px solid var(--border-2); font-size: .82rem; }
+  .notif-item:last-child { border-bottom: none; }
+  .notif-item .t { font-weight: 600; }
+  .notif-item .m { font-size: .7rem; color: var(--muted); }
+  .notif-item.unread .t::before { content: '● '; color: var(--accent); }
+</style>
+</head>
+<body class="web-body" data-audience="clients">
+
+<header class="hub-hero">
+  <div class="web-container">
+    <div class="hub-brand">
+      <div class="hub-logo">⚙️</div>
+      <div><b>3DMP</b><span>ООО «3Д Металлообработка Пресс»</span></div>
+    </div>
+    <h1>Экосистема цифровых сервисов</h1>
+    <p>Приложения для клиентов, сотрудников и партнёров плюс <b>SaaS «3DMP Cloud»</b> с маркетплейсом, платежами, аналитикой и white-label. От расчёта заказа до кооперации заводов.</p>
+    <div class="stats">
+      <div class="stat"><div class="num" id="stApps">—</div><div class="label">Приложений</div></div>
+      <div class="stat"><div class="num" id="stModules">—</div><div class="label">Модулей SaaS</div></div>
+      <div class="stat"><div class="num" id="stPlatform">—</div><div class="label">Продуктов платформы</div></div>
+    </div>
+    <div class="hub-actions">
+      <button class="hbtn solid" data-guide>🧭 Гид по системе</button>
+      <button class="hbtn" data-theme-toggle="label">🌙 Тема</button>
+      <button class="hbtn" id="profileBtn">👤 Профиль</button>
+      <button class="hbtn" id="notifBtn">🔔 Уведомления <span id="notifCount">0</span></button>
+      <button class="hbtn" id="probBtn" style="display:none;">⚠ Проблемы <span id="prbCount">0</span></button>
+      <button class="hbtn" id="devBtn" style="display:none;">🛠 Диагностика</button>
+      <button class="hbtn" id="techBtn">🗺 Техпуть</button>
+      <button class="hbtn" id="resetDemo">↺ Сбросить демо-данные</button>
+    </div>
+    <div id="hubPanels"></div>
+  </div>
+</header>
+
+<main class="hub-body">
+  <div class="web-container">
+    <div class="hub-toolbar">
+      <input class="hub-search" id="hubSearch" type="search" placeholder="Поиск приложения: название или номер (A1, B8, P1, маркетплейс)…">
+      <div class="hub-filters" id="hubFilters"></div>
+      <div class="hub-roles" id="hubRoles"></div>
+    </div>
+    <div id="hubGroups"></div>
+    <div class="hub-empty hidden" id="hubEmpty">Ничего не найдено. Измените запрос или фильтр.</div>
+  </div>
+</main>
+
+<footer class="hub-footer">
+  <div class="web-container">
+    <div>3DMP · Экосистема цифровых сервисов · прототипы без подключённого backend</div>
+    <div id="hubVersion" style="margin-top:6px;"></div>
+    <div class="changelog" id="hubChangelog"></div>
+  </div>
+</footer>
+
+<script src="assets/js/utils.js?v=1"></script>
+<script src="assets/js/catalog.js?v=1"></script>
+  <script src="assets/js/store.js?v=1"></script>
+<script src="assets/js/auth.js?v=1"></script>
+<script src="assets/js/theme.js?v=1"></script>
+<script src="assets/js/guide.js?v=1"></script>
+<script>
+  (function () {
+    var C = window.AppCatalog;
+    var favs = App.Store.get('favs', []);
+    var state = { q: '', group: 'all' };
+
+    document.getElementById('stApps').textContent = C.countApps();
+    document.getElementById('stModules').textContent = C.countModules();
+    var platform = C.groups.filter(function (g) { return g.id === 'platform'; })[0];
+    document.getElementById('stPlatform').textContent = platform ? platform.apps.length : 0;
+    document.getElementById('hubVersion').textContent = 'Версия ' + C.version + ' · обновлено ' + C.updated;
+    if (C.changelog) document.getElementById('hubChangelog').innerHTML = C.changelog.map(function (c) { return '<div>• ' + c + '</div>'; }).join('');
+
+    document.getElementById('resetDemo').addEventListener('click', function () {
+      Object.keys(localStorage).filter(function (k) { return k.indexOf('3dmp:') === 0; }).forEach(function (k) { localStorage.removeItem(k); });
+      favs = []; render();
+      this.textContent = '✓ Демо-данные сброшены';
+    });
+
+    function isFav(id) { return favs.indexOf(id) >= 0; }
+    function toggleFav(id) { var i = favs.indexOf(id); if (i >= 0) favs.splice(i, 1); else favs.push(id); App.Store.set('favs', favs); render(); }
+
+    // фильтры
+    var filters = [{ id: 'all', label: 'Все' }, { id: 'fav', label: '★ Избранное' }]
+      .concat(C.groups.map(function (g) { return { id: g.id, label: g.icon + ' ' + g.title }; }));
+    document.getElementById('hubFilters').innerHTML = filters.map(function (f, i) {
+      return '<div class="chip' + (i === 0 ? ' active' : '') + '" data-g="' + f.id + '">' + f.label + '</div>';
+    }).join('');
+    document.getElementById('hubFilters').addEventListener('click', function (e) {
+      var c = e.target.closest('.chip'); if (!c) return;
+      Array.prototype.forEach.call(this.querySelectorAll('.chip'), function (x) { x.classList.toggle('active', x === c); });
+      state.group = c.dataset.g; render();
+    });
+
+    var search = document.getElementById('hubSearch');
+    search.addEventListener('input', function () { state.q = this.value.trim().toLowerCase(); render(); });
+
+    // ---- режим доступа (роли) ----
+    var roleWrap = document.getElementById('hubRoles');
+    function renderRoles() {
+      var html = '<span class="faint" style="font-size:.72rem;">Режим:</span>' +
+        AppAuth.roles.map(function (r) { return '<div class="chip' + (AppAuth.current() === r.id ? ' active' : '') + '" data-role="' + r.id + '">' + r.icon + ' ' + r.label + '</div>'; }).join('');
+      if (AppAuth.current() === 'client' && window.AppData) {
+        var members = AppData.team.all();
+        var active = AppData.settings.get('activeTeam', null);
+        html += '<span class="faint" style="font-size:.72rem;margin-left:6px;">Сотрудник:</span>' +
+          '<select id="teamSel" style="width:auto;padding:6px 10px;font-size:.76rem;">' +
+          '<option value="">Владелец — все доступы</option>' +
+          members.map(function (m) { return '<option value="' + m.id + '"' + (active === m.id ? ' selected' : '') + '>' + m.name + ' — ' + (m.functions || []).length + ' доступов</option>'; }).join('') +
+          '</select>';
+      }
+      roleWrap.innerHTML = html;
+      var sel = document.getElementById('teamSel');
+      if (sel) sel.addEventListener('change', function () {
+        AppAuth.setActiveMember(this.value || null); render();
+        App.toast(this.value ? 'Применены доступы сотрудника' : 'Режим владельца: все доступы');
+      });
+    }
+    roleWrap.addEventListener('click', function (e) {
+      var c = e.target.closest('.chip'); if (!c) return;
+      AppAuth.set(c.dataset.role); renderRoles(); updateBadges(); render();
+      App.toast('Режим: ' + AppAuth.roleLabel(c.dataset.role));
+    });
+    renderRoles();
+
+    function matches(a, g) {
+      if (state.q && (a.title + ' ' + a.desc + ' ' + a.id).toLowerCase().indexOf(state.q) < 0) return false;
+      if (state.group === 'fav') return isFav(a.id);
+      if (state.group !== 'all' && state.group !== g.id) return false;
+      return true;
+    }
+
+    function render() {
+      var root = document.getElementById('hubGroups');
+      var html = '', total = 0;
+      C.groups.forEach(function (g) {
+        if (window.AppAuth && !AppAuth.canGroup(g.id)) return;
+        var flags = (window.AppData && AppData.settings.get('flags', {})) || {};
+        var apps = g.apps.filter(function (a) {
+          if (flags[a.id] === false) return false;
+          if (g.id === 'clients' && window.AppAuth && !AppAuth.canClientApp(a.id)) return false;
+          if (g.id === 'staff' && window.AppAuth && !AppAuth.canStaffApp(a.id)) return false;
+          return matches(a, g);
+        });
+        if (!apps.length) return;
+        total += apps.length;
+        html += '<div class="group-label" data-audience="' + g.audience + '"><h2>' + g.icon + ' ' + g.title + '</h2><span class="pill">' + apps.length + ' шт</span></div>';
+        html += '<div class="apps-grid">' + apps.map(function (a) {
+          var aud = a.audience || g.audience;
+          return '<div class="card clickable app-card" data-href="' + a.href + '" data-audience="' + aud + '">' +
+            '<button class="fav-btn' + (isFav(a.id) ? ' on' : '') + '" data-fav="' + a.id + '" title="В избранное">' + (isFav(a.id) ? '★' : '☆') + '</button>' +
+            '<span class="app-num">' + a.id + '</span>' +
+            '<span class="app-icon">' + a.icon + '</span>' +
+            '<h3>' + a.title + '</h3>' +
+            '<p>' + a.desc + '</p>' +
+            '<div class="meta-row"><span class="faint">Открыть прототип</span><span class="badge accent">Готов</span></div>' +
+          '</div>';
+        }).join('') + '</div>';
+      });
+      root.innerHTML = html;
+      document.getElementById('hubEmpty').classList.toggle('hidden', total > 0);
+
+      Array.prototype.forEach.call(root.querySelectorAll('.app-card'), function (c) {
+        c.addEventListener('click', function () { location.href = c.dataset.href; });
+      });
+      Array.prototype.forEach.call(root.querySelectorAll('.fav-btn'), function (b) {
+        b.addEventListener('click', function (e) { e.stopPropagation(); toggleFav(b.dataset.fav); });
+      });
+    }
+
+    // ---- единый профиль и уведомления ----
+    var panels = document.getElementById('hubPanels');
+    var profileBtn = document.getElementById('profileBtn');
+    var notifBtn = document.getElementById('notifBtn');
+    var openPanel = null;
+    function esc(s) { return String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+    function clearPanel() { panels.innerHTML = ''; openPanel = null; }
+    function showPanel(html) { if (openPanel === html) { clearPanel(); return; } panels.innerHTML = html; openPanel = html; }
+    function updateBadges() {
+      var p = AppData.profile.get() || {};
+      var base = p.company ? '👤 ' + p.company : '👤 Профиль';
+      var role = window.AppAuth ? AppAuth.roleLabel(AppAuth.current()) : '';
+      profileBtn.textContent = base + (role && role !== 'Все' ? ' · ' + role : '');
+      document.getElementById('notifCount').textContent = AppData.notifications.unread();
+
+      var prb = document.getElementById('probBtn');
+      var open = AppData.problems.open().length;
+      if (open > 0) { prb.style.display = ''; document.getElementById('prbCount').textContent = open; }
+      else prb.style.display = 'none';
+
+      document.getElementById('devBtn').style.display = AppData.settings.get('devMode', false) ? '' : 'none';
+    }
+    document.getElementById('probBtn').addEventListener('click', function () { location.href = 'apps/b24-escalation/index.html'; });
+    document.getElementById('devBtn').addEventListener('click', function () { location.href = 'apps/p10-diagnostics/index.html'; });
+    document.getElementById('techBtn').addEventListener('click', function () { location.href = 'apps/p12-techroad/index.html'; });
+
+    profileBtn.addEventListener('click', function () {
+      var p = AppData.profile.get() || { company: '', name: '' };
+      var roleOpts = (window.AppAuth ? AppAuth.roles : []).map(function (r) {
+        return '<option value="' + r.id + '"' + ((p.role || 'all') === r.id ? ' selected' : '') + '>' + r.icon + ' ' + r.label + '</option>';
+      }).join('');
+      showPanel(
+        '<div class="hub-panel"><h4>Единый профиль (демо)</h4>' +
+        '<div class="grid two"><div class="field"><label>Компания</label><input id="pfCompany" value="' + esc(p.company) + '" placeholder="ООО «Ваша компания»"></div>' +
+        '<div class="field"><label>Имя</label><input id="pfName" value="' + esc(p.name) + '" placeholder="Иванов И.И."></div></div>' +
+        '<div class="field"><label>Роль (режим доступа)</label><select id="pfRole">' + roleOpts + '</select></div>' +
+        '<div class="btn-row" style="margin-top:0;"><button class="btn btn-primary" id="pfSave">Сохранить</button><button class="btn btn-secondary" id="pfClear">Очистить</button></div>' +
+        '<div class="faint" style="font-size:.72rem;margin-top:8px;">Роль управляет доступом к группам в хабе; профиль используется в кабинете заказчика (A3) и в заявках.</div></div>');
+      document.getElementById('pfRole').addEventListener('change', function () { AppAuth.set(this.value); renderRoles(); render(); updateBadges(); });
+      document.getElementById('pfSave').addEventListener('click', function () {
+        var cur = AppData.profile.get() || {};
+        cur.company = document.getElementById('pfCompany').value.trim();
+        cur.name = document.getElementById('pfName').value.trim();
+        cur.ts = Date.now();
+        AppData.profile.set(cur);
+        updateBadges(); App.toast('Профиль сохранён'); clearPanel();
+      });
+      document.getElementById('pfClear').addEventListener('click', function () { AppData.profile.clear(); AppAuth.apply(); renderRoles(); render(); updateBadges(); clearPanel(); });
+    });
+
+    notifBtn.addEventListener('click', function () {
+      var list = AppData.notifications.all();
+      var html = '<div class="hub-panel"><h4>Уведомления</h4>';
+      if (!list.length) html += '<div class="faint" style="font-size:.82rem;">Уведомлений нет. Оформите заявку в приложениях — появятся записи.</div>';
+      else html += list.slice(0, 12).map(function (n) {
+        return '<div class="notif-item ' + (n.read ? '' : 'unread') + '"><div class="t">' + esc(n.title) + '</div><div class="m">' + esc(n.text) + (n.source ? ' · ' + AppData.sourceTitle(n.source) : '') + '</div></div>';
+      }).join('');
+      html += '<div class="btn-row" style="margin-top:12px;"><button class="btn btn-secondary" id="nfClear">Очистить</button></div></div>';
+      showPanel(html);
+      AppData.notifications.markAllRead(); updateBadges();
+      var c = document.getElementById('nfClear');
+      if (c) c.addEventListener('click', function () { AppData.notifications.clear(); updateBadges(); clearPanel(); });
+    });
+
+    updateBadges();
+    render();
+  })();
+</script>
+</body>
+</html>

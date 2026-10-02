@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P1 · 3DMP Cloud — SaaS-платформа</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  body.web-body { display:flex; flex-direction:column; min-height:100vh; }
+  .topbar { background:var(--accent-grad); color:#fff; padding:14px 22px; display:flex; align-items:center; gap:18px; position:sticky; top:0; z-index:20; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:800; font-size:1.02rem; }
+  .brand .logo { width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,.18); display:flex; align-items:center; justify-content:center; font-size:1.05rem; }
+  .topnav { display:flex; gap:6px; margin-left:8px; }
+  .topnav button { background:transparent; border:none; color:rgba(255,255,255,.85); font-weight:600; font-size:.82rem; padding:8px 12px; border-radius:8px; cursor:pointer; }
+  .topnav button:hover, .topnav button.active { background:rgba(255,255,255,.16); color:#fff; }
+  .top-right { margin-left:auto; display:flex; gap:8px; align-items:center; }
+  .main { flex:1; padding:26px 0 50px; }
+  .hero { text-align:center; padding:20px 0 30px; }
+  .hero h1 { font-size:clamp(1.6rem,4vw,2.5rem); font-weight:800; line-height:1.15; margin-bottom:12px; }
+  .hero p { color:var(--muted); max-width:640px; margin:0 auto 20px; font-size:1rem; line-height:1.6; }
+  .pill-row { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:22px; }
+  .grad-text { background:var(--accent-grad); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .cards4 { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; }
+  .plan { border:2px solid var(--border); border-radius:var(--r-md); padding:18px; background:var(--surface); position:relative; }
+  .plan.hot { border-color:var(--accent); box-shadow:0 10px 30px rgba(124,58,237,.18); }
+  .plan .price { font-size:1.6rem; font-weight:800; margin:8px 0; }
+  .plan ul { list-style:none; font-size:.8rem; color:var(--text-2); line-height:1.9; }
+  .trow { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border-2); }
+  .trow:last-child { border-bottom:none; }
+  .trow .tlogo { width:36px; height:36px; border-radius:9px; background:var(--accent-100); color:var(--accent-700); display:flex; align-items:center; justify-content:center; font-weight:800; flex-shrink:0; }
+  .mod-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; }
+  .mod { display:flex; align-items:center; gap:8px; padding:10px 12px; border:2px solid var(--border); border-radius:var(--r-sm); cursor:pointer; font-size:.8rem; font-weight:600; user-select:none; }
+  .mod.on { border-color:var(--accent); background:var(--accent-50); }
+  .mod .tick { width:18px; height:18px; border-radius:5px; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; color:#fff; font-size:.6rem; flex-shrink:0; }
+  .mod.on .tick { background:var(--accent); border-color:var(--accent); }
+  .switch { width:42px; height:24px; border-radius:999px; background:var(--border); position:relative; cursor:pointer; transition:background .2s; flex-shrink:0; }
+  .switch::after { content:''; position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:#fff; transition:left .2s; box-shadow:0 1px 3px rgba(0,0,0,.2); }
+  .switch.on { background:var(--accent); }
+  .switch.on::after { left:21px; }
+</style>
+</head>
+<body class="web-body" data-audience="platform">
+
+<header class="topbar">
+  <div class="brand"><span class="logo">☁️</span> 3DMP Cloud</div>
+  <nav class="topnav" id="nav">
+    <button data-s="s-landing" class="active">Платформа</button>
+    <button data-s="s-console">Консоль платформы</button>
+    <button data-s="s-tenant">Кабинет завода</button>
+    <button data-s="s-billing">Биллинг</button>
+  </nav>
+  <div class="top-right">
+    <button class="btn btn-ghost btn-sm" id="homeBtn" style="color:#fff;border-color:rgba(255,255,255,.4);">← Хаб</button>
+  </div>
+</header>
+
+<main class="main">
+  <div class="web-container">
+
+    <!-- Лендинг -->
+    <section class="screen active" id="s-landing">
+      <div class="hero">
+        <span class="badge accent mb-12">SaaS · цифровизация машиностроения</span>
+        <h1>Экосистема 3DMP как <span class="grad-text">облачный продукт</span></h1>
+        <p>Отдайте коллегам-заводам готовый контур: калькулятор, кабинет заказчика, канбан производства, ОТК, паспорт изделия, закупки и партнёрский кабинет. Подключается по модулям, оплачивается по подписке.</p>
+        <div class="pill-row">
+          <span class="tag">56 модулей</span><span class="tag">Мультитенантность</span><span class="tag">White-label</span><span class="tag">Роли и права</span>
+        </div>
+        <button class="btn btn-primary" style="width:auto;padding:14px 26px;" id="tryBtn">Посмотреть консоль платформы →</button>
+      </div>
+
+      <div class="stats mb-24" style="max-width:640px;margin:0 auto 26px;">
+        <div class="stat"><div class="num accent">128</div><div class="label">Заводов-тенантов</div></div>
+        <div class="stat"><div class="num success">99,9%</div><div class="label">Uptime</div></div>
+        <div class="stat"><div class="num info">3,4 млн ₽</div><div class="label">MRR</div></div>
+      </div>
+
+      <div class="section-title">Что входит в платформу</div>
+      <div class="cards4" id="landingModules"></div>
+
+      <div class="section-title">Тарифы</div>
+      <div class="cards4" id="landingPlans"></div>
+    </section>
+
+    <!-- Консоль платформы -->
+    <section class="screen" id="s-console">
+      <div class="page-title">Консоль платформы</div>
+      <div class="page-sub">3DMP как оператор платформы: тенанты, подписки, доход.</div>
+      <div class="stats mb-16" style="max-width:640px;">
+        <div class="stat"><div class="num accent" id="mMrr">3,4 млн ₽</div><div class="label">MRR</div></div>
+        <div class="stat"><div class="num info" id="mTenants">128</div><div class="label">Тенантов</div></div>
+        <div class="stat"><div class="num success" id="mModules">1 246</div><div class="label">Модулей</div></div>
+      </div>
+      <div class="section-title">Тенанты <span class="count" id="tCount"></span></div>
+      <div class="chips" id="tFilters">
+        <div class="chip active" data-f="all">Все</div>
+        <div class="chip" data-f="active">Активные</div>
+        <div class="chip" data-f="trial">Пробные</div>
+        <div class="chip" data-f="risk">Риск оттока</div>
+      </div>
+      <div class="card" id="tenantList"></div>
+    </section>
+
+    <!-- Кабинет завода (тенант) -->
+    <section class="screen" id="s-tenant">
+      <div class="page-title">Кабинет завода</div>
+      <div class="page-sub">Настройка модулей экосистемы и бренда тенанта.</div>
+      <div class="card mb-12">
+        <div class="field"><label>Название завода (white-label)</label><input type="text" id="tenantName" value="ООО «Пресс-Технологии»"></div>
+        <div class="row between"><span class="muted">Тариф</span><span class="badge accent" id="tenantPlan">Бизнес</span></div>
+      </div>
+      <div class="section-title">Модули экосистемы <span class="count" id="modCount"></span></div>
+      <div class="mod-grid" id="moduleGrid"></div>
+      <div class="callout info mt-16"><span class="ci">💡</span><div>Модули включаются и отключаются в один клик. Цена подписки пересчитывается автоматически.</div></div>
+      <button class="btn btn-primary mt-12" id="saveTenant">Сохранить конфигурацию →</button>
+    </section>
+
+    <!-- Биллинг -->
+    <section class="screen" id="s-billing">
+      <div class="page-title">Биллинг</div>
+      <div class="page-sub">Подписка, использование модулей и счета тенанта.</div>
+      <div class="price-highlight mb-16">
+        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--accent-700);margin-bottom:6px;">К оплате за месяц</div>
+        <div id="billTotal" style="font-size:1.6rem;font-weight:800;color:#4c1d95;">0 ₽</div>
+        <div class="hint" id="billHint">—</div>
+      </div>
+      <div class="section-title">Счета</div>
+      <div class="card" id="invoiceList"></div>
+      <button class="btn btn-primary mt-12" id="payBtn">Оплатить следующий счёт →</button>
+    </section>
+
+  </div>
+</main>
+
+<footer class="app-footer">3DMP Cloud · SaaS-платформа экосистемы · демо-режим</footer>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="p1.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

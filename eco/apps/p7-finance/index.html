@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P7 · Финансы предприятия — 3DMP Cloud</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  .fin-hero { background:var(--accent-grad); color:#fff; border-radius:var(--r-md); padding:18px; margin-bottom:14px; }
+  .fin-hero .big { font-size:1.8rem; font-weight:800; }
+  .inv { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border-2); cursor:pointer; }
+  .inv:last-child { border-bottom:none; }
+</style>
+</head>
+<body class="app-body" data-audience="platform">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Финансы предприятия</h1><div class="subtitle" id="headerSubtitle">3DMP · Счета, экономика, ТБУ</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="fin-hero">
+        <div style="font-size:.74rem;opacity:.9;">Выручка за месяц</div>
+        <div class="big" id="revenue">—</div>
+        <div style="font-size:.74rem;opacity:.9;" id="revenueSub">—</div>
+      </div>
+      <div class="stats mb-16">
+        <div class="stat"><div class="num warning" id="stDebt">—</div><div class="label">Дебиторка</div></div>
+        <div class="stat"><div class="num success" id="stMargin">—</div><div class="label">Маржа</div></div>
+        <div class="stat"><div class="num accent" id="stKpi">—</div><div class="label">KPI месяца</div></div>
+      </div>
+      <div class="section-title">Точка безубыточности</div>
+      <div class="card">
+        <div class="row between" style="font-size:.8rem;margin-bottom:6px;"><span class="muted">Выручка</span><b id="tbuRev">—</b></div>
+        <div class="progress mb-8"><span id="tbuBar" style="width:0%"></span></div>
+        <div class="faint" style="font-size:.72rem;" id="tbuHint">—</div>
+      </div>
+      <div class="section-title">Счета <span class="count" id="invCount"></span></div>
+      <div class="card" id="invList"></div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="card accent-left mb-12">
+        <div class="row between"><span class="faint" style="font-family:var(--mono);font-size:.72rem;" id="iNum">—</span><span class="badge" id="iStatus">—</span></div>
+        <h3 class="mt-8" id="iTitle">—</h3>
+        <div class="tag-row mt-8" id="iTags"></div>
+      </div>
+      <div class="section-title">Детали</div>
+      <div class="card" id="iInfo"></div>
+      <button class="btn btn-primary mt-12" id="payBtn">Зафиксировать оплату</button>
+      <button class="btn btn-secondary mt-8" id="back1">Назад</button>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="result-hero"><div class="check">✓</div><h2>Оплата зафиксирована</h2><p>Счёт отмечен оплаченным, дебиторка обновлена.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Счёт</div><div class="t-num" id="payNum">—</div></div>
+      <button class="btn btn-primary mt-16" id="toList">К счетам</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP Cloud · Финансы предприятия · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="p7.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

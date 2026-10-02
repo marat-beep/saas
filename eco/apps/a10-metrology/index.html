@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A10 · Измерения как услуга — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+</head>
+<body class="app-body" data-audience="clients">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Измерения как услуга</h1><div class="subtitle" id="headerSubtitle">3DMP · Контроль и метрология</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="callout info mb-16"><span class="ci">📏</span><div>Закажите измерения и контроль качества на оборудовании 3DMP: КИМ, 3D-сканер, ОТК партий, калибровка.</div></div>
+      <div class="section-title">Услуга</div>
+      <div class="option-grid" id="svcOptions"></div>
+      <button class="btn btn-primary mt-16" id="toS2" disabled>Далее →</button>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="section-title" id="svcTitle">Параметры</div>
+      <div id="svcFields"></div>
+      <div class="section-title">Чертёж / модель <span class="count">необязательно</span></div>
+      <div class="card text-center" id="fileZone" style="cursor:pointer;border-style:dashed;">
+        <div style="font-size:1.5rem;">📎</div><div style="font-size:.82rem;font-weight:600;" class="mt-8">Прикрепить файл</div>
+        <div class="faint" style="font-size:.7rem;">PDF, DWG, STEP</div>
+      </div>
+      <div id="fileList" class="mt-8"></div>
+      <button class="btn btn-primary mt-12" id="calcBtn">Рассчитать →</button>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="price-highlight">
+        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--accent-700);margin-bottom:6px;">Стоимость измерений</div>
+        <div id="priceRange" style="font-size:1.5rem;font-weight:800;color:#064e3b;">—</div>
+        <div class="hint" id="priceHint">—</div>
+      </div>
+      <div class="section-title">Состав работ</div>
+      <div class="card" id="svcEstimate"></div>
+      <div class="section-title">Параметры</div>
+      <div class="card" id="svcSummary"></div>
+      <button class="btn btn-primary mt-12" id="submitBtn">Отправить заявку →</button>
+      <button class="btn btn-secondary mt-8" id="editBtn">Изменить параметры</button>
+    </section>
+
+    <section class="screen" id="s4">
+      <div class="result-hero"><div class="check">✓</div><h2>Заявка отправлена!</h2><p>Метролог проверит деталь и подтвердит сроки и протокол контроля.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Номер заявки</div><div class="t-num" id="ticketNum">—</div></div>
+      <div class="card" id="resCard"></div>
+      <button class="btn btn-primary mt-16" id="newBtn">Новая заявка</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Измерения как услуга · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="a10.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

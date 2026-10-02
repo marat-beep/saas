@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C2 · Партнёрский кабинет — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  .quick-actions { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+  .qa-btn { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-sm); padding:12px; cursor:pointer; text-align:left; transition:all var(--t-fast); }
+  .qa-btn:hover { border-color:var(--accent-200); }
+  .qa-btn .qi { font-size:1.3rem; }
+  .qa-btn .ql { font-size:.78rem; font-weight:700; margin-top:4px; }
+  .qa-btn .qc { font-size:.68rem; color:var(--faint); }
+  .tracker { position:relative; padding-left:28px; }
+  .tracker::before { content:''; position:absolute; left:9px; top:6px; bottom:6px; width:2px; background:var(--border); }
+  .tr-item { position:relative; padding:0 0 16px; }
+  .tr-item:last-child { padding-bottom:0; }
+  .tr-item .dot { position:absolute; left:-24px; top:2px; width:18px; height:18px; border-radius:50%; background:var(--surface); border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:.6rem; color:#fff; }
+  .tr-item.done .dot, .tr-item.current .dot { background:var(--accent); border-color:var(--accent); }
+  .tr-item.current .dot { box-shadow:0 0 0 4px var(--accent-100); }
+  .tr-title { font-size:.84rem; font-weight:600; color:var(--muted); }
+  .tr-item.done .tr-title, .tr-item.current .tr-title { color:var(--text); font-weight:700; }
+</style>
+</head>
+<body class="app-body" data-audience="partners">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Партнёрский кабинет</h1><div class="subtitle" id="headerSubtitle">3DMP · Субподряд и партнёрство</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="logoutBtn" hidden>Выйти</button>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="result-hero" style="padding-top:6px;">
+        <div style="width:66px;height:66px;border-radius:18px;background:var(--accent-grad);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 14px;">🤝</div>
+        <h2>Кабинет партнёра</h2>
+        <p>Заявки на субподряд, статусы и документы.</p>
+      </div>
+      <div class="card">
+        <div class="field"><label>Название организации</label><input type="text" id="pName" placeholder="ООО «Гальваник»"></div>
+        <div class="field"><label>ИНН</label><input type="text" id="pInn" maxlength="12" placeholder="10 или 12 цифр"></div>
+        <div class="field mb-0"><label>Ключевая компетенция</label>
+          <select id="pComp"><option>Лазерная резка</option><option>Гальваника</option><option>Термообработка</option><option>Шлифовка</option><option>Сварка</option><option>3D-печать</option><option>Мехобработка</option></select>
+        </div>
+        <button class="btn btn-primary mt-16" id="enterBtn" disabled>Войти в кабинет →</button>
+      </div>
+      <div class="callout info mt-12"><span class="ci">💡</span><div>Демо-режим: заполните поля для входа.</div></div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="mb-16">
+        <div class="muted" style="font-size:.8rem;">Партнёр</div>
+        <div style="font-size:1.05rem;font-weight:800;" id="welcomeP">ООО «Гальваник»</div>
+        <span class="badge success mt-8" id="compBadge">✓ Гальваника</span>
+      </div>
+      <div class="stats mb-16">
+        <div class="stat"><div class="num accent" id="stNew">0</div><div class="label">Новые</div></div>
+        <div class="stat"><div class="num info" id="stWork">0</div><div class="label">В работе</div></div>
+        <div class="stat"><div class="num success" id="stDone">0</div><div class="label">Выполнено</div></div>
+      </div>
+      <div class="section-title">Быстрые действия</div>
+      <div class="quick-actions mb-16">
+        <div class="qa-btn" data-a="new"><div class="qi">📥</div><div class="ql">Новые заявки</div><div class="qc" id="qaNew">0 ожидают</div></div>
+        <div class="qa-btn" data-a="work"><div class="qi">⚙️</div><div class="ql">В работе</div><div class="qc" id="qaWork">0 активных</div></div>
+        <div class="qa-btn" data-a="history"><div class="qi">📜</div><div class="ql">История</div><div class="qc" id="qaDone">0 выполнено</div></div>
+        <div class="qa-btn" data-a="docs"><div class="qi">📄</div><div class="ql">Документы</div><div class="qc">Акты, УПД, договоры</div></div>
+      </div>
+      <div class="section-title">Заявки <span class="count" id="appCount"></span></div>
+      <div id="appList"></div>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="card accent-left mb-12">
+        <div class="row between"><span class="faint" style="font-family:var(--mono);font-size:.72rem;" id="aNum">—</span><span class="badge" id="aBadge">—</span></div>
+        <h3 class="mt-8" id="aTitle">—</h3>
+        <div class="tag-row mt-8" id="aTags"></div>
+      </div>
+      <div class="section-title">Этапы</div>
+      <div class="card"><div class="tracker" id="aTracker"></div></div>
+      <div class="section-title">Информация</div>
+      <div class="card" id="aInfo"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="acceptBtn">Принять заявку</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" id="startBtn">Начать работу</button>
+        <button class="btn btn-secondary" id="finishBtn">Завершить</button>
+      </div>
+      <button class="btn btn-ghost mt-8" id="docsBtn">📄 Документы по заявке</button>
+    </section>
+
+    <section class="screen" id="s4">
+      <div class="result-hero"><div class="check">✓</div><h2 id="actTitle">Готово</h2><p id="actText">Действие выполнено.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Заявка</div><div class="t-num" id="actNum">—</div></div>
+      <button class="btn btn-primary mt-16" id="backApps">К списку заявок</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Партнёрский кабинет · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="c2.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

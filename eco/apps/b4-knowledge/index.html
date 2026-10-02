@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B4 · База знаний — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  .tabs { display:flex; gap:6px; overflow-x:auto; margin-bottom:14px; }
+  .tabs::-webkit-scrollbar { height:0; }
+  .qa-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .qa { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-sm); padding:12px; cursor:pointer; }
+  .qa .q-n { font-size:1.4rem; font-weight:800; color:var(--accent-700); }
+  .qa .q-l { font-size:.74rem; color:var(--muted); font-weight:600; }
+  .art-item { display:flex; gap:12px; align-items:center; padding:12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r-sm); margin-bottom:8px; cursor:pointer; }
+  .art-item .ai { width:42px; height:42px; border-radius:10px; background:var(--accent-50); display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
+  .callout-block { padding:12px 14px; border-radius:var(--r-sm); margin:12px 0; font-size:.82rem; line-height:1.55; }
+  .callout-block.info { background:var(--info-bg); border-left:4px solid var(--info); }
+  .callout-block.warn { background:var(--warning-bg); border-left:4px solid var(--warning); }
+  .callout-block h4 { margin-bottom:6px; }
+  .video-player { height:190px; border-radius:var(--r-sm); background:linear-gradient(135deg,#111827,#374151); display:flex; align-items:center; justify-content:center; position:relative; }
+  .play-btn { width:64px; height:64px; border-radius:50%; background:rgba(255,255,255,.9); display:flex; align-items:center; justify-content:center; font-size:1.5rem; cursor:pointer; color:#111827; }
+  .dots { display:flex; gap:6px; justify-content:center; margin-bottom:10px; }
+  .dot { width:8px; height:8px; border-radius:50%; background:var(--border); }
+  .dot.done { background:var(--accent); } .dot.cur { background:var(--accent-700); transform:scale(1.3); }
+  .answer { display:block; padding:12px 14px; border:2px solid var(--border); border-radius:var(--r-sm); margin-bottom:8px; cursor:pointer; font-size:.84rem; }
+  .answer.selected { border-color:var(--accent); background:var(--accent-50); }
+  .answer.correct { border-color:var(--success); background:var(--success-bg); }
+  .answer.wrong { border-color:var(--danger); background:var(--danger-bg); }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">База знаний</h1><div class="subtitle" id="headerSubtitle">3DMP · Обучение и регламенты</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <input class="input mb-12" id="search" placeholder="Поиск: инструкции, регламенты, ТБ…">
+      <div class="tabs" id="tabs">
+        <span class="chip active" data-c="all">Все</span><span class="chip" data-c="tb">ТБ</span><span class="chip" data-c="equip">Оборудование</span><span class="chip" data-c="tech">Техпроцессы</span><span class="chip" data-c="hr">HR</span><span class="chip" data-c="test">Тесты</span>
+      </div>
+      <div class="qa-grid mb-12" id="quick"></div>
+      <div class="section-title">Материалы <span class="count" id="artCount"></span></div>
+      <div id="articles"></div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="card mb-12"><span class="badge accent" id="aCat">ТБ</span><h3 class="mt-8" id="aTitle">—</h3><div class="faint" style="font-size:.72rem;" id="aMeta">—</div></div>
+      <div id="aBody"></div>
+      <button class="btn btn-primary mt-12" id="aDone">Отметить как изученное</button>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="card mb-12"><h3 id="vTitle">—</h3><div class="faint" style="font-size:.72rem;" id="vMeta">—</div></div>
+      <div class="video-player"><div class="play-btn" id="playBtn">▶</div></div>
+      <div class="section-title">Содержание</div>
+      <div class="card" id="vChapters"></div>
+    </section>
+
+    <section class="screen" id="s4">
+      <div class="row between mb-8"><b id="tName">Тест</b><span class="badge info" id="tCounter">1/5</span></div>
+      <div class="dots" id="dots"></div>
+      <h3 class="mb-16" id="tQuestion" style="font-size:1rem;"></h3>
+      <div id="answers"></div>
+      <div class="btn-row"><button class="btn btn-secondary" id="tPrev">← Назад</button><button class="btn btn-primary" id="tNext">Далее →</button></div>
+    </section>
+
+    <section class="screen" id="s5">
+      <div class="result-hero" id="tResultHero"></div>
+      <div class="card" id="tSummary"></div>
+      <button class="btn btn-primary mt-16" id="tRetake">Пройти заново</button>
+      <button class="btn btn-secondary mt-8" id="tBackCat">К материалам</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · База знаний · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="b4.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

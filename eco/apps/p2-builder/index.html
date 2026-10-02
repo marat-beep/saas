@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2 · App Builder — 3DMP Cloud</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  body.web-body { display:flex; flex-direction:column; min-height:100vh; }
+  .topbar { background:var(--accent-grad); color:#fff; padding:14px 22px; display:flex; align-items:center; gap:18px; position:sticky; top:0; z-index:20; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:800; }
+  .brand .logo { width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,.18); display:flex; align-items:center; justify-content:center; }
+  .main { flex:1; padding:26px 0 50px; }
+  .app-tile { display:flex; gap:12px; align-items:center; padding:14px; border:1px solid var(--border); border-radius:var(--r-md); background:var(--surface); cursor:pointer; transition:all var(--t-fast); }
+  .app-tile:hover { border-color:var(--accent); transform:translateY(-2px); }
+  .app-tile .ti { width:46px; height:46px; border-radius:12px; background:var(--accent-100); color:var(--accent-700); display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0; }
+  .chips-wrap { display:flex; flex-wrap:wrap; gap:8px; }
+  .chip-btn { padding:8px 13px; border:2px solid var(--border); border-radius:var(--r-pill); background:var(--surface); cursor:pointer; font-size:.8rem; font-weight:600; }
+  .chip-btn.on { border-color:var(--accent); background:var(--accent-50); color:var(--accent-700); }
+  .preview-phone { max-width:320px; border:8px solid #1f2937; border-radius:26px; overflow:hidden; background:var(--surface); }
+  .preview-phone .ph-head { background:var(--accent-grad); color:#fff; padding:12px; font-weight:700; }
+  .preview-phone .ph-body { padding:14px; min-height:180px; }
+</style>
+</head>
+<body class="web-body" data-audience="platform">
+
+<header class="topbar">
+  <div class="brand"><span class="logo">🧩</span> 3DMP App Builder</div>
+  <div style="margin-left:auto;"><button class="btn btn-ghost btn-sm" id="homeBtn" style="color:#fff;border-color:rgba(255,255,255,.4);">← Хаб</button></div>
+</header>
+
+<main class="main">
+  <div class="web-container">
+
+    <section class="screen active" id="s1">
+      <div class="page-title">Мои приложения</div>
+      <div class="page-sub">Создавайте отраслевые приложения из готовых модулей экосистемы.</div>
+      <div class="grid two mb-16" id="appGrid"></div>
+      <button class="btn btn-primary" style="width:auto;padding:13px 22px;" id="createBtn">＋ Создать приложение</button>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="page-title">Конструктор приложения</div>
+      <div class="page-sub">Название, модули экосистемы и UI-компоненты.</div>
+      <div class="card mb-12">
+        <div class="field"><label>Название приложения</label><input type="text" id="appName" value="Снабжение завода" placeholder="Название"></div>
+        <div class="field mb-0"><label>Иконка</label><select id="appIcon"><option>📦</option><option>🛠</option><option>📊</option><option>🚚</option><option>🧾</option><option>⚙️</option></select></div>
+      </div>
+      <div class="section-title">Модули экосистемы</div>
+      <div class="chips-wrap mb-16" id="moduleChips"></div>
+      <div class="section-title">UI-компоненты</div>
+      <div class="chips-wrap mb-16" id="compChips"></div>
+      <div class="section-title">Предпросмотр</div>
+      <div class="card flex" style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
+        <div class="preview-phone"><div class="ph-head" id="pvHead">📦 Снабжение завода</div><div class="ph-body" id="pvBody"></div></div>
+        <div style="flex:1;min-width:200px;">
+          <div class="muted" style="font-size:.8rem;">Выбрано модулей: <b id="pvModCount">0</b></div>
+          <div class="muted" style="font-size:.8rem;margin-top:6px;">Выбрано компонентов: <b id="pvCompCount">0</b></div>
+          <button class="btn btn-primary mt-16" id="publishBtn">Опубликовать приложение →</button>
+          <button class="btn btn-secondary mt-8" id="cancelBtn">Отмена</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="result-hero"><div class="check">✓</div><h2>Приложение опубликовано</h2><p>Доступно тенанту в кабинете завода и в каталоге Cloud.</p></div>
+      <div class="ticket mb-16" style="max-width:420px;margin:0 auto 16px;"><div class="t-label">Идентификатор</div><div class="t-num" id="pubId">—</div></div>
+      <div class="text-center"><button class="btn btn-primary" style="width:auto;padding:13px 22px;" id="backApps">К моим приложениям</button></div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="app-footer">3DMP Cloud · App Builder · демо-режим</footer>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="p2.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

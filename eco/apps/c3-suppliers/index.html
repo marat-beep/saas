@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C3 · Клуб поставщиков — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  .sup-card { border-left:4px solid var(--accent); }
+  .rank { width:30px; height:30px; border-radius:9px; background:var(--accent-100); color:var(--accent-700); font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:.85rem; }
+  .rank.gold { background:#fef3c7; color:#b45309; }
+  .metric { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border-2); font-size:.82rem; }
+  .metric:last-child { border-bottom:none; }
+  .bar-row { margin-bottom:12px; }
+  .bar-row .bl { display:flex; justify-content:space-between; font-size:.78rem; margin-bottom:4px; }
+</style>
+</head>
+<body class="app-body" data-audience="partners">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Клуб поставщиков</h1><div class="subtitle" id="headerSubtitle">3DMP · Рейтинг и аналитика</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="callout info mb-16"><span class="ci">🏆</span><div>Рейтинг поставщиков по надёжности: сроки, качество, документы. Влияет на приоритет в закупках.</div></div>
+      <div class="chips" id="filters">
+        <div class="chip active" data-f="all">Все</div>
+        <div class="chip" data-f="metal">Металл</div>
+        <div class="chip" data-f="tool">Инструмент</div>
+        <div class="chip" data-f="sub">Субподряд</div>
+      </div>
+      <div id="supList"></div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="card mb-12">
+        <div class="row between"><div class="row"><div class="rank gold" id="pRank">1</div><div><h3 class="mb-0" id="pName">—</h3><div class="faint" style="font-size:.72rem;" id="pCat">—</div></div></div><span class="rating" id="pRating">★ —</span></div>
+      </div>
+      <div class="section-title">Показатели</div>
+      <div class="card" id="pMetrics"></div>
+      <div class="section-title">История поставок</div>
+      <div class="card" id="pHistory"></div>
+      <button class="btn btn-secondary mt-12" id="toAnalytics">📊 Тендерная аналитика</button>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="section-title">Позиция на рынке</div>
+      <div class="stats mb-16">
+        <div class="stat"><div class="num accent" id="aWin">—</div><div class="label">Win rate</div></div>
+        <div class="stat"><div class="num info" id="aDeals">—</div><div class="label">Сделок</div></div>
+        <div class="stat"><div class="num success" id="aRank">—</div><div class="label">Место</div></div>
+      </div>
+      <div class="section-title">Цены: вы vs рынок</div>
+      <div class="card" id="aPrices"></div>
+      <div class="section-title">Рекомендации</div>
+      <div class="card" id="aRecs"></div>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Клуб поставщиков · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="c3.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

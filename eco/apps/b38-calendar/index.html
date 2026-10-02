@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B38 · Производственный календарь — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  .months { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; }
+  .mo { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:10px; }
+  .mo b { font-size:.82rem; } .mo .n { font-size:1.3rem; font-weight:800; color:var(--accent-700); }
+  .mo span { font-size:.68rem; color:var(--muted); }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Производственный календарь</h1><div class="subtitle" id="headerSubtitle">3DMP · РФ</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+    <section class="screen active" id="s1">
+      <div class="field"><label>Год</label><select id="year"><option>2025</option><option selected>2026</option></select></div>
+      <div class="stats mb-16" id="totals"></div>
+      <div class="section-title">По месяцам</div>
+      <div class="months mb-16" id="months"></div>
+      <div class="section-title">Праздничные дни</div>
+      <div class="card" id="holidays"></div>
+      <div class="callout info mt-12"><span class="ci">ℹ️</span><div>Расчёт ориентировочный (демо). Переносы выходных уточняйте по официальному производственному календарю.</div></div>
+    </section>
+  </div>
+
+  <footer class="app-footer">3DMP · Производственный календарь · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="b38.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

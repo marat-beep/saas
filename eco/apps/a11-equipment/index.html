@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A11 · Поставки оборудования — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  .eq-card { border-left:4px solid var(--accent); }
+  .spec-row { display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--border-2); font-size:.82rem; }
+  .spec-row:last-child { border-bottom:none; }
+</style>
+</head>
+<body class="app-body" data-audience="clients">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Поставки оборудования</h1><div class="subtitle" id="headerSubtitle">3DMP · Подбор и КП</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <input class="input mb-12" id="search" placeholder="Поиск: станок, бренд, назначение…">
+      <div class="chips" id="filters">
+        <div class="chip active" data-f="all">Все</div>
+        <div class="chip" data-f="cnc">Станки ЧПУ</div>
+        <div class="chip" data-f="laser">Лазеры</div>
+        <div class="chip" data-f="meas">Измерения</div>
+        <div class="chip" data-f="tool">Оснастка</div>
+        <div class="chip" data-f="comp">Комплектующие</div>
+      </div>
+      <div class="section-title">Каталог <span class="count" id="eqCount"></span></div>
+      <div id="eqList"></div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="card eq-card mb-12">
+        <div class="row between"><span class="badge accent" id="eCat">—</span><span class="rating" id="eBrand" style="color:var(--muted);">—</span></div>
+        <h3 class="mt-8" id="eTitle">—</h3>
+        <div class="tag-row mt-8" id="eTags"></div>
+      </div>
+      <div class="section-title">Характеристики</div>
+      <div class="card" id="eSpecs"></div>
+      <div class="section-title">Описание</div>
+      <div class="card" id="eDesc"></div>
+      <div class="card" id="ePrice"></div>
+      <button class="btn btn-primary mt-12" id="reqBtn">Запросить КП →</button>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="card">
+        <div class="input-row">
+          <div class="field"><label>Количество</label><input type="number" id="rQty" min="1" value="1"></div>
+          <div class="field"><label>Бюджет, ₽</label><input type="number" id="rBudget" min="0" placeholder="не указан"></div>
+        </div>
+        <div class="field"><label>Срок поставки</label><select id="rTerm"><option>Не срочно</option><option>1–2 месяца</option><option>До 1 месяца</option><option>Срочно</option></select></div>
+        <div class="field"><label>Контакт</label><input type="text" id="rContact" placeholder="Иванов И.И., +7..."></div>
+        <div class="field mb-0"><label>Комментарий</label><textarea id="rComment" placeholder="Требования, условия, интеграция"></textarea></div>
+      </div>
+      <button class="btn btn-primary mt-12" id="sendReq" disabled>Отправить запрос →</button>
+      <button class="btn btn-secondary mt-8" id="backEq">Назад</button>
+    </section>
+
+    <section class="screen" id="s4">
+      <div class="result-hero"><div class="check">✓</div><h2>Запрос КП отправлен!</h2><p>Менеджер подберёт варианты и условия поставки.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Номер запроса</div><div class="t-num" id="reqNum">—</div></div>
+      <div class="card" id="reqCard"></div>
+      <button class="btn btn-primary mt-16" id="toCatalog">К каталогу</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Поставки оборудования · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="a11.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

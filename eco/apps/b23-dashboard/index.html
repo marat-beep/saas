@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B23 · Дашборд руководителя — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  .kpi { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+  .kpi .k { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); padding:14px; }
+  .kpi .k .v { font-size:1.4rem; font-weight:800; }
+  .kpi .k .l { font-size:.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:.3px; }
+  .bars { display:flex; align-items:flex-end; gap:8px; height:120px; padding:8px 0; }
+  .bars .b { flex:1; background:var(--accent-grad); border-radius:6px 6px 0 0; position:relative; min-height:6px; }
+  .bars .b span { position:absolute; top:-16px; left:0; right:0; text-align:center; font-size:.6rem; color:var(--muted); }
+  .bars .b i { position:absolute; bottom:-18px; left:0; right:0; text-align:center; font-size:.6rem; color:var(--faint); font-style:normal; }
+  .rank-row { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border-2); font-size:.82rem; }
+  .rank-row:last-child { border-bottom:none; }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Дашборд руководителя</h1><div class="subtitle" id="headerSubtitle">3DMP · KPI завода</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="kpi" id="kpis"></div>
+      <div class="section-title">Выручка по месяцам</div>
+      <div class="card"><div class="bars" id="bars"></div><div style="height:16px;"></div></div>
+      <button class="btn btn-secondary mt-16" id="toDetail">Детали и алерты →</button>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="section-title">Топ станков по загрузке</div>
+      <div class="card" id="topMach"></div>
+      <div class="section-title">Крупнейшие заказы в работе</div>
+      <div class="card" id="topOrders"></div>
+      <div class="section-title">Требует внимания</div>
+      <div id="alerts"></div>
+      <button class="btn btn-secondary mt-12" id="backMain">← К KPI</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Дашборд руководителя · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="b23.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

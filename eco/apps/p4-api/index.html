@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P4 · Public API и интеграции — 3DMP Cloud</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  body.web-body { display:flex; flex-direction:column; min-height:100vh; }
+  .topbar { background:var(--accent-grad); color:#fff; padding:14px 22px; display:flex; align-items:center; gap:18px; position:sticky; top:0; z-index:20; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:800; }
+  .brand .logo { width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,.18); display:flex; align-items:center; justify-content:center; }
+  .main { flex:1; padding:26px 0 50px; }
+  .key-row { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border-2); }
+  .key-row:last-child { border-bottom:none; }
+  .key-code { font-family:var(--mono); font-size:.78rem; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:4px 8px; }
+  .int-row { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border-2); }
+  .int-row:last-child { border-bottom:none; }
+  .int-logo { width:40px; height:40px; border-radius:10px; background:var(--accent-100); color:var(--accent-700); display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
+  .switch { width:42px; height:24px; border-radius:999px; background:var(--border); position:relative; cursor:pointer; flex-shrink:0; transition:background .2s; }
+  .switch::after { content:''; position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:#fff; transition:left .2s; box-shadow:0 1px 3px rgba(0,0,0,.2); }
+  .switch.on { background:var(--accent); } .switch.on::after { left:21px; }
+  pre.code { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; font-size:.76rem; overflow:auto; font-family:var(--mono); }
+</style>
+</head>
+<body class="web-body" data-audience="platform">
+
+<header class="topbar">
+  <div class="brand"><span class="logo">🔌</span> Public API и интеграции</div>
+  <div style="margin-left:auto;"><button class="btn btn-ghost btn-sm" id="homeBtn" style="color:#fff;border-color:rgba(255,255,255,.4);">← Хаб</button></div>
+</header>
+
+<main class="main">
+  <div class="web-container">
+
+    <section class="screen active" id="s1">
+      <div class="page-title">Интеграционная платформа</div>
+      <div class="page-sub">Подключайте 1С, ERP, CRM и CAM к экосистеме через REST API и вебхуки.</div>
+      <div class="stats mb-16" style="max-width:640px;">
+        <div class="stat"><div class="num accent">1,2 млн</div><div class="label">Запросов/сутки</div></div>
+        <div class="stat"><div class="num success">99,98%</div><div class="label">Доступность</div></div>
+        <div class="stat"><div class="num info">87 мс</div><div class="label">Средний ответ</div></div>
+      </div>
+      <div class="grid two mb-16">
+        <div class="card"><h4>REST API</h4><p class="muted" style="font-size:.82rem;margin-top:6px;">Заказы, закупки, задачи, паспорта изделий. OAuth 2.0 и API-ключи.</p><button class="btn btn-ghost btn-sm mt-12" data-go="s2">Управление ключами</button></div>
+        <div class="card"><h4>Вебхуки</h4><p class="muted" style="font-size:.82rem;margin-top:6px;">События: новая заявка, смена этапа, создание сделки, оплата.</p><button class="btn btn-ghost btn-sm mt-12" data-go="s3">Интеграции</button></div>
+      </div>
+      <div class="section-title">Пример запроса</div>
+      <pre class="code">GET /api/v1/orders?status=in_progress
+Authorization: Bearer sk_live_••••••••
+
+{
+  "data": [
+    { "id": "3DMP-2025-0142", "stage": "Производство",
+      "eta": "2025-10-18", "amount": 486000 }
+  ]
+}</pre>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="page-title">API-ключи</div>
+      <div class="page-sub">Ключи доступа к API платформы.</div>
+      <div class="card mb-12" id="keyList"></div>
+      <button class="btn btn-primary" style="width:auto;padding:13px 22px;" id="createKey">＋ Создать ключ</button>
+      <button class="btn btn-secondary" style="width:auto;padding:13px 22px;margin-left:8px;" id="back1">Назад</button>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="page-title">Интеграции</div>
+      <div class="page-sub">Подключённые системы тенанта.</div>
+      <div class="card mb-16" id="intList"></div>
+      <button class="btn btn-secondary" style="width:auto;padding:13px 22px;" id="back2">Назад</button>
+    </section>
+
+    <section class="screen" id="s4">
+      <div class="result-hero"><div class="check">✓</div><h2>Ключ создан</h2><p>Сохраните его — полное значение показывается один раз.</p></div>
+      <div class="card mb-16" style="max-width:520px;margin:0 auto 16px;">
+        <div class="muted" style="font-size:.76rem;">Секретный ключ</div>
+        <div class="key-code" id="newKey" style="margin-top:8px;display:inline-block;">—</div>
+      </div>
+      <div class="text-center"><button class="btn btn-primary" style="width:auto;padding:13px 22px;" id="backKeys">К ключам</button></div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="app-footer">3DMP Cloud · Public API · демо-режим</footer>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="p4.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B13 · Инструмент и NC-программы — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  .tabs2 { display:flex; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--r-sm); padding:3px; margin-bottom:14px; }
+  .tabs2 button { flex:1; border:none; background:transparent; padding:10px; border-radius:7px; font-weight:700; font-size:.8rem; color:var(--muted); cursor:pointer; }
+  .tabs2 button.active { background:var(--surface); color:var(--accent-700); box-shadow:var(--sh-xs); }
+  .stock-row { display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid var(--border-2); }
+  .stock-row:last-child { border-bottom:none; }
+  pre.gcode { background:#0f172a; color:#e2e8f0; padding:14px; border-radius:10px; font-size:.72rem; overflow:auto; font-family:var(--mono); line-height:1.5; }
+  pre.gcode .g { color:#60a5fa; } pre.gcode .m { color:#f472b6; } pre.gcode .ax { color:#fbbf24; } pre.gcode .fs { color:#34d399; } pre.gcode .cm { color:#94a3b8; }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Инструмент и NC</h1><div class="subtitle" id="headerSubtitle">3DMP · Склад и программы</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="tabs2" id="tabs">
+        <button class="active" data-t="stock">🧰 Склад</button>
+        <button data-t="nc">💻 NC-программы</button>
+      </div>
+      <div id="tab-stock">
+        <div class="section-title">Остатки инструмента <span class="count" id="stockCount"></span></div>
+        <div class="card" id="stockList"></div>
+      </div>
+      <div id="tab-nc" class="hidden">
+        <div class="section-title">Библиотека программ <span class="count" id="ncCount"></span></div>
+        <div id="ncList"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="card accent-left mb-12">
+        <div class="row between"><span class="faint" style="font-family:var(--mono);font-size:.72rem;" id="dNum">—</span><span class="badge" id="dBadge">—</span></div>
+        <h3 class="mt-8" id="dTitle">—</h3>
+        <div class="tag-row mt-8" id="dTags"></div>
+      </div>
+      <div id="dBody"></div>
+      <div class="btn-row" id="dActions"></div>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="result-hero"><div class="check">✓</div><h2 id="actTitle">Готово</h2><p id="actText">Операция выполнена.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Запись</div><div class="t-num" id="actNum">—</div></div>
+      <button class="btn btn-primary mt-16" id="toList">Назад</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Инструмент и NC · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="b13.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

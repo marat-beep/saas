@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B25 · Допуски и посадки — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  .viz { width:100%; height:150px; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--r-sm); }
+  .fit-type { border-radius:var(--r-md); padding:14px; text-align:center; color:#fff; }
+  .fit-type.z { background:linear-gradient(135deg,#166534,#22c55e); }
+  .fit-type.p { background:linear-gradient(135deg,#9a3412,#f59e0b); }
+  .fit-type.n { background:linear-gradient(135deg,#991b1b,#ef4444); }
+  .fit-type .t { font-size:1.05rem; font-weight:800; }
+  .limits { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .lim { background:var(--surface-2); border-radius:10px; padding:10px; text-align:center; }
+  .lim b { display:block; font-family:var(--mono); font-size:.86rem; } .lim span { font-size:.64rem; color:var(--muted); }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Допуски и посадки</h1><div class="subtitle" id="headerSubtitle">3DMP · ISO 286</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="field"><label>Номинальный диаметр, мм</label><input type="number" id="diam" min="1" step="1" value="30"></div>
+      <div class="field"><label>Посадка</label><select id="fit"></select></div>
+      <div class="callout info">Значения по ISO 286 (демо-справочник). Посадки в системе отверстия (H).</div>
+      <button class="btn btn-primary mt-12" id="calcBtn">Рассчитать →</button>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="fit-type z mb-12" id="fitType"><div class="t" id="fitName">—</div><div style="font-size:.74rem;opacity:.9;" id="fitDesc">—</div></div>
+      <div class="section-title">Зоны допусков</div>
+      <div class="card" style="padding:10px;"><svg class="viz" id="viz" viewBox="0 0 100 150" preserveAspectRatio="none"></svg></div>
+      <div class="section-title">Предельные размеры</div>
+      <div class="limits mb-12" id="limits"></div>
+      <div class="section-title">Зазор / натяг</div>
+      <div class="card" id="clearance"></div>
+      <button class="btn btn-primary mt-12" id="saveBtn">Сохранить в техпроцесс →</button>
+      <button class="btn btn-secondary mt-8" id="editBtn">Изменить</button>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="result-hero"><div class="check">✓</div><h2>Расчёт сохранён</h2><p>Посадка добавлена в техпроцесс.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Запись</div><div class="t-num" id="actNum">—</div></div>
+      <button class="btn btn-primary mt-16" id="toList">Новый расчёт</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Допуски и посадки · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="b25.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

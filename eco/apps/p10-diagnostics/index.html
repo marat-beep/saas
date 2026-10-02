@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P10 · Диагностика и self-test — 3DMP Cloud</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  body.web-body { display:flex; flex-direction:column; min-height:100vh; }
+  .topbar { background:var(--accent-grad); color:#fff; padding:14px 22px; display:flex; align-items:center; gap:14px; position:sticky; top:0; z-index:20; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:800; }
+  .brand .logo { width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,.18); display:flex; align-items:center; justify-content:center; }
+  .main { flex:1; padding:26px 0 50px; }
+  .tst { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border-2); font-size:.84rem; }
+  .tst:last-child { border-bottom:none; }
+  .tst .s { font-weight:800; }
+  .switch { width:42px;height:24px;border-radius:999px;background:var(--border);position:relative;cursor:pointer;flex-shrink:0;transition:background .2s; }
+  .switch::after { content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2); }
+  .switch.on { background:var(--accent); } .switch.on::after { left:21px; }
+  .score { display:flex; align-items:center; gap:16px; }
+  .score .big { font-size:2.2rem; font-weight:800; }
+</style>
+</head>
+<body class="web-body" data-audience="platform">
+
+<header class="topbar">
+  <div class="brand"><span class="logo">🧪</span> Диагностика и self-test</div>
+  <div style="margin-left:auto;"><button class="btn btn-ghost btn-sm" id="homeBtn" style="color:#fff;border-color:rgba(255,255,255,.4);">← Хаб</button></div>
+</header>
+
+<main class="main">
+  <div class="web-container">
+
+    <section class="screen active" id="s1">
+      <div class="page-title">Проверка системы</div>
+      <div class="page-sub">Диагностика каталога, сквозных модулей и данных экосистемы.</div>
+
+      <div class="card mb-16">
+        <div class="score">
+          <div><div class="big" id="scoreVal">—</div><div class="faint" style="font-size:.72rem;">балл проверки</div></div>
+          <div class="grow"><div class="progress"><span id="scoreBar" style="width:0%"></span></div><div class="faint mt-8" style="font-size:.72rem;" id="scoreHint">Нажмите «Запустить проверку»</div></div>
+          <button class="btn btn-primary" style="width:auto;padding:12px 20px;" id="runBtn">▶ Запустить проверку</button>
+        </div>
+      </div>
+
+      <div class="section-title">Результаты <span class="count" id="tstCount"></span></div>
+      <div class="card mb-16" id="tstList"></div>
+
+      <div class="section-title">Режим разработки</div>
+      <div class="card mb-16">
+        <div class="row between"><div><b>Dev-режим</b><div class="faint" style="font-size:.74rem;">Показывает в хабе быстрый доступ к диагностике и тестовые инструменты.</div></div><div class="switch" id="devSwitch"></div></div>
+      </div>
+
+      <div class="section-title">Dev-инструменты</div>
+      <div class="card">
+        <div class="btn-row" style="margin-top:0;"><button class="btn btn-secondary" id="seedProblems">Сгенерировать тестовые проблемы</button><button class="btn btn-secondary" id="resetFlags">Сбросить feature flags</button></div>
+        <div class="btn-row"><button class="btn btn-secondary" id="seedData">Наполнить демо-данными</button><button class="btn btn-secondary" id="resetAll">Сбросить всё</button></div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="app-footer">3DMP Cloud · Диагностика и self-test · демо-режим</footer>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="p10.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

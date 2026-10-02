@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B18 · УП и постпроцессоры (DNC) — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  .nc-row { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border-2); cursor:pointer; }
+  .nc-row:last-child { border-bottom:none; }
+  .ver { display:flex; gap:10px; padding:9px 0; border-bottom:1px solid var(--border-2); font-size:.8rem; align-items:center; }
+  .ver:last-child { border-bottom:none; }
+  .ver .v { width:34px; height:24px; border-radius:6px; background:var(--accent-100); color:var(--accent-700); font-weight:800; font-size:.7rem; display:flex; align-items:center; justify-content:center; }
+  .backplot { height:150px; border-radius:10px; background:linear-gradient(rgba(15,23,42,.06) 1px, transparent 1px) 0 0/20px 20px, linear-gradient(90deg, rgba(15,23,42,.06) 1px, transparent 1px) 0 0/20px 20px, linear-gradient(135deg,#eef2ff,#e0e7ff); border:1px solid var(--accent-200); display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:700; color:var(--accent-700); }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">УП и постпроцессоры</h1><div class="subtitle" id="headerSubtitle">3DMP · DNC и версии</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <input class="input mb-12" id="search" placeholder="Поиск: программа, заказ, стойка…">
+      <div class="chips" id="filters">
+        <div class="chip active" data-f="all">Все</div>
+        <div class="chip" data-f="Fanuc">Fanuc</div>
+        <div class="chip" data-f="Heidenhain">Heidenhain</div>
+        <div class="chip" data-f="OSP">OSP</div>
+      </div>
+      <div class="section-title">Библиотека УП <span class="count" id="ncCount"></span></div>
+      <div class="card" id="ncList"></div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="card accent-left mb-12">
+        <div class="row between"><span class="faint" style="font-family:var(--mono);font-size:.72rem;" id="dId">—</span><span class="badge" id="dStatus">—</span></div>
+        <h3 class="mt-8" id="dTitle">—</h3>
+        <div class="tag-row mt-8" id="dTags"></div>
+      </div>
+      <div class="section-title">Backplot</div>
+      <div class="backplot" id="backplot">▶ Запустить проверку траектории</div>
+      <div class="section-title">Параметры</div>
+      <div class="card" id="dInfo"></div>
+      <div class="section-title">Версии</div>
+      <div class="card" id="dVersions"></div>
+      <div class="btn-row"><button class="btn btn-primary" id="sendBtn">Отправить на станок (DNC)</button></div>
+      <div class="btn-row"><button class="btn btn-secondary" id="backupBtn">Бэкап со стойки</button><button class="btn btn-secondary" id="newVerBtn">Новая версия</button></div>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="result-hero"><div class="check">✓</div><h2 id="actTitle">Готово</h2><p id="actText">Операция выполнена.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Программа</div><div class="t-num" id="actNum">—</div></div>
+      <button class="btn btn-primary mt-16" id="toList">К библиотеке</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · УП и постпроцессоры · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="b18.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

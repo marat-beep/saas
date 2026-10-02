@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B24 · Эскалация и проблемы — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  .prb { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid var(--border-2); cursor:pointer; }
+  .prb:last-child { border-bottom:none; }
+  .prb.crit { border-left:4px solid var(--danger); padding-left:12px; }
+  .prb.high { border-left:4px solid var(--warning); padding-left:12px; }
+  .prb.mid { border-left:4px solid var(--info); padding-left:12px; }
+  .lvl { font-size:.62rem; font-weight:800; text-transform:uppercase; letter-spacing:.3px; padding:2px 7px; border-radius:5px; }
+  .lvl.crit { background:var(--danger-bg); color:var(--danger); }
+  .lvl.high { background:var(--warning-bg); color:var(--warning); }
+  .lvl.mid { background:var(--info-bg); color:var(--info); }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Эскалация и проблемы</h1><div class="subtitle" id="headerSubtitle">3DMP · Подсветка и эскалация</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="stats mb-16">
+        <div class="stat"><div class="num danger" id="kCrit">—</div><div class="label">Критично</div></div>
+        <div class="stat"><div class="num warning" id="kHigh">—</div><div class="label">Высокий</div></div>
+        <div class="stat"><div class="num success" id="kRes">—</div><div class="label">Решено</div></div>
+      </div>
+      <div class="chips" id="filters">
+        <div class="chip active" data-f="open">Открытые</div>
+        <div class="chip" data-f="crit">Критичные</div>
+        <div class="chip" data-f="all">Все</div>
+      </div>
+      <div class="card" id="prbList"></div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="card accent-left mb-12" id="dHero">
+        <div class="row between"><span class="faint" style="font-family:var(--mono);font-size:.72rem;" id="dId">—</span><span id="dLevel" class="lvl mid">—</span></div>
+        <h3 class="mt-8" id="dTitle">—</h3>
+        <div class="tag-row mt-8" id="dTags"></div>
+      </div>
+      <div class="section-title">Детали</div>
+      <div class="card" id="dInfo"></div>
+      <div class="btn-row"><button class="btn btn-primary" id="workBtn">Взять в работу</button></div>
+      <div class="btn-row"><button class="btn btn-secondary" id="escBtn">↑ Эскалировать</button><button class="btn btn-secondary" id="resBtn">✅ Решить</button></div>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="result-hero"><div class="check">✓</div><h2 id="actTitle">Готово</h2><p id="actText">Проблема обновлена.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Проблема</div><div class="t-num" id="actNum">—</div></div>
+      <button class="btn btn-primary mt-16" id="toList">К проблемам</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Эскалация и проблемы · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="b24.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

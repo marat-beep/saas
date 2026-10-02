@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A1 · Калькулятор заказа — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+</head>
+<body class="app-body" data-audience="clients">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden title="Назад">←</button>
+    <div class="title-block">
+      <h1 id="headerTitle">Калькулятор заказа</h1>
+      <div class="subtitle" id="headerSubtitle">3DMP · Расчёт за 1 минуту</div>
+    </div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn" title="К списку приложений">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <!-- ЭКРАН 1: тип изделия -->
+    <section class="screen active" id="s1">
+      <div class="callout info mb-16">
+        <span class="ci">💡</span>
+        <div>Ответьте на 3 вопроса — получите вилку цены без звонка менеджера. Точный расчёт подтвердит инженер.</div>
+      </div>
+      <div class="section-title">Шаг 1 из 3 · Тип обработки</div>
+      <div class="option-grid" id="typeOptions"></div>
+      <button class="btn btn-primary mt-16" id="toS2" disabled>Далее →</button>
+    </section>
+
+    <!-- ЭКРАН 2: параметры -->
+    <section class="screen" id="s2">
+      <div class="section-title">Шаг 2 из 3 · Параметры</div>
+      <div class="field">
+        <label>Материал</label>
+        <select id="material"></select>
+      </div>
+      <div class="field">
+        <label>Количество, шт</label>
+        <input type="number" id="qty" min="1" value="1" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label>Габариты детали, мм <span class="faint">(необязательно)</span></label>
+        <div class="input-row">
+          <div class="field" style="margin:0"><input type="number" id="dimL" min="0" placeholder="Длина"></div>
+          <div class="field" style="margin:0"><input type="number" id="dimW" min="0" placeholder="Ширина"></div>
+          <div class="field" style="margin:0"><input type="number" id="dimH" min="0" placeholder="Высота"></div>
+        </div>
+        <div class="hint">Без габаритов расчёт ориентировочный, по количеству.</div>
+      </div>
+      <div class="field">
+        <label>Сложность</label>
+        <div class="segmented" id="complexity">
+          <button data-v="1" class="active">Простая</button>
+          <button data-v="1.4">Средняя</button>
+          <button data-v="2">Высокая</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Срок</label>
+        <div class="segmented" id="urgency">
+          <button data-v="1" class="active">Стандарт 5–7 дн</button>
+          <button data-v="1.35">Быстро 2–3 дн</button>
+          <button data-v="1.8">Срочно 24 ч</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="toS3">Далее →</button>
+    </section>
+
+    <!-- ЭКРАН 3: чертёж -->
+    <section class="screen" id="s3">
+      <div class="section-title">Шаг 3 из 3 · Чертёж</div>
+      <div class="card text-center" id="dropZone" style="cursor:pointer;border-style:dashed;">
+        <div style="font-size:2rem;">📎</div>
+        <h3 class="mt-8">Прикрепите чертёж или 3D-модель</h3>
+        <p class="muted" style="font-size:.78rem;margin-top:4px;">PDF, DWG, DXF, STEP, STL, JPG · до 50 МБ</p>
+      </div>
+      <div id="fileList" class="mt-12"></div>
+      <button class="btn btn-secondary mt-12" id="skipFile">Пропустить (уточним позже)</button>
+      <button class="btn btn-primary mt-8" id="toS4" disabled>Рассчитать цену →</button>
+    </section>
+
+    <!-- ЭКРАН 4: вилка цены -->
+    <section class="screen" id="s4">
+      <div class="price-highlight">
+        <div class="ph-label" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--accent-700);margin-bottom:6px;">Ориентировочная стоимость</div>
+        <div style="font-size:1.5rem;font-weight:800;color:var(--brand-900,#064e3b);" id="priceRange">—</div>
+        <div class="hint" id="pricePer">—</div>
+      </div>
+      <div class="section-title">Разбивка сметы</div>
+      <div class="card" id="estimate"></div>
+      <div class="section-title">Ваши параметры</div>
+      <div class="card" id="summary"></div>
+      <button class="btn btn-primary mt-16" id="submitBtn">Отправить заявку →</button>
+      <button class="btn btn-secondary mt-8" id="editBtn">Изменить параметры</button>
+      <div class="callout warning mt-12"><span class="ci">⚠️</span><div>Цена ориентировочная. Финальная стоимость — после проверки чертежа инженером.</div></div>
+    </section>
+
+    <!-- ЭКРАН 5: успех -->
+    <section class="screen" id="s5">
+      <div class="result-hero">
+        <div class="check">✓</div>
+        <h2>Заявка отправлена!</h2>
+        <p>Мы получили расчёт и передали его инженеру. Он свяжется с вами в течение рабочего дня.</p>
+      </div>
+      <div class="ticket mb-16">
+        <div class="t-label">Номер заявки</div>
+        <div class="t-num" id="ticketNum">—</div>
+      </div>
+      <div class="card">
+        <div class="row between"><span class="muted">Тип</span><b id="resType">—</b></div>
+        <div class="row between mt-8"><span class="muted">Вилка цены</span><b id="resPrice">—</b></div>
+        <div class="row between mt-8"><span class="muted">Срок реакции</span><b>до 4 часов</b></div>
+      </div>
+      <button class="btn btn-primary mt-16" id="newCalc">Новая заявка</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Калькулятор заказа · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="a1.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

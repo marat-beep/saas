@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B31 · Экономика заказа — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  .o-row { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid var(--border-2); cursor:pointer; }
+  .o-row:last-child { border-bottom:none; }
+  .brk { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border-2); font-size:.82rem; }
+  .brk:last-child { border-bottom:none; }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block"><h1 id="headerTitle">Экономика заказа</h1><div class="subtitle" id="headerSubtitle">3DMP · Себестоимость и маржа</div></div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="stats mb-16">
+        <div class="stat"><div class="num accent" id="kMargin">—</div><div class="label">Ср. маржа</div></div>
+        <div class="stat"><div class="num success" id="kProfit">—</div><div class="label">Прибыльных</div></div>
+        <div class="stat"><div class="num danger" id="kLoss">—</div><div class="label">Убыточных</div></div>
+      </div>
+      <div class="section-title">Заказы <span class="count" id="oCount"></span></div>
+      <div class="card" id="orderList"></div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="card accent-left mb-12">
+        <div class="row between"><span class="faint" style="font-family:var(--mono);font-size:.72rem;" id="dNum">—</span><span class="badge" id="dMargin">—</span></div>
+        <h3 class="mt-8" id="dTitle">—</h3>
+      </div>
+      <div class="section-title">Себестоимость</div>
+      <div class="card" id="dCost"></div>
+      <div class="section-title">Цена и прибыль</div>
+      <div class="card" id="dPrice"></div>
+      <div class="callout info mt-12"><span class="ci">ℹ️</span><div>Нормочасы × стоимость нормочаса (B28). Смета формируется в B9.</div></div>
+      <button class="btn btn-secondary mt-8" id="back1">Назад</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Экономика заказа · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="b31.js"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+</body>
+</html>

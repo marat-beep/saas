@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P15 · Центр экспорта и отчётов — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+  body.web-body { display:flex; flex-direction:column; min-height:100vh; }
+  .topbar { background:var(--accent-grad); color:#fff; padding:14px 22px; display:flex; align-items:center; gap:14px; position:sticky; top:0; z-index:20; flex-wrap:wrap; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:800; }
+  .brand .logo { width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,.18); display:flex; align-items:center; justify-content:center; }
+  .topnav { display:flex; gap:4px; flex-wrap:wrap; margin-left:8px; }
+  .topnav button { background:transparent; border:none; color:rgba(255,255,255,.85); font-weight:600; font-size:.8rem; padding:8px 11px; border-radius:8px; cursor:pointer; }
+  .topnav button:hover, .topnav button.active { background:rgba(255,255,255,.16); color:#fff; }
+  .main { flex:1; padding:24px 0 50px; }
+
+  .toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:14px; }
+  .toolbar .field { margin:0; min-width:180px; }
+  .exp-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:12px; }
+  .ds-card { cursor:pointer; border:2px solid var(--border); }
+  .ds-card.on { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-100); }
+  .fmt-row { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
+  .fmt-btn { border:2px solid var(--border); background:var(--surface); color:var(--text); border-radius:10px; padding:10px 14px; font-weight:700; font-size:.8rem; cursor:pointer; display:inline-flex; align-items:center; gap:7px; }
+  .fmt-btn:hover:not(:disabled) { border-color:var(--accent); color:var(--accent-700); }
+  .fmt-btn:disabled { opacity:.4; cursor:not-allowed; }
+  .fmt-btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .cols-wrap { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 14px; }
+  .col-chip { font-size:.74rem; font-weight:600; border:1px solid var(--border); background:var(--surface); border-radius:999px; padding:5px 11px; cursor:pointer; user-select:none; }
+  .col-chip.on { background:var(--accent-100); border-color:var(--accent); color:var(--accent-700); }
+  .preview-wrap { overflow:auto; border:1px solid var(--border); border-radius:12px; background:#fff; }
+  .preview { min-width:640px; }
+
+  /* отчёт (предпросмотр) — зеркалит AppExport/baseCss */
+  .rpt { background:#fff; color:#0f172a; padding:22px; font-size:12px; line-height:1.5; }
+  .rpt h1 { font-size:16px; text-align:center; margin:0; }
+  .rpt .rpt-sub { text-align:center; color:#475569; font-size:11px; margin:4px 0 14px; }
+  .rpt .rpt-meta { display:flex; flex-wrap:wrap; gap:6px 18px; margin:0 0 14px; font-size:11px; }
+  .rpt .rpt-meta span { color:#64748b; } .rpt .rpt-meta b { color:#0f172a; }
+  .rpt .rpt-kpis { display:flex; flex-wrap:wrap; gap:10px; margin:0 0 16px; }
+  .rpt .rpt-kpi { border:1px solid #cbd5e1; border-radius:8px; padding:8px 12px; min-width:120px; }
+  .rpt .rpt-kpi b { display:block; font-size:15px; } .rpt .rpt-kpi span { font-size:10px; color:#64748b; text-transform:uppercase; letter-spacing:.4px; }
+  .rpt .rpt-sec { margin:14px 0; }
+  .rpt .rpt-sec h2 { font-size:12px; margin:0 0 6px; border-bottom:2px solid #0f172a; padding-bottom:3px; }
+  .rpt .rpt-sec p { margin:0 0 8px; }
+  .rpt table { width:100%; border-collapse:collapse; margin:6px 0 10px; }
+  .rpt th, .rpt td { border:1px solid #cbd5e1; padding:5px 7px; text-align:left; font-size:11px; }
+  .rpt th { background:#f1f5f9; } .rpt td.num, .rpt th.num { text-align:right; }
+  .rpt .rpt-note { color:#64748b; font-size:10px; margin-top:4px; }
+  .rpt .rpt-sign { margin-top:22px; display:flex; justify-content:space-between; font-size:11px; }
+  .rpt .rpt-foot { margin-top:24px; border-top:1px solid #e2e8f0; padding-top:8px; color:#94a3b8; font-size:10px; text-align:center; }
+  html[data-theme="dark"] .preview-wrap, html.dark .preview-wrap { background:#fff; }
+  .notice { border:1px solid var(--warning); background:var(--warning-bg); color:var(--warning); border-radius:10px; padding:10px 14px; font-size:.8rem; font-weight:600; margin-bottom:14px; }
+  .hrow { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border-2); font-size:.82rem; }
+  .hrow:last-child { border-bottom:none; } .hrow .nm { flex:1; }
+</style>
+</head>
+<body class="web-body" data-audience="platform">
+
+<header class="topbar">
+  <div class="brand"><span class="logo">🗂</span> Центр экспорта и отчётов</div>
+  <nav class="topnav" id="nav">
+    <button class="active" data-s="s-ov">Обзор</button>
+    <button data-s="s-export">Экспорт данных</button>
+    <button data-s="s-reports">Конструктор отчётов</button>
+    <button data-s="s-history">История</button>
+  </nav>
+  <div style="margin-left:auto;display:flex;gap:8px;">
+    <a class="btn btn-ghost btn-sm" href="../p14-norms/index.html" style="color:#fff;border-color:rgba(255,255,255,.4);text-decoration:none;">🧮 Нормирование PRO</a>
+    <button class="btn btn-ghost btn-sm" id="homeBtn" style="color:#fff;border-color:rgba(255,255,255,.4);">← Хаб</button>
+  </div>
+</header>
+
+<main class="main">
+  <div class="web-container">
+
+    <section class="screen active" id="s-ov">
+      <div class="page-title">Единый центр выгрузок экосистемы</div>
+      <div class="page-sub">Один движок экспорта для всех модулей: <b>PDF, DOC, CSV, JSON, ICS</b> и конструктор отчётов. В SaaS-модели работает по тенанту с учётом white-label и feature flags.</div>
+      <div id="flagNotice"></div>
+      <div class="toolbar">
+        <div class="field"><label>Тенант (завод)</label><select id="tenantSel"></select></div>
+        <div class="field"><label>Бренд документа (white-label)</label><input type="text" id="brandInput" placeholder="ООО «Завод»"></div>
+      </div>
+      <div class="kpi-grid mb-16" id="kpi"></div>
+      <div class="section-title">Форматы выгрузки</div>
+      <div class="card mb-16" id="fmtList"></div>
+      <div class="section-title">Источники данных</div>
+      <div class="exp-grid" id="dsOverview"></div>
+    </section>
+
+    <section class="screen" id="s-export">
+      <div class="page-title">Экспорт данных</div>
+      <div class="page-sub">Выберите набор, отметьте поля и выгрузите в нужном формате. Действие фиксируется в истории выгрузок.</div>
+      <div class="section-title">Набор данных</div>
+      <div class="exp-grid mb-16" id="dsPicker"></div>
+      <div class="section-title">Поля <span class="count" id="colCount"></span></div>
+      <div class="cols-wrap" id="cols"></div>
+      <div class="fmt-row" id="exportFmts">
+        <button class="fmt-btn primary" data-fmt="pdf">🖨 PDF / печать</button>
+        <button class="fmt-btn" data-fmt="doc">📄 DOC (Word)</button>
+        <button class="fmt-btn" data-fmt="csv">📑 CSV (Excel)</button>
+        <button class="fmt-btn" data-fmt="json">🧩 JSON</button>
+        <button class="fmt-btn" data-fmt="ics">📅 ICS (календарь)</button>
+      </div>
+      <div class="section-title">Предпросмотр <span class="faint" id="pvInfo"></span></div>
+      <div class="preview-wrap"><div class="preview rpt" id="tablePreview"></div></div>
+    </section>
+
+    <section class="screen" id="s-reports">
+      <div class="page-title">Конструктор отчётов</div>
+      <div class="page-sub">Шаблон отчёта + период + блоки → предпросмотр и выгрузка в PDF/DOC. Шаблоны сохраняются локально.</div>
+      <div class="toolbar">
+        <div class="field"><label>Шаблон отчёта</label><select id="tplSel"></select></div>
+        <div class="field"><label>Заголовок</label><input type="text" id="rptTitle" placeholder="Отчёт"></div>
+        <div class="field"><label>Период</label><input type="text" id="rptPeriod" placeholder="Октябрь 2026"></div>
+      </div>
+      <div class="cols-wrap" id="rptBlocks"></div>
+      <div class="fmt-row">
+        <button class="fmt-btn" data-rpt="refresh">⟳ Обновить предпросмотр</button>
+        <button class="fmt-btn primary" data-rpt="pdf">🖨 PDF / печать</button>
+        <button class="fmt-btn" data-rpt="doc">📄 DOC (Word)</button>
+        <button class="fmt-btn" data-rpt="save">💾 Сохранить шаблон</button>
+      </div>
+      <div class="section-title">Сохранённые шаблоны</div>
+      <div class="card mb-16" id="savedTpl"></div>
+      <div class="section-title">Предпросмотр отчёта</div>
+      <div class="preview-wrap"><div class="preview rpt" id="rptPreview"></div></div>
+    </section>
+
+    <section class="screen" id="s-history">
+      <div class="page-title">История выгрузок</div>
+      <div class="page-sub">Журнал экспортов по тенанту: формат, объект, автор, время. Основной аудит — в P9.</div>
+      <div class="card mb-16" id="histList"></div>
+      <button class="btn btn-secondary" id="histClear" style="width:auto;padding:12px 20px;">Очистить историю выгрузок</button>
+    </section>
+
+  </div>
+</main>
+
+<footer class="app-footer">3DMP · Центр экспорта и отчётов · SaaS-модуль · демо-режим</footer>
+
+<script defer src="../../assets/js/utils.js"></script>
+<script defer src="../../assets/js/router.js"></script>
+<script defer src="../../assets/js/catalog.js"></script>
+<script defer src="../../assets/js/store.js"></script>
+<script defer src="../../assets/js/auth.js"></script>
+<script defer src="../../assets/js/theme.js"></script>
+<script defer src="../../assets/js/guide.js"></script>
+<script defer src="../../assets/js/export.js"></script>
+<script defer src="p15.js"></script>
+</body>
+</html>

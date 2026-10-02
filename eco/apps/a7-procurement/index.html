@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A7 · Портал закупок — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  .tender-num { font-family: var(--mono); font-size:.7rem; color:var(--faint); font-weight:700; }
+  .detail-hero { background: linear-gradient(135deg, var(--accent-50), var(--accent-100)); border:2px solid var(--accent-200); border-radius:var(--r-md); padding:18px; }
+  .file-item { display:flex; align-items:center; gap:12px; padding:10px; background:var(--surface-2); border-radius:var(--r-sm); margin-bottom:6px; cursor:pointer; }
+  .file-item .fi { width:36px; height:36px; border-radius:8px; background:var(--accent-100); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+</style>
+</head>
+<body class="app-body" data-audience="clients">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block">
+      <h1 id="headerTitle">Портал закупок</h1>
+      <div class="subtitle" id="headerSubtitle">3DMP · Для поставщиков</div>
+    </div>
+    <div class="spacer"></div>
+    <button class="header-action" id="logoutBtn" hidden>Выйти</button>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="result-hero" style="padding-top:6px;">
+        <div style="width:66px;height:66px;border-radius:18px;background:var(--accent-grad);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 14px;">📦</div>
+        <h2>Портал поставщика</h2>
+        <p>Регистрация для участия в закупках ООО «3Д Металлообработка Пресс».</p>
+      </div>
+      <div class="card">
+        <div class="field"><label>Название организации</label><input type="text" id="loginCompany" placeholder="ООО «МеталлСнаб»"></div>
+        <div class="field"><label>ИНН</label><input type="text" id="loginInn" maxlength="12" placeholder="10 или 12 цифр"></div>
+        <div class="field mb-0"><label>Контактное лицо и телефон</label><input type="text" id="loginContact" placeholder="Иванов И.И., +7..."></div>
+        <button class="btn btn-primary mt-16" id="loginBtn" disabled>Войти в портал →</button>
+      </div>
+      <div class="callout info mt-12"><span class="ci">💡</span><div>Демо-режим: заполните поля — получите доступ к витрине закупок.</div></div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="mb-16">
+        <div class="muted" style="font-size:.8rem;">Поставщик</div>
+        <div style="font-size:1.05rem;font-weight:800;" id="welcomeCompany">ООО «МеталлСнаб»</div>
+        <span class="badge success mt-8">✓ Верифицированный поставщик</span>
+      </div>
+      <div class="stats mb-16">
+        <div class="stat"><div class="num accent" id="stActive">0</div><div class="label">Активных</div></div>
+        <div class="stat"><div class="num info" id="stOffers">0</div><div class="label">Мои КП</div></div>
+        <div class="stat"><div class="num success" id="stWon">0</div><div class="label">Выиграно</div></div>
+      </div>
+      <div class="section-title">Витрина закупок <span class="count" id="tCount"></span></div>
+      <div class="chips" id="filters">
+        <div class="chip active" data-f="all">Все</div>
+        <div class="chip" data-f="metal">Металлы</div>
+        <div class="chip" data-f="tools">Инструмент</div>
+        <div class="chip" data-f="services">Услуги</div>
+        <div class="chip" data-f="urgent">Срочные</div>
+      </div>
+      <div id="tendersList"></div>
+    </section>
+
+    <section class="screen" id="s3">
+      <div class="detail-hero mb-12">
+        <div class="tender-num" id="dNum" style="color:var(--accent-700);"></div>
+        <h2 style="font-size:1.05rem;font-weight:800;margin:6px 0 8px;" id="dTitle"></h2>
+        <span class="badge" id="dBadge"></span>
+      </div>
+      <div class="section-title">Условия</div>
+      <div class="card" id="dInfo"></div>
+      <div class="section-title">Описание</div>
+      <div class="card" id="dDesc"></div>
+      <div class="section-title">Документы</div>
+      <div class="card" id="dFiles"></div>
+      <button class="btn btn-primary mt-12" id="toOffer">Подать КП →</button>
+    </section>
+
+    <section class="screen" id="s4">
+      <div class="callout info mb-12"><span class="ci">📝</span><div>Заполните коммерческое предложение. Итог считается автоматически.</div></div>
+      <div class="card">
+        <div class="input-row">
+          <div class="field"><label>Цена за ед., ₽</label><input type="number" id="price" min="0" placeholder="0"></div>
+          <div class="field"><label>Кол-во</label><input type="number" id="qty" min="1" placeholder="1"></div>
+        </div>
+        <div class="field"><label>Срок поставки</label>
+          <select id="term"><option>1–3 дня</option><option>3–7 дней</option><option>7–14 дней</option><option>14–30 дней</option></select>
+        </div>
+        <div class="field"><label>Условия оплаты</label>
+          <select id="pay"><option>100% предоплата</option><option>50% предоплата</option><option>Постоплата 14 дней</option><option>Постоплата 30 дней</option></select>
+        </div>
+        <div class="field mb-0"><label>Наличие</label>
+          <select id="stock"><option>На складе</option><option>Под заказ</option><option>Частично на складе</option></select>
+        </div>
+      </div>
+      <div class="card mt-12">
+        <label class="row" style="cursor:pointer;font-size:.84rem;font-weight:600;"><input type="checkbox" id="nds" checked style="width:auto;margin-right:8px;"> Указать цену с НДС 20%</label>
+      </div>
+      <div class="price-highlight mt-12">
+        <div class="ph-label" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--accent-700);margin-bottom:6px;">Итоговая стоимость КП</div>
+        <div id="total" style="font-size:1.5rem;font-weight:800;color:var(--brand-900,#064e3b);">0 ₽</div>
+        <div class="hint" id="totalHint">—</div>
+      </div>
+      <button class="btn btn-primary mt-12" id="submitOffer" disabled>Отправить КП →</button>
+      <button class="btn btn-secondary mt-8" id="backToTender">Назад к закупке</button>
+    </section>
+
+    <section class="screen" id="s5">
+      <div class="result-hero"><div class="check">✓</div><h2>КП отправлено!</h2><p>Ваше предложение зарегистрировано и передано закупочной комиссии.</p></div>
+      <div class="ticket mb-16"><div class="t-label">Номер предложения</div><div class="t-num" id="offerNum">—</div></div>
+      <div class="card">
+        <div class="row between"><span class="muted">Закупка</span><b id="resTender">—</b></div>
+        <div class="row between mt-8"><span class="muted">Итог</span><b id="resTotal">—</b></div>
+        <div class="row between mt-8"><span class="muted">Статус</span><span class="badge warning">На рассмотрении</span></div>
+      </div>
+      <button class="btn btn-primary mt-16" id="toList">К витрине закупок</button>
+      <button class="btn btn-secondary mt-8" id="toHub">Вернуться в хаб</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Портал закупок · Закупки по 44-ФЗ и 223-ФЗ</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="a7.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>

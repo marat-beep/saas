@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B2 · Библиотека техпроцессов — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=1">
+<link rel="stylesheet" href="../../assets/css/components.css?v=1">
+<style>
+  .searchbar { display:flex; gap:8px; margin-bottom:12px; }
+  .cat-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .cat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-sm); padding:12px; cursor:pointer; transition:all var(--t-fast); }
+  .cat-card:hover { border-color:var(--accent-200); }
+  .cat-card .ci { font-size:1.3rem; }
+  .cat-card .cn { font-size:.8rem; font-weight:700; margin-top:4px; }
+  .cat-card .cc { font-size:.68rem; color:var(--faint); }
+  .preview3d { height:180px; border-radius:var(--r-sm); background: linear-gradient(rgba(15,23,42,.06) 1px, transparent 1px) 0 0/24px 24px, linear-gradient(90deg, rgba(15,23,42,.06) 1px, transparent 1px) 0 0/24px 24px, linear-gradient(135deg,#eef2ff,#e0e7ff); display:flex; align-items:center; justify-content:center; border:1px solid var(--accent-200); position:relative; cursor:pointer; }
+  .preview3d .model { font-size:3rem; filter: drop-shadow(0 8px 16px rgba(0,0,0,.15)); }
+  .preview3d .hint3d { position:absolute; bottom:8px; right:10px; font-size:.66rem; color:var(--accent-700); font-weight:700; }
+  .op-item { display:flex; gap:10px; padding:10px 0; border-bottom:1px solid var(--border-2); align-items:center; }
+  .op-item:last-child { border-bottom:none; }
+  .op-n { width:24px;height:24px;border-radius:50%;background:var(--accent-100);color:var(--accent-700);font-weight:800;font-size:.72rem;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+</style>
+</head>
+<body class="app-body" data-audience="staff">
+
+<div class="app-shell">
+  <header class="app-header">
+    <button class="back" id="backBtn" hidden>←</button>
+    <div class="title-block">
+      <h1 id="headerTitle">Библиотека техпроцессов</h1>
+      <div class="subtitle" id="headerSubtitle">3DMP · База знаний производства</div>
+    </div>
+    <div class="spacer"></div>
+    <button class="header-action" id="homeBtn">Хаб</button>
+  </header>
+
+  <div class="content" id="content">
+
+    <section class="screen active" id="s1">
+      <div class="searchbar">
+        <input class="input" id="search" placeholder="Поиск по номеру, детали, материалу…">
+      </div>
+      <div class="chips" id="quick">
+        <div class="chip active" data-f="all">Все</div>
+        <div class="chip" data-f="stamp">Штампы</div>
+        <div class="chip" data-f="mold">Пресс-формы</div>
+        <div class="chip" data-f="tooling">Оснастка</div>
+        <div class="chip" data-f="favorite">★ Избранное</div>
+      </div>
+      <div class="section-title">Категории</div>
+      <div class="cat-grid" id="cats"></div>
+      <div class="section-title">Техпроцессы <span class="count" id="listCount"></span></div>
+      <div id="list"></div>
+    </section>
+
+    <section class="screen" id="s2">
+      <div class="preview3d" id="preview3d">
+        <span class="model" id="p3Model">🧩</span>
+        <span class="hint3d">▶ 3D-просмотр (SolidWorks)</span>
+      </div>
+      <div class="card mt-12">
+        <div class="row between"><span class="faint" style="font-family:var(--mono);font-size:.72rem;" id="tpNum">—</span><span class="badge" id="tpBadge">—</span></div>
+        <h3 class="mt-8" id="tpTitle">—</h3>
+      </div>
+      <div class="section-title">Параметры</div>
+      <div class="card" id="tpParams"></div>
+      <div class="section-title">Операции</div>
+      <div class="card" id="tpOps"></div>
+      <div class="section-title">Файлы</div>
+      <div class="card" id="tpFiles"></div>
+      <button class="btn btn-primary mt-12" id="similarBtn">Создать по образцу →</button>
+    </section>
+
+  </div>
+
+  <footer class="app-footer">3DMP · Библиотека техпроцессов · демо-режим</footer>
+</div>
+
+<script defer src="../../assets/js/utils.js?v=1"></script>
+<script defer src="../../assets/js/router.js?v=1"></script>
+<script defer src="b2.js?v=1"></script>
+  <script defer src="../../assets/js/catalog.js?v=1"></script>
+  <script defer src="../../assets/js/guide.js?v=1"></script>
+  <script defer src="../../assets/js/store.js?v=1"></script>
+  <script defer src="../../assets/js/auth.js?v=1"></script>
+  <script defer src="../../assets/js/theme.js?v=1"></script>
+</body>
+</html>
