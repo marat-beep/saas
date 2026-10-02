@@ -62,8 +62,11 @@ SAAS/
 
 | Логин | Пароль | Роль |
 |---|---|---|
+| admin | admin | admin |
 | owner | Owner12345 | owner |
 | manager | Manager12345 | manager |
 | supplier | Supplier12345 | supplier |
+
+Для быстрого применения всех таблиц есть единый файл `supabase/apply_all.sql` (0001+0002+0003).
 
 Далее: следующие доменные модули сервиса.

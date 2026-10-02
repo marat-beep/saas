@@ -30,8 +30,10 @@ SUPABASE_ANON_KEY: 'sb_publishable_akJbBxWd13audl8KMtdB5Q_0_kT51pa'
    - `supabase/migrations/0002_supplier.sql` → таблицы `tenders`, `bids` + демо-закупки;
    - `supabase/migrations/0003_app_auth.sql` → `app_users`, `app_sessions`, функции входа и RPC закупок.
 3. Проверить: **Table Editor** покажет `tenants`, `profiles`, `memberships`, `tenders`, `bids`, `app_users`, `app_sessions`.
-4. Демо-аккаунты (логин / пароль): `owner` / `Owner12345`, `manager` / `Manager12345`, `supplier` / `Supplier12345`.
+4. Демо-аккаунты (логин / пароль): `admin` / `admin`, `owner` / `Owner12345`, `manager` / `Manager12345`, `supplier` / `Supplier12345`.
    Пароли хранятся bcrypt-хешами (`pgcrypto`); смена — обновлением `app_users.password_hash` через SQL.
+
+> Быстрый путь: `supabase/apply_all.sql` — единый идемпотентный скрипт (0001+0002+0003), вставить один раз в SQL Editor.
 
 Позже удобно перейти на Supabase CLI (`supabase db push`), но он не обязателен — миграции применяются вручную.
 
