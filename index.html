@@ -48,7 +48,7 @@
   <script src="assets/js/ui.js?v=1"></script>
   <script src="assets/js/status.js?v=1"></script>
   <script src="assets/js/auth.js?v=1"></script>
-  <script src="assets/js/catalog.js?v=1"></script>
+  <script src="assets/js/catalog.js?v=2"></script>
   <script>
     (function () {
       'use strict';
@@ -59,7 +59,11 @@
 
       function renderApps(user) {
         var logged = !!user;
-        document.getElementById('apps').innerHTML = C.apps.map(function (a) {
+        var list = C.apps.filter(function (a) {
+          if (!a.roles) return true;
+          return logged && a.roles.indexOf(user.role) >= 0;
+        });
+        document.getElementById('apps').innerHTML = list.map(function (a) {
           var needAuth = !a.guest && !logged;
           var href = needAuth ? 'apps/auth/index.html' : a.href;
           var tag = a.guest ? 'открыто' : (logged ? 'личный' : 'нужен вход');

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Администрирование — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css">
+<style>
+  .utable { width:100%; border-collapse:collapse; }
+  .utable th, .utable td { text-align:left; padding:9px 10px; border-bottom:1px solid var(--border); font-size:.84rem; }
+  .utable th { color:var(--muted); font-size:.72rem; text-transform:uppercase; letter-spacing:.4px; }
+  .utable tr:last-child td { border-bottom:none; }
+  .utable select, .utable input { padding:7px 9px; font-size:.8rem; }
+  .act { background:none; border:1px solid var(--border); border-radius:8px; padding:5px 9px; font-size:.74rem; font-weight:600; cursor:pointer; margin-right:4px; }
+  .act:hover { border-color:var(--accent); color:var(--accent-700); }
+  .act.danger:hover { border-color:var(--danger); color:var(--danger); }
+  .pill { font-size:.68rem; font-weight:700; padding:3px 9px; border-radius:999px; }
+  .pill.on { background:var(--accent-100); color:var(--accent-700); }
+  .pill.off { background:#fee2e2; color:#b91c1c; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:560px){ .grid2 { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🛡</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <section class="hero"><h1>Администрирование</h1><p>Пользователи сервиса и роли. Доступно только роли <b>admin</b>.</p></section>
+
+    <div class="card">
+      <h2>Новый пользователь</h2>
+      <div class="msg" id="createMsg"></div>
+      <div class="grid2">
+        <div class="field"><label>Логин</label><input type="text" id="nLogin" placeholder="например ivanov"></div>
+        <div class="field"><label>Пароль</label><input type="text" id="nPass" placeholder="минимум 4 символа"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Имя</label><input type="text" id="nName" placeholder="Иванов И.И."></div>
+        <div class="field"><label>Роль</label>
+          <select id="nRole">
+            <option value="supplier">Поставщик</option>
+            <option value="manager">Менеджер</option>
+            <option value="owner">Собственник</option>
+            <option value="admin">Администратор</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn" id="createBtn">Создать пользователя</button>
+    </div>
+
+    <div class="card">
+      <h2>Пользователи <span class="note" id="count"></span></h2>
+      <div class="msg" id="listMsg"></div>
+      <div style="overflow:auto;"><table class="utable" id="users"></table></div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · административная панель</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=1"></script>
+  <script src="../../assets/js/auth.js?v=1"></script>
+  <script src="admin.js?v=2"></script>
+</body>
+</html>

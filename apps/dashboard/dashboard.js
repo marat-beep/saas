@@ -14,7 +14,11 @@
 
   function renderModules(session) {
     var apps = (window.AppCatalog && window.AppCatalog.apps) || [];
-    $('#modules').innerHTML = apps.filter(function (a) { return a.id !== 'auth' && a.id !== 'dashboard'; }).map(function (a) {
+    $('#modules').innerHTML = apps.filter(function (a) {
+      if (a.id === 'auth' || a.id === 'dashboard') return false;
+      if (a.roles && a.roles.indexOf(session.role) < 0) return false;
+      return true;
+    }).map(function (a) {
       return '<div class="tenant"><span>' + a.icon + ' <b>' + ui.esc(a.title) + '</b></span>' +
         '<a class="tbtn" style="margin-left:auto;background:var(--accent);border-color:var(--accent);" href="../' + a.id + '/index.html">Открыть</a></div>';
     }).join('') || '<span class="note">Модулей пока нет.</span>';
