@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Личный кабинет — 3DMP Service</title>
 <link rel="stylesheet" href="../../assets/css/app.css?v=1">
+<style>
+  .mod { display:flex; align-items:center; gap:13px; padding:13px 0; border-top:1px solid var(--border); }
+  .mod:first-child { border-top:none; }
+  .mod-ic { width:42px; height:42px; border-radius:12px; background:var(--accent-100); display:flex; align-items:center; justify-content:center; font-size:1.25rem; flex:0 0 auto; }
+  .mod-tx { flex:1; min-width:0; }
+  .mod-tx b { display:block; font-size:.94rem; }
+  .mod-tx span { display:block; font-size:.76rem; color:var(--muted); margin-top:2px; line-height:1.45; }
+  .mod-btn { background:var(--accent); color:#fff !important; text-decoration:none; border-radius:10px; padding:10px 18px; font-size:.8rem; font-weight:700; white-space:nowrap; }
+  .mod-btn:hover { background:var(--accent-700); }
+</style>
 </head>
 <body>
   <header class="topbar">
@@ -39,6 +49,6 @@
   <script src="../../assets/js/ui.js?v=1"></script>
   <script src="../../assets/js/auth.js?v=1"></script>
   <script src="../../assets/js/catalog.js?v=2"></script>
-  <script src="dashboard.js?v=2"></script>
+  <script src="dashboard.js?v=3"></script>
 </body>
 </html>
