@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>3DMP Service</title>
+<script>
+  /* Без завершающего слэша относительные пути ломаются: /saas -> /saas/ */
+  (function () {
+    var p = location.pathname;
+    if (p.charAt(p.length - 1) !== '/' && !/\.html?$/i.test(p)) {
+      location.replace(p + '/' + location.search + location.hash);
+    }
+  })();
+</script>
 <link rel="stylesheet" href="assets/css/app.css">
 </head>
 <body>
