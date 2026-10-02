@@ -8,7 +8,7 @@
   var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa;
   var SB = window.SB;
 
-  var user = null, token = null, tenders = [], bids = [];
+  var user = null, token = null, tenders = [], bids = [], acc = null;
   var filter = 'all', q = '', cur = null;
   var migrationNote = false;
 
@@ -170,6 +170,50 @@
     filter = c.dataset.f; renderList();
   });
 
+  /* ---------- аккредитация ---------- */
+  var ACC = { pending: ['#fef3c7', '#92400e', 'На рассмотрении'], approved: ['#d1fae5', '#047857', 'Аккредитован'],
+              rejected: ['#fee2e2', '#b91c1c', 'Отклонена'] };
+  function loadAcc() {
+    return SB.rpc('app_supplier_profile_get', { p_token: token }).then(function (r) {
+      acc = (r && !r.error && r.data && r.data[0]) || null;
+      renderAcc();
+    }).catch(function () { acc = null; renderAcc(); });
+  }
+  function renderAcc() {
+    var box = $('#accBox'); if (!box) return;
+    if (!acc) {
+      box.innerHTML = '<div style="display:flex;align-items:center;gap:10px;">' +
+        '<span>📋 <b>Аккредитация не пройдена</b></span>' +
+        '<button class="btn" id="accGo" style="width:auto;margin-left:auto;padding:9px 16px;">Пройти аккредитацию</button></div>';
+    } else {
+      var m = ACC[acc.status] || ['#f1f5f9', '#475569', acc.status];
+      box.innerHTML = '<div style="display:flex;align-items:center;gap:10px;">' +
+        '<span>📋 <b>' + esc(acc.company) + '</b></span>' +
+        '<span style="background:' + m[0] + ';color:' + m[1] + ';border-radius:999px;padding:3px 10px;font-size:.7rem;font-weight:700;margin-left:auto;">' + m[2] + '</span>' +
+        '<button class="btn secondary" id="accGo" style="width:auto;padding:9px 16px;">Изменить</button></div>';
+    }
+    var go = $('#accGo');
+    if (go) go.addEventListener('click', function () {
+      if (acc) { $('#aCompany').value = acc.company || ''; $('#aInn').value = acc.inn || ''; $('#aContact').value = acc.contact || ''; $('#aPhone').value = acc.phone || ''; $('#aEmail').value = acc.email || ''; }
+      clearMsg('#accMsg'); screens.go('s-acc');
+    });
+  }
+  $('#backAcc').addEventListener('click', function () { screens.go('s-list'); });
+  $('#accSave').addEventListener('click', function () {
+    var company = $('#aCompany').value.trim();
+    if (!company) { msg('#accMsg', 'Укажите организацию.', 'err'); return; }
+    SB.rpc('app_supplier_profile_save', {
+      p_token: token, p_company: company, p_inn: $('#aInn').value.trim(),
+      p_contact: $('#aContact').value.trim(), p_phone: $('#aPhone').value.trim(), p_email: $('#aEmail').value.trim()
+    }).then(function (r) {
+      var row = r && r.data && r.data[0];
+      if (!row || !row.ok) { msg('#accMsg', (row && row.message) || 'Не удалось', 'err'); return; }
+      window.Auth.log('Аккредитация', company);
+      ui.toast('Заявка на аккредитацию отправлена');
+      loadAcc().then(function () { screens.go('s-list'); });
+    }).catch(function (e) { msg('#accMsg', 'Ошибка: ' + (e.message || e), 'err'); });
+  });
+
   /* ---------- старт ---------- */
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
@@ -177,5 +221,6 @@
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '');
     if (!SB) { msg('#listMsg', 'Supabase не подключён. Проверьте config.js.', 'err'); return; }
     reload();
+    loadAcc();
   });
 })();

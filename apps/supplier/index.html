@@ -50,6 +50,7 @@
     <!-- ВИТРИНА -->
     <section class="screen active" id="s-list">
       <div class="hero"><h1>Портал закупок</h1><p>Открытые закупки 3DMP: изучайте, подавайте предложения, следите за статусом.</p></div>
+      <div class="card" id="accBox"><span class="note">Аккредитация…</span></div>
       <div class="card">
         <div class="field" style="margin-bottom:0;">
           <input type="text" id="q" placeholder="Поиск: название, материал, заказчик…">
@@ -82,6 +83,25 @@
       </div>
     </section>
 
+    <!-- АККРЕДИТАЦИЯ -->
+    <section class="screen" id="s-acc">
+      <button class="back" id="backAcc">← К витрине</button>
+      <div class="card">
+        <h2>Аккредитация поставщика</h2>
+        <div class="msg" id="accMsg"></div>
+        <div class="field"><label>Организация *</label><input type="text" id="aCompany" placeholder="ООО «Ромашка»"></div>
+        <div class="grid2">
+          <div class="field"><label>ИНН</label><input type="text" id="aInn" placeholder="7701234567"></div>
+          <div class="field"><label>Контактное лицо</label><input type="text" id="aContact" placeholder="Петров П.П."></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Телефон</label><input type="text" id="aPhone" placeholder="+7…"></div>
+          <div class="field"><label>Email</label><input type="text" id="aEmail" placeholder="mail@company.ru"></div>
+        </div>
+        <button class="btn" id="accSave">Отправить на аккредитацию</button>
+      </div>
+    </section>
+
     <!-- МОИ ПРЕДЛОЖЕНИЯ -->
     <section class="screen" id="s-bids">
       <div class="hero"><h1>Мои предложения</h1><p>Все ваши КП по закупкам и их статус.</p></div>
@@ -97,9 +117,9 @@
   <script src="../../assets/js/ui.js?v=1"></script>
   <script src="../../assets/js/auth.js?v=2"></script>
   <script src="../../assets/js/router.js?v=1"></script>
-  <script src="supplier.js?v=3"></script>
+  <script src="supplier.js?v=4"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=3"></script>
+  <script src="../../assets/js/nav.js?v=4"></script>
   <script src="../../assets/js/notify.js?v=1"></script>
 </body>
 </html>
