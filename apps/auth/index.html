@@ -14,47 +14,38 @@
   </header>
 
   <main class="wrap narrow">
-    <div class="hero"><h1>Аккаунт</h1><p>Вход и регистрация в сервисе.</p></div>
+    <div class="hero"><h1>Вход в сервис</h1><p>Логин и пароль. Пароли хранятся в виде bcrypt-хешей.</p></div>
 
     <div class="card">
-      <div class="tabs" id="tabs">
-        <button class="active" data-mode="in">Вход</button>
-        <button data-mode="up">Регистрация</button>
-      </div>
-
       <div class="msg" id="msg"></div>
-
       <form id="form" novalidate>
         <div class="field">
-          <label>Email</label>
-          <input type="email" id="email" autocomplete="email" placeholder="you@example.com" required>
+          <label>Логин</label>
+          <input type="text" id="login" autocomplete="username" placeholder="supplier" required>
         </div>
         <div class="field">
           <label>Пароль</label>
           <input type="password" id="password" autocomplete="current-password" placeholder="••••••••" required>
         </div>
-        <div class="field hidden" id="confirmWrap">
-          <label>Повторите пароль</label>
-          <input type="password" id="password2" autocomplete="new-password" placeholder="••••••••">
-        </div>
         <button class="btn" type="submit" id="submit">Войти</button>
       </form>
-
-      <div class="btn-row mt">
-        <button class="btn secondary" type="button" id="reset">Сбросить пароль</button>
-        <a class="btn secondary center" href="../../index.html" style="text-decoration:none;display:flex;align-items:center;justify-content:center;">На главную</a>
-      </div>
     </div>
 
-    <p class="note center">Данные хранит Supabase. Пароль передаётся по HTTPS и не хранится в браузере.</p>
+    <div class="card muted-card">
+      <h3>Демо-доступы</h3>
+      <div class="tenant"><span>owner</span><span class="role">Owner12345 · собственник</span></div>
+      <div class="tenant"><span>manager</span><span class="role">Manager12345 · менеджер</span></div>
+      <div class="tenant"><span>supplier</span><span class="role">Supplier12345 · поставщик</span></div>
+    </div>
   </main>
 
-  <footer class="foot">3DMP Service · авторизация</footer>
+  <footer class="foot">3DMP Service · вход</footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="../../assets/js/config.js"></script>
   <script src="../../assets/js/supabase-client.js"></script>
   <script src="../../assets/js/ui.js"></script>
+  <script src="../../assets/js/auth.js"></script>
   <script src="auth.js"></script>
 </body>
 </html>

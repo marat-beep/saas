@@ -20,7 +20,7 @@
 
   try {
     global.SB = global.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true }
+      auth: { persistSession: false }   // вход в сервисе — собственный (login/пароль)
     });
     global.SB_ERROR = null;
   } catch (e) {

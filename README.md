@@ -23,13 +23,13 @@ SAAS/
 │     ├─ supabase-client.js       инициализация клиента (window.SB)
 │     ├─ ui.js                    утилиты (esc, toast, qs)
 │     ├─ status.js                проверка подключения (window.AppStatus)
-│     ├─ session.js               сессия/профиль/тенанты (window.Session)
+│     ├─ auth.js                  вход по логину/паролю и сессия (window.Auth)
 │     ├─ router.js                роутер экранов (window.AppRouter)
 │     └─ catalog.js               список приложений для хаба (источник правды)
 ├─ supabase/migrations/           НЕ льётся на FTP
 │  ├─ 0001_init.sql               tenants/profiles/memberships + RLS
 │  ├─ 0002_supplier.sql           tenders/bids + RLS + демо-закупки
-│  └─ 0003_seed_users.sql         демо-пользователи и роли
+│  └─ 0003_app_auth.sql           логин/пароль (bcrypt) + сессии + RPC закупок
 ├─ docs/SETUP.md                  НЕ льётся на FTP
 └─ AGENTS.md, README.md           НЕ льётся на FTP
 ```
@@ -49,21 +49,21 @@ SAAS/
 
 Готово:
 - хаб `index.html` (статус подключения + список приложений из `catalog.js`);
-- авторизация `apps/auth/` (вход, регистрация, сброс пароля);
-- кабинет `apps/dashboard/` (профиль, организации/тенанты);
+- **вход `apps/auth/`** — логин и пароль, без email (пароли — bcrypt-хеши в Postgres, сессии — токены);
+- кабинет `apps/dashboard/` (аккаунт и роль, модули);
 - **портал закупок `apps/supplier/`** (витрина, карточка закупки, подача предложения, «Мои предложения»).
 
 Требуется применить миграции в Supabase → SQL Editor (по порядку):
 - `0001_init.sql` — профили и организации;
-- `0002_supplier.sql` — закупки (`tenders`) и предложения (`bids`) + RLS + демо-закупки;
-- `0003_seed_users.sql` — демо-пользователи и роли.
+- `0002_supplier.sql` — закупки (`tenders`) и предложения (`bids`) + демо-закупки;
+- `0003_app_auth.sql` — логин/пароль (bcrypt), сессии, RPC-функции закупок.
 
-Демо-аккаунты:
+Демо-аккаунты (логин / пароль):
 
-| Email | Пароль | Роль |
+| Логин | Пароль | Роль |
 |---|---|---|
-| owner@3dmp.ru | Owner12345 | owner |
-| manager@3dmp.ru | Manager12345 | manager |
-| supplier@3dmp.ru | Supplier12345 | supplier |
+| owner | Owner12345 | owner |
+| manager | Manager12345 | manager |
+| supplier | Supplier12345 | supplier |
 
 Далее: следующие доменные модули сервиса.

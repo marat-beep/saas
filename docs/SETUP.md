@@ -28,10 +28,10 @@ SUPABASE_ANON_KEY: 'sb_publishable_akJbBxWd13audl8KMtdB5Q_0_kT51pa'
 2. Вставить содержимое миграций по порядку и выполнить каждую:
    - `supabase/migrations/0001_init.sql` → таблицы `tenants`, `profiles`, `memberships`;
    - `supabase/migrations/0002_supplier.sql` → таблицы `tenders`, `bids` + демо-закупки;
-   - `supabase/migrations/0003_seed_users.sql` → демо-пользователи и роли.
-3. Проверить: **Table Editor** покажет `tenants`, `profiles`, `memberships`, `tenders`, `bids`.
-4. Демо-аккаунты: `owner@3dmp.ru` / `Owner12345`, `manager@3dmp.ru` / `Manager12345`, `supplier@3dmp.ru` / `Supplier12345`.
-   Если `0003` вернёт ошибку на вставке в `auth.identities`, создай пользователей вручную: **Authentication → Users → Add user** — и выполни только части 1 и 3 из `0003`.
+   - `supabase/migrations/0003_app_auth.sql` → `app_users`, `app_sessions`, функции входа и RPC закупок.
+3. Проверить: **Table Editor** покажет `tenants`, `profiles`, `memberships`, `tenders`, `bids`, `app_users`, `app_sessions`.
+4. Демо-аккаунты (логин / пароль): `owner` / `Owner12345`, `manager` / `Manager12345`, `supplier` / `Supplier12345`.
+   Пароли хранятся bcrypt-хешами (`pgcrypto`); смена — обновлением `app_users.password_hash` через SQL.
 
 Позже удобно перейти на Supabase CLI (`supabase db push`), но он не обязателен — миграции применяются вручную.
 

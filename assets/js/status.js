@@ -24,15 +24,23 @@
     }
 
     steps.push(step(true, 'Клиент Supabase', 'создан'));
-    var timeout = new Promise(function (_, rej) { setTimeout(function () { rej(new Error('таймаут')); }, 12000); });
-    return Promise.race([g.SB.auth.getSession(), timeout]).then(function (res) {
-      if (res && res.error) throw res.error;
-      steps.push(step(true, 'Связь с Supabase', 'auth endpoint отвечает'));
-      return { ok: true, steps: steps, message: 'Подключение к Supabase OK' };
-    }).catch(function (e) {
-      steps.push(step(false, 'Связь с Supabase', (e && e.message) || String(e)));
-      return { ok: false, steps: steps, message: 'Нет связи с Supabase (проверьте URL/ключ/сеть)' };
-    });
+
+    var url = cfg.SUPABASE_URL.replace(/\/+$/, '') + '/auth/v1/health';
+    var ctrl = ('AbortController' in g) ? new g.AbortController() : null;
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 12000);
+
+    return fetch(url, { headers: { apikey: cfg.SUPABASE_ANON_KEY }, signal: ctrl ? ctrl.signal : undefined })
+      .then(function (res) {
+        clearTimeout(timer);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        steps.push(step(true, 'Связь с Supabase', 'endpoint отвечает'));
+        return { ok: true, steps: steps, message: 'Подключение к Supabase OK' };
+      })
+      .catch(function (e) {
+        clearTimeout(timer);
+        steps.push(step(false, 'Связь с Supabase', (e && e.message) || String(e)));
+        return { ok: false, steps: steps, message: 'Нет связи с Supabase (проверьте URL/ключ/сеть)' };
+      });
   }
 
   function setStatus(sel, state, text) {

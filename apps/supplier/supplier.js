@@ -1,14 +1,14 @@
 /* ============================================================
    3DMP Service · apps/supplier — Портал закупок для поставщиков
-   Витрина закупок → карточка → подача предложения → мои КП.
-   Данные: Supabase (таблицы tenders, bids из миграции 0002).
+   Вход по токену сессии (Auth). Данные — Supabase:
+   tenders (публичное чтение), bids — через RPC supplier_* (0003_app_auth.sql).
    ============================================================ */
 (function () {
   'use strict';
   var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa;
   var SB = window.SB;
 
-  var user = null, tenders = [], bids = [];
+  var user = null, token = null, tenders = [], bids = [];
   var filter = 'all', q = '', cur = null;
   var migrationNote = false;
 
@@ -25,9 +25,7 @@
     if (b.dataset.go === 's-bids') renderMyBids();
     screens.go(b.dataset.go);
   });
-  $('#logout').addEventListener('click', function () {
-    window.Session.signOut().then(function () { location.href = '../../index.html'; });
-  });
+  $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
   $('#backToList').addEventListener('click', function () { screens.go('s-list'); });
 
   /* ---------- утилиты ---------- */
@@ -43,19 +41,16 @@
     return '<span class="badge ' + m[0] + '">' + m[1] + '</span>';
   }
   function esc(v) { return ui.esc(v); }
-  function msg(el, text, kind) {
-    var e = $(el);
-    e.className = 'msg show ' + (kind || 'info'); e.textContent = text;
-  }
+  function msg(el, text, kind) { var e = $(el); e.className = 'msg show ' + (kind || 'info'); e.textContent = text; }
   function clearMsg(el) { var e = $(el); e.className = 'msg'; e.textContent = ''; }
 
-  function isMissingTable(err) {
+  function isMissing(err) {
     if (!err) return false;
     var s = (err.message || '') + ' ' + (err.code || '');
-    return /Could not find the table|PGRST205|42P01/i.test(s);
+    return /Could not find the table|Could not find the function|PGRST205|PGRST202|42P01|42883/i.test(s);
   }
   function showMigrationNote(el) {
-    msg(el, 'Таблицы закупок не найдены. Примените миграцию supabase/migrations/0002_supplier.sql в Supabase → SQL Editor.', 'info');
+    msg(el, 'Таблицы/функции закупок не найдены. Примените миграции 0002_supplier.sql и 0003_app_auth.sql в Supabase → SQL Editor.', 'info');
   }
 
   /* ---------- загрузка ---------- */
@@ -66,17 +61,16 @@
     });
   }
   function loadBids() {
-    return SB.from('bids')
-      .select('id, tender_id, price, term_days, comment, status, created_at, tender:tenders ( title )')
-      .eq('supplier_id', user.id)
-      .order('created_at', { ascending: false })
-      .then(function (r) { if (r.error) throw r.error; return r.data || []; });
+    return SB.rpc('supplier_my_bids', { p_token: token }).then(function (r) {
+      if (r.error) throw r.error;
+      return r.data || [];
+    });
   }
 
   function reload() {
     return Promise.all([
-      loadTenders().catch(function (e) { if (isMissingTable(e)) migrationNote = true; return []; }),
-      loadBids().catch(function (e) { if (isMissingTable(e)) migrationNote = true; return []; })
+      loadTenders().catch(function (e) { if (isMissing(e)) migrationNote = true; return []; }),
+      loadBids().catch(function (e) { if (isMissing(e)) migrationNote = true; return []; })
     ]).then(function (res) {
       tenders = res[0]; bids = res[1];
       renderList();
@@ -91,18 +85,17 @@
       if (filter === 'open' && t.status !== 'open') return false;
       if (filter === 'awarded' && t.status !== 'awarded') return false;
       if (!qq) return true;
-      return ([t.title, t.category, t.customer, t.material, t.description] .join(' ').toLowerCase().indexOf(qq) >= 0);
+      return ([t.title, t.category, t.customer, t.material, t.description].join(' ').toLowerCase().indexOf(qq) >= 0);
     });
   }
   function renderList() {
-    var list = filtered();
-    var el = $('#list');
+    var list = filtered(), el = $('#list');
     if (!list.length) { el.innerHTML = '<span class="note">Закупок не найдено.</span>'; return; }
     el.innerHTML = list.map(function (t) {
       var my = bids.filter(function (b) { return b.tender_id === t.id; })[0];
       return '<div class="tcard" data-id="' + t.id + '">' +
         '<div style="display:flex;gap:10px;align-items:center;">' + statusBadge(t.status) +
-        (my ? '<span class="badge submitted" style="margin-left:auto;">Ваше КП: ' + bidBadge(my.status).replace(/<[^>]+>/g, '').trim() + '</span>' : '') + '</div>' +
+        (my ? '<span class="badge submitted" style="margin-left:auto;">Ваше КП</span>' : '') + '</div>' +
         '<h3 style="margin-top:8px;">' + esc(t.title) + '</h3>' +
         '<div class="tmeta">' +
         (t.category ? '<span>🗂 ' + esc(t.category) + '</span>' : '') +
@@ -110,12 +103,9 @@
         (t.material ? '<span>🧱 ' + esc(t.material) + '</span>' : '') +
         '</div>' +
         '<div class="tfoot"><span class="note">' + esc(t.customer || '') + '</span>' +
-        '<span class="dl">до ' + ui.fmtDate(t.deadline) + '</span></div>' +
-        '</div>';
+        '<span class="dl">до ' + ui.fmtDate(t.deadline) + '</span></div></div>';
     }).join('');
-    $$('#list .tcard').forEach(function (c) {
-      c.addEventListener('click', function () { openTender(c.dataset.id); });
-    });
+    $$('#list .tcard').forEach(function (c) { c.addEventListener('click', function () { openTender(c.dataset.id); }); });
   }
 
   /* ---------- карточка ---------- */
@@ -141,48 +131,36 @@
 
   /* ---------- подача предложения ---------- */
   $('#bidSubmit').addEventListener('click', function () {
-    if (!cur || !user) return;
+    if (!cur || !token) return;
     var price = parseFloat(String($('#bidPrice').value).replace(/\s/g, '').replace(',', '.'));
     var term = parseInt($('#bidTerm').value, 10);
     if (!price || price <= 0) { msg('#bidMsg', 'Укажите цену больше нуля.', 'err'); return; }
-    var payload = {
-      tender_id: cur.id,
-      supplier_id: user.id,
-      supplier_name: (window.Session && (window.Session.user && window.Session.user.email)) || '',
-      price: price,
-      term_days: isNaN(term) ? null : term,
-      comment: $('#bidComment').value.trim() || null
-    };
-    SB.from('bids').upsert(payload, { onConflict: 'tender_id,supplier_id' }).then(function (r) {
-      if (r.error) {
-        if (isMissingTable(r.error)) { showMigrationNote('#bidMsg'); return; }
-        msg('#bidMsg', 'Ошибка: ' + r.error.message, 'err'); return;
-      }
-      msg('#bidMsg', 'Предложение отправлено.', 'ok');
-      return reload().then(function () {
-        var my = bids.filter(function (b) { return b.tender_id === cur.id; })[0];
-        if (my) $('#bidTitle').textContent = 'Изменить предложение';
-      });
+    SB.rpc('supplier_submit_bid', {
+      p_token: token, p_tender_id: cur.id, p_price: price,
+      p_term_days: isNaN(term) ? null : term, p_comment: $('#bidComment').value.trim()
+    }).then(function (r) {
+      if (r.error) { if (isMissing(r.error)) { showMigrationNote('#bidMsg'); return; } msg('#bidMsg', 'Ошибка: ' + r.error.message, 'err'); return; }
+      var row = r.data && r.data[0];
+      if (!row || !row.ok) { msg('#bidMsg', (row && row.message) || 'Не удалось сохранить.', 'err'); return; }
+      msg('#bidMsg', row.message || 'Предложение сохранено.', 'ok');
+      return reload().then(function () { $('#bidTitle').textContent = 'Изменить предложение'; });
     }).catch(function (e) { msg('#bidMsg', 'Ошибка: ' + (e.message || e), 'err'); });
   });
 
   /* ---------- мои предложения ---------- */
   function renderMyBids() {
     var el = $('#myBids');
-    if (migrationNote) { showMigrationNote('#bidsMsg'); }
+    if (migrationNote) showMigrationNote('#bidsMsg');
     if (!bids.length) { el.innerHTML = '<span class="note">Вы ещё не подавали предложений.</span>'; return; }
     el.innerHTML = bids.map(function (b) {
-      var t = b.tender || {};
       return '<div class="tcard" data-tid="' + b.tender_id + '">' +
         '<div style="display:flex;gap:10px;align-items:center;">' + bidBadge(b.status) +
         '<b style="margin-left:auto;">' + fmtMoney(b.price) + '</b></div>' +
-        '<h3 style="margin-top:8px;">' + esc(t.title || 'Закупка') + '</h3>' +
+        '<h3 style="margin-top:8px;">' + esc(b.tender_title || 'Закупка') + '</h3>' +
         '<div class="tmeta"><span>Срок: ' + (b.term_days != null ? b.term_days + ' дн.' : '—') + '</span>' +
         '<span>от ' + ui.fmtDate(b.created_at) + '</span></div></div>';
     }).join('');
-    $$('#myBids .tcard').forEach(function (c) {
-      c.addEventListener('click', function () { openTender(c.dataset.tid); });
-    });
+    $$('#myBids .tcard').forEach(function (c) { c.addEventListener('click', function () { openTender(c.dataset.tid); }); });
   }
   $('#q').addEventListener('input', function () { q = this.value; renderList(); });
   $('#filters').addEventListener('click', function (e) {
@@ -192,10 +170,10 @@
   });
 
   /* ---------- старт ---------- */
-  window.Session.guard('../auth/index.html').then(function (u) {
-    if (!u) return;
-    user = u;
-    $('#who').textContent = u.email || '';
+  window.Auth.guard('../auth/index.html').then(function (s) {
+    if (!s) return;
+    user = s; token = s.token;
+    $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '');
     if (!SB) { msg('#listMsg', 'Supabase не подключён. Проверьте config.js.', 'err'); return; }
     reload();
   });
