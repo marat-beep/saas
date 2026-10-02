@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Личный кабинет — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">⚙️</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout" style="display:none;">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1>Личный кабинет</h1>
+      <p>Профиль и организации (тенанты), в которых состоит пользователь.</p>
+    </section>
+
+    <div class="card">
+      <h2>Профиль</h2>
+      <div id="profile"><span class="note">Загрузка…</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Организации</h2>
+      <div id="tenants"><span class="note">Загрузка…</span></div>
+      <div id="tenantHint"></div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · кабинет</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js"></script>
+  <script src="../../assets/js/supabase-client.js"></script>
+  <script src="../../assets/js/ui.js"></script>
+  <script src="../../assets/js/session.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

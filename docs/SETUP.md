@@ -32,10 +32,14 @@ SUPABASE_ANON_KEY: 'sb_publishable_akJbBxWd13audl8KMtdB5Q_0_kT51pa'
 
 ## 4. Публикация (FTP)
 
-Заливаешь сам содержимое папки `SAAS/` (кроме `.git`, `supabase/`, `docs/` — по желанию) в серверную папку `sapfir.eu\saas`.
-Адрес: `https://sapfir.eu/saas/`.
+На сервер `sapfir.eu\saas` заливаются **только**:
+- `index.html`
+- `apps/` (целиком)
+- `assets/` (целиком)
 
-При обновлении статики поднимать версию в ссылках (`?v=N`), чтобы сбросить кэш.
+Не заливаются: `.git/`, `supabase/`, `docs/`, `README.md`, `AGENTS.md`.
+
+Адрес: `https://sapfir.eu/saas/`. При обновлении статики поднимать `?v=N` в ссылках, чтобы сбросить кэш.
 
 ## 5. Проверка работоспособности
 

@@ -11,17 +11,26 @@
 
 ```
 SAAS/
-├─ index.html                     точка входа: проверка подключения к Supabase
-├─ assets/
-│  ├─ css/app.css                 базовая дизайн-система сервиса
+├─ index.html                     хаб: статус подключения + список приложений
+├─ apps/                          ПРИЛОЖЕНИЯ (льётся на FTP целиком)
+│  ├─ auth/                       вход, регистрация, сброс пароля
+│  └─ dashboard/                  личный кабинет: профиль и организации
+├─ assets/                        общие стили и скрипты (льётся на FTP)
+│  ├─ css/app.css
 │  └─ js/
-│     ├─ config.js                ← заполнить SUPABASE_URL и SUPABASE_ANON_KEY
+│     ├─ config.js                Supabase URL + publishable/anon key
 │     ├─ supabase-client.js       инициализация клиента (window.SB)
-│     └─ app.js                   старт и health-check
-├─ supabase/migrations/
-│  └─ 0001_init.sql               базовая схема: tenants/profiles/memberships + RLS
-└─ docs/SETUP.md                  где взять URL, anon key, токен и как применить SQL
+│     ├─ ui.js                    утилиты (esc, toast, qs)
+│     ├─ status.js                проверка подключения (window.AppStatus)
+│     ├─ session.js               сессия/профиль/тенанты (window.Session)
+│     └─ catalog.js               список приложений для хаба (источник правды)
+├─ supabase/migrations/           НЕ льётся на FTP
+│  └─ 0001_init.sql               tenants/profiles/memberships + RLS
+├─ docs/SETUP.md                  НЕ льётся на FTP
+└─ AGENTS.md, README.md           НЕ льётся на FTP
 ```
+
+**На FTP** заливается только: `index.html`, `apps/`, `assets/`.
 
 ## Быстрый старт
 
@@ -34,4 +43,11 @@ SAAS/
 
 ## Статус
 
-Каркас инфраструктуры. Прикладной состав сервиса (экраны, доменная модель, сценарии) добавляется после утверждения ТЗ.
+Готово:
+- хаб `index.html` (статус подключения + список приложений из `catalog.js`);
+- авторизация `apps/auth/` (вход, регистрация, сброс пароля);
+- кабинет `apps/dashboard/` (профиль, организации/тенанты).
+
+Требуется применить миграцию `supabase/migrations/0001_init.sql` (SQL Editor), после чего заработают профиль и организации.
+
+Далее: прикладные модули сервиса (доменная модель и экраны) — после утверждения ТЗ.

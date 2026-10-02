@@ -8,38 +8,81 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand"><span class="logo">⚙️</span> <b>3DMP Service</b></div>
+    <div class="brand"><span class="logo">⚙️</span> <a href="index.html">3DMP Service</a></div>
     <div class="spacer"></div>
-    <span class="build" id="buildInfo">каркас · v0.1</span>
+    <span class="who" id="account">…</span>
   </header>
 
   <main class="wrap">
     <section class="hero">
       <h1>Рабочий сервис 3DMP</h1>
-      <p>Статический фронтенд + Supabase. Данные, авторизация и права — в облаке; публикация — на <b>sapfir.eu/saas</b>.</p>
+      <p>Статический фронтенд + Supabase: данные, авторизация и права — в облаке. Публикация — на <b>sapfir.eu/saas</b>.</p>
     </section>
 
     <section class="card">
-      <h2>Состояние подключения</h2>
-      <div class="status" id="status">
-        <span class="dot wait"></span>
-        <span id="statusText">Проверка…</span>
-      </div>
-      <ul class="checklist" id="checklist"></ul>
+      <h2>Подключение</h2>
+      <div class="status" id="conn"><span class="dot wait"></span><span class="status-text">Проверка…</span></div>
+      <ul class="checklist" data-checklist></ul>
     </section>
 
-    <section class="card muted-card">
-      <h2>Что дальше</h2>
-      <p>Каркас репозитория, схема БД и подключение готовы. Прикладные экраны и доменная модель добавляются после утверждения ТЗ.</p>
-      <p class="note">Секреты (`SUPABASE_URL`, `SUPABASE_ANON_KEY`) — в <code>assets/js/config.js</code>. `anon key` публичный по дизайну, защита данных обеспечивается RLS. `service_role` в клиент никогда не попадает.</p>
+    <section class="card">
+      <h2>Приложения</h2>
+      <div class="apps-grid" id="apps"></div>
     </section>
   </main>
 
-  <footer class="foot">3DMP Service · Supabase · демо-каркас</footer>
+  <footer class="foot">3DMP Service · Supabase · <span id="ver"></span></footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="assets/js/config.js"></script>
   <script src="assets/js/supabase-client.js"></script>
-  <script src="assets/js/app.js"></script>
+  <script src="assets/js/ui.js"></script>
+  <script src="assets/js/status.js"></script>
+  <script src="assets/js/session.js"></script>
+  <script src="assets/js/catalog.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var C = window.AppCatalog;
+      var ui = window.AppUI;
+
+      document.getElementById('ver').textContent = 'v' + C.version;
+
+      function renderApps(user) {
+        var logged = !!user;
+        document.getElementById('apps').innerHTML = C.apps.map(function (a) {
+          var needAuth = !a.guest && !logged;
+          var href = needAuth ? 'apps/auth/index.html' : a.href;
+          var tag = a.guest ? 'открыто' : (logged ? 'личный' : 'нужен вход');
+          return '<a class="app-card" href="' + href + '">' +
+            '<span class="ic">' + a.icon + '</span>' +
+            '<h3>' + ui.esc(a.title) + '</h3>' +
+            '<p>' + ui.esc(a.desc) + '</p>' +
+            '<span class="tag">' + tag + '</span></a>';
+        }).join('');
+      }
+
+      function renderAccount(user) {
+        var el = document.getElementById('account');
+        if (user) {
+          el.innerHTML = '<span class="who">' + ui.esc(user.email || '') + '</span> ' +
+            '<button class="tbtn" id="logout">Выйти</button>';
+          document.getElementById('logout').addEventListener('click', function () {
+            window.Session.signOut().then(function () { location.reload(); });
+          });
+        } else {
+          el.innerHTML = '<a class="tbtn" href="apps/auth/index.html">Войти</a>';
+        }
+      }
+
+      window.AppStatus.render('#conn').then(function () {
+        window.Session.init().then(function (user) {
+          renderAccount(user);
+          renderApps(user);
+          window.Session.onChange(function (u) { renderAccount(u); renderApps(u); });
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
