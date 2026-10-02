@@ -28,7 +28,8 @@ SAAS/
 │     └─ catalog.js               список приложений для хаба (источник правды)
 ├─ supabase/migrations/           НЕ льётся на FTP
 │  ├─ 0001_init.sql               tenants/profiles/memberships + RLS
-│  └─ 0002_supplier.sql           tenders/bids + RLS + демо-закупки
+│  ├─ 0002_supplier.sql           tenders/bids + RLS + демо-закупки
+│  └─ 0003_seed_users.sql         демо-пользователи и роли
 ├─ docs/SETUP.md                  НЕ льётся на FTP
 └─ AGENTS.md, README.md           НЕ льётся на FTP
 ```
@@ -52,8 +53,17 @@ SAAS/
 - кабинет `apps/dashboard/` (профиль, организации/тенанты);
 - **портал закупок `apps/supplier/`** (витрина, карточка закупки, подача предложения, «Мои предложения»).
 
-Требуется применить миграции в Supabase → SQL Editor:
+Требуется применить миграции в Supabase → SQL Editor (по порядку):
 - `0001_init.sql` — профили и организации;
-- `0002_supplier.sql` — закупки (`tenders`) и предложения (`bids`) + RLS + демо-закупки.
+- `0002_supplier.sql` — закупки (`tenders`) и предложения (`bids`) + RLS + демо-закупки;
+- `0003_seed_users.sql` — демо-пользователи и роли.
+
+Демо-аккаунты:
+
+| Email | Пароль | Роль |
+|---|---|---|
+| owner@3dmp.ru | Owner12345 | owner |
+| manager@3dmp.ru | Manager12345 | manager |
+| supplier@3dmp.ru | Supplier12345 | supplier |
 
 Далее: следующие доменные модули сервиса.

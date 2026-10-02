@@ -27,8 +27,11 @@ SUPABASE_ANON_KEY: 'sb_publishable_akJbBxWd13audl8KMtdB5Q_0_kT51pa'
 1. Supabase → **SQL Editor** → **New query**.
 2. Вставить содержимое миграций по порядку и выполнить каждую:
    - `supabase/migrations/0001_init.sql` → таблицы `tenants`, `profiles`, `memberships`;
-   - `supabase/migrations/0002_supplier.sql` → таблицы `tenders`, `bids` + демо-закупки.
+   - `supabase/migrations/0002_supplier.sql` → таблицы `tenders`, `bids` + демо-закупки;
+   - `supabase/migrations/0003_seed_users.sql` → демо-пользователи и роли.
 3. Проверить: **Table Editor** покажет `tenants`, `profiles`, `memberships`, `tenders`, `bids`.
+4. Демо-аккаунты: `owner@3dmp.ru` / `Owner12345`, `manager@3dmp.ru` / `Manager12345`, `supplier@3dmp.ru` / `Supplier12345`.
+   Если `0003` вернёт ошибку на вставке в `auth.identities`, создай пользователей вручную: **Authentication → Users → Add user** — и выполни только части 1 и 3 из `0003`.
 
 Позже удобно перейти на Supabase CLI (`supabase db push`), но он не обязателен — миграции применяются вручную.
 
