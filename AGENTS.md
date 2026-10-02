@@ -7,7 +7,8 @@
 ## Проект
 - Рабочая папка: `SAAS/` — рабочий сервис экосистемы 3DMP (не рекламный лендинг, а инструмент-сервис).
 - Стек: **vanilla HTML/CSS/JS** + `@supabase/supabase-js` (CDN), **без сборки и фреймворков**.
-- Бэкенд/БД: **Supabase** (PostgreSQL + Auth + RLS + Storage), проект `saas`.
+- Бэкенд/БД: **Supabase** (PostgreSQL + RLS + Storage), проект `saas`.
+- Вход: **собственный** — логин/пароль (bcrypt в Postgres), сессии-токены, данные через RPC (не Supabase Auth/email).
 - Публикация: заливка по FTP в серверную папку `sapfir.eu\saas` → `https://sapfir.eu/saas/`.
 - Репозиторий: `https://github.com/marat-beep/saas` (ветка `main`).
 
