@@ -11,6 +11,8 @@
 
   var ST = { new: 'Новая', in_progress: 'В работе', done: 'Выполнена', cancelled: 'Отменена' };
   var PR = { high: 'Высокий', normal: 'Обычный', low: 'Низкий' };
+  var TYP = { single: 'Единичный', batch: 'Серийный', tooling: 'Оснастка/штамп', engineering: 'Инжиниринг' };
+  var typeF = '';
   var ROLE_SEE_ALL = ['admin', 'owner', 'manager'];
 
   function esc(v) { return ui.esc(v); }
@@ -32,8 +34,11 @@
   function load() {
     return Promise.all([
       rpc('app_order_list', { p_token: token }),
-      rpc('app_customer_list', { p_token: token }).catch(function () { return []; })
+      rpc('app_customer_list', { p_token: token }).catch(function () { return []; }),
+      rpc('app_order_sla_check', { p_token: token }).catch(function () { return []; })
     ]).then(function (r) {
+      var sla = (r[2] && r[2][0] && r[2][0].notified) || 0;
+      if (Number(sla) > 0) { ui.toast('Просрочено заявок: ' + sla + ' — уведомление отправлено'); if (window.AppNotify) window.AppNotify.refresh(true); }
       orders = r[0] || []; customers = r[1] || [];
       fillCustomerSelect();
       renderKpi(); render();
@@ -52,6 +57,7 @@
     return orders.filter(function (o) {
       var okF = filter === 'all' || (filter === 'overdue' ? isOverdue(o) : o.status === filter);
       if (!okF) return false;
+      if (typeF && o.order_type !== typeF) return false;
       if (!s) return true;
       return [o.number, o.title, o.customer_name, o.customer, o.assignee, o.source].join(' ').toLowerCase().indexOf(s) >= 0;
     });
@@ -63,6 +69,7 @@
       return '<div class="ocard" data-id="' + o.id + '">' +
         '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">' +
           b(o.status, ST[o.status] || o.status) + b(o.priority, PR[o.priority] || o.priority) +
+          (o.order_type ? b('', TYP[o.order_type] || o.order_type) : '') +
           (isOverdue(o) ? b('overdue', 'просрочено') : '') +
           '<span class="note" style="margin-left:auto;">' + esc(o.number) + '</span></div>' +
         '<h3 style="font-size:.95rem;margin:8px 0 4px;">' + esc(o.title) + '</h3>' +
@@ -94,11 +101,12 @@
       $('#detail').innerHTML =
         '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">' +
           b(o.status, ST[o.status] || o.status) + b(o.priority, PR[o.priority] || o.priority) +
+          (o.order_type ? b('', TYP[o.order_type] || o.order_type) : '') +
           (isOverdue(o) ? b('overdue', 'просрочено') : '') +
           '<b style="margin-left:auto;">' + esc(o.number) + '</b></div>' +
         '<h1 style="font-size:1.2rem;margin:10px 0;">' + esc(o.title) + '</h1>' +
         (o.description ? '<p style="color:var(--muted);line-height:1.6;margin-bottom:10px;white-space:pre-wrap;">' + esc(o.description) + '</p>' : '') +
-        kv('Заказчик', o.customer_name || o.customer) + kv('Контакт', o.contact) + kv('Источник', o.source) +
+        kv('Заказчик', o.customer_name || o.customer) + kv('Контакт', o.contact) + kv('Тип заказа', TYP[o.order_type] || o.order_type) + kv('Источник', o.source) +
         kv('Срок', o.due_date) + kv('Исполнитель', o.assignee) + kv('Сумма', money(o.amount)) +
         kv('Автор', o.created_login) + kv('Создана', fmt(o.created_at)) + kv('Обновлена', fmt(o.updated_at));
       $('#stStatus').value = o.status;
@@ -182,7 +190,7 @@
       p_source: $('#fSource').value.trim(), p_customer: '', p_contact: $('#fContact').value.trim(),
       p_priority: $('#fPriority').value, p_customer_id: $('#fCustomerSel').value || null,
       p_due_date: $('#fDue').value || null, p_assignee: $('#fAssignee').value.trim(),
-      p_amount: isNaN(amt) ? null : amt
+      p_amount: isNaN(amt) ? null : amt, p_order_type: $('#fType').value
     }).then(function (d) {
       var row = d && d[0];
       window.Auth.log('Создана заявка', (row && row.number) || title);
@@ -230,6 +238,7 @@
     filter = c.dataset.f; render();
   });
   $('#q').addEventListener('input', function () { q = this.value; render(); });
+  $('#fTypeF').addEventListener('change', function () { typeF = this.value; render(); });
 
   /* ---------- Старт ---------- */
   window.Auth.guard('../auth/index.html').then(function (s) {

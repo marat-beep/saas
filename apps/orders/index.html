@@ -31,6 +31,13 @@
             <span class="chip" data-f="cancelled">Отменены</span>
             <span class="chip" data-f="overdue">Просрочены</span>
           </div>
+          <select id="fTypeF" style="padding:10px;border:1px solid var(--border);border-radius:10px;font-size:.85rem;">
+            <option value="">Все типы</option>
+            <option value="single">Единичный</option>
+            <option value="batch">Серийный</option>
+            <option value="tooling">Оснастка/штамп</option>
+            <option value="engineering">Инжиниринг/НИОКР</option>
+          </select>
           <button class="btn" id="toCreate" style="width:auto;padding:11px 18px;">＋ Новая заявка</button>
         </div>
         <div id="listMsg"></div>
@@ -68,6 +75,14 @@
           <div class="field"><label>Приоритет</label>
             <select id="fPriority"><option value="normal">Обычный</option><option value="high">Высокий</option><option value="low">Низкий</option></select>
           </div>
+        </div>
+        <div class="field"><label>Тип заказа</label>
+          <select id="fType">
+            <option value="single">Единичный / штучный</option>
+            <option value="batch">Серийный / партия</option>
+            <option value="tooling">Оснастка / штамп / пресс-форма</option>
+            <option value="engineering">Инжиниринг / НИОКР</option>
+          </select>
         </div>
         <div class="grid2c">
           <div class="field"><label>Срок (план-дата)</label><input type="date" id="fDue"></div>
@@ -131,7 +146,7 @@
   <script src="../../assets/js/router.js?v=1"></script>
   <script src="../../assets/js/notify.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=23"></script>
-  <script src="orders.js?v=2"></script>
+  <script src="orders.js?v=3"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
 </body>
 </html>
