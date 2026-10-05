@@ -18,7 +18,13 @@
   .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
   .step{display:grid;grid-template-columns:28px 1fr 1fr 70px;gap:8px;align-items:center;padding:7px 0;border-top:1px solid var(--border);font-size:.8rem}
   .step:first-child{border-top:none}
-  @media(max-width:760px){.grid4,.grid3{grid-template-columns:1fr 1fr}.step{grid-template-columns:1fr 1fr}}
+  .step5{display:grid;grid-template-columns:24px 1.4fr 1.2fr 60px 70px 80px;gap:8px;align-items:center;padding:7px 0;border-top:1px solid var(--border);font-size:.78rem}
+  .step5:first-child{border-top:none}
+  .sum{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+  .sum .cell{border:1px solid var(--border);border-radius:10px;padding:10px}
+  .sum .cell small{display:block;color:var(--muted);font-size:.66rem;text-transform:uppercase;margin-bottom:4px}
+  .sum .cell b{font-size:.95rem}
+  @media(max-width:760px){.grid4,.grid3{grid-template-columns:1fr 1fr}.step{grid-template-columns:1fr 1fr}.step5{grid-template-columns:1fr 1fr}.sum{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -37,6 +43,7 @@
       <button data-t="mat">Материалы</button>
       <button data-t="op">Операции</button>
       <button data-t="tp">Техпроцессы</button>
+      <button data-t="rt">Маршруты</button>
     </div>
 
     <section class="tab-pane" id="p-eq">
@@ -101,6 +108,39 @@
         <div class="msg" id="stMsg"></div>
       </div>
     </section>
+
+    <section class="tab-pane" id="p-rt" style="display:none;">
+      <div class="card">
+        <h2>Маршрут из техпроцесса — нормирование и себестоимость</h2>
+        <div class="msg" id="rtMsg"></div>
+        <div class="grid3">
+          <div class="field"><label>Техпроцесс *</label><select id="rtTpl"></select></div>
+          <div class="field"><label>Заказ</label><select id="rtOrder"><option value="">— без заказа —</option></select></div>
+          <div class="field"><label>Количество, шт</label><input type="text" id="rtQty" inputmode="decimal" placeholder="10"></div>
+        </div>
+        <div class="grid3">
+          <div class="field"><label>Материал</label><select id="rtMatSel"><option value="">— из техпроцесса —</option></select></div>
+          <div class="field"><label>Расход материала на ед., кг</label><input type="text" id="rtMatQty" inputmode="decimal" placeholder="12.5"></div>
+          <div class="field"><label>Название (необязательно)</label><input type="text" id="rtName" placeholder="Кронштейн ×10"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn secondary" id="rtCalc">Рассчитать нормы и стоимость</button>
+          <button class="btn" id="rtCreate">Создать маршрут</button>
+        </div>
+        <div id="rtPreview" class="mt"></div>
+      </div>
+      <div class="card"><h2>Маршруты <span class="note" id="rtCnt"></span></h2><div style="overflow:auto;"><table class="tab" id="rtList"></table></div></div>
+      <div class="card" id="rtDetail" style="display:none;">
+        <h2>Маршрут: <span id="rtTitle"></span></h2>
+        <div id="rtSummary" class="sum"></div>
+        <div id="rtSteps" class="mt"></div>
+        <div class="btn-row mt">
+          <button class="btn secondary" id="rtToActive">Перевести в работу</button>
+          <button class="btn" id="rtToDone">Завершить</button>
+        </div>
+        <div class="msg" id="rtDetMsg"></div>
+      </div>
+    </section>
   </main>
 
   <footer class="foot">3DMP Service · справочники</footer>
@@ -112,7 +152,7 @@
   <script src="../../assets/js/auth.js?v=3"></script>
   <script src="../../assets/js/notify.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=22"></script>
-  <script src="registry.js?v=1"></script>
+  <script src="registry.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
 </body>
 </html>
