@@ -7,10 +7,11 @@
 (function () {
   'use strict';
   var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa, SB = window.SB;
-  var token = null, me = null, eq = [], mats = [], ops = [], tps = [], routes = [], orders = [], wcs = [];
-  var curTp = null, curRoute = null;
+  var token = null, me = null, eq = [], mats = [], ops = [], tps = [], routes = [], orders = [], wcs = [], refs = [];
+  var curTp = null, curRoute = null, refGroup = '', refQ = '';
 
   var KIND = { frezerny: 'Фрезерный', tokarny: 'Токарный', lazer: 'Лазер', sverlilny: 'Сверлильный', shlifovalny: 'Шлифовальный', edm: 'Электроэрозия', sborka: 'Сборка' };
+  var GRP = { steel: 'Констр. сталь', tool_steel: 'Инстр. сталь', stainless: 'Нержавеющая', bearing: 'Подшипниковая', aluminum: 'Алюминий', bronze: 'Бронза', brass: 'Латунь', copper: 'Медь', cast_iron: 'Чугун', plastic: 'Пластик', titanium: 'Титан' };
   function kLabel(k) { return KIND[k] || k; }
   function esc(v) { return ui.esc(v); }
   function num(v) { return v == null ? '' : (Number(v) || 0); }
@@ -28,10 +29,11 @@
       rpc('app_process_list', { p_token: token }).catch(function () { return []; }),
       rpc('app_route_list', { p_token: token }).catch(function () { return []; }),
       rpc('app_order_list', { p_token: token }).catch(function () { return []; }),
-      rpc('app_wc_list', { p_token: token }).catch(function () { return []; })
+      rpc('app_wc_list', { p_token: token }).catch(function () { return []; }),
+      rpc('app_ref_material_list', { p_token: token, p_group: null, p_q: null }).catch(function () { return []; })
     ]).then(function (r) {
-      eq = r[0] || []; mats = r[1] || []; ops = r[2] || []; tps = r[3] || []; routes = r[4] || []; orders = r[5] || []; wcs = r[6] || [];
-      renderEq(); renderMat(); renderOp(); renderTp(); renderRt();
+      eq = r[0] || []; mats = r[1] || []; ops = r[2] || []; tps = r[3] || []; routes = r[4] || []; orders = r[5] || []; wcs = r[6] || []; refs = r[7] || [];
+      renderEq(); renderMat(); renderOp(); renderTp(); renderRt(); renderRef();
       $('#tpMat').innerHTML = opt('— нет —', '') + mats.map(function (m) { return opt(m.name, m.id); }).join('');
       $('#stOp').innerHTML = ops.map(function (o) { return opt(o.name + ' (' + kLabel(o.kind) + ')', o.id); }).join('');
       $('#stEq').innerHTML = opt('— не выбрано —', '') + eq.map(function (e) { return opt(e.name + ' (' + kLabel(e.kind) + ')', e.id); }).join('');
@@ -92,6 +94,21 @@
           '<td><button class="act" data-rt="' + r.id + '">Состав</button></td></tr>';
       }).join('') : '<tr><td colspan="10"><span class="note">Маршрутов пока нет — рассчитайте и создайте из техпроцесса.</span></td></tr>') + '</tbody>';
     $$('#rtList [data-rt]').forEach(function (b) { b.addEventListener('click', function () { openRoute(b.dataset.rt); }); });
+  }
+
+  function renderRef() {
+    var list = refs.filter(function (g) {
+      if (refGroup && g.group_code !== refGroup) return false;
+      if (refQ) { var s = refQ.toLowerCase(); return [g.grade, g.standard, g.note].join(' ').toLowerCase().indexOf(s) >= 0; }
+      return true;
+    });
+    $('#refCnt').textContent = '(' + list.length + ')';
+    $('#refList').innerHTML = '<table class="tab"><thead><tr><th>Марка</th><th>Группа</th><th>ГОСТ</th><th>ρ, г/см³</th><th>σв, МПа</th><th>HB/HRC</th><th>₽/кг</th><th>Применение</th></tr></thead><tbody>' +
+      (list.length ? list.map(function (g) {
+        return '<tr><td><b>' + esc(g.grade) + '</b></td><td><span class="b">' + esc(GRP[g.group_code] || g.group_code) + '</span></td>' +
+          '<td>' + esc(g.standard || '—') + '</td><td>' + num(g.density) + '</td><td>' + num(g.tensile) + '</td>' +
+          '<td>' + num(g.hardness) + '</td><td>' + fmt(g.price) + '</td><td>' + esc(g.note || '') + '</td></tr>';
+      }).join('') : '<tr><td colspan="8"><span class="note">Ничего не найдено.</span></td></tr>') + '</tbody></table>';
   }
 
   function openTp(id) {
@@ -221,7 +238,7 @@
   $('#tabs').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     $$('#tabs button').forEach(function (x) { x.classList.toggle('active', x === b); });
-    ['eq', 'mat', 'op', 'tp', 'rt'].forEach(function (t) { $('#p-' + t).style.display = (b.dataset.t === t) ? '' : 'none'; });
+    ['eq', 'mat', 'op', 'tp', 'rt', 'ref'].forEach(function (t) { $('#p-' + t).style.display = (b.dataset.t === t) ? '' : 'none'; });
   });
 
   $('#eqAdd').addEventListener('click', function () {
@@ -247,6 +264,8 @@
     rpc('app_process_add_step', { p_token: token, p_id: curTp.id, p_operation_id: $('#stOp').value || null, p_equipment_id: $('#stEq').value || null, p_material_id: null, p_plan_min: isNaN(m) ? 0 : m, p_note: '' })
       .then(function (d) { var r = d && d[0]; msg('#stMsg', (r && r.message) || '', r && r.ok ? 'ok' : 'err'); if (r && r.ok) { $('#stMin').value = ''; loadSteps(); } });
   });
+  $('#refQ').addEventListener('input', function () { refQ = this.value; renderRef(); });
+  $('#refGroup').addEventListener('change', function () { refGroup = this.value; renderRef(); });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
   window.Auth.guard('../auth/index.html').then(function (s) {

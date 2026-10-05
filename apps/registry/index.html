@@ -44,6 +44,7 @@
       <button data-t="op">Операции</button>
       <button data-t="tp">Техпроцессы</button>
       <button data-t="rt">Маршруты</button>
+      <button data-t="ref">Марки</button>
     </div>
 
     <section class="tab-pane" id="p-eq">
@@ -150,6 +151,31 @@
         <div class="msg" id="rtDetMsg"></div>
       </div>
     </section>
+
+    <section class="tab-pane" id="p-ref" style="display:none;">
+      <div class="card">
+        <div class="toolbar">
+          <input type="search" class="search" id="refQ" placeholder="Поиск: марка, ГОСТ, применение…">
+          <select id="refGroup" style="padding:10px;border:1px solid var(--border);border-radius:10px;font-size:.85rem;">
+            <option value="">Все группы</option>
+            <option value="steel">Конструкционные стали</option>
+            <option value="tool_steel">Инструментальные стали</option>
+            <option value="stainless">Нержавеющие стали</option>
+            <option value="bearing">Подшипниковые стали</option>
+            <option value="aluminum">Алюминиевые сплавы</option>
+            <option value="bronze">Бронза</option>
+            <option value="brass">Латунь</option>
+            <option value="copper">Медь</option>
+            <option value="cast_iron">Чугуны</option>
+            <option value="plastic">Пластики</option>
+            <option value="titanium">Титан</option>
+          </select>
+        </div>
+        <h2>Марки материалов <span class="note" id="refCnt"></span></h2>
+        <div class="msg" id="refMsg"></div>
+        <div style="overflow:auto;" id="refList"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
   </main>
 
   <footer class="foot">3DMP Service · справочники</footer>
@@ -161,7 +187,7 @@
   <script src="../../assets/js/auth.js?v=4"></script>
   <script src="../../assets/js/notify.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=24"></script>
-  <script src="registry.js?v=3"></script>
+  <script src="registry.js?v=4"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
 </body>
 </html>
