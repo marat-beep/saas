@@ -19,7 +19,7 @@
       rpc('app_api_key_list', { p_token: token }).catch(function () { return []; }),
       rpc('app_webhook_list', { p_token: token }).catch(function () { return []; })
     ]).then(function (r) { keys = r[0] || []; hooks = r[1] || []; renderKpi(); renderKeys(); renderHooks(); renderSample(); })
-      .catch(function (e) { msg('#kMsg', 'Ошибка: ' + e.message, 'err')); });
+      .catch(function (e) { msg('#kMsg', 'Ошибка: ' + e.message, 'err'); });
   }
   function renderKpi() {
     var ak = keys.filter(function (k) { return k.active; }).length;
