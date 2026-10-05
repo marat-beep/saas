@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Справочники — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=2">
+<style>
+  .tabs2{display:flex;gap:4px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:14px;width:fit-content;flex-wrap:wrap}
+  .tabs2 button{padding:8px 16px;border:none;background:transparent;border-radius:8px;font-weight:600;font-size:.82rem;color:var(--muted);cursor:pointer}
+  .tabs2 button.active{background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(15,23,42,.08)}
+  .tab{width:100%;border-collapse:collapse}
+  .tab th,.tab td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);font-size:.8rem;vertical-align:top}
+  .tab th{color:var(--muted);font-size:.7rem;text-transform:uppercase}
+  .b{font-size:.64rem;font-weight:700;border-radius:999px;padding:2px 8px;background:#eef2f7;color:#475569}
+  .act{background:none;border:1px solid var(--border);border-radius:8px;padding:5px 9px;font-size:.74rem;cursor:pointer}.act:hover{border-color:var(--accent);color:var(--accent-700)}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .step{display:grid;grid-template-columns:28px 1fr 1fr 70px;gap:8px;align-items:center;padding:7px 0;border-top:1px solid var(--border);font-size:.8rem}
+  .step:first-child{border-top:none}
+  @media(max-width:760px){.grid4,.grid3{grid-template-columns:1fr 1fr}.step{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🗄</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Справочники</h1><p>Связная модель: оборудование, материалы, операции, шаблоны техпроцессов.</p></div>
+
+    <div class="tabs2" id="tabs">
+      <button class="active" data-t="eq">Оборудование</button>
+      <button data-t="mat">Материалы</button>
+      <button data-t="op">Операции</button>
+      <button data-t="tp">Техпроцессы</button>
+    </div>
+
+    <section class="tab-pane" id="p-eq">
+      <div class="card">
+        <h2>Новое оборудование</h2>
+        <div class="msg" id="eqMsg"></div>
+        <div class="grid4">
+          <div class="field"><label>Код</label><input type="text" id="eqCode" placeholder="EQ-10"></div>
+          <div class="field"><label>Название *</label><input type="text" id="eqName" placeholder="Фрезерный ЧПУ"></div>
+          <div class="field"><label>Тип</label><select id="eqKind">
+            <option value="frezerny">Фрезерный</option><option value="tokarny">Токарный</option><option value="lazer">Лазер</option>
+            <option value="sverlilny">Сверлильный</option><option value="shlifovalny">Шлифовальный</option><option value="edm">Электроэрозия</option><option value="sborka">Сборка</option></select></div>
+          <div class="field"><label>Нормочас, ₽/ч</label><input type="text" id="eqCost" inputmode="decimal" placeholder="3000"></div>
+        </div>
+        <button class="btn" id="eqAdd">Добавить</button>
+      </div>
+      <div class="card"><h2>Оборудование <span class="note" id="eqCnt"></span></h2><div style="overflow:auto;"><table class="tab" id="eqList"></table></div></div>
+    </section>
+
+    <section class="tab-pane" id="p-mat" style="display:none;">
+      <div class="card"><h2>Материалы <span class="note" id="matCnt"></span></h2><div style="overflow:auto;"><table class="tab" id="matList"></table></div></div>
+    </section>
+
+    <section class="tab-pane" id="p-op" style="display:none;">
+      <div class="card">
+        <h2>Новая операция</h2>
+        <div class="msg" id="opMsg"></div>
+        <div class="grid4">
+          <div class="field"><label>Код</label><input type="text" id="opCode" placeholder="OP-20"></div>
+          <div class="field"><label>Название *</label><input type="text" id="opName" placeholder="Фрезеровка"></div>
+          <div class="field"><label>Тип оборудования</label><select id="opKind">
+            <option value="frezerny">Фрезерный</option><option value="tokarny">Токарный</option><option value="lazer">Лазер</option>
+            <option value="sverlilny">Сверлильный</option><option value="shlifovalny">Шлифовальный</option><option value="edm">Электроэрозия</option><option value="sborka">Сборка</option></select></div>
+          <div class="field"><label>Нормочас, ₽/ч</label><input type="text" id="opRate" inputmode="decimal" placeholder="3500"></div>
+        </div>
+        <button class="btn" id="opAdd">Добавить</button>
+      </div>
+      <div class="card"><h2>Операции <span class="note" id="opCnt"></span></h2><div style="overflow:auto;"><table class="tab" id="opList"></table></div></div>
+    </section>
+
+    <section class="tab-pane" id="p-tp" style="display:none;">
+      <div class="card">
+        <h2>Новый шаблон техпроцесса</h2>
+        <div class="msg" id="tpMsg"></div>
+        <div class="grid3">
+          <div class="field"><label>Код</label><input type="text" id="tpCode" placeholder="TP-10"></div>
+          <div class="field"><label>Название *</label><input type="text" id="tpName" placeholder="Корпус"></div>
+          <div class="field"><label>Материал</label><select id="tpMat"><option value="">— нет —</option></select></div>
+        </div>
+        <button class="btn" id="tpAdd">Создать шаблон</button>
+      </div>
+      <div class="card"><h2>Техпроцессы <span class="note" id="tpCnt"></span></h2><div style="overflow:auto;"><table class="tab" id="tpList"></table></div></div>
+      <div class="card" id="tpDetail" style="display:none;">
+        <h2>Шаги: <span id="tpTitle"></span></h2>
+        <div id="steps"></div>
+        <div class="grid3 mt">
+          <div class="field"><label>Операция</label><select id="stOp"></select></div>
+          <div class="field"><label>Оборудование</label><select id="stEq"></select></div>
+          <div class="field"><label>План, мин</label><input type="text" id="stMin" inputmode="decimal" placeholder="30"></div>
+        </div>
+        <button class="btn secondary" id="stAdd">＋ Добавить шаг</button>
+        <div class="msg" id="stMsg"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">3DMP Service · справочники</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=1"></script>
+  <script src="../../assets/js/auth.js?v=3"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=21"></script>
+  <script src="registry.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
