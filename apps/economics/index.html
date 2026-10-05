@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Экономика — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=2">
+<style>
+  .kpis { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; }
+  .kpi { background:#fff; border:1px solid var(--border); border-radius:var(--r); padding:14px; }
+  .kpi .v { font-size:1.5rem; font-weight:800; }
+  .kpi .l { font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-top:3px; }
+  .tab { width:100%; border-collapse:collapse; }
+  .tab th, .tab td { text-align:left; padding:9px 10px; border-bottom:1px solid var(--border); font-size:.83rem; }
+  .tab th { color:var(--muted); font-size:.72rem; text-transform:uppercase; }
+  .act { background:none;border:1px solid var(--border);border-radius:8px;padding:5px 9px;font-size:.74rem;font-weight:600;cursor:pointer; }
+  .act:hover{border-color:var(--accent);color:var(--accent-700)}
+  .costrow td { background:#f8fafc; font-size:.78rem; }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">💰</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Экономика</h1><p>KPI, себестоимость заявок, нормочас и загрузка.</p></div>
+    <div class="kpis" id="kpis"></div>
+
+    <div class="card mt">
+      <h2>Себестоимость заявок</h2>
+      <div id="ordersMsg"></div>
+      <div style="overflow:auto;"><table class="tab" id="orders"></table></div>
+    </div>
+
+    <div class="card">
+      <h2>Рабочие центры (нормочас и загрузка)</h2>
+      <div style="overflow:auto;"><table class="tab" id="cap"></table></div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · экономика</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=1"></script>
+  <script src="../../assets/js/auth.js?v=3"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=8"></script>
+  <script src="economics.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
