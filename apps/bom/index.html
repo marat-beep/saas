@@ -4,20 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Спецификации — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=2">
+<link rel="stylesheet" href="../../assets/css/app.css?v=3">
 <style>
-  .bcard { background:#fff; border:1px solid var(--border); border-radius:var(--r); padding:13px 15px; cursor:pointer; }
-  .bcard:hover { border-color:var(--accent); }
-  .blist { display:flex; flex-direction:column; gap:10px; }
   .line { display:grid; grid-template-columns:120px 1fr 70px 70px 80px 34px; gap:8px; align-items:center; padding:8px 0; border-top:1px solid var(--border); }
   .line:first-child{border-top:none}
   .line input, .line select { padding:7px 8px; font-size:.8rem; }
-  .kvr { display:flex; gap:10px; padding:8px 0; border-top:1px solid var(--border); font-size:.85rem; }
-  .kvr:first-child{border-top:none}.kvr .k{color:var(--muted);min-width:130px}
-  .back { background:none;border:none;color:var(--accent-700);font-weight:700;cursor:pointer;font-size:.84rem;margin-bottom:10px; }
-  .grid2 { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
   .rm { border:none;background:transparent;color:var(--danger);cursor:pointer;font-size:1rem; }
-  @media(max-width:680px){ .line{grid-template-columns:1fr 1fr; } .grid2{grid-template-columns:1fr} }
+  @media(max-width:680px){ .line{grid-template-columns:1fr 1fr} }
 </style>
 </head>
 <body>
@@ -30,11 +23,15 @@
 
   <main class="wrap">
     <section class="screen active" id="s-list">
-      <div class="hero"><h1>Спецификации (BOM)</h1><p>Состав изделия: материалы и операции.</p></div>
-      <div class="card">
-        <button class="btn" id="toForm" style="width:auto;padding:11px 18px;">＋ Новая спецификация</button>
+      <div class="hero"><h1>Спецификации (BOM)</h1><p>Состав изделия: материалы и операции. Создание из техпроцесса и расчёт себестоимости.</p></div>
+      <div class="kpi-row" id="kpis"></div>
+      <div class="card mt">
+        <div class="toolbar">
+          <input type="search" class="search" id="q" placeholder="Поиск: изделие, код, заявка…">
+          <button class="btn" id="toForm" style="width:auto;padding:11px 18px;">＋ Новая спецификация</button>
+        </div>
         <div id="listMsg"></div>
-        <div class="blist mt" id="list"><span class="note">Загрузка…</span></div>
+        <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
       </div>
     </section>
 
@@ -43,12 +40,20 @@
       <div class="card">
         <h2 id="formTitle">Новая спецификация</h2>
         <div class="msg" id="fMsg"></div>
-        <div class="grid2">
+        <div class="toolbar" style="align-items:flex-end;">
+          <div class="field" style="flex:1;"><label>Техпроцесс (для автозаполнения)</label><select id="bTemplate"><option value="">— выбрать шаблон —</option></select></div>
+          <button class="btn secondary" id="fromTplBtn" style="width:auto;padding:10px 16px;">Создать из техпроцесса</button>
+        </div>
+        <div class="grid2c">
           <div class="field"><label>Изделие *</label><input type="text" id="bProduct" placeholder="Кронштейн"></div>
+          <div class="field"><label>Код</label><input type="text" id="bCode" placeholder="КР-01"></div>
+        </div>
+        <div class="grid2c">
           <div class="field"><label>Версия</label><input type="text" id="bVersion" placeholder="1"></div>
+          <div class="field"><label>Количество изделий</label><input type="text" id="bQty" inputmode="decimal" placeholder="1"></div>
         </div>
         <div class="field"><label>Заявка (необязательно)</label><select id="bOrder"><option value="">— без заявки —</option></select></div>
-        <div class="section-title" style="margin-top:10px;">Позиции <span class="count" id="lineCount"></span></div>
+        <div class="doc-h">Позиции <span class="note" id="lineCount"></span></div>
         <div class="line" style="font-size:.72rem;color:var(--muted);"><span>Тип</span><span>Наименование</span><span>Кол-во</span><span>Ед.</span><span>Нормо-ч</span><span></span></div>
         <div id="lines"></div>
         <button class="btn secondary mt" id="addLine">＋ Добавить позицию</button>
@@ -59,6 +64,7 @@
     <section class="screen" id="s-item">
       <button class="back" id="back2">← К списку</button>
       <div class="card" id="bomView"></div>
+      <div class="card"><h2>Себестоимость</h2><div id="bomCost"><span class="note">—</span></div></div>
       <div class="card"><h2>Позиции</h2><div id="bomLines"><span class="note">—</span></div></div>
     </section>
   </main>
@@ -73,7 +79,7 @@
   <script src="../../assets/js/router.js?v=1"></script>
   <script src="../../assets/js/notify.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=23"></script>
-  <script src="bom.js?v=1"></script>
+  <script src="bom.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
 </body>
 </html>
