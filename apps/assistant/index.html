@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ИИ-помощник — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=2">
+<style>
+  .tabs2{display:flex;gap:4px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:14px;width:fit-content}
+  .tabs2 button{padding:8px 16px;border:none;background:transparent;border-radius:8px;font-weight:600;font-size:.82rem;color:var(--muted);cursor:pointer}
+  .tabs2 button.active{background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(15,23,42,.08)}
+  .ask{display:flex;gap:8px}
+  .ask input{flex:1}
+  .ans{background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-top:12px}
+  .ans h4{font-size:.86rem;margin-bottom:4px}
+  .ans .cat{font-size:.68rem;font-weight:700;color:var(--accent-700);text-transform:uppercase}
+  .ans p{font-size:.84rem;line-height:1.55;margin-top:4px}
+  .rec{background:#f0fdf4;border:1px solid #6ee7b7;border-radius:12px;padding:12px 14px;margin-top:8px}
+  .rec b{font-size:.9rem}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media(max-width:680px){.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🤖</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>ИИ-помощник</h1><p>Подбор технологии и поиск по базе знаний организации.</p></div>
+
+    <div class="tabs2" id="tabs">
+      <button class="active" data-t="ask">Помощник</button>
+      <button data-t="kb">База знаний</button>
+    </div>
+
+    <section class="tab" id="t-ask">
+      <div class="card">
+        <h2>Спросите</h2>
+        <div class="ask">
+          <input type="text" id="q" placeholder="Например: допуск на отверстие 12H7">
+          <button class="btn" id="askBtn" style="width:auto;padding:11px 18px;">Найти</button>
+        </div>
+        <div id="results" class="mt"></div>
+      </div>
+      <div class="card">
+        <h2>Подбор технологии</h2>
+        <div class="grid3">
+          <div class="field"><label>Материал</label><input type="text" id="rMat" placeholder="Сталь 40Х / алюминий"></div>
+          <div class="field"><label>Признак</label><select id="rFeat">
+            <option value="отверстие">Отверстие</option><option value="паз">Паз</option>
+            <option value="резьба">Резьба</option><option value="плоскость">Плоскость</option></select></div>
+          <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="recBtn">Рекомендовать</button></div>
+        </div>
+        <div id="rec" class="mt"></div>
+      </div>
+    </section>
+
+    <section class="tab" id="t-kb" style="display:none;">
+      <div class="card">
+        <h2>Добавить в базу знаний</h2>
+        <div class="msg" id="kMsg"></div>
+        <div class="grid3">
+          <div class="field"><label>Категория</label><input type="text" id="kCat" placeholder="Обработка"></div>
+          <div class="field"><label>Вопрос *</label><input type="text" id="kQ" placeholder="Как выбрать подачу?"></div>
+          <div class="field"><label>Теги</label><input type="text" id="kTags" placeholder="фрезеровка подача"></div>
+        </div>
+        <div class="field"><label>Ответ *</label><input type="text" id="kA" placeholder="Рекомендация…"></div>
+        <button class="btn" id="kAdd">Добавить</button>
+      </div>
+      <div class="card"><h2>База знаний</h2><div id="kb"><span class="note">Загрузка…</span></div></div>
+    </section>
+  </main>
+
+  <footer class="foot">3DMP Service · помощник</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=1"></script>
+  <script src="../../assets/js/auth.js?v=3"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=19"></script>
+  <script src="assistant.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
