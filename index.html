@@ -13,7 +13,7 @@
     }
   })();
 </script>
-<link rel="stylesheet" href="assets/css/app.css?v=5">
+<link rel="stylesheet" href="assets/css/app.css?v=6">
 <style>
   .grp { margin-bottom: 18px; }
   .grp-t { font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 10px; }
@@ -93,7 +93,7 @@
           var items = list.filter(function (a) { return a.group === g.id; });
           if (!items.length) return;
           out += '<div class="grp"><h3 class="grp-t">' + g.icon + ' ' + ui.esc(g.title) +
-            ' <a href="apps/guide/index.html?c=' + g.id + '" style="font-weight:600;">· гид контура →</a></h3>' +
+            '<a class="gbtn" href="apps/guide/index.html?c=' + g.id + '">🧭 Гид контура</a></h3>' +
             '<div class="apps-grid">' + items.map(function (a) { return card(a, logged); }).join('') + '</div></div>';
         });
         var rest = list.filter(function (a) { return !a.group; });

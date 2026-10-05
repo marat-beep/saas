@@ -212,3 +212,15 @@ input:focus { outline: none; border-color: var(--accent); }
 .seg{display:flex;gap:4px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:4px}
 .seg button{flex:1;padding:8px 12px;border:none;background:transparent;border-radius:8px;font-weight:600;font-size:.82rem;color:var(--muted);cursor:pointer}
 .seg button.active{background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(15,23,42,.08)}
+
+/* Гид контура */
+.gbtn{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--border);color:var(--accent-700);border-radius:999px;padding:5px 12px;font-size:.72rem;font-weight:700;text-decoration:none;margin-left:8px;white-space:nowrap}
+.gbtn:hover{border-color:var(--accent);background:var(--accent-100);transform:translateY(-1px)}
+.guide-hero{background:linear-gradient(135deg,#064e3b,#047857,#10b981);color:#fff;border-radius:16px;padding:22px;margin-bottom:16px}
+.guide-hero h2{font-size:1.3rem;margin:6px 0}
+.guide-hero p{color:#d1fae5;line-height:1.6;font-size:.86rem;max-width:760px}
+.guide-hero .back{color:#fff;opacity:.9}
+.guide-hero .back:hover{opacity:1}
+.guide-hero .links{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.guide-hero .links a{background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:9px;padding:8px 14px;font-size:.78rem;font-weight:600;text-decoration:none}
+.guide-hero .links a:hover{background:rgba(255,255,255,.28)}

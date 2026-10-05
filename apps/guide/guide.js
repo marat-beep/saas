@@ -58,10 +58,12 @@
     var head = '';
     if (only) {
       var g0 = (C.groups || []).filter(function (g) { return g.id === only; })[0];
-      head = '<div class="card"><a class="back" href="index.html">← Все контуры</a>' +
-        '<h2 style="margin-top:6px;">' + (g0 ? g0.icon + ' ' + esc(g0.title) : esc(only)) + '</h2>' +
-        '<p class="note" style="line-height:1.6;">' + esc(CONTOURS[only] || '') + '</p>' +
-        '<a class="chip" href="../panel/index.html">Открыть пульт</a></div>';
+      head = '<div class="guide-hero">' +
+        '<a class="back" href="index.html">← Все контуры</a>' +
+        '<h2>' + (g0 ? g0.icon + ' ' + esc(g0.title) : esc(only)) + '</h2>' +
+        '<p>' + esc(CONTOURS[only] || '') + '</p>' +
+        '<div class="links"><a href="../panel/index.html">🎛 Открыть пульт</a><a href="index.html">📖 Все модули</a><a href="../modules/index.html">🧩 Функции модулей</a></div>' +
+        '</div>';
     }
     var html = head + groups.map(function (g) {
       var items = (C.apps || []).filter(function (a) { return a.group === g.id && match(a); });
