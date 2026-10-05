@@ -8,7 +8,7 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '4.9',
+  version: '5.0',
   updated: '05.10.2026',
   groups: [
     { id: 'core',       icon: '🧭', title: 'Ядро' },
@@ -94,6 +94,13 @@ window.AppCatalog = {
       purpose: 'Документооборот: единое хранилище КП, договоров, техкарт и актов с версионированием.',
       features: ['Создание документов по типам', 'Версии при правках', 'Привязка к заявке', 'Статусы (черновик/в работе/архив)'],
       connects: ['orders', 'finance', 'procurement'], out: 'КП/договор/акт'
+    },
+    {
+      id: 'templates', icon: '📝', title: 'Шаблоны документов', href: 'apps/templates/index.html', guest: false, group: 'sales', audience: 'user',
+      desc: 'КП/договор/акт/техкарта с подстановками; создание документа из шаблона.',
+      purpose: 'Шаблоны документов с подстановками и создание документа из шаблона по заявке.',
+      features: ['Шаблоны: КП/договор/акт/техкарта', 'Подстановки {customer}/{order}/{title}/{amount}/{date}', 'Создание документа из шаблона', 'Связь с заявкой', 'Версии документа'],
+      connects: ['docs', 'orders', 'client'], in_: 'Шаблон + заявка', out: 'Готовый документ'
     },
     {
       id: 'crm', icon: '📇', title: 'CRM', href: 'apps/crm/index.html', guest: false, group: 'sales', audience: 'user',
