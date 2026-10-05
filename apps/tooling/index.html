@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Инструмент и стойкость — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=6">
+<style>
+  .life{height:10px;border-radius:6px;background:#eef2f7;overflow:hidden;margin-top:6px}
+  .life i{display:block;height:100%}
+  .life.ok i{background:var(--accent)}
+  .life.worn i{background:var(--warning)}
+  .life.scrapped i{background:var(--danger)}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:680px){.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🪚</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Инструмент и стойкость</h1><p>Учёт режущего инструмента: ресурс и наработка, заточки, износ; связь с оборудованием. Прототипы B13/B19.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="card mt">
+      <h2>Новый инструмент</h2>
+      <div class="msg" id="tMsg"></div>
+      <div class="grid3">
+        <div class="field"><label>Код</label><input type="text" id="gCode" placeholder="T-010"></div>
+        <div class="field"><label>Наименование *</label><input type="text" id="gName" placeholder="Фреза концевая Ø10"></div>
+        <div class="field"><label>Тип</label><input type="text" id="gType" placeholder="Концевая фреза"></div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label>Материал</label><input type="text" id="gMat" placeholder="твердосплав"></div>
+        <div class="field"><label>Покрытие</label><input type="text" id="gCoat" placeholder="TIAIN"></div>
+        <div class="field"><label>Ø</label><input type="text" id="gDia" inputmode="decimal" placeholder="10"></div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label>Оборудование</label><select id="gEq"><option value="">— не выбрано —</option></select></div>
+        <div class="field"><label>Ресурс, мин</label><input type="text" id="gRes" inputmode="decimal" placeholder="600"></div>
+        <div class="field"><label>Число заточек</label><input type="text" id="gWears" inputmode="numeric" placeholder="3"></div>
+      </div>
+      <div class="field"><label>Расположение</label><input type="text" id="gLoc" placeholder="инструментальная"></div>
+      <button class="btn" id="gAdd">Добавить инструмент</button>
+    </div>
+
+    <div class="card">
+      <div class="toolbar"><input type="search" class="search" id="q" placeholder="Поиск: наименование, код, тип, оборудование…"></div>
+      <h2>Инструмент <span class="note" id="cnt"></span></h2>
+      <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · инструмент и стойкость</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=24"></script>
+  <script src="tooling.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
