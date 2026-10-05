@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Пульт оператора — 3DMP Service</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#047857">
+<link rel="stylesheet" href="../../assets/css/app.css?v=6">
+<style>
+  .op{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px}
+  .op.done{opacity:.65}
+  .op .t{font-weight:700;font-size:1rem}
+  .op .m{font-size:.78rem;color:var(--muted);margin-top:3px}
+  .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .acts button{border:none;border-radius:11px;padding:14px;font-size:.9rem;font-weight:700;cursor:pointer}
+  .b-go{background:var(--accent);color:#fff}
+  .b-pause{background:#fef3c7;color:#92400e}
+  .b-done{background:#0f172a;color:#fff}
+  .b-back{background:#eef2f7;color:#475569}
+  .sticky{position:sticky;top:0;z-index:10;background:var(--bg);padding-bottom:8px}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">📱</span> <a href="../../index.html">3DMP Пульт</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Пульт оператора</h1><p>Мои операции: запустить / пауза / готово, факт часов. Работает с телефона (PWA).</p></div>
+
+    <div class="card sticky">
+      <div class="toolbar">
+        <select id="wc" style="flex:1;padding:12px;border:1px solid var(--border);border-radius:10px;font-size:.9rem;"><option value="">— все центры —</option></select>
+        <label class="chip" style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="onlyMine" checked> только мои</label>
+      </div>
+      <div class="msg" id="msg"></div>
+    </div>
+
+    <div id="list"><span class="note">Загрузка…</span></div>
+  </main>
+
+  <footer class="foot">3DMP Service · пульт оператора</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=24"></script>
+  <script src="terminal.js?v=1"></script>
+</body>
+</html>

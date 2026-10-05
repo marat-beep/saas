@@ -1,0 +1,13 @@
+{
+  "name": "3DMP Пульт оператора",
+  "short_name": "3DMP Пульт",
+  "description": "Мобильный терминал оператора: операции, факт часов.",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f1f5f9",
+  "theme_color": "#047857",
+  "lang": "ru",
+  "icons": []
+}
