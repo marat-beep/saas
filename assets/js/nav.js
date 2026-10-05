@@ -37,6 +37,7 @@
       ['✅', 'ОТК', ROOT + 'apps/qc/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
       ['🪪', 'Паспорта', ROOT + 'apps/passport/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
       ['💰', 'Экономика', ROOT + 'apps/economics/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
+      ['🧾', 'Отчёты', ROOT + 'apps/reports/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
       ['📦', 'Портал закупок', ROOT + 'apps/supplier/index.html', true],
       ['🌐', 'Прототипы экосистемы', ROOT + 'eco/index.html', true],
       ['🛡', 'Администрирование', ROOT + 'apps/admin/index.html', role === 'admin'],

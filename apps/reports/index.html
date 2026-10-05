@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Отчёты и экспорт — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=2">
+<style>
+  .toolbar2 { display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin-bottom:6px; }
+  .toolbar2 .field { margin:0; min-width:180px; }
+  .fmt { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; }
+  .fbtn { border:2px solid var(--border); background:#fff; border-radius:10px; padding:10px 14px; font-weight:700; font-size:.8rem; cursor:pointer; }
+  .fbtn:hover { border-color:var(--accent); color:var(--accent-700); }
+  .fbtn.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .prev { overflow:auto; border:1px solid var(--border); border-radius:10px; }
+  .rpt { background:#fff; color:#0f172a; padding:16px; font-size:12px; }
+  .rpt table { width:100%; border-collapse:collapse; }
+  .rpt th,.rpt td { border:1px solid #cbd5e1; padding:5px 7px; font-size:11px; text-align:left; }
+  .rpt th { background:#f1f5f9; }
+  .rpt .rpt-kpis{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 12px}
+  .rpt .rpt-kpi{border:1px solid #cbd5e1;border-radius:8px;padding:8px 12px;min-width:110px}
+  .rpt .rpt-kpi b{display:block;font-size:15px}.rpt .rpt-kpi span{font-size:10px;color:#64748b;text-transform:uppercase}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🧾</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Отчёты и экспорт</h1><p>Выгрузки PDF / DOC / CSV / JSON и сводные отчёты по данным сервиса.</p></div>
+    <div class="card">
+      <div class="toolbar2">
+        <div class="field"><label>Набор данных</label><select id="ds"></select></div>
+        <div class="field"><label>Заголовок отчёта</label><input type="text" id="title" placeholder="Отчёт"></div>
+        <div class="field"><label>Период/примечание</label><input type="text" id="period" placeholder="октябрь 2026"></div>
+      </div>
+      <div class="fmt">
+        <button class="fbtn" data-fmt="csv">📑 CSV</button>
+        <button class="fbtn" data-fmt="json">🧩 JSON</button>
+        <button class="fbtn" data-fmt="doc">📄 DOC</button>
+        <button class="fbtn primary" data-fmt="pdf">🖨 PDF / печать</button>
+      </div>
+      <div class="msg" id="msg"></div>
+      <div class="note" id="info"></div>
+    </div>
+
+    <div class="card">
+      <h2>Предпросмотр</h2>
+      <div class="prev"><div class="rpt" id="preview"></div></div>
+    </div>
+
+    <div class="card">
+      <h2>Сводный отчёт (KPI)</h2>
+      <div class="fmt">
+        <button class="fbtn" data-kpi="pdf">🖨 PDF</button>
+        <button class="fbtn" data-kpi="doc">📄 DOC</button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · отчёты</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=1"></script>
+  <script src="../../assets/js/auth.js?v=3"></script>
+  <script src="../../assets/js/export.js?v=1"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=9"></script>
+  <script src="reports.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
