@@ -33,6 +33,7 @@
       ['🛒', 'Закупки', ROOT + 'apps/procurement/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
       ['📦', 'Склад', ROOT + 'apps/warehouse/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
       ['📐', 'Спецификации', ROOT + 'apps/bom/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
+      ['🗓', 'Планирование', ROOT + 'apps/planning/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
       ['📦', 'Портал закупок', ROOT + 'apps/supplier/index.html', true],
       ['🌐', 'Прототипы экосистемы', ROOT + 'eco/index.html', true],
       ['🛡', 'Администрирование', ROOT + 'apps/admin/index.html', role === 'admin'],

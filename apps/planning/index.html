@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Планирование — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=2">
+<style>
+  .tabs2 { display:flex; gap:4px; background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:4px; margin-bottom:14px; width:fit-content; }
+  .tabs2 button { padding:8px 16px; border:none; background:transparent; border-radius:8px; font-weight:600; font-size:.82rem; color:var(--muted); cursor:pointer; }
+  .tabs2 button.active { background:#fff; color:var(--text); box-shadow:0 1px 4px rgba(15,23,42,.08); }
+  .gantt { overflow:auto; }
+  .grow { display:grid; grid-template-columns:220px 1fr; gap:10px; align-items:center; padding:7px 0; border-top:1px solid var(--border); font-size:.8rem; }
+  .grow:first-child { border-top:none; }
+  .track { position:relative; height:22px; background:#f8fafc; border-radius:6px; }
+  .bar { position:absolute; top:2px; height:18px; border-radius:6px; }
+  .bar.open { background:#93c5fd; } .bar.in_progress { background:#fcd34d; } .bar.closed { background:#6ee7b7; }
+  .scale { display:grid; grid-template-columns:220px 1fr; gap:10px; font-size:.7rem; color:var(--muted); margin-bottom:4px; }
+  .barrow { display:grid; grid-template-columns:1fr 150px; gap:10px; align-items:center; padding:8px 0; border-top:1px solid var(--border); }
+  .barrow:first-child{border-top:none}
+  .capbar { height:12px; border-radius:6px; background:var(--accent); }
+  .capwrap { background:#f1f5f9; border-radius:6px; overflow:hidden; }
+  .sched { display:grid; grid-template-columns:1fr 140px 140px 40px; gap:8px; align-items:center; padding:8px 0; border-top:1px solid var(--border); font-size:.82rem; }
+  .sched:first-child{border-top:none}
+  .sched input { padding:6px 8px; font-size:.8rem; }
+  .kvr{display:flex;gap:10px;padding:7px 0;border-top:1px solid var(--border);font-size:.82rem}.kvr:first-child{border-top:none}.kvr .k{color:var(--muted);min-width:120px}
+  @media(max-width:680px){ .grow,.scale{grid-template-columns:120px 1fr} .sched{grid-template-columns:1fr 1fr} }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🗓</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Планирование</h1><p>Диаграмма Ганта по нарядам и загрузка рабочих центров.</p></div>
+    <div class="tabs2" id="tabs">
+      <button class="active" data-t="gantt">Диаграмма Ганта</button>
+      <button data-t="cap">Загрузка центров</button>
+    </div>
+
+    <section class="tab" id="t-gantt">
+      <div class="card">
+        <div id="gMsg"></div>
+        <div class="scale"><span>Наряд</span><span id="scaleDates"></span></div>
+        <div class="gantt" id="gantt"><span class="note">Загрузка…</span></div>
+      </div>
+      <div class="card">
+        <h2>Назначить сроки</h2>
+        <div id="sched"></div>
+      </div>
+    </section>
+
+    <section class="tab" id="t-cap" style="display:none;">
+      <div class="card">
+        <div id="cMsg"></div>
+        <div id="cap"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">3DMP Service · планирование</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=1"></script>
+  <script src="../../assets/js/auth.js?v=3"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=6"></script>
+  <script src="planning.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
