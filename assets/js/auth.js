@@ -43,7 +43,8 @@
         if (r.error) return null; // сеть/ошибка — не разлогиниваем
         var row = r.data && r.data[0];
         if (!row) { clear(); return null; }
-        s.login = row.login; s.full_name = row.full_name; s.role = row.role; s.last_login_at = row.last_login_at;
+        s.login = row.login; s.full_name = row.full_name; s.role = row.role;
+        s.last_login_at = row.last_login_at; s.tenant_id = row.tenant_id; s.tenant_name = row.tenant_name;
         write(s);
         return s;
       }).catch(function () { return null; });

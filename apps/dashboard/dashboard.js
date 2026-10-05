@@ -55,7 +55,9 @@
     out.addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
     $('#profile').innerHTML =
-      kv('Логин', s.login) + kv('Имя', s.full_name || '—') + kv('Роль', roleLabel(s.role)) +
+      kv('Логин', s.login) + kv('Имя', s.full_name || '—') +
+      kv('Организация', s.tenant_name || '—') +
+      kv('Роль', roleLabel(s.role)) +
       kv('Последний вход', fmtDT(s.last_login_at));
     renderModules(s);
     renderEvents(s);
