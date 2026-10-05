@@ -30,8 +30,8 @@
   </header>
 
   <main class="wrap">
-    <div class="hero"><h1>Кадры</h1><p>Сотрудники, смены (табель) и обучение.</p></div>
-    <div class="kpis" id="kpis"></div>
+    <div class="hero"><h1>Кадры</h1><p>Сотрудники и их связь с пользователями (роли), смены/табель, обучение.</p></div>
+    <div class="kpi-row" id="kpis"></div>
 
     <div class="tabs2" id="tabs">
       <button class="active" data-t="emp">Сотрудники</button>
@@ -43,17 +43,25 @@
       <div class="card">
         <h2>Новый сотрудник</h2>
         <div class="msg" id="eMsg"></div>
-        <div class="grid2">
+        <div class="grid2c">
           <div class="field"><label>ФИО *</label><input type="text" id="eName" placeholder="Иванов И.И."></div>
           <div class="field"><label>Должность</label><input type="text" id="eJob" placeholder="Оператор ЧПУ"></div>
         </div>
-        <div class="grid2">
-          <div class="field"><label>Отдел</label><input type="text" id="eDept" placeholder="Механообработка"></div>
+        <div class="grid2c">
+          <div class="field"><label>Отдел/цех</label><input type="text" id="eDept" placeholder="Механообработка"></div>
           <div class="field"><label>Телефон</label><input type="text" id="ePhone" placeholder="+7…"></div>
         </div>
-        <button class="btn" id="eAdd">Добавить</button>
+        <div class="grid2c">
+          <div class="field"><label>E-mail</label><input type="text" id="eEmail" placeholder="name@…"></div>
+          <div class="field"><label>Дата приёма</label><input type="date" id="eHired"></div>
+        </div>
+        <div class="field"><label>Логин пользователя системы (роль подтянется)</label><input type="text" id="eLogin" placeholder="master / operator / otk…"></div>
+        <button class="btn" id="eAdd">Добавить сотрудника</button>
       </div>
-      <div class="card"><h2>Сотрудники <span class="note" id="empCount"></span></h2><div id="emps"></div></div>
+      <div class="card">
+        <div class="toolbar"><input type="search" class="search" id="eq" placeholder="Поиск: ФИО, должность, отдел, логин…"></div>
+        <h2>Сотрудники <span class="note" id="empCount"></span></h2><div id="emps"></div>
+      </div>
     </section>
 
     <section class="tab" id="t-shift" style="display:none;">
