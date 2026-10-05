@@ -1,40 +1,205 @@
 /* ============================================================
    3DMP Service · каталог приложений сервиса (источник правды)
-   Хаб (index.html) строит список приложений отсюда.
+   Хаб и экран «Модули» строятся отсюда.
+   Поля: id, icon, title, desc, href, guest, roles?
+         purpose   — назначение (зачем модуль),
+         features  — ключевые функции (что умеет),
+         connects  — связанные модули (id),
+         in_        — входные данные, out — результаты (для процесса).
    Новое приложение: добавить запись и создать apps/<id>/.
-   guest:true  — доступно без входа;
-   guest:false — требует авторизации (хаб перенаправит в apps/auth/).
    ============================================================ */
 window.AppCatalog = {
-  version: '2.6',
+  version: '3.0',
   updated: '05.10.2026',
   apps: [
-    { id: 'auth', icon: '🔐', title: 'Вход', desc: 'Логин и пароль (без email).', href: 'apps/auth/index.html', guest: true },
-    { id: 'eco', icon: '🌐', title: 'Прототипы экосистемы', desc: '72 приложения: клиенты, сотрудники, партнёры, платформа (демо).', href: 'eco/index.html', guest: true },
-    { id: 'orders', icon: '📥', title: 'Заявки', desc: 'Единый приём заявок из модулей и сервисов, статусы.', href: 'apps/orders/index.html', guest: false },
-    { id: 'production', icon: '🏭', title: 'Производство', desc: 'Наряды и операции: план, факт, закрытие.', href: 'apps/production/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
-    { id: 'procurement', icon: '🛒', title: 'Закупки', desc: 'Публикация закупок, приём КП, выбор победителя.', href: 'apps/procurement/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
-    { id: 'warehouse', icon: '📦', title: 'Склад', desc: 'Материалы, приход/расход, контроль минимума.', href: 'apps/warehouse/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
-    { id: 'bom', icon: '📐', title: 'Спецификации', desc: 'Состав изделия (BOM): материалы и операции.', href: 'apps/bom/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
-    { id: 'planning', icon: '🗓', title: 'Планирование', desc: 'Диаграмма Ганта и загрузка рабочих центров.', href: 'apps/planning/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
-    { id: 'qc', icon: '✅', title: 'ОТК', desc: 'Чек-листы контроля, дефекты, решения.', href: 'apps/qc/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
-    { id: 'passport', icon: '🪪', title: 'Паспорта изделий', desc: 'Цифровой паспорт изделия и QR-метка.', href: 'apps/passport/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
-    { id: 'economics', icon: '💰', title: 'Экономика', desc: 'KPI, себестоимость заявок, нормочас.', href: 'apps/economics/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
-    { id: 'reports', icon: '🧾', title: 'Отчёты и экспорт', desc: 'Выгрузки PDF/DOC/CSV/JSON и сводные отчёты.', href: 'apps/reports/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
-    { id: 'org', icon: '🏢', title: 'Организация', desc: 'Тариф, пользователи и доступные модули.', href: 'apps/org/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
-    { id: 'finance', icon: '💵', title: 'Финансы', desc: 'Счета, платежи, дебиторская задолженность.', href: 'apps/finance/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
-    { id: 'hr', icon: '👥', title: 'Кадры', desc: 'Сотрудники, смены (табель), обучение.', href: 'apps/hr/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
-    { id: 'docs', icon: '📄', title: 'Документы', desc: 'КП, договоры, техкарты, акты — с версиями.', href: 'apps/docs/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
-    { id: 'api', icon: '🔌', title: 'API и интеграции', desc: 'API-ключи и вебхуки для внешних систем.', href: 'apps/api/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
-    { id: 'bi', icon: '📊', title: 'Аналитика', desc: 'Дашборд KPI с графиками по данным организации.', href: 'apps/bi/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
-    { id: 'platform', icon: '🏗', title: 'Платформа', desc: 'Управление организациями (только админ платформы).', href: 'apps/platform/index.html', guest: false, roles: ['admin'] },
-    { id: 'mes', icon: '🛠', title: 'Диспетчерская (MES)', desc: 'Оперативные задания по рабочим центрам (канбан).', href: 'apps/mes/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
-    { id: 'quality', icon: '📏', title: 'Качество/СМК', desc: 'Средства измерений (поверка) и трассируемость.', href: 'apps/quality/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
-    { id: 'assistant', icon: '🤖', title: 'ИИ-помощник', desc: 'Подбор технологии и поиск по базе знаний.', href: 'apps/assistant/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
-    { id: 'diagnostics', icon: '🧪', title: 'Диагностика (P10)', desc: 'Проверка системы, окружения и функций (self-test).', href: 'apps/diagnostics/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
-    { id: 'registry', icon: '🗄', title: 'Справочники', desc: 'Оборудование, материалы, операции, техпроцессы (связная модель).', href: 'apps/registry/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
-    { id: 'dashboard', icon: '📊', title: 'Личный кабинет', desc: 'Профиль, роль и модули.', href: 'apps/dashboard/index.html', guest: false },
-    { id: 'supplier', icon: '📦', title: 'Портал закупок (поставщик)', desc: 'Витрина закупок, карточка, подача предложения, мои КП.', href: 'apps/supplier/index.html', guest: false },
-    { id: 'admin', icon: '🛡', title: 'Администрирование', desc: 'Пользователи и роли сервиса (только для admin).', href: 'apps/admin/index.html', guest: false, roles: ['admin'] }
+    {
+      id: 'auth', icon: '🔐', title: 'Вход', href: 'apps/auth/index.html', guest: true,
+      desc: 'Логин и пароль (без email), вход в сервис.',
+      purpose: 'Аутентификация сотрудников и партнёров, выдача сессии-токена и определение роли/организации.',
+      features: ['Вход по логину/паролю (bcrypt)', 'Сессия-токен и роль', 'Определение организации', 'Демо-доступы', 'Журналирование входа'],
+      connects: ['dashboard', 'org'], in_: 'Логин, пароль', out: 'Сессия, роль, тенант'
+    },
+    {
+      id: 'dashboard', icon: '📊', title: 'Личный кабинет', href: 'apps/dashboard/index.html', guest: false,
+      desc: 'Профиль, роль, организация и доступные модули.',
+      purpose: 'Точка входа после входа: показывает, кто вы, из какой организации и что доступно; быстрые переходы.',
+      features: ['Профиль и роль', 'Организация (тенант)', 'Список доступных модулей', 'Последний вход', 'Лента последних действий'],
+      connects: ['org', 'orders', 'production', 'finance']
+    },
+    {
+      id: 'eco', icon: '🌐', title: 'Прототипы экосистемы', href: 'eco/index.html', guest: true,
+      desc: '72 приложения: клиенты, сотрудники, партнёры, платформа (демо).',
+      purpose: 'Библиотека прототипов-референсов экосистемы 3DMP для проектирования реальных модулей.',
+      features: ['Карта 72 приложений', 'Демо-сценарии', 'Источник требований для модулей'],
+      connects: ['registry', 'assistant']
+    },
+    {
+      id: 'orders', icon: '📥', title: 'Заявки', href: 'apps/orders/index.html', guest: false,
+      desc: 'Единый приём заявок из модулей и сервисов, статусы.',
+      purpose: 'Единая точка приёма заявок/заказов из любых модулей и внешних сервисов с прозрачным статусом и историей.',
+      features: ['Создание заявки (тема, заказчик, источник, приоритет)', 'Статусы и история', 'Уведомления исполнителям', 'Фильтры', 'Основа для наряда и счёта'],
+      connects: ['production', 'finance', 'docs', 'supplier'], in_: 'Источник (модуль)', out: 'Заявка → наряд/счёт'
+    },
+    {
+      id: 'registry', icon: '🗄', title: 'Справочники', href: 'apps/registry/index.html', guest: false,
+      desc: 'Оборудование, материалы, операции, техпроцессы (связная модель).',
+      purpose: 'Фундамент данных: связная нормативно-справочная модель (оборудование ↔ операции ↔ материалы ↔ техпроцессы).',
+      features: ['Оборудование (тип, оси, точность, нормочас)', 'Материалы (марка, ГОСТ, плотность, цена)', 'Операции (совместимость по типу станка)', 'Шаблоны техпроцессов с шагами', 'Связи между сущностями'],
+      connects: ['production', 'planning', 'economics', 'bom'], out: 'Нормы и маршруты для расчётов'
+    },
+    {
+      id: 'production', icon: '🏭', title: 'Производство', href: 'apps/production/index.html', guest: false,
+      desc: 'Наряды и операции: план, факт, закрытие.',
+      purpose: 'Исполнение заказов в цехе: наряды по рабочим центрам, операции, учёт плана/факта, закрытие.',
+      features: ['Наряд (по заявке, РЦ, исполнитель, срок)', 'Операции с планом', 'Факт часов и отметка выполнения', 'Закрытие наряда', 'Уведомления'],
+      connects: ['orders', 'mes', 'planning', 'economics'], in_: 'Заявка, справочники', out: 'Факт работ → себестоимость'
+    },
+    {
+      id: 'mes', icon: '🛠', title: 'Диспетчерская (MES)', href: 'apps/mes/index.html', guest: false,
+      desc: 'Оперативные задания по рабочим центрам (канбан).',
+      purpose: 'Оперативное управление цехом в реальном времени: что запущено, на паузе, выполнено; загрузка центров.',
+      features: ['Канбан: очередь/работа/пауза/готово', 'Задания по РЦ и исполнителю', 'Приоритеты', 'Переходы статусов', 'Уведомления о завершении'],
+      connects: ['production', 'planning', 'registry'], in_: 'Наряды', out: 'Статус производства'
+    },
+    {
+      id: 'procurement', icon: '🛒', title: 'Закупки', href: 'apps/procurement/index.html', guest: false,
+      desc: 'Публикация закупок, приём КП, выбор победителя.',
+      purpose: 'Снабжение: публикация потребностей, сбор коммерческих предложений, выбор поставщика.',
+      features: ['Создание/публикация закупки', 'Сбор КП', 'Сравнение цен/сроков', 'Выбор победителя', 'Уведомления поставщикам'],
+      connects: ['supplier', 'warehouse', 'finance'], in_: 'Потребность', out: 'Победитель, КП'
+    },
+    {
+      id: 'supplier', icon: '📦', title: 'Портал поставщика', href: 'apps/supplier/index.html', guest: false,
+      desc: 'Витрина закупок, карточка, подача предложения, мои КП.',
+      purpose: 'Внешний кабинет поставщика: видит открытые закупки, подаёт КП, следит за статусом и аккредитацией.',
+      features: ['Витрина закупок', 'Аккредитация', 'Подача/обновление КП', 'Мои предложения и статусы', 'Уведомления о выборе'],
+      connects: ['procurement'], in_: 'Закупки', out: 'КП'
+    },
+    {
+      id: 'warehouse', icon: '📦', title: 'Склад', href: 'apps/warehouse/index.html', guest: false,
+      desc: 'Материалы, приход/расход, контроль минимума.',
+      purpose: 'Учёт ТМЦ: остатки, движения, контроль минимума и своевременное пополнение.',
+      features: ['Остатки материалов', 'Приход/расход', 'История движений', 'Контроль минимума и уведомления'],
+      connects: ['registry', 'procurement', 'bom', 'economics'], out: 'Остатки → потребность'
+    },
+    {
+      id: 'bom', icon: '📐', title: 'Спецификации (BOM)', href: 'apps/bom/index.html', guest: false,
+      desc: 'Состав изделия: материалы и операции.',
+      purpose: 'Состав изделия (bill of materials): что и сколько нужно на изделие — материалы и операции.',
+      features: ['Спецификация изделия', 'Позиции: материал/операция', 'Привязка к заявке', 'Потребность в материалах'],
+      connects: ['registry', 'warehouse', 'economics', 'production'], out: 'Потребность, себестоимость'
+    },
+    {
+      id: 'planning', icon: '🗓', title: 'Планирование', href: 'apps/planning/index.html', guest: false,
+      desc: 'Диаграмма Ганта и загрузка рабочих центров.',
+      purpose: 'Планирование сроков и загрузки: видеть, когда и где выполняются работы, выравнивать загрузку.',
+      features: ['Диаграмма Ганта по нарядам', 'План-даты (старт/финиш)', 'Загрузка рабочих центров', 'Назначение сроков'],
+      connects: ['production', 'mes', 'registry'], in_: 'Наряды', out: 'Расписание'
+    },
+    {
+      id: 'qc', icon: '✅', title: 'ОТК', href: 'apps/qc/index.html', guest: false,
+      desc: 'Чек-листы контроля, дефекты, решения.',
+      purpose: 'Контроль качества: чек-листы по изделиям, фиксация дефектов и их закрытие.',
+      features: ['Чек-листы (параметр/допуск/факт)', 'Итог: годен/брак', 'Реестр дефектов', 'Критичность и закрытие', 'Уведомления'],
+      connects: ['production', 'passport', 'quality'], out: 'Годен/брак → паспорт'
+    },
+    {
+      id: 'passport', icon: '🪪', title: 'Паспорта изделий', href: 'apps/passport/index.html', guest: false,
+      desc: 'Цифровой паспорт изделия и QR-метка.',
+      purpose: 'Идентификация изделия: цифровой паспорт с историей (материал, заявка, контроль) и QR для трассировки.',
+      features: ['Паспорт изделия', 'Привязка к заявке и ОТК', 'QR-метка (ссылка на паспорт)', 'Данные изделия'],
+      connects: ['qc', 'quality', 'docs'], out: 'QR/идентификатор'
+    },
+    {
+      id: 'economics', icon: '💰', title: 'Экономика', href: 'apps/economics/index.html', guest: false,
+      desc: 'KPI, себестоимость заявок, нормочас.',
+      purpose: 'Расчёт экономики: себестоимость заказа (работы+материалы+накладные), нормочас, маржа, KPI завода.',
+      features: ['Себестоимость заявки', 'Нормочас по центрам', 'Накладные и маржа', 'KPI-плитки'],
+      connects: ['registry', 'production', 'bom', 'finance', 'bi'], in_: 'Часы, материалы, ставки', out: 'Себестоимость/маржа'
+    },
+    {
+      id: 'finance', icon: '💵', title: 'Финансы', href: 'apps/finance/index.html', guest: false,
+      desc: 'Счета, платежи, дебиторская задолженность.',
+      purpose: 'Взаиморасчёты: выставление счетов по заказам, учёт платежей, контроль дебиторки и просрочки.',
+      features: ['Счета (черновик/отправлен/оплачен)', 'Платежи (частичные)', 'Авто-статус «оплачен»', 'Дебиторка и просрочка', 'Уведомления об оплате'],
+      connects: ['orders', 'docs', 'bi'], out: 'Оплаты → KPI'
+    },
+    {
+      id: 'hr', icon: '👥', title: 'Кадры', href: 'apps/hr/index.html', guest: false,
+      desc: 'Сотрудники, смены (табель), обучение.',
+      purpose: 'Персонал: карточки сотрудников, табель смен, обучение и допуски.',
+      features: ['Сотрудники и подразделения', 'Смены/табель', 'Обучение (план/пройдено)', 'KPI кадров'],
+      connects: ['production', 'org'], out: 'Ресурсы/смены'
+    },
+    {
+      id: 'docs', icon: '📄', title: 'Документы', href: 'apps/docs/index.html', guest: false,
+      desc: 'КП, договоры, техкарты, акты — с версиями.',
+      purpose: 'Документооборот: единое хранилище КП, договоров, техкарт и актов с версионированием.',
+      features: ['Создание документов по типам', 'Версии при правках', 'Привязка к заявке', 'Статусы (черновик/в работе/архив)'],
+      connects: ['orders', 'finance', 'procurement'], out: 'КП/договор/акт'
+    },
+    {
+      id: 'reports', icon: '🧾', title: 'Отчёты и экспорт', href: 'apps/reports/index.html', guest: false,
+      desc: 'Выгрузки PDF/DOC/CSV/JSON и сводные отчёты.',
+      purpose: 'Выгрузки и отчётность: любые наборы данных в PDF/DOC/CSV/JSON и сводный отчёт KPI.',
+      features: ['Наборы: заявки/наряды/закупки/склад/паспорта', 'Экспорт PDF/DOC/CSV/JSON', 'Сводный отчёт KPI', 'Печатные формы'],
+      connects: ['economics', 'bi', 'orders'], out: 'Файлы/печать'
+    },
+    {
+      id: 'bi', icon: '📊', title: 'Аналитика', href: 'apps/bi/index.html', guest: false,
+      desc: 'Дашборд KPI с графиками по данным организации.',
+      purpose: 'Аналитика руководителя: динамика оплат, структура заказов/счетов/нарядов, загрузка.',
+      features: ['Оплаты по месяцам', 'Заявки/счета/наряды по статусам', 'План/факт по центрам', 'KPI-плитки'],
+      connects: ['economics', 'finance', 'production'], out: 'Дашборды'
+    },
+    {
+      id: 'org', icon: '🏢', title: 'Организация', href: 'apps/org/index.html', guest: false,
+      desc: 'Тариф, пользователи и доступные модули.',
+      purpose: 'Самообслуживание организации: тариф и лимиты, сотрудники, доступные модули (feature flags).',
+      features: ['Тариф и лимит пользователей', 'Пользователи организации (роли)', 'Сброс паролей', 'Включение/выключение модулей', 'Брендирование'],
+      connects: ['platform', 'admin', 'hr'], out: 'Права и модули'
+    },
+    {
+      id: 'admin', icon: '🛡', title: 'Администрирование', href: 'apps/admin/index.html', guest: false, roles: ['admin'],
+      desc: 'Пользователи и роли сервиса (только admin).',
+      purpose: 'Платформенное администрирование пользователей и ролей, аудит действий по всей системе.',
+      features: ['Список пользователей', 'Создание/роль/доступ', 'Сброс пароля', 'Журнал действий', 'Последние входы'],
+      connects: ['platform', 'org'], out: 'Пользователи/роли'
+    },
+    {
+      id: 'platform', icon: '🏗', title: 'Платформа', href: 'apps/platform/index.html', guest: false, roles: ['admin'],
+      desc: 'Управление организациями (только админ платформы).',
+      purpose: 'Мультизавод/SaaS: создание и ведение организаций, тарифы, статусы (только администратор платформы).',
+      features: ['Список всех организаций', 'Создание организации + владелец', 'Смена тарифа/статуса', 'Счётчики пользователей/заявок'],
+      connects: ['org', 'admin'], out: 'Тенанты'
+    },
+    {
+      id: 'quality', icon: '📏', title: 'Качество/СМК', href: 'apps/quality/index.html', guest: false,
+      desc: 'Средства измерений (поверка) и трассируемость.',
+      purpose: 'Система менеджмента качества: метрология (поверка СИ) и трассируемость изделий/партий.',
+      features: ['СИ и график поверки (норма/истекает/просрочено)', 'Трассируемость: изделие — заявка — материал — оператор', 'KPI качества'],
+      connects: ['qc', 'passport', 'registry'], out: 'Соответствие/трассировка'
+    },
+    {
+      id: 'assistant', icon: '🤖', title: 'ИИ-помощник', href: 'apps/assistant/index.html', guest: false,
+      desc: 'Подбор технологии и поиск по базе знаний.',
+      purpose: 'Помощь в решениях: поиск по базе знаний организации и подбор технологии обработки по материалу и признаку.',
+      features: ['Поиск по базе знаний', 'Подбор технологии (материал × признак)', 'Ведение базы знаний'],
+      connects: ['registry', 'production'], out: 'Рекомендации'
+    },
+    {
+      id: 'diagnostics', icon: '🧪', title: 'Диагностика (P10)', href: 'apps/diagnostics/index.html', guest: false,
+      desc: 'Проверка системы, окружения и функций (self-test).',
+      purpose: 'Боевая диагностика: проверить конфигурацию, подключение и ключевые функции перед сменой/запуском.',
+      features: ['11 проверок системы и RPC', 'Среда: URL, Supabase, схема БД, браузер', 'Создание тестовых данных', 'Отчёт с копированием'],
+      connects: ['platform', 'org'], out: 'Отчёт о состоянии'
+    },
+    {
+      id: 'modules', icon: '🧩', title: 'Модули и функции', href: 'apps/modules/index.html', guest: false,
+      desc: 'Карта модулей: назначение, функции и связи.',
+      purpose: 'Навигация по концепту сервиса: назначение, применение и функции каждого модуля и связи между ними.',
+      features: ['Концепт каждого модуля', 'Список функций', 'Связи и переходы', 'Роли и вход/результат', 'Поиск'],
+      connects: ['registry', 'assistant']
+    }
   ]
 };

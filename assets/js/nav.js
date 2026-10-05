@@ -50,6 +50,7 @@
       ['🤖', 'Помощник', ROOT + 'apps/assistant/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
       ['🧪', 'Диагностика', ROOT + 'apps/diagnostics/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
       ['🗄', 'Справочники', ROOT + 'apps/registry/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
+      ['🧩', 'Модули', ROOT + 'apps/modules/index.html', true],
       ['📦', 'Портал закупок', ROOT + 'apps/supplier/index.html', true],
       ['🌐', 'Прототипы экосистемы', ROOT + 'eco/index.html', true],
       ['🛡', 'Администрирование', ROOT + 'apps/admin/index.html', role === 'admin'],

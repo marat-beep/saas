@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Модули и функции — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=2">
+<style>
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+  .mcard{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:16px}
+  .mcard .ic{font-size:1.4rem}
+  .mcard h3{font-size:.98rem;margin:8px 0 4px}
+  .mcard .d{font-size:.78rem;color:var(--muted);line-height:1.5;min-height:34px}
+  .mcard .pz{font-size:.8rem;line-height:1.55;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)}
+  .feat{margin:8px 0 0;padding-left:18px;font-size:.78rem;line-height:1.6}
+  .conn{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
+  .conn a{font-size:.7rem;font-weight:600;text-decoration:none;color:var(--accent-700);background:var(--accent-100);border-radius:999px;padding:3px 9px}
+  .io{font-size:.74rem;color:var(--muted);margin-top:8px}
+  .act{display:inline-block;margin-top:12px;font-size:.8rem;font-weight:700;color:#fff;background:var(--accent);border-radius:9px;padding:8px 14px;text-decoration:none}
+  .act:hover{background:var(--accent-700)}
+  .roles{font-size:.68rem;color:var(--muted);margin-top:8px}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🧩</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Модули и функции</h1><p>Назначение, применение и функции каждого модуля сервиса. Связи показаны переходами.</p></div>
+    <div class="field"><input type="text" id="q" placeholder="Поиск модуля или функции…"></div>
+    <div class="grid mt" id="grid"></div>
+  </main>
+
+  <footer class="foot">3DMP Service · карта модулей</footer>
+
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=1"></script>
+  <script src="../../assets/js/auth.js?v=3"></script>
+  <script src="../../assets/js/catalog.js?v=23"></script>
+  <script src="../../assets/js/nav.js?v=22"></script>
+  <script src="modules.js?v=1"></script>
+</body>
+</html>
