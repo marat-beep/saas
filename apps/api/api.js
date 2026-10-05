@@ -18,16 +18,23 @@
     return Promise.all([
       rpc('app_api_key_list', { p_token: token }).catch(function () { return []; }),
       rpc('app_webhook_list', { p_token: token }).catch(function () { return []; })
-    ]).then(function (r) { keys = r[0] || []; hooks = r[1] || []; renderKeys(); renderHooks(); renderSample(); })
-      .catch(function (e) { msg('#kMsg', 'Ошибка: ' + e.message, 'err'); });
+    ]).then(function (r) { keys = r[0] || []; hooks = r[1] || []; renderKpi(); renderKeys(); renderHooks(); renderSample(); })
+      .catch(function (e) { msg('#kMsg', 'Ошибка: ' + e.message, 'err')); });
+  }
+  function renderKpi() {
+    var ak = keys.filter(function (k) { return k.active; }).length;
+    var ah = hooks.filter(function (h) { return h.active; }).length;
+    $('#kpis').innerHTML = cell('Ключей', keys.length) + cell('Активных', ak) + cell('Вебхуков', hooks.length) + cell('Вкл. вебхуков', ah);
+    function cell(l, v) { return '<div class="kpi"><small>' + l + '</small><b>' + v + '</b></div>'; }
   }
 
   function renderKeys() {
     if (!keys.length) { $('#keys').innerHTML = '<tr><td class="note">Ключей нет.</td></tr>'; return; }
-    $('#keys').innerHTML = '<thead><tr><th>Название</th><th>Ключ</th><th>Статус</th><th>Использован</th><th></th></tr></thead><tbody>' +
+    $('#keys').innerHTML = '<thead><tr><th>Название</th><th>Ключ</th><th>Статус</th><th>Создан</th><th>Использован</th><th></th></tr></thead><tbody>' +
       keys.map(function (k) {
         return '<tr><td>' + esc(k.name) + '</td><td><code>' + esc(k.api_key) + '</code></td>' +
-          '<td>' + (k.active ? '<span class="note">активен</span>' : '<span class="note">отозван</span>') + '</td>' +
+          '<td><span class="badge ' + (k.active ? 'done' : 'cancelled') + '">' + (k.active ? 'активен' : 'отозван') + '</span></td>' +
+          '<td>' + fmt(k.created_at) + '</td>' +
           '<td>' + fmt(k.last_used_at) + '</td>' +
           '<td style="white-space:nowrap;"><button class="act" data-copy="' + esc(k.api_key) + '">Копировать</button>' +
           (k.active && isOwner() ? '<button class="act danger" data-rev="' + k.id + '">Отозвать</button>' : '') + '</td></tr>';

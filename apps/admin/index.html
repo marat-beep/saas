@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Администрирование — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css">
+<link rel="stylesheet" href="../../assets/css/app.css?v=3">
 <style>
   .utable { width:100%; border-collapse:collapse; }
   .utable th, .utable td { text-align:left; padding:9px 10px; border-bottom:1px solid var(--border); font-size:.84rem; }
@@ -31,6 +31,8 @@
 
   <main class="wrap">
     <section class="hero"><h1>Администрирование</h1><p>Пользователи сервиса и роли. Доступно только роли <b>admin</b>.</p></section>
+    <div class="kpi-row" id="kpis"></div>
+
 
     <div class="card">
       <h2>Новый пользователь</h2>
@@ -55,6 +57,7 @@
 
     <div class="card">
       <h2>Пользователи <span class="note" id="count"></span></h2>
+      <div class="toolbar"><input type="search" class="search" id="aq" placeholder="Поиск: логин, имя, роль, организация…"></div>
       <div class="msg" id="listMsg"></div>
       <div style="overflow:auto;"><table class="utable" id="users"></table></div>
     </div>
@@ -73,7 +76,7 @@
   <script src="../../assets/js/supabase-client.js?v=1"></script>
   <script src="../../assets/js/ui.js?v=1"></script>
   <script src="../../assets/js/auth.js?v=4"></script>
-  <script src="admin.js?v=3"></script>
+  <script src="admin.js?v=4"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=23"></script>
   <script src="../../assets/js/notify.js?v=1"></script>

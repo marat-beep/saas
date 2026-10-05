@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa, SB = window.SB;
-  var token = null, me = null, tenants = [], plans = [];
+  var token = null, me = null, tenants = [], plans = [], qstr = '';
 
   function esc(v) { return ui.esc(v); }
   function msg(id, t, k) { var e = $(id); e.className = 'msg show ' + (k || 'info'); e.textContent = t; }
@@ -17,15 +17,25 @@
       rpc('app_plans_list', { p_token: token }).catch(function () { return []; })
     ]).then(function (r) { tenants = r[0] || []; plans = r[1] || [];
       $('#tPlan').innerHTML = plans.map(function (p) { return '<option value="' + p.code + '">' + esc(p.name) + '</option>'; }).join('');
-      render();
+      renderKpi(); render();
     }).catch(function (e) { msg('#lMsg', 'Ошибка: ' + e.message, 'err'); });
   }
+  function renderKpi() {
+    var active = tenants.filter(function (t) { return (t.status || 'active') === 'active'; }).length;
+    var users = tenants.reduce(function (s, t) { return s + (Number(t.users_count) || 0); }, 0);
+    var orders = tenants.reduce(function (s, t) { return s + (Number(t.orders_count) || 0); }, 0);
+    $('#kpis').innerHTML = cell('Организаций', tenants.length) + cell('Активных', active) +
+      cell('Приостановлено', tenants.length - active, (tenants.length - active) ? '#b91c1c' : '') +
+      cell('Пользователей', users) + cell('Заявок', orders);
+    function cell(l, v, c) { return '<div class="kpi"><small>' + l + '</small><b' + (c ? ' style="color:' + c + '"' : '') + '>' + v + '</b></div>'; }
+  }
   function render() {
-    $('#cnt').textContent = '(' + tenants.length + ')';
+    var list = tenants.filter(function (t) { if (!qstr) return true; var s = qstr.toLowerCase(); return [t.name, t.plan, t.status].join(' ').toLowerCase().indexOf(s) >= 0; });
+    $('#cnt').textContent = '(' + list.length + ')';
     var pOpts = function (sel) { return plans.map(function (p) { return '<option value="' + p.code + '"' + (sel === p.code ? ' selected' : '') + '>' + esc(p.name) + '</option>'; }).join(''); };
     var sOpts = function (sel) { return ['active', 'suspended'].map(function (s) { return '<option value="' + s + '"' + (sel === s ? ' selected' : '') + '>' + (s === 'active' ? 'активна' : 'приостановлена') + '</option>'; }).join(''); };
     $('#tenants').innerHTML = '<thead><tr><th>Организация</th><th>Тариф</th><th>Статус</th><th>Польз.</th><th>Заявок</th><th></th></tr></thead><tbody>' +
-      tenants.map(function (t) {
+      list.map(function (t) {
         return '<tr data-id="' + t.id + '"><td><b>' + esc(t.name) + '</b></td>' +
           '<td><select data-plan="' + t.id + '">' + pOpts(t.plan) + '</select></td>' +
           '<td><select data-status="' + t.id + '">' + sOpts(t.status) + '</select></td>' +
@@ -53,6 +63,7 @@
       .catch(function (e) { msg('#cMsg', 'Ошибка: ' + e.message, 'err'); });
   });
 
+  $('#pq').addEventListener('input', function () { qstr = this.value; render(); });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
   window.Auth.guard('../auth/index.html').then(function (s) {
