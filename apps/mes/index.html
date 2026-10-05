@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Диспетчерская — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=2">
+<style>
+  .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+  .kpi{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:14px}
+  .kpi .v{font-size:1.4rem;font-weight:800}.kpi .l{font-size:.72rem;color:var(--muted);text-transform:uppercase;margin-top:3px}
+  .board{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
+  .col{background:#f8fafc;border:1px solid var(--border);border-radius:var(--r);padding:10px;min-height:120px}
+  .col h3{font-size:.8rem;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .card2{background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px}
+  .b{font-size:.62rem;font-weight:700;border-radius:999px;padding:2px 7px}
+  .b.high{background:#fee2e2;color:#b91c1c}.b.normal{background:#f1f5f9;color:#475569}.b.low{background:#f1f5f9;color:#94a3b8}
+  .mini{font-size:.72rem;color:var(--muted);margin-top:4px}
+  .acts{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+  .acts button{border:1px solid var(--border);background:#fff;border-radius:7px;padding:3px 8px;font-size:.68rem;cursor:pointer}
+  .acts button:hover{border-color:var(--accent);color:var(--accent-700)}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media(max-width:820px){.board{grid-template-columns:1fr 1fr}.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🛠</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Диспетчерская (MES)</h1><p>Оперативные задания по рабочим центрам.</p></div>
+    <div class="kpis" id="kpis"></div>
+
+    <div class="card mt">
+      <h2>Новое задание</h2>
+      <div class="msg" id="cMsg"></div>
+      <div class="grid3">
+        <div class="field"><label>Рабочий центр</label><select id="mWc"></select></div>
+        <div class="field"><label>Задание *</label><input type="text" id="mTitle" placeholder="Запустить программу"></div>
+        <div class="field"><label>Наряд</label><select id="mNar"><option value="">— нет —</option></select></div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label>Приоритет</label><select id="mPriority"><option value="normal">Обычный</option><option value="high">Высокий</option><option value="low">Низкий</option></select></div>
+        <div class="field"><label>Оператор</label><input type="text" id="mOperator" placeholder="логин"></div>
+        <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="mCreate">Создать задание</button></div>
+      </div>
+    </div>
+
+    <div class="board">
+      <div class="col"><h3>В очереди <span id="cQueued"></span></h3><div id="col-queued"></div></div>
+      <div class="col"><h3>В работе <span id="cRunning"></span></h3><div id="col-running"></div></div>
+      <div class="col"><h3>Пауза <span id="cPaused"></span></h3><div id="col-paused"></div></div>
+      <div class="col"><h3>Выполнено <span id="cDone"></span></h3><div id="col-done"></div></div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · диспетчерская</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=1"></script>
+  <script src="../../assets/js/auth.js?v=3"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=17"></script>
+  <script src="mes.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
