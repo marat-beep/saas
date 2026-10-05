@@ -1,4 +1,4 @@
--- 3DMP Service · apply_all.sql — единая схема (0001..0055), идемпотентно.
+-- 3DMP Service · apply_all.sql — единая схема (0001..0058), идемпотентно.
 
 -- >>>>>>>>>> 0001_init.sql >>>>>>>>>>
 -- ============================================================
@@ -8964,4 +8964,405 @@ from (values
 ) as v(category,question,answer,tags)
 where not exists (select 1 from public.app_knowledge where tenant_id='aaaaaaaa-0000-0000-0000-000000000001' and question='Как работать в мобильном пульте оператора?');
 -- <<<<<<<<<< 0055_terminal_kb.sql <<<<<<<<<<
+
+-- >>>>>>>>>> 0056_crm.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0056_crm.sql  (v36.0 — ЭПИК A: CRM / сделки, прототипы B12/A14)
+-- Воронка сделок по заказчикам, стадии, суммы/вероятность, связь с заявкой.
+-- База знаний. Зависит от 0001..0055.
+-- ============================================================
+
+create table if not exists public.app_deals (
+  id          uuid primary key default gen_random_uuid(),
+  tenant_id   uuid references public.tenants (id),
+  customer_id uuid references public.app_customers (id) on delete set null,
+  title       text not null,
+  stage       text not null default 'lead', -- lead|qualified|proposal|negotiation|won|lost
+  amount      numeric,
+  probability integer default 10,
+  source      text,
+  owner_login text,
+  next_action text,
+  due_date    date,
+  order_id    uuid references public.app_orders (id) on delete set null,
+  note        text,
+  created_login text,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+create index if not exists app_deals_idx on public.app_deals (tenant_id, stage);
+alter table public.app_deals enable row level security;
+
+-- ---------- Список ----------
+create or replace function public.app_deal_list(p_token uuid, p_q text default null)
+returns table (id uuid, customer_id uuid, customer text, title text, stage text, amount numeric, probability integer,
+               weighted numeric, source text, owner_login text, next_action text, due_date date, order_id uuid, order_number text, note text)
+language plpgsql security definer set search_path = public
+as $$
+declare urole text; ten uuid; qq text;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token); qq := lower(coalesce(trim(p_q),''));
+  return query
+    select d.id, d.customer_id, c.name, d.title, d.stage, d.amount, d.probability,
+      round(coalesce(d.amount,0)*coalesce(d.probability,0)/100.0, 2), d.source, d.owner_login, d.next_action, d.due_date, d.order_id, o.number, d.note
+    from public.app_deals d
+    left join public.app_customers c on c.id = d.customer_id
+    left join public.app_orders o on o.id = d.order_id
+    where (urole='admin' or d.tenant_id = ten)
+      and (qq='' or lower(d.title) like '%'||qq||'%' or lower(coalesce(c.name,'')) like '%'||qq||'%' or lower(coalesce(d.owner_login,'')) like '%'||qq||'%')
+    order by case d.stage when 'negotiation' then 0 when 'proposal' then 1 when 'qualified' then 2 when 'lead' then 3 when 'won' then 4 else 5 end, d.updated_at desc;
+end $$;
+
+-- ---------- KPI ----------
+create or replace function public.app_deal_kpi(p_token uuid)
+returns table (deals_total bigint, open_deals bigint, pipeline numeric, won_sum numeric, won_count bigint, conversion numeric)
+language plpgsql security definer set search_path = public
+as $$
+declare urole text; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  return query select
+    count(*),
+    count(*) filter (where stage not in ('won','lost')),
+    coalesce(sum(coalesce(amount,0)*coalesce(probability,0)/100.0) filter (where stage not in ('won','lost')),0),
+    coalesce(sum(amount) filter (where stage='won'),0),
+    count(*) filter (where stage='won'),
+    case when count(*) filter (where stage in ('won','lost')) > 0
+         then round(100.0 * count(*) filter (where stage='won') / count(*) filter (where stage in ('won','lost')),1) else 0 end
+    from public.app_deals where (urole='admin' or tenant_id = ten);
+end $$;
+
+-- ---------- Сохранить ----------
+create or replace function public.app_deal_save(p_token uuid, p_id uuid, p_customer_id uuid, p_title text, p_stage text,
+  p_amount numeric, p_probability integer, p_source text, p_owner text, p_next_action text, p_due_date date, p_order_id uuid, p_note text)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+declare ten uuid; urole text; ulogin text;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  select s.urole, s.ulogin into urole, ulogin from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  if urole not in ('admin','owner','manager','director') then return query select false,'Недостаточно прав'; return; end if;
+  if coalesce(trim(p_title),'') = '' then return query select false,'Укажите название сделки'; return; end if;
+  if p_id is null then
+    insert into public.app_deals (tenant_id, customer_id, title, stage, amount, probability, source, owner_login, next_action, due_date, order_id, note, created_login)
+    values (ten, p_customer_id, trim(p_title), coalesce(nullif(trim(p_stage),''),'lead'), p_amount, coalesce(p_probability,10),
+            nullif(trim(p_source),''), nullif(trim(p_owner),''), nullif(trim(p_next_action),''), p_due_date, p_order_id, nullif(trim(p_note),''), ulogin);
+  else
+    update public.app_deals set customer_id=p_customer_id, title=trim(p_title), stage=coalesce(nullif(trim(p_stage),''),stage),
+      amount=p_amount, probability=coalesce(p_probability,probability), source=nullif(trim(p_source),''), owner_login=nullif(trim(p_owner),''),
+      next_action=nullif(trim(p_next_action),''), due_date=p_due_date, order_id=p_order_id, note=nullif(trim(p_note),''), updated_at=now()
+     where id=p_id and (urole='admin' or tenant_id=ten);
+  end if;
+  return query select true,'Сделка сохранена';
+end $$;
+
+-- ---------- Смена стадии ----------
+create or replace function public.app_deal_set_stage(p_token uuid, p_id uuid, p_stage text)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+declare ten uuid; urole text; t record;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  if p_stage not in ('lead','qualified','proposal','negotiation','won','lost') then return query select false,'Неверная стадия'; return; end if;
+  select d.title, d.tenant_id into t from public.app_deals d where d.id = p_id and (urole='admin' or d.tenant_id=ten);
+  if t.title is null then return query select false,'Сделка не найдена'; return; end if;
+  update public.app_deals set stage=p_stage, updated_at=now() where id=p_id;
+  if p_stage = 'won' then
+    perform public.app_notif_roles_t(ten, array['admin','owner','manager','director'], 'Сделка выиграна: '||t.title, '', 'apps/crm/index.html');
+  end if;
+  return query select true,'Стадия обновлена';
+end $$;
+
+grant execute on function public.app_deal_list(uuid,text) to anon, authenticated;
+grant execute on function public.app_deal_kpi(uuid) to anon, authenticated;
+grant execute on function public.app_deal_save(uuid,uuid,uuid,text,text,numeric,integer,text,text,text,date,uuid,text) to anon, authenticated;
+grant execute on function public.app_deal_set_stage(uuid,uuid,text) to anon, authenticated;
+
+-- ---------- Демо (тенант A) ----------
+insert into public.app_deals (tenant_id, customer_id, title, stage, amount, probability, source, owner_login, next_action, due_date)
+select 'aaaaaaaa-0000-0000-0000-000000000001',
+       (select id from public.app_customers where tenant_id='aaaaaaaa-0000-0000-0000-000000000001' order by name limit 1),
+       v.title, v.stage, v.amount, v.prob, 'входящая', 'manager', v.next, current_date + v.days
+from (values
+  ('Изготовление пресс-формы', 'negotiation', 850000, 60, 'согласовать ТЗ', 5),
+  ('Партия штампов (5 шт)', 'proposal', 1200000, 40, 'отправить КП', 3),
+  ('Реверс-инжиниринг детали', 'qualified', 180000, 25, 'оценка трудоёмкости', 7),
+  ('Кронштейны, серия', 'won', 39167.09, 100, 'выставить счёт', 0)
+) as v(title, stage, amount, prob, next, days)
+where not exists (select 1 from public.app_deals where tenant_id='aaaaaaaa-0000-0000-0000-000000000001');
+
+-- ---------- База знаний ----------
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+  ('CRM','Как вести воронку сделок?',
+   'Модуль «CRM»: сделки по заказчикам со стадиями (лид → квалифицирован), предложение, переговоры, выиграна/проиграна), суммой и вероятностью. Взвешенная сумма = сумма × вероятность. KPI: сделок, открытых, воронка (взвешенная), выиграно (сумма/число), конверсия. Сделку можно связать с заявкой.',
+   'CRM воронка сделки стадии сумма вероятность конверсия'),
+  ('CRM','Связь CRM с заявками и ТКП',
+   'Сделка ведёт к заявке (модуль «Заявки») и КП/ТКП (модуль «Документы»/реестр ТКП). При выигрыше сделки приходит уведомление. Так продажи связаны с производством и финансами.',
+   'CRM заявка ТКП КП сделка связь продажи')
+) as v(category,question,answer,tags)
+where not exists (select 1 from public.app_knowledge where tenant_id='aaaaaaaa-0000-0000-0000-000000000001' and question='Как вести воронку сделок?');
+-- <<<<<<<<<< 0056_crm.sql <<<<<<<<<<
+
+-- >>>>>>>>>> 0057_tkp.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0057_tkp.sql  (v36.1 — ЭПИК A: реестр ТКП)
+-- Технико-коммерческие предложения: номер, контрагент, срок, цена, статусы.
+-- Связь с заявкой/документом. База знаний. Зависит от 0001..0056.
+-- ============================================================
+
+create sequence if not exists public.app_tkp_seq;
+
+create table if not exists public.app_tkp_registry (
+  id           uuid primary key default gen_random_uuid(),
+  tenant_id    uuid references public.tenants (id),
+  number       text,
+  tkp_date     date not null default current_date,
+  counterparty text,
+  customer_id  uuid references public.app_customers (id) on delete set null,
+  subject      text not null,
+  valid_until  date,
+  price        numeric,
+  status       text not null default 'actual',  -- actual|expired|contracted|closed
+  order_id     uuid references public.app_orders (id) on delete set null,
+  document_id  uuid references public.app_documents (id) on delete set null,
+  note         text,
+  created_login text,
+  created_at   timestamptz not null default now()
+);
+create index if not exists app_tkp_idx on public.app_tkp_registry (tenant_id, status);
+alter table public.app_tkp_registry enable row level security;
+
+create or replace function public.app_tkp_list(p_token uuid, p_q text default null)
+returns table (id uuid, number text, tkp_date date, counterparty text, customer text, subject text, valid_until date,
+               price numeric, status text, order_id uuid, order_number text, document_number text, note text, expired boolean)
+language plpgsql security definer set search_path = public
+as $$
+declare urole text; ten uuid; qq text;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token); qq := lower(coalesce(trim(p_q),''));
+  return query
+    select t.id, t.number, t.tkp_date, t.counterparty, c.name, t.subject, t.valid_until, t.price, t.status, t.order_id, o.number, d.number, t.note,
+      (t.valid_until is not null and t.valid_until < current_date and t.status = 'actual')
+    from public.app_tkp_registry t
+    left join public.app_customers c on c.id = t.customer_id
+    left join public.app_orders o on o.id = t.order_id
+    left join public.app_documents d on d.id = t.document_id
+    where (urole='admin' or t.tenant_id = ten)
+      and (qq='' or lower(coalesce(t.number,'')) like '%'||qq||'%' or lower(t.subject) like '%'||qq||'%' or lower(coalesce(t.counterparty,'')) like '%'||qq||'%' or lower(coalesce(c.name,'')) like '%'||qq||'%')
+    order by t.tkp_date desc, t.created_at desc;
+end $$;
+
+create or replace function public.app_tkp_save(p_token uuid, p_id uuid, p_customer_id uuid, p_counterparty text, p_subject text,
+  p_valid_until date, p_price numeric, p_order_id uuid, p_document_id uuid, p_note text)
+returns table (id uuid, number text, message text)
+language plpgsql security definer set search_path = public
+as $$
+declare ten uuid; urole text; ulogin text; tid uuid; tnum text;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole, s.ulogin into urole, ulogin from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  if urole not in ('admin','owner','manager','director') then raise exception 'Недостаточно прав'; end if;
+  if coalesce(trim(p_subject),'') = '' then raise exception 'Укажите предмет ТКП'; return; end if;
+  if p_id is null then
+    tnum := 'TKP-' || lpad(nextval('public.app_tkp_seq')::text, 5, '0');
+    insert into public.app_tkp_registry (tenant_id, number, counterparty, customer_id, subject, valid_until, price, order_id, document_id, note, created_login)
+    values (ten, tnum, nullif(trim(p_counterparty),''), p_customer_id, trim(p_subject), p_valid_until, p_price, p_order_id, p_document_id, nullif(trim(p_note),''), ulogin)
+    returning id into tid;
+    return query select tid, tnum, 'ТКП добавлено';
+  else
+    update public.app_tkp_registry set counterparty=nullif(trim(p_counterparty),''), customer_id=p_customer_id, subject=trim(p_subject),
+      valid_until=p_valid_until, price=p_price, order_id=p_order_id, document_id=p_document_id, note=nullif(trim(p_note),'')
+     where id=p_id and (urole='admin' or tenant_id=ten) returning id, number into tid, tnum;
+    return query select tid, tnum, 'ТКП обновлено';
+  end if;
+end $$;
+
+create or replace function public.app_tkp_set_status(p_token uuid, p_id uuid, p_status text)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+declare ten uuid; urole text;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  if p_status not in ('actual','expired','contracted','closed') then return query select false,'Неверный статус'; return; end if;
+  update public.app_tkp_registry set status=p_status where id=p_id and (urole='admin' or tenant_id=ten);
+  return query select true,'Статус ТКП обновлён';
+end $$;
+
+grant execute on function public.app_tkp_list(uuid,text) to anon, authenticated;
+grant execute on function public.app_tkp_save(uuid,uuid,uuid,text,text,date,numeric,uuid,uuid,text) to anon, authenticated;
+grant execute on function public.app_tkp_set_status(uuid,uuid,text) to anon, authenticated;
+
+-- ---------- Демо (тенант A) ----------
+insert into public.app_tkp_registry (tenant_id, number, counterparty, customer_id, subject, valid_until, price, status, created_login)
+select 'aaaaaaaa-0000-0000-0000-000000000001', 'TKP-' || lpad(nextval('public.app_tkp_seq')::text, 5, '0'),
+       c.name, c.id, v.subject, current_date + v.days, v.price, v.status, 'manager'
+from public.app_customers c
+join (values ('Изготовление штампа Ш-001', 30, 1000000, 'actual'), ('Оснастка, комплект', -5, 250000, 'expired')) as v(subject, days, price, status)
+  on c.name = (select name from public.app_customers where tenant_id='aaaaaaaa-0000-0000-0000-000000000001' order by name limit 1)
+where not exists (select 1 from public.app_tkp_registry where tenant_id='aaaaaaaa-0000-0000-0000-000000000001');
+
+-- ---------- База знаний ----------
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+  ('ТКП','Что такое реестр ТКП?',
+   'Реестр технико-коммерческих предложений: номер (TKP-NNNNN), дата, контрагент/заказчик, предмет, срок действия, цена и статус (Актуальное/Истёк срок/Заключён договор/Закрыто). Просроченные по сроку (но ещё «Актуальные») выделяются. ТКП связывается с заявкой и КП.',
+   'ТКП реестр предложение срок цена статус контрагент')
+) as v(category,question,answer,tags)
+where not exists (select 1 from public.app_knowledge where tenant_id='aaaaaaaa-0000-0000-0000-000000000001' and question='Что такое реестр ТКП?');
+-- <<<<<<<<<< 0057_tkp.sql <<<<<<<<<<
+
+-- >>>>>>>>>> 0058_client.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0058_client.sql  (v36.2 — ЭПИК A: кабинет заказчика, прототип A3)
+-- Роль `client` (внешний заказчик): привязка к заказчику + read-проекции
+-- (заявки, документы, счета, ТКП). База знаний. Зависит от 0001..0057.
+-- ============================================================
+
+create table if not exists public.app_client_links (
+  id          uuid primary key default gen_random_uuid(),
+  tenant_id   uuid references public.tenants (id),
+  app_user_id uuid references public.app_users (id) on delete cascade,
+  customer_id uuid references public.app_customers (id) on delete cascade,
+  created_at  timestamptz not null default now(),
+  unique (app_user_id, customer_id)
+);
+create index if not exists app_client_links_idx on public.app_client_links (app_user_id);
+alter table public.app_client_links enable row level security;
+
+-- ---------- Контекст клиента ----------
+create or replace function public.app_client_context(p_token uuid)
+returns table (customer_id uuid, customer text, tenant_name text)
+language plpgsql security definer set search_path = public
+as $$
+declare uid uuid; urole text;
+begin
+  select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
+  if uid is null then raise exception 'Сессия недействительна'; end if;
+  if urole <> 'client' and urole <> 'admin' then raise exception 'Доступ только для заказчика'; end if;
+  return query
+    select l.customer_id, c.name, t.name
+    from public.app_client_links l
+    join public.app_customers c on c.id = l.customer_id
+    left join public.tenants t on t.id = l.tenant_id
+    where l.app_user_id = uid;
+end $$;
+
+-- ---------- Заявки клиента ----------
+create or replace function public.app_client_orders(p_token uuid)
+returns table (number text, title text, status text, priority text, due_date date, amount numeric, created_at timestamptz)
+language plpgsql security definer set search_path = public
+as $$
+declare uid uuid; urole text;
+begin
+  select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
+  if uid is null then raise exception 'Сессия недействительна'; end if;
+  if urole <> 'client' and urole <> 'admin' then raise exception 'Доступ только для заказчика'; end if;
+  return query
+    select o.number, o.title, o.status, o.priority, o.due_date, o.amount, o.created_at
+    from public.app_orders o
+    where o.customer_id in (select customer_id from public.app_client_links where app_user_id = uid)
+    order by o.created_at desc;
+end $$;
+
+-- ---------- Документы клиента ----------
+create or replace function public.app_client_docs(p_token uuid)
+returns table (number text, doc_type text, title text, status text, amount numeric, valid_until date, created_at timestamptz)
+language plpgsql security definer set search_path = public
+as $$
+declare uid uuid; urole text;
+begin
+  select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
+  if uid is null then raise exception 'Сессия недействительна'; end if;
+  if urole <> 'client' and urole <> 'admin' then raise exception 'Доступ только для заказчика'; end if;
+  return query
+    select d.number, d.doc_type, d.title, d.status, d.amount, d.valid_until, d.created_at
+    from public.app_documents d
+    where d.customer_id in (select customer_id from public.app_client_links where app_user_id = uid)
+    order by d.created_at desc;
+end $$;
+
+-- ---------- Счета клиента ----------
+create or replace function public.app_client_invoices(p_token uuid)
+returns table (number text, amount numeric, paid numeric, balance numeric, status text, due_date date, is_overdue boolean)
+language plpgsql security definer set search_path = public
+as $$
+declare uid uuid; urole text;
+begin
+  select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
+  if uid is null then raise exception 'Сессия недействительна'; end if;
+  if urole <> 'client' and urole <> 'admin' then raise exception 'Доступ только для заказчика'; end if;
+  return query
+    select i.number, i.amount,
+           coalesce((select sum(p.amount) from public.app_payments p where p.invoice_id = i.id),0),
+           i.amount - coalesce((select sum(p.amount) from public.app_payments p where p.invoice_id = i.id),0),
+           i.status, i.due_date,
+           (i.due_date is not null and i.due_date < current_date and i.status in ('sent','overdue'))
+    from public.app_invoices i
+    where i.customer_id in (select customer_id from public.app_client_links where app_user_id = uid)
+    order by i.created_at desc;
+end $$;
+
+-- ---------- ТКП клиента ----------
+create or replace function public.app_client_tkp(p_token uuid)
+returns table (number text, subject text, valid_until date, price numeric, status text, created_at timestamptz)
+language plpgsql security definer set search_path = public
+as $$
+declare uid uuid; urole text;
+begin
+  select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
+  if uid is null then raise exception 'Сессия недействительна'; end if;
+  if urole <> 'client' and urole <> 'admin' then raise exception 'Доступ только для заказчика'; end if;
+  return query
+    select t.number, t.subject, t.valid_until, t.price, t.status, t.created_at
+    from public.app_tkp_registry t
+    where t.customer_id in (select customer_id from public.app_client_links where app_user_id = uid)
+    order by t.created_at desc;
+end $$;
+
+grant execute on function public.app_client_context(uuid) to anon, authenticated;
+grant execute on function public.app_client_orders(uuid) to anon, authenticated;
+grant execute on function public.app_client_docs(uuid) to anon, authenticated;
+grant execute on function public.app_client_invoices(uuid) to anon, authenticated;
+grant execute on function public.app_client_tkp(uuid) to anon, authenticated;
+
+-- ---------- Демо: клиентский доступ (тенант A) ----------
+insert into public.app_users (login, password_hash, full_name, role, tenant_id)
+values ('client', extensions.crypt('client', extensions.gen_salt('bf')), 'Клиент (портал)', 'client', 'aaaaaaaa-0000-0000-0000-000000000001')
+on conflict (login) do update set role='client', tenant_id=excluded.tenant_id, full_name=excluded.full_name;
+
+insert into public.app_client_links (tenant_id, app_user_id, customer_id)
+select 'aaaaaaaa-0000-0000-0000-000000000001', u.id, c.id
+from public.app_users u, public.app_customers c
+where u.login='client'
+  and c.id = (select id from public.app_customers where tenant_id='aaaaaaaa-0000-0000-0000-000000000001' order by name limit 1)
+  and not exists (select 1 from public.app_client_links where app_user_id=u.id and customer_id=c.id);
+
+-- ---------- База знаний ----------
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+  ('Кабинет заказчика','Как клиент видит свои заказы?',
+   'Внешний заказчик входит под ролью client и видит только свои данные: заявки (статусы, суммы, сроки), документы (КП/договор/акт), счета (оплачено/остаток/просрочка) и ТКП. Доступ привязан к карточке заказчика (CRM) через связку «пользователь ↔ заказчик».',
+   'кабинет заказчика client роль заявки документы счета ТКП портал')
+) as v(category,question,answer,tags)
+where not exists (select 1 from public.app_knowledge where tenant_id='aaaaaaaa-0000-0000-0000-000000000001' and question='Как клиент видит свои заказы?');
+-- <<<<<<<<<< 0058_client.sql <<<<<<<<<<
 

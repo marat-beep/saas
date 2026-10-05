@@ -62,7 +62,7 @@
   <script src="assets/js/ui.js?v=2"></script>
   <script src="assets/js/status.js?v=1"></script>
   <script src="assets/js/auth.js?v=4"></script>
-  <script src="assets/js/catalog.js?v=29"></script>
+  <script src="assets/js/catalog.js?v=30"></script>
   <script>
     (function () {
       'use strict';
@@ -85,6 +85,7 @@
       function renderApps(user) {
         var logged = !!user;
         var list = C.apps.filter(function (a) {
+          if (logged && user.role === 'client') return !!(a.roles && a.roles.indexOf('client') >= 0);
           if (!a.roles) return true;
           return logged && a.roles.indexOf(user.role) >= 0;
         });
@@ -128,7 +129,7 @@
     })();
   </script>
   <script src="assets/js/realtime.js?v=1"></script>
-  <script src="assets/js/nav.js?v=24"></script>
+  <script src="assets/js/nav.js?v=25"></script>
   <script src="assets/js/notify.js?v=1"></script>
 </body>
 </html>

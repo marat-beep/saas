@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Кабинет заказчика — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=6">
+<style>
+  .tabs2{display:flex;gap:4px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:4px;margin:12px 0;width:fit-content;flex-wrap:wrap}
+  .tabs2 button{padding:8px 14px;border:none;background:transparent;border-radius:8px;font-weight:600;font-size:.8rem;color:var(--muted);cursor:pointer}
+  .tabs2 button.active{background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(15,23,42,.08)}
+  .hero2{background:linear-gradient(135deg,#064e3b,#047857,#10b981);color:#fff;border-radius:16px;padding:22px;margin-bottom:16px}
+  .hero2 h1{font-size:1.4rem;margin-bottom:6px}
+  .hero2 p{color:#d1fae5;font-size:.86rem}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🤝</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero2"><h1>Кабинет заказчика</h1><p id="ctx">Ваши заказы, документы, счета и предложения.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="tabs2" id="tabs">
+      <button class="active" data-t="ord">Заявки</button>
+      <button data-t="doc">Документы</button>
+      <button data-t="inv">Счета</button>
+      <button data-t="tkp">Предложения</button>
+    </div>
+
+    <div class="card"><div style="overflow:auto;" id="panel"><span class="note">Загрузка…</span></div></div>
+    <div class="msg" id="msg"></div>
+  </main>
+
+  <footer class="foot">3DMP Service · кабинет заказчика</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/nav.js?v=25"></script>
+  <script src="client.js?v=1"></script>
+</body>
+</html>

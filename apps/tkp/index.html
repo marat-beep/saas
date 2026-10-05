@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Реестр ТКП — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=6">
+<style>
+  .tabs2{display:flex;gap:4px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:4px;margin:12px 0;width:fit-content;flex-wrap:wrap}
+  .tabs2 button{padding:8px 14px;border:none;background:transparent;border-radius:8px;font-weight:600;font-size:.8rem;color:var(--muted);cursor:pointer}
+  .tabs2 button.active{background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(15,23,42,.08)}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:680px){.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🧾</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Реестр ТКП</h1><p>Технико-коммерческие предложения: срок действия, цена, статусы. Связь с заявкой и КП.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="card mt">
+      <h2>Новое ТКП</h2>
+      <div class="msg" id="fMsg"></div>
+      <div class="grid3">
+        <div class="field"><label>Заказчик</label><select id="fCust"><option value="">— выберите —</option></select></div>
+        <div class="field"><label>Предмет *</label><input type="text" id="fSubject" placeholder="Изготовление штампа Ш-001"></div>
+        <div class="field"><label>Контрагент (если нет CRM)</label><input type="text" id="fCounter" placeholder="ООО «…»"></div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label>Срок действия</label><input type="date" id="fValid"></div>
+        <div class="field"><label>Цена, ₽</label><input type="text" id="fPrice" inputmode="decimal" placeholder="1000000"></div>
+        <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="fAdd">Добавить ТКП</button></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar"><input type="search" class="search" id="q" placeholder="Поиск: номер, предмет, заказчик…"></div>
+      <div class="tabs2" id="tabs">
+        <button class="active" data-f="">Все</button>
+        <button data-f="actual">Актуальные</button>
+        <button data-f="expired">Истёк срок</button>
+        <button data-f="contracted">Договор</button>
+        <button data-f="closed">Закрытые</button>
+      </div>
+      <div style="overflow:auto;" id="list"><span class="note">Загрузка…</span></div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · реестр ТКП</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=25"></script>
+  <script src="tkp.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>

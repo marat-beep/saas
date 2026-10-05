@@ -35,6 +35,7 @@
 
     function buildFromCatalog(cat) {
       var list = cat.apps.filter(function (a) {
+        if (role === 'client') return !!(a.roles && a.roles.indexOf('client') >= 0);
         if (!a.roles) return true;
         return role && a.roles.indexOf(role) >= 0;
       });

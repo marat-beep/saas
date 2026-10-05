@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=6">
+<style>
+  .cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+  .col{background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:10px}
+  .col h3{font-size:.74rem;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .dcard{background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:680px){.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">📇</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>CRM — сделки и заказчики</h1><p>Воронка сделок по стадиям, суммы и вероятность, связь с заявкой. Прототипы B12/A14.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="card mt">
+      <h2>Новая сделка</h2>
+      <div class="msg" id="fMsg"></div>
+      <div class="grid3">
+        <div class="field"><label>Заказчик</label><select id="fCust"><option value="">— выберите —</option></select></div>
+        <div class="field"><label>Название *</label><input type="text" id="fTitle" placeholder="Изготовление штампа Ш-001"></div>
+        <div class="field"><label>Стадия</label><select id="fStage">
+          <option value="lead">Лид</option><option value="qualified">Квалифицирована</option>
+          <option value="proposal">Предложение</option><option value="negotiation">Переговоры</option>
+          <option value="won">Выиграна</option><option value="lost">Проиграна</option></select></div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label>Сумма, ₽</label><input type="text" id="fAmount" inputmode="decimal" placeholder="850000"></div>
+        <div class="field"><label>Вероятность, %</label><input type="text" id="fProb" inputmode="numeric" placeholder="60"></div>
+        <div class="field"><label>Ответственный</label><input type="text" id="fOwner" placeholder="manager"></div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label>Источник</label><input type="text" id="fSource" placeholder="входящая / сайт / звонок"></div>
+        <div class="field"><label>Следующее действие</label><input type="text" id="fNext" placeholder="отправить КП"></div>
+        <div class="field"><label>Срок</label><input type="date" id="fDue"></div>
+      </div>
+      <button class="btn" id="fAdd">Добавить сделку</button>
+    </div>
+
+    <div class="card">
+      <div class="toolbar"><input type="search" class="search" id="q" placeholder="Поиск: сделка, заказчик, ответственный…"></div>
+      <h2>Воронка <span class="note" id="cnt"></span></h2>
+      <div class="cols mt" id="board"></div>
+    </div>
+
+    <div class="card"><h2>Заказчики (CRM)</h2><div style="overflow:auto;" id="customers"><span class="note">—</span></div></div>
+  </main>
+
+  <footer class="foot">3DMP Service · CRM</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=25"></script>
+  <script src="crm.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>

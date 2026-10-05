@@ -34,7 +34,7 @@
       id: 'user', badge: 'Пользователь', cls: 'user', roles: ['admin', 'owner', 'manager', 'supplier'],
       title: '👤 Рабочее место пользователя',
       about: 'Ежедневные модули: заявки, производство, качество, экономика.',
-      apps: ['dashboard', 'orders', 'procurement', 'supplier', 'production', 'mes', 'planning',
+      apps: ['dashboard', 'crm', 'orders', 'tkp', 'procurement', 'supplier', 'production', 'mes', 'planning',
              'warehouse', 'maintenance', 'tooling', 'oee', 'terminal', 'registry', 'bom', 'assistant', 'qc', 'passport', 'quality',
              'economics', 'finance', 'reports', 'hr', 'docs']
     }
