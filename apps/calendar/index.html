@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Производственный календарь — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=6">
+<style>
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:680px){.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">📅</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Производственный календарь</h1><p>Праздники, сокращённые и рабочие (переносы) дни; расчёт рабочих дней. Прототип B38.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="card mt">
+      <h2>Добавить день</h2>
+      <div class="msg" id="fMsg"></div>
+      <div class="grid3">
+        <div class="field"><label>Дата</label><input type="date" id="fDate"></div>
+        <div class="field"><label>Тип</label><select id="fKind"><option value="holiday">Праздник</option><option value="short">Сокращённый</option><option value="work">Рабочий (перенос)</option><option value="shift">Смена</option></select></div>
+        <div class="field"><label>Название</label><input type="text" id="fName" placeholder="День народного единства"></div>
+      </div>
+      <button class="btn" id="fAdd">Сохранить</button>
+    </div>
+
+    <div class="card">
+      <h2>Расчёт рабочих дней</h2>
+      <div class="grid3">
+        <div class="field"><label>Начало</label><input type="date" id="cStart"></div>
+        <div class="field"><label>Рабочих дней</label><input type="text" id="cDays" inputmode="numeric" placeholder="5"></div>
+        <div class="field" style="display:flex;align-items:flex-end;"><button class="btn secondary" id="cBtn">Рассчитать</button></div>
+      </div>
+      <div class="msg" id="cMsg"></div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <input type="date" id="from" style="padding:9px;border:1px solid var(--border);border-radius:9px;">
+        <input type="date" id="to" style="padding:9px;border:1px solid var(--border);border-radius:9px;">
+        <button class="btn secondary" id="reload" style="width:auto;padding:9px 14px;">Показать</button>
+      </div>
+      <h2>Календарь <span class="note" id="cnt"></span></h2>
+      <div style="overflow:auto;" id="list"><span class="note">Загрузка…</span></div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · календарь</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=25"></script>
+  <script src="calendar.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
