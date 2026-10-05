@@ -11,18 +11,61 @@
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  function toast(message) {
+  function toastWrap() {
+    var w = document.querySelector('.toast-wrap');
+    if (!w) { w = document.createElement('div'); w.className = 'toast-wrap'; document.body.appendChild(w); }
+    return w;
+  }
+  // kind: '' | 'ok' | 'err'
+  function toast(message, kind) {
     var el = document.createElement('div');
+    el.className = 'toast' + (kind ? ' ' + kind : '');
     el.textContent = message;
-    el.style.cssText = 'position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(16px);' +
-      'background:#0f172a;color:#fff;padding:10px 16px;border-radius:10px;font-size:.82rem;font-weight:600;' +
-      'box-shadow:0 10px 30px rgba(0,0,0,.3);z-index:9999;opacity:0;transition:opacity .2s,transform .2s;max-width:90vw;text-align:center;';
-    document.body.appendChild(el);
-    requestAnimationFrame(function () { el.style.opacity = '1'; el.style.transform = 'translateX(-50%) translateY(0)'; });
+    toastWrap().appendChild(el);
+    requestAnimationFrame(function () { el.classList.add('show'); });
     setTimeout(function () {
-      el.style.opacity = '0';
-      setTimeout(function () { el.remove(); }, 220);
-    }, 2400);
+      el.classList.remove('show');
+      setTimeout(function () { el.remove(); }, 240);
+    }, 2600);
+  }
+
+  // Модальное окно: opts = { title, body(HTML|text), okText, cancelText, danger, hideCancel }
+  // Возвращает Promise<boolean> (true — подтверждено).
+  function dialog(opts) {
+    opts = opts || {};
+    return new Promise(function (resolve) {
+      var back = document.createElement('div');
+      back.className = 'modal-backdrop';
+      var foot = opts.hideCancel
+        ? '<button class="btn" data-ok>' + esc(opts.okText || 'ОК') + '</button>'
+        : '<button class="btn secondary" data-cancel>' + esc(opts.cancelText || 'Отмена') + '</button>' +
+          '<button class="btn' + (opts.danger ? '' : '') + '" data-ok>' + esc(opts.okText || 'ОК') + '</button>';
+      back.innerHTML =
+        '<div class="modal" role="dialog" aria-modal="true">' +
+          (opts.title ? '<div class="modal-head">' + esc(opts.title) + '</div>' : '') +
+          '<div class="modal-body">' + (opts.html ? opts.body : esc(opts.body || '')) + '</div>' +
+          '<div class="modal-foot">' + foot + '</div>' +
+        '</div>';
+      document.body.appendChild(back);
+      requestAnimationFrame(function () { back.classList.add('show'); });
+      function close(val) {
+        back.classList.remove('show');
+        setTimeout(function () { back.remove(); }, 160);
+        document.removeEventListener('keydown', onKey);
+        resolve(val);
+      }
+      function onKey(e) { if (e.key === 'Escape') close(false); }
+      document.addEventListener('keydown', onKey);
+      back.addEventListener('click', function (e) {
+        if (e.target === back) close(false);
+        if (e.target.closest('[data-ok]')) close(true);
+        if (e.target.closest('[data-cancel]')) close(false);
+      });
+    });
+  }
+
+  function confirmDialog(text, title) {
+    return dialog({ title: title || 'Подтверждение', body: text, okText: 'Подтвердить', danger: true });
   }
 
   function fmtDate(ts) {
@@ -32,5 +75,5 @@
     return d.toLocaleDateString('ru-RU');
   }
 
-  g.AppUI = { qs: qs, qsa: qsa, esc: esc, toast: toast, fmtDate: fmtDate };
+  g.AppUI = { qs: qs, qsa: qsa, esc: esc, toast: toast, fmtDate: fmtDate, dialog: dialog, confirmDialog: confirmDialog };
 })(window);
