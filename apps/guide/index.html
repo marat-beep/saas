@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Гид по системе — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=3">
+<style>
+  .guide-grp { margin-bottom: 22px; }
+  .guide-grp > h2 { font-size: 1rem; margin: 0 0 10px; }
+  .mod { border: 1px solid var(--border); border-radius: var(--r); background: #fff; padding: 14px 16px; margin-bottom: 10px; }
+  .mod h3 { font-size: .94rem; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
+  .mod .purp { font-size: .82rem; color: #334155; margin: 6px 0; }
+  .mod ul { margin: 6px 0 8px 18px; padding: 0; font-size: .78rem; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .chip { font-size: .7rem; border: 1px solid var(--border); border-radius: 999px; padding: 3px 9px; text-decoration: none; color: #475569; background: #f8fafc; }
+  .chip:hover { border-color: var(--accent); color: var(--accent-700); }
+  .io { font-size: .74rem; color: var(--muted); margin-top: 8px; }
+  .aud { font-size: .62rem; font-weight: 700; border-radius: 999px; padding: 2px 8px; background: #eef2f7; color: #475569; }
+  .searchbar { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: .9rem; }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">📖</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout" style="display:none;">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Гид по системе</h1><p>Какой модуль за что отвечает, как связан с другими и кому доступен. Данные — из единого каталога.</p></div>
+    <div class="card"><input type="search" class="searchbar" id="q" placeholder="Поиск: модуль, функция, связь…"></div>
+    <div id="guide"></div>
+  </main>
+
+  <footer class="foot">3DMP Service · гид по системе</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=1"></script>
+  <script src="../../assets/js/auth.js?v=3"></script>
+  <script src="../../assets/js/catalog.js?v=24"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=23"></script>
+  <script src="guide.js?v=1"></script>
+</body>
+</html>

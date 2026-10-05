@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Пульт управления — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=3">
+<style>
+  .panel-sec { margin-bottom: 20px; }
+  .panel-sec > h2 { display: flex; align-items: center; gap: 8px; font-size: 1rem; margin: 0 0 4px; }
+  .panel-sec > p { margin: 0 0 12px; }
+  .sec-badge { font-size: .62rem; font-weight: 700; border-radius: 999px; padding: 3px 9px; background: #eef2f7; color: #475569; }
+  .sec-badge.dev { background: #ede9fe; color: #6d28d9; }
+  .sec-badge.saas { background: #dbeafe; color: #1d4ed8; }
+  .sec-badge.client { background: #dcfce7; color: #15803d; }
+  .sec-badge.user { background: #fef3c7; color: #92400e; }
+  .apps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+  .app-card { border: 1px solid var(--border); border-radius: var(--r); padding: 14px; text-decoration: none; color: var(--text); background: #fff; transition: .15s; display: block; }
+  .app-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .app-card .ic { font-size: 1.4rem; }
+  .app-card h3 { font-size: .9rem; margin: 8px 0 4px; }
+  .app-card p { font-size: .76rem; color: var(--muted); margin: 0; }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🎛</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Пульт управления</h1><p>Единая точка входа. Разделы подбираются под вашу роль: разработчик, SaaS-администратор, администратор клиента или пользователь.</p></div>
+    <div class="status" id="conn"><span class="dot wait"></span><span class="status-text">Проверка…</span></div>
+    <div id="sections"></div>
+  </main>
+
+  <footer class="foot">3DMP Service · пульт управления</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=1"></script>
+  <script src="../../assets/js/status.js?v=1"></script>
+  <script src="../../assets/js/auth.js?v=3"></script>
+  <script src="../../assets/js/catalog.js?v=24"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=23"></script>
+  <script src="panel.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>

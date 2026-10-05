@@ -1,18 +1,22 @@
 /* ============================================================
    3DMP Service · навигация в шапке (window.AppNav)
-   Вставляет в .topbar кнопку «← Хаб» и меню модулей.
-   Пути считаются от расположения самого скрипта → работают на любой глубине.
+   Меню строится из ЕДИНОГО источника — assets/js/catalog.js:
+   группы и модули берутся из window.AppCatalog (с фолбэком).
+   Пути считаются от расположения скрипта → работают на любой глубине.
    Требует auth.js (window.Auth) для фильтра по роли.
    ============================================================ */
 (function (g) {
   'use strict';
 
   var SELF = document.currentScript;
+  var CATALOG_V = '24';
 
   function ready(fn) {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
     else fn();
   }
+
+  function esc(v) { return (g.AppUI && g.AppUI.esc) ? g.AppUI.esc(v) : String(v == null ? '' : v); }
 
   function init() {
     var src = (SELF && SELF.src) || '';
@@ -25,41 +29,34 @@
 
     var role = (g.Auth && g.Auth.role) ? g.Auth.role() : null;
 
-    var items = [
-      ['🏠', 'Главная', ROOT + 'index.html', true],
-      ['📊', 'Личный кабинет', ROOT + 'apps/dashboard/index.html', true],
-      ['📥', 'Заявки', ROOT + 'apps/orders/index.html', true],
-      ['🏭', 'Производство', ROOT + 'apps/production/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
-      ['🛒', 'Закупки', ROOT + 'apps/procurement/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
-      ['📦', 'Склад', ROOT + 'apps/warehouse/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
-      ['📐', 'Спецификации', ROOT + 'apps/bom/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
-      ['🗓', 'Планирование', ROOT + 'apps/planning/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
-      ['✅', 'ОТК', ROOT + 'apps/qc/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
-      ['🪪', 'Паспорта', ROOT + 'apps/passport/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
-      ['💰', 'Экономика', ROOT + 'apps/economics/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
-      ['🧾', 'Отчёты', ROOT + 'apps/reports/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
-      ['🏢', 'Организация', ROOT + 'apps/org/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
-      ['💵', 'Финансы', ROOT + 'apps/finance/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
-      ['👥', 'Кадры', ROOT + 'apps/hr/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
-      ['📄', 'Документы', ROOT + 'apps/docs/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
-      ['🔌', 'API', ROOT + 'apps/api/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
-      ['📊', 'Аналитика', ROOT + 'apps/bi/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
-      ['🏗', 'Платформа', ROOT + 'apps/platform/index.html', role === 'admin'],
-      ['🛠', 'Диспетчерская', ROOT + 'apps/mes/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
-      ['📏', 'Качество/СМК', ROOT + 'apps/quality/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
-      ['🤖', 'Помощник', ROOT + 'apps/assistant/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
-      ['🧪', 'Диагностика', ROOT + 'apps/diagnostics/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
-      ['🗄', 'Справочники', ROOT + 'apps/registry/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
-      ['🧩', 'Модули', ROOT + 'apps/modules/index.html', true],
-      ['📦', 'Портал закупок', ROOT + 'apps/supplier/index.html', true],
-      ['🌐', 'Прототипы экосистемы', ROOT + 'eco/index.html', true],
-      ['🛡', 'Администрирование', ROOT + 'apps/admin/index.html', role === 'admin'],
-      ['🔐', 'Вход', ROOT + 'apps/auth/index.html', !role]
-    ];
+    function link(a) {
+      return '<a href="' + ROOT + a.href + '">' + a.icon + ' ' + esc(a.title) + '</a>';
+    }
 
-    var links = items.filter(function (x) { return x[3]; }).map(function (x) {
-      return '<a href="' + x[2] + '">' + x[0] + ' ' + x[1] + '</a>';
-    }).join('<div class="sep"></div>');
+    function buildFromCatalog(cat) {
+      var list = cat.apps.filter(function (a) {
+        if (!a.roles) return true;
+        return role && a.roles.indexOf(role) >= 0;
+      });
+      var out = '';
+      (cat.groups || []).forEach(function (grp) {
+        var items = list.filter(function (a) { return a.group === grp.id; });
+        if (!items.length) return;
+        out += '<div class="navgrp-t">' + grp.icon + ' ' + esc(grp.title) + '</div>';
+        out += items.map(link).join('');
+      });
+      var rest = list.filter(function (a) { return !a.group; });
+      if (rest.length) out += rest.map(link).join('');
+      return out;
+    }
+
+    // Фолбэк, пока каталог не загружен
+    var FALLBACK =
+      '<a href="' + ROOT + 'index.html">🏠 Главная</a>' +
+      '<a href="' + ROOT + 'apps/panel/index.html">🎛 Пульт управления</a>' +
+      '<a href="' + ROOT + 'apps/dashboard/index.html">📊 Личный кабинет</a>' +
+      '<a href="' + ROOT + 'apps/orders/index.html">📥 Заявки</a>' +
+      '<a href="' + ROOT + 'apps/guide/index.html">📖 Гид по системе</a>';
 
     var rest = location.href.substring(ROOT.length).split(/[?#]/)[0];
     var isHub = (rest === '' || rest === 'index.html');
@@ -70,7 +67,7 @@
     wrap.innerHTML =
       (isHub ? '' : '<a class="navbtn" href="' + ROOT + 'index.html">← Хаб</a>') +
       '<div class="navmenu"><button class="navbtn" id="navToggle" type="button">☰ Меню</button>' +
-      '<div class="navdrop" id="navDrop">' + links + '</div></div>';
+      '<div class="navdrop" id="navDrop">' + FALLBACK + '</div></div>';
 
     bar.parentNode.insertBefore(wrap, bar.nextSibling);
 
@@ -80,6 +77,18 @@
       t.addEventListener('click', function (e) { e.stopPropagation(); d.classList.toggle('open'); });
       document.addEventListener('click', function () { d.classList.remove('open'); });
       d.addEventListener('click', function (e) { e.stopPropagation(); });
+    }
+
+    function upgrade() {
+      if (d && g.AppCatalog && g.AppCatalog.apps) d.innerHTML = buildFromCatalog(g.AppCatalog);
+    }
+
+    if (g.AppCatalog && g.AppCatalog.apps) { upgrade(); }
+    else {
+      var s = document.createElement('script');
+      s.src = ROOT + 'assets/js/catalog.js?v=' + CATALOG_V;
+      s.onload = upgrade;
+      document.head.appendChild(s);
     }
   }
 

@@ -146,3 +146,4 @@ input:focus { outline: none; border-color: var(--accent); }
 .navdrop a { display: flex; gap: 9px; align-items: center; padding: 9px 10px; border-radius: 8px; color: var(--text); text-decoration: none; font-size: .84rem; }
 .navdrop a:hover { background: #f1f5f9; }
 .navdrop .sep { height: 1px; background: var(--border); margin: 5px 6px; }
+.navdrop .navgrp-t { font-size: .66rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 8px 10px 3px; font-weight: 700; }
