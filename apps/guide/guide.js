@@ -33,14 +33,37 @@
       '</div>';
   }
 
+  // Описание контуров (для «Гида контура»)
+  var CONTOURS = {
+    core: 'Ядро: вход, личный кабинет, пульт управления, гид и экран модулей. Точка входа и навигация по всей экосистеме.',
+    sales: 'Продажи и заказы: приём заявок (CRM), КП/договоры/акты, счета и оплаты, закупки и портал поставщика. Сквозная цепочка «заявка → КП → договор → счёт → оплата» и «потребность → закупка → склад».',
+    ktpp: 'Подготовка производства (КТПП): справочники (оборудование, материалы, операции), шаблоны техпроцессов и маршруты, спецификации (BOM) и ИИ-помощник. Основа нормирования и себестоимости.',
+    production: 'Производство: наряды и операции, диспетчерская (MES), планирование (Гант/загрузка), склад. Связи «заявка/маршрут → наряд → операции → склад → себестоимость».',
+    quality: 'Качество: ОТК (чек-листы, дефекты), паспорт изделия (QR), СМК/метрология (поверка СИ) и трассируемость «заявка → наряд → операции → материалы → дефекты».',
+    economics: 'Экономика и финансы: себестоимость по факту, маржа, счета/оплаты, аналитика (BI) и отчёты (PDF/DOC/CSV/JSON).',
+    staff: 'Персонал и организация: кадры (сотрудники, смены, обучение), админ-панель клиента (пользователи, роли, модули, бренд), матрица прав.',
+    platform: 'Платформа и администрирование: роли и права, организации (SaaS), пользователи, диагностика, API/интеграции.',
+    refs: 'Референсы: прототипы экосистемы 3DMP — источник идей, модули строятся по стандарту.'
+  };
+
   function render(filter) {
     var q = (filter || '').trim().toLowerCase();
+    var only = new URLSearchParams(location.search).get('c'); // гид контура
     var match = function (a) {
       if (!q) return true;
       var hay = [a.title, a.desc, a.purpose, (a.features || []).join(' '), (a.connects || []).join(' ')].join(' ').toLowerCase();
       return hay.indexOf(q) >= 0;
     };
-    var html = (C.groups || []).map(function (g) {
+    var groups = (C.groups || []).filter(function (g) { return !only || g.id === only; });
+    var head = '';
+    if (only) {
+      var g0 = (C.groups || []).filter(function (g) { return g.id === only; })[0];
+      head = '<div class="card"><a class="back" href="index.html">← Все контуры</a>' +
+        '<h2 style="margin-top:6px;">' + (g0 ? g0.icon + ' ' + esc(g0.title) : esc(only)) + '</h2>' +
+        '<p class="note" style="line-height:1.6;">' + esc(CONTOURS[only] || '') + '</p>' +
+        '<a class="chip" href="../panel/index.html">Открыть пульт</a></div>';
+    }
+    var html = head + groups.map(function (g) {
       var items = (C.apps || []).filter(function (a) { return a.group === g.id && match(a); });
       if (!items.length) return '';
       return '<div class="guide-grp"><h2>' + g.icon + ' ' + esc(g.title) + '</h2>' + items.map(moduleCard).join('') + '</div>';

@@ -92,7 +92,8 @@
         (C.groups || []).forEach(function (g) {
           var items = list.filter(function (a) { return a.group === g.id; });
           if (!items.length) return;
-          out += '<div class="grp"><h3 class="grp-t">' + g.icon + ' ' + ui.esc(g.title) + '</h3>' +
+          out += '<div class="grp"><h3 class="grp-t">' + g.icon + ' ' + ui.esc(g.title) +
+            ' <a href="apps/guide/index.html?c=' + g.id + '" style="font-weight:600;">· гид контура →</a></h3>' +
             '<div class="apps-grid">' + items.map(function (a) { return card(a, logged); }).join('') + '</div></div>';
         });
         var rest = list.filter(function (a) { return !a.group; });
