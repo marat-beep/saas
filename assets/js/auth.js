@@ -76,6 +76,17 @@
     }
   };
 
+  // Роли предприятия (P8). supplier — внешний, не сотрудник.
+  Auth.STAFF = ['admin', 'owner', 'manager', 'director', 'chief', 'master', 'technologist', 'operator', 'supply', 'qc', 'economist'];
+  Auth.ROLE_LABELS = {
+    admin: 'Администратор платформы', owner: 'Владелец организации', manager: 'Менеджер',
+    supplier: 'Поставщик', director: 'Директор', chief: 'Начальник цеха/участка', master: 'Мастер/бригадир',
+    technologist: 'Технолог/инженер', operator: 'Оператор ЧПУ', supply: 'Снабженец',
+    qc: 'ОТК/метролог', economist: 'Экономист/бухгалтер'
+  };
+  Auth.isStaff = function (role) { return Auth.STAFF.indexOf(role || Auth.role()) >= 0; };
+  Auth.roleLabel = function (r) { return Auth.ROLE_LABELS[r || Auth.role()] || (r || ''); };
+
   Auth.KEY = KEY;
   g.Auth = Auth;
 })(window);

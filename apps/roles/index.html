@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Роли и права — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=3">
+<style>
+  .rolecard { border:1px solid var(--border); border-radius:12px; padding:10px 12px; background:#fff; cursor:pointer; }
+  .rolecard.active { border-color:var(--accent); background:var(--accent-100); }
+  .rolecard b { display:block; font-size:.85rem; }
+  .rolecard small { color:var(--muted); font-size:.7rem; }
+  .roles-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:10px; }
+  .perm-table td { text-align:center; }
+  .perm-table td:first-child { text-align:left; }
+  .perm-table input { width:18px; height:18px; }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🔑</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Роли и права (P8)</h1><p>Матрица «роль × модуль»: кто что видит и где может изменять данные. Роли предприятия для смешанного производства: от директора и технолога до оператора ЧПУ и ОТК.</p></div>
+
+    <div class="card">
+      <h2>Роли</h2>
+      <div class="roles-grid" id="roles"><span class="note">Загрузка…</span></div>
+      <div class="msg" id="rMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2>Права: <span id="roleTitle">—</span></h2>
+      <p class="note">Отметьте «Просмотр» и «Правку» по модулям. Изменения сохраняются сразу.</p>
+      <div style="overflow:auto;"><table class="table perm-table" id="perms"></table></div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · роли и права</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=1"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/catalog.js?v=25"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=23"></script>
+  <script src="roles.js?v=1"></script>
+</body>
+</html>

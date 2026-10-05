@@ -92,7 +92,7 @@
 
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
-    if (['admin', 'owner', 'manager'].indexOf(s.role) < 0) { location.href = '../dashboard/index.html'; return; }
+    if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
     me = s; token = s.token;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '');
     renderEnv(); renderKpi();

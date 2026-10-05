@@ -28,7 +28,7 @@
       id: 'client', badge: 'Администратор клиента', cls: 'client', roles: ['admin', 'owner'],
       title: '🏢 Раздел администратора клиента',
       about: 'Сотрудники и роли организации, доступные модули, тариф и бренд.',
-      apps: ['org', 'hr', 'finance', 'docs', 'bi']
+      apps: ['org', 'roles', 'hr', 'finance', 'docs', 'bi']
     },
     {
       id: 'user', badge: 'Пользователь', cls: 'user', roles: ['admin', 'owner', 'manager', 'supplier'],
