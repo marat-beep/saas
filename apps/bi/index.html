@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Аналитика — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=2">
+<style>
+  .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+  .kpi{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:14px}
+  .kpi .v{font-size:1.4rem;font-weight:800}.kpi .l{font-size:.72rem;color:var(--muted);text-transform:uppercase;margin-top:3px}
+  .charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+  .chart{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:16px}
+  .chart h3{font-size:.9rem;margin-bottom:10px}
+  @media(max-width:760px){.charts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">📊</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Аналитика</h1><p>Дашборд показателей организации.</p></div>
+    <div class="kpis" id="kpis"></div>
+    <div class="charts">
+      <div class="chart"><h3>Оплаты по месяцам, ₽</h3><canvas id="cPay" height="160"></canvas></div>
+      <div class="chart"><h3>Заявки по статусам</h3><canvas id="cOrders" height="160"></canvas></div>
+      <div class="chart"><h3>Счета по статусам, ₽</h3><canvas id="cInv" height="160"></canvas></div>
+      <div class="chart"><h3>Наряды: план/факт, ч</h3><canvas id="cCap" height="160"></canvas></div>
+    </div>
+    <div class="msg mt" id="msg"></div>
+  </main>
+
+  <footer class="foot">3DMP Service · аналитика</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=1"></script>
+  <script src="../../assets/js/auth.js?v=3"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=15"></script>
+  <script src="bi.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
