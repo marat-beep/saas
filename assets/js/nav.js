@@ -38,7 +38,7 @@
         if (!a.roles) return true;
         return role && a.roles.indexOf(role) >= 0;
       });
-      var out = '';
+      var out = '<div class="navgrp-t">☁️ Продукт</div><a href="' + ROOT + 'apps/product/index.html">💳 Продукт и цены</a>';
       (cat.groups || []).forEach(function (grp) {
         var items = list.filter(function (a) { return a.group === grp.id; });
         if (!items.length) return;
@@ -53,6 +53,7 @@
     // Фолбэк, пока каталог не загружен
     var FALLBACK =
       '<a href="' + ROOT + 'index.html">🏠 Главная</a>' +
+      '<a href="' + ROOT + 'apps/product/index.html">💳 Продукт и цены</a>' +
       '<a href="' + ROOT + 'apps/panel/index.html">🎛 Пульт управления</a>' +
       '<a href="' + ROOT + 'apps/dashboard/index.html">📊 Личный кабинет</a>' +
       '<a href="' + ROOT + 'apps/orders/index.html">📥 Заявки</a>' +

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3DMP Service — платформа и модули</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=5">
+<style>
+  .hero2 { background:linear-gradient(135deg,#064e3b,#047857,#10b981); color:#fff; border-radius:16px; padding:28px 24px; margin-bottom:18px; }
+  .hero2 h1 { font-size:1.7rem; margin-bottom:10px; }
+  .hero2 p { color:#d1fae5; line-height:1.6; max-width:720px; }
+  .hero2 .cta { margin-top:16px; display:flex; gap:10px; flex-wrap:wrap; }
+  .hero2 .cta .btn { width:auto; padding:11px 18px; }
+  .hero2 .cta .btn.secondary { background:rgba(255,255,255,.14); color:#fff; border-color:rgba(255,255,255,.4); }
+  .feat { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; }
+  .feat .f { border:1px solid var(--border); border-radius:12px; padding:14px; background:#fff; }
+  .feat .f b { display:block; margin-bottom:4px; font-size:.9rem; }
+  .feat .f span { font-size:.78rem; color:var(--muted); line-height:1.5; }
+  .grp-t { font-size:.8rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin:16px 0 8px; font-weight:700; }
+  .plans { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px; }
+  .plan { border:1px solid var(--border); border-radius:14px; padding:18px; background:#fff; display:flex; flex-direction:column; gap:8px; }
+  .plan.hot { border-color:var(--accent); box-shadow:0 10px 30px rgba(16,185,129,.15); }
+  .plan .name { font-weight:700; font-size:1rem; }
+  .plan .price { font-size:1.5rem; font-weight:800; }
+  .plan .price small { font-size:.72rem; color:var(--muted); font-weight:600; }
+  .plan ul { list-style:none; margin:6px 0; display:flex; flex-direction:column; gap:6px; font-size:.8rem; color:#334155; }
+  .plan ul li::before { content:'✓ '; color:var(--accent-700); font-weight:700; }
+  .plan .btn { margin-top:auto; }
+  .tag-hot { background:var(--accent-100); color:var(--accent-700); font-size:.66rem; font-weight:800; border-radius:999px; padding:3px 9px; }
+  @media(max-width:640px){ .hero2 h1{font-size:1.35rem} }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">☁️</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <a class="tbtn" href="../../index.html">← Хаб</a>
+    <a class="tbtn" href="../auth/index.html">Войти</a>
+  </header>
+
+  <main class="wrap">
+    <div class="hero2">
+      <h1>3DMP Service — экосистема для производственного предприятия</h1>
+      <p>Заявки и закупки, КТПП и нормирование, производство (наряды/MES/планирование/склад),
+         качество (ОТК/паспорт/СМК), экономика и аналитика, персонал и администрирование.
+         Для машиностроения, оснастки и штампов с парком станков ЧПУ.</p>
+      <div class="cta">
+        <button class="btn" id="demoBtn">Запросить демо</button>
+        <a class="btn secondary" href="../../index.html">Открыть сервис</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Контуры и модули</h2>
+      <p class="note">Данные — из единого каталога платформы.</p>
+      <div id="contours"></div>
+    </div>
+
+    <div class="card">
+      <h2>Тарифы</h2>
+      <p class="note">Цены в рублях в месяц. Модули включаются организацией в «Админ-панели клиента».</p>
+      <div class="plans" id="plans"></div>
+    </div>
+
+    <div class="card">
+      <h2>Почему 3DMP</h2>
+      <div class="feat">
+        <div class="f"><b>Связная модель</b><span>Данные введены один раз: заявка → КП → договор → наряд → счёт → оплата, без повторного ввода.</span></div>
+        <div class="f"><b>Единый источник</b><span>Справочники, маршруты, нормы и себестоимость — из одного каталога сервиса.</span></div>
+        <div class="f"><b>Готовность к бою</b><span>Роли предприятия, матрица прав, журнал действий, изоляция по организации, файлы-вложения.</span></div>
+        <div class="f"><b>Аналитика</b><span>KPI, дашборды и отчёты (PDF/DOC/CSV/JSON) по фактическим данным.</span></div>
+        <div class="f"><b>Расширяемость</b><span>API, вебхуки, план интеграций 1С/ERP/IIoT, white-label.</span></div>
+        <div class="f"><b>Для станков с ЧПУ</b><span>Маршруты, режимы резания, УП, MES, OEE — по профилю предприятия.</span></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · продукт и цены</footer>
+
+  <script src="../../assets/js/catalog.js?v=25"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/nav.js?v=24"></script>
+  <script src="product.js?v=1"></script>
+</body>
+</html>
