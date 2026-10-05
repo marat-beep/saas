@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Документы — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=2">
+<style>
+  .dcard{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;cursor:pointer}
+  .dcard:hover{border-color:var(--accent)}
+  .dlist{display:flex;flex-direction:column;gap:10px}
+  .b{font-size:.68rem;font-weight:700;border-radius:999px;padding:3px 9px}
+  .b.draft{background:#f1f5f9;color:#475569}.b.active{background:var(--accent-100);color:var(--accent-700)}.b.archived{background:#e2e8f0;color:#64748b}
+  .kvr{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--border);font-size:.85rem}.kvr:first-child{border-top:none}.kvr .k{color:var(--muted);min-width:130px}
+  .back{background:none;border:none;color:var(--accent-700);font-weight:700;cursor:pointer;font-size:.84rem;margin-bottom:10px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  textarea{width:100%;min-height:140px;padding:11px 12px;border:2px solid var(--border);border-radius:10px;font-size:.85rem;font-family:inherit;resize:vertical}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+  .chips .chip{font-size:.76rem;font-weight:600;border:1px solid var(--border);background:#fff;border-radius:999px;padding:6px 13px;cursor:pointer}
+  .chips .chip.active{background:var(--accent-100);border-color:var(--accent);color:var(--accent-700)}
+  @media(max-width:640px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">📄</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <section class="screen active" id="s-list">
+      <div class="hero"><h1>Документы</h1><p>КП, договоры, техкарты, акты — с версиями.</p></div>
+      <div class="card">
+        <button class="btn" id="toNew" style="width:auto;padding:11px 18px;">＋ Новый документ</button>
+        <div class="chips" id="filters">
+          <span class="chip active" data-f="">Все</span><span class="chip" data-f="kp">КП</span>
+          <span class="chip" data-f="contract">Договоры</span><span class="chip" data-f="techcard">Техкарты</span><span class="chip" data-f="act">Акты</span>
+        </div>
+        <div id="listMsg"></div>
+        <div class="dlist" id="list"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="s-new">
+      <button class="back" id="back1">← К списку</button>
+      <div class="card">
+        <h2>Новый документ</h2>
+        <div class="msg" id="nMsg"></div>
+        <div class="grid2">
+          <div class="field"><label>Тип</label><select id="fType"><option value="kp">КП</option><option value="contract">Договор</option><option value="techcard">Техкарта</option><option value="act">Акт</option><option value="other">Другое</option></select></div>
+          <div class="field"><label>Название *</label><input type="text" id="fTitle" placeholder="КП на оснастку"></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Контрагент</label><input type="text" id="fCounter" placeholder="ООО «Привод»"></div>
+          <div class="field"><label>Сумма, ₽</label><input type="text" id="fAmount" inputmode="decimal" placeholder="184000"></div>
+        </div>
+        <div class="field"><label>Заявка</label><select id="fOrder"><option value="">— нет —</option></select></div>
+        <div class="field"><label>Содержание</label><textarea id="fContent" placeholder="Текст документа…"></textarea></div>
+        <button class="btn" id="createBtn">Создать</button>
+      </div>
+    </section>
+
+    <section class="screen" id="s-item">
+      <button class="back" id="back2">← К списку</button>
+      <div class="card" id="doc"></div>
+      <div class="card">
+        <h2>Редактирование (новая версия)</h2>
+        <div class="msg" id="uMsg"></div>
+        <div class="field"><label>Название</label><input type="text" id="uTitle"></div>
+        <div class="grid2">
+          <div class="field"><label>Контрагент</label><input type="text" id="uCounter"></div>
+          <div class="field"><label>Сумма, ₽</label><input type="text" id="uAmount" inputmode="decimal"></div>
+        </div>
+        <div class="field"><label>Содержание</label><textarea id="uContent"></textarea></div>
+        <button class="btn" id="saveBtn">Сохранить новую версию</button>
+        <div class="grid2 mt">
+          <button class="btn secondary" id="activeBtn">В работу</button>
+          <button class="btn secondary" id="archBtn">В архив</button>
+        </div>
+      </div>
+      <div class="card"><h2>Версии</h2><div id="versions"><span class="note">—</span></div></div>
+    </section>
+  </main>
+
+  <footer class="foot">3DMP Service · документы</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=1"></script>
+  <script src="../../assets/js/auth.js?v=3"></script>
+  <script src="../../assets/js/router.js?v=1"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=13"></script>
+  <script src="docs.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
