@@ -4,22 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Админ-панель клиента — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=2">
+<link rel="stylesheet" href="../../assets/css/app.css?v=3">
 <style>
-  .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
-  .kpi{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:14px}
-  .kpi .v{font-size:1.4rem;font-weight:800}.kpi .l{font-size:.72rem;color:var(--muted);text-transform:uppercase;margin-top:3px}
-  .tab{width:100%;border-collapse:collapse}
-  .tab th,.tab td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--border);font-size:.83rem}
-  .tab th{color:var(--muted);font-size:.72rem;text-transform:uppercase}
+  .tab2 { width:100%;border-collapse:collapse }
+  .tab2 th,.tab2 td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--border);font-size:.83rem}
+  .tab2 th{color:var(--muted);font-size:.72rem;text-transform:uppercase}
   .act{background:none;border:1px solid var(--border);border-radius:8px;padding:5px 9px;font-size:.74rem;font-weight:600;cursor:pointer;margin-right:4px}
   .act:hover{border-color:var(--accent);color:var(--accent-700)}
   .act.danger:hover{border-color:var(--danger);color:var(--danger)}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .flag{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--border);font-size:.85rem}
-  .flag:first-child{border-top:none}
+  .flag{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+  .flag label{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:9px;padding:8px 10px;font-size:.82rem;background:#fff}
   .flag input{width:auto}
-  @media(max-width:640px){.grid2{grid-template-columns:1fr}}
+  .tabs2{display:flex;gap:4px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:4px;margin:14px 0;width:fit-content}
+  .tabs2 button{padding:8px 16px;border:none;background:transparent;border-radius:8px;font-weight:600;font-size:.82rem;color:var(--muted);cursor:pointer}
+  .tabs2 button.active{background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(15,23,42,.08)}
 </style>
 </head>
 <body>
@@ -32,46 +30,77 @@
 
   <main class="wrap">
     <div class="hero"><h1>Админ-панель клиента</h1><p>Сотрудники и роли организации, доступные модули, тариф и брендирование.</p></div>
-    <div class="kpis" id="kpis"></div>
+    <div class="kpi-row" id="kpis"></div>
 
-    <div class="card mt">
-      <h2>Новый пользователь</h2>
-      <div class="msg" id="cMsg"></div>
-      <div class="grid2">
-        <div class="field"><label>Логин</label><input type="text" id="uLogin" placeholder="ivanov"></div>
-        <div class="field"><label>Пароль</label><input type="text" id="uPass" placeholder="мин. 4 символа"></div>
+    <div class="tabs2" id="tabs">
+      <button class="active" data-t="org">Организация</button>
+      <button data-t="users">Пользователи</button>
+      <button data-t="mods">Модули</button>
+      <button data-t="plan">Тариф</button>
+    </div>
+
+    <section id="t-org">
+      <div class="card">
+        <h2>Бренд организации (white-label)</h2>
+        <div class="msg" id="bMsg"></div>
+        <div class="grid2c">
+          <div class="field"><label>Название</label><input type="text" id="brName" placeholder="ООО «Мой завод»"></div>
+          <div class="field"><label>Акцентный цвет</label><input type="text" id="brColor" placeholder="#2563eb"></div>
+        </div>
+        <div class="field"><label>Ссылка на логотип</label><input type="text" id="brLogo" placeholder="https://…"></div>
+        <button class="btn" id="brSave">Сохранить бренд</button>
       </div>
-      <div class="grid2">
-        <div class="field"><label>Имя</label><input type="text" id="uName" placeholder="Иванов И.И."></div>
-        <div class="field"><label>Роль</label><select id="uRole">
-          <option value="manager">Менеджер</option><option value="owner">Владелец</option>
-          <option value="supplier">Поставщик</option><option value="admin">Администратор</option>
-        </select></div>
+      <div class="card">
+        <h2>Быстрые переходы</h2>
+        <div class="toolbar">
+          <a class="btn secondary" href="../roles/index.html" style="width:auto;padding:10px 16px;">🔑 Роли и права</a>
+          <a class="btn secondary" href="../hr/index.html" style="width:auto;padding:10px 16px;">👥 Кадры</a>
+          <a class="btn secondary" href="../finance/index.html" style="width:auto;padding:10px 16px;">💵 Финансы</a>
+        </div>
       </div>
-      <button class="btn" id="uCreate">Добавить пользователя</button>
-    </div>
+    </section>
 
-    <div class="card">
-      <h2>Пользователи <span class="note" id="uCount"></span></h2>
-      <div class="msg" id="lMsg"></div>
-      <div style="overflow:auto;"><table class="tab" id="users"></table></div>
-    </div>
-
-    <div class="card">
-      <h2>Тариф</h2>
-      <div class="grid2">
-        <div class="field"><label>Текущий тариф</label><select id="planSel"></select></div>
-        <div class="field" style="display:flex;align-items:flex-end;"><button class="btn secondary" id="planSave">Сменить тариф</button></div>
+    <section id="t-users" style="display:none;">
+      <div class="card">
+        <h2>Новый пользователь</h2>
+        <div class="msg" id="cMsg"></div>
+        <div class="grid2c">
+          <div class="field"><label>Логин</label><input type="text" id="uLogin" placeholder="ivanov"></div>
+          <div class="field"><label>Пароль</label><input type="text" id="uPass" placeholder="мин. 4 символа"></div>
+        </div>
+        <div class="grid2c">
+          <div class="field"><label>Имя</label><input type="text" id="uName" placeholder="Иванов И.И."></div>
+          <div class="field"><label>Роль</label><select id="uRole"></select></div>
+        </div>
+        <button class="btn" id="uCreate">Добавить пользователя</button>
       </div>
-      <div class="msg" id="pMsg"></div>
-    </div>
+      <div class="card">
+        <h2>Пользователи <span class="note" id="uCount"></span></h2>
+        <div class="msg" id="lMsg"></div>
+        <div style="overflow:auto;"><table class="tab2" id="users"></table></div>
+      </div>
+    </section>
 
-    <div class="card">
-      <h2>Модули (feature flags)</h2>
-      <div id="flags"></div>
-      <div class="msg" id="fMsg"></div>
-      <button class="btn secondary mt" id="flagSave">Сохранить модули</button>
-    </div>
+    <section id="t-mods" style="display:none;">
+      <div class="card">
+        <h2>Модули организации (feature flags)</h2>
+        <p class="note">Выключенные модули скрываются у сотрудников организации (кроме платформенных).</p>
+        <div id="flags" class="flag"></div>
+        <div class="msg" id="fMsg"></div>
+        <button class="btn secondary mt" id="flagSave">Сохранить модули</button>
+      </div>
+    </section>
+
+    <section id="t-plan" style="display:none;">
+      <div class="card">
+        <h2>Тариф</h2>
+        <div class="grid2c">
+          <div class="field"><label>Текущий тариф</label><select id="planSel"></select></div>
+          <div class="field" style="display:flex;align-items:flex-end;"><button class="btn secondary" id="planSave">Сменить тариф</button></div>
+        </div>
+        <div class="msg" id="pMsg"></div>
+      </div>
+    </section>
   </main>
 
   <footer class="foot">3DMP Service · организация</footer>
@@ -81,9 +110,10 @@
   <script src="../../assets/js/supabase-client.js?v=1"></script>
   <script src="../../assets/js/ui.js?v=1"></script>
   <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/catalog.js?v=25"></script>
   <script src="../../assets/js/notify.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=23"></script>
-  <script src="org.js?v=1"></script>
+  <script src="org.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
 </body>
 </html>
