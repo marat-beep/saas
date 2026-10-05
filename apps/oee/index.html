@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OEE-монитор — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=6">
+<style>
+  .life{height:10px;border-radius:6px;background:#eef2f7;overflow:hidden;margin-top:6px}
+  .life i{display:block;height:100%}
+  .life.good i{background:var(--accent)}
+  .life.mid i{background:var(--warning)}
+  .life.bad i{background:var(--danger)}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:680px){.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">📈</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>OEE-монитор</h1><p>Эффективность оборудования по сменам: доступность × качество, простои с причинами. Прототип B17.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="card mt">
+      <h2>Внести смену</h2>
+      <div class="msg" id="fMsg"></div>
+      <div class="grid3">
+        <div class="field"><label>Оборудование *</label><select id="fEq"><option value="">— выберите —</option></select></div>
+        <div class="field"><label>Дата</label><input type="date" id="fDate"></div>
+        <div class="field"><label>Смена</label><select id="fShift"><option value="1">1-я</option><option value="2">2-я</option><option value="night">Ночная</option></select></div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label>Плановое время, мин *</label><input type="text" id="fPlan" inputmode="decimal" placeholder="480"></div>
+        <div class="field"><label>Работа, мин</label><input type="text" id="fRun" inputmode="decimal" placeholder="420"></div>
+        <div class="field"><label>Простой, мин</label><input type="text" id="fDown" inputmode="decimal" placeholder="60"></div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label>Причина простоя</label><input type="text" id="fReason" placeholder="переналадка / поломка / материал"></div>
+        <div class="field"><label>Годных, шт</label><input type="text" id="fGood" inputmode="decimal" placeholder="95"></div>
+        <div class="field"><label>Всего, шт</label><input type="text" id="fTotal" inputmode="decimal" placeholder="100"></div>
+      </div>
+      <button class="btn" id="fAdd">Сохранить смену</button>
+    </div>
+
+    <div class="card">
+      <div class="toolbar"><input type="search" class="search" id="q" placeholder="Поиск: оборудование, причина простоя…"></div>
+      <h2>Записи по сменам <span class="note" id="cnt"></span></h2>
+      <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
+    </div>
+
+    <div class="card"><h2>OEE по оборудованию</h2><div style="overflow:auto;" id="byEq"><span class="note">—</span></div></div>
+  </main>
+
+  <footer class="foot">3DMP Service · OEE-монитор</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=24"></script>
+  <script src="oee.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
