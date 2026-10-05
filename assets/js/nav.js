@@ -44,6 +44,7 @@
       ['📄', 'Документы', ROOT + 'apps/docs/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
       ['🔌', 'API', ROOT + 'apps/api/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
       ['📊', 'Аналитика', ROOT + 'apps/bi/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
+      ['🏗', 'Платформа', ROOT + 'apps/platform/index.html', role === 'admin'],
       ['📦', 'Портал закупок', ROOT + 'apps/supplier/index.html', true],
       ['🌐', 'Прототипы экосистемы', ROOT + 'eco/index.html', true],
       ['🛡', 'Администрирование', ROOT + 'apps/admin/index.html', role === 'admin'],
