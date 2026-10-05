@@ -147,3 +147,40 @@ input:focus { outline: none; border-color: var(--accent); }
 .navdrop a:hover { background: #f1f5f9; }
 .navdrop .sep { height: 1px; background: var(--border); margin: 5px 6px; }
 .navdrop .navgrp-t { font-size: .66rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 8px 10px 3px; font-weight: 700; }
+
+/* ============================================================
+   Design system · общие компоненты (v11)
+   ============================================================ */
+.toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.toolbar .spacer { flex:1; }
+.toolbar .search { flex:1; min-width:180px; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:.85rem; }
+.chips { display:flex; gap:6px; flex-wrap:wrap; }
+.chip { border:1px solid var(--border); background:#fff; border-radius:999px; padding:6px 12px; font-size:.76rem; font-weight:600; color:var(--muted); cursor:pointer; }
+.chip.active { background:var(--accent-100); border-color:var(--accent); color:var(--accent-700); }
+.kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; }
+.kpi { border:1px solid var(--border); border-radius:12px; padding:12px 14px; background:#fff; }
+.kpi small { display:block; color:var(--muted); font-size:.68rem; text-transform:uppercase; margin-bottom:4px; }
+.kpi b { font-size:1.3rem; }
+.badge { font-size:.66rem; font-weight:700; border-radius:999px; padding:3px 9px; background:#eef2f7; color:#475569; white-space:nowrap; }
+.badge.new { background:#dbeafe; color:#1d4ed8; }
+.badge.in_progress { background:#fef3c7; color:#92400e; }
+.badge.done { background:var(--accent-100); color:var(--accent-700); }
+.badge.cancelled { background:#fee2e2; color:#b91c1c; }
+.badge.high { background:#fee2e2; color:#b91c1c; }
+.badge.normal { background:#eef2f7; color:#475569; }
+.badge.low { background:#e0f2fe; color:#0369a1; }
+.badge.overdue { background:#fee2e2; color:#b91c1c; }
+.table { width:100%; border-collapse:collapse; }
+.table th,.table td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--border); font-size:.82rem; vertical-align:top; }
+.table th { color:var(--muted); font-size:.7rem; text-transform:uppercase; }
+.link-list { display:flex; flex-direction:column; gap:6px; }
+.link-item { display:flex; gap:8px; align-items:center; font-size:.8rem; padding:7px 10px; border:1px solid var(--border); border-radius:9px; background:#fff; }
+.doc-h { font-size:.72rem; font-weight:700; text-transform:uppercase; color:var(--muted); margin:12px 0 6px; }
+.back { background:none; border:none; color:var(--accent-700); font-weight:700; cursor:pointer; font-size:.84rem; margin-bottom:10px; }
+.ocard { background:#fff; border:1px solid var(--border); border-radius:var(--r); padding:14px 16px; cursor:pointer; transition:.15s; }
+.ocard:hover { border-color:var(--accent); transform:translateY(-1px); }
+.olist { display:flex; flex-direction:column; gap:12px; }
+.grid2c { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.kvr { display:flex; gap:10px; padding:8px 0; border-top:1px solid var(--border); font-size:.85rem; }
+.kvr:first-child { border-top:none; } .kvr .k { color:var(--muted); min-width:150px; }
+@media(max-width:640px){ .grid2c{grid-template-columns:1fr} }

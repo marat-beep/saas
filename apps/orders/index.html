@@ -4,26 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Заявки — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=2">
-<style>
-  .ocard { background:#fff; border:1px solid var(--border); border-radius:var(--r); padding:14px 16px; cursor:pointer; transition:.15s; }
-  .ocard:hover { border-color:var(--accent); transform:translateY(-1px); }
-  .olist { display:flex; flex-direction:column; gap:12px; }
-  .b { font-size:.68rem; font-weight:700; border-radius:999px; padding:3px 10px; }
-  .b.new { background:#dbeafe; color:#1d4ed8; }
-  .b.in_progress { background:#fef3c7; color:#92400e; }
-  .b.done { background:var(--accent-100); color:var(--accent-700); }
-  .b.cancelled { background:#fee2e2; color:#b91c1c; }
-  .b.high { background:#fee2e2; color:#b91c1c; }
-  .b.normal { background:#f1f5f9; color:#475569; }
-  .b.low { background:#f1f5f9; color:#64748b; }
-  .kvr { display:flex; gap:10px; padding:8px 0; border-top:1px solid var(--border); font-size:.85rem; }
-  .kvr:first-child { border-top:none; } .kvr .k { color:var(--muted); min-width:140px; }
-  .back { background:none;border:none;color:var(--accent-700);font-weight:700;cursor:pointer;font-size:.84rem;margin-bottom:10px; }
-  .chips { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; }
-  .chips .chip { font-size:.76rem;font-weight:600;border:1px solid var(--border);background:#fff;border-radius:999px;padding:6px 13px;cursor:pointer; }
-  .chips .chip.active { background:var(--accent-100); border-color:var(--accent); color:var(--accent-700); }
-</style>
+<link rel="stylesheet" href="../../assets/css/app.css?v=3">
 </head>
 <body>
   <header class="topbar">
@@ -35,15 +16,23 @@
 
   <main class="wrap">
     <section class="screen active" id="s-list">
-      <div class="hero"><h1>Заявки</h1><p>Единый приём заявок из модулей и сервисов: создавайте, отслеживайте статусы.</p></div>
-      <div class="card">
-        <div class="chips" id="filters">
-          <span class="chip active" data-f="all">Все</span>
-          <span class="chip" data-f="new">Новые</span>
-          <span class="chip" data-f="in_progress">В работе</span>
-          <span class="chip" data-f="done">Выполнены</span>
+      <div class="hero"><h1>Заявки и заказы</h1><p>Единый приём заявок: заказчик (CRM), срок, приоритет, исполнитель, связи с КП/договором/нарядом/счётом. Для смешанного производства: и единичные, и серийные.</p></div>
+
+      <div class="kpi-row" id="kpi"></div>
+
+      <div class="card mt">
+        <div class="toolbar">
+          <input type="search" class="search" id="q" placeholder="Поиск: номер, тема, заказчик, исполнитель…">
+          <div class="chips" id="filters">
+            <span class="chip active" data-f="all">Все</span>
+            <span class="chip" data-f="new">Новые</span>
+            <span class="chip" data-f="in_progress">В работе</span>
+            <span class="chip" data-f="done">Выполнены</span>
+            <span class="chip" data-f="cancelled">Отменены</span>
+            <span class="chip" data-f="overdue">Просрочены</span>
+          </div>
+          <button class="btn" id="toCreate" style="width:auto;padding:11px 18px;">＋ Новая заявка</button>
         </div>
-        <button class="btn" id="toCreate" style="width:auto;padding:11px 18px;">＋ Новая заявка</button>
         <div id="listMsg"></div>
         <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
       </div>
@@ -54,18 +43,37 @@
       <div class="card">
         <h2>Новая заявка</h2>
         <div class="msg" id="cMsg"></div>
-        <div class="field"><label>Тема *</label><input type="text" id="fTitle" placeholder="Например: Изготовление оснастки"></div>
-        <div class="field"><label>Описание</label><input type="text" id="fDesc" placeholder="Детали, требования, сроки…"></div>
-        <div class="grid2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div class="field"><label>Источник</label><input type="text" id="fSource" placeholder="модуль/сервис (напр. eco:A1)"></div>
+        <div class="field"><label>Тема *</label><input type="text" id="fTitle" placeholder="Например: Изготовление пресс-формы, партия 20 шт"></div>
+        <div class="field"><label>Описание</label><textarea id="fDesc" rows="3" placeholder="Детали, требования, материал, количество…" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;font:inherit;"></textarea></div>
+        <div class="grid2c">
+          <div class="field"><label>Заказчик (CRM)</label><select id="fCustomerSel"><option value="">— не выбран —</option></select></div>
+          <div class="field"><label>Контактное лицо</label><input type="text" id="fContact" placeholder="Иванов И.И."></div>
+        </div>
+        <details class="mt" id="custBox">
+          <summary class="note" style="cursor:pointer;">＋ Добавить нового заказчика</summary>
+          <div class="grid2c mt">
+            <div class="field"><label>Название *</label><input type="text" id="ncName" placeholder="ООО «…»"></div>
+            <div class="field"><label>ИНН</label><input type="text" id="ncInn" placeholder="7701234567"></div>
+          </div>
+          <div class="grid2c">
+            <div class="field"><label>Контакт</label><input type="text" id="ncContact" placeholder="Петров П.П."></div>
+            <div class="field"><label>Телефон</label><input type="text" id="ncPhone" placeholder="+7 …"></div>
+          </div>
+          <div class="field"><label>E-mail</label><input type="text" id="ncEmail" placeholder="zakaz@…"></div>
+          <button class="btn secondary" id="ncSave" style="width:auto;padding:9px 16px;">Сохранить заказчика</button>
+          <div class="msg" id="ncMsg"></div>
+        </details>
+        <div class="grid2c">
+          <div class="field"><label>Источник</label><input type="text" id="fSource" placeholder="модуль/сервис (напр. eco:A1, supplier)"></div>
           <div class="field"><label>Приоритет</label>
             <select id="fPriority"><option value="normal">Обычный</option><option value="high">Высокий</option><option value="low">Низкий</option></select>
           </div>
         </div>
-        <div class="grid2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div class="field"><label>Заказчик</label><input type="text" id="fCustomer" placeholder="ООО …"></div>
-          <div class="field"><label>Контакт</label><input type="text" id="fContact" placeholder="Иванов И.И."></div>
+        <div class="grid2c">
+          <div class="field"><label>Срок (план-дата)</label><input type="date" id="fDue"></div>
+          <div class="field"><label>Исполнитель (логин)</label><input type="text" id="fAssignee" placeholder="manager / master"></div>
         </div>
+        <div class="field"><label>Сумма заказа, ₽</label><input type="text" id="fAmount" inputmode="decimal" placeholder="необязательно"></div>
         <button class="btn" id="createBtn">Создать заявку</button>
       </div>
     </section>
@@ -73,23 +81,47 @@
     <section class="screen" id="s-detail">
       <button class="back" id="backToList2">← К списку</button>
       <div class="card" id="detail"></div>
+
       <div class="card">
-        <h2>История</h2>
-        <div id="history"><span class="note">—</span></div>
-        <div class="field mt"><label>Изменить статус</label>
-          <select id="stStatus">
-            <option value="new">Новая</option><option value="in_progress">В работе</option>
-            <option value="done">Выполнена</option><option value="cancelled">Отменена</option>
-          </select>
+        <h2>Позиции заявки</h2>
+        <div style="overflow:auto;"><table class="table" id="items"></table></div>
+        <div class="toolbar mt">
+          <input type="text" id="itName" placeholder="Наименование" style="flex:2;padding:9px;border:1px solid var(--border);border-radius:9px;">
+          <input type="text" id="itQty" inputmode="decimal" placeholder="Кол-во" style="width:90px;padding:9px;border:1px solid var(--border);border-radius:9px;">
+          <input type="text" id="itUnit" placeholder="Ед." style="width:70px;padding:9px;border:1px solid var(--border);border-radius:9px;">
+          <input type="text" id="itPrice" inputmode="decimal" placeholder="Цена, ₽" style="width:110px;padding:9px;border:1px solid var(--border);border-radius:9px;">
+          <button class="btn secondary" id="itAdd" style="width:auto;padding:9px 14px;">＋ Добавить</button>
         </div>
-        <div class="field"><label>Комментарий</label><input type="text" id="stComment" placeholder="необязательно"></div>
+        <div class="msg" id="itMsg"></div>
+      </div>
+
+      <div class="card">
+        <h2>Связи заявки</h2>
+        <div class="doc-h">Документы (КП/договор/акт)</div><div class="link-list" id="lnDocs"></div>
+        <div class="doc-h">Маршруты (техпроцесс → нормы)</div><div class="link-list" id="lnRoutes"></div>
+        <div class="doc-h">Наряды (производство)</div><div class="link-list" id="lnNaryads"></div>
+        <div class="doc-h">Счета (финансы)</div><div class="link-list" id="lnInvoices"></div>
+      </div>
+
+      <div class="card">
+        <h2>Статус и история</h2>
+        <div id="history"><span class="note">—</span></div>
+        <div class="grid2c mt">
+          <div class="field"><label>Новый статус</label>
+            <select id="stStatus">
+              <option value="new">Новая</option><option value="in_progress">В работе</option>
+              <option value="done">Выполнена</option><option value="cancelled">Отменена</option>
+            </select>
+          </div>
+          <div class="field"><label>Комментарий</label><input type="text" id="stComment" placeholder="необязательно"></div>
+        </div>
         <button class="btn" id="stBtn">Сохранить статус</button>
         <div class="msg" id="stMsg"></div>
       </div>
     </section>
   </main>
 
-  <footer class="foot">3DMP Service · заявки</footer>
+  <footer class="foot">3DMP Service · заявки и заказы</footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="../../assets/js/config.js?v=1"></script>
@@ -99,7 +131,7 @@
   <script src="../../assets/js/router.js?v=1"></script>
   <script src="../../assets/js/notify.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=23"></script>
-  <script src="orders.js?v=1"></script>
+  <script src="orders.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
 </body>
 </html>
