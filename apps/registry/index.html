@@ -45,6 +45,7 @@
       <button data-t="tp">Техпроцессы</button>
       <button data-t="rt">Маршруты</button>
       <button data-t="ref">Марки</button>
+      <button data-t="tech">Техданные</button>
     </div>
 
     <section class="tab-pane" id="p-eq">
@@ -176,6 +177,26 @@
         <div style="overflow:auto;" id="refList"><span class="note">Загрузка…</span></div>
       </div>
     </section>
+
+    <section class="tab-pane" id="p-tech" style="display:none;">
+      <div class="card">
+        <div class="seg" id="techSeg" style="flex-wrap:wrap;">
+          <button class="active" data-cat="cutting">Режимы резания</button>
+          <button data-cat="tools">Инструмент</button>
+          <button data-cat="machines">Оборудование</button>
+          <button data-cat="fits">Посадки ISO 286</button>
+          <button data-cat="fasteners">Крепёж</button>
+          <button data-cat="heat">Термо/покрытия</button>
+          <button data-cat="fluids">СОЖ/смазки</button>
+          <button data-cat="processes">Процессы</button>
+        </div>
+        <div class="toolbar mt">
+          <input type="search" class="search" id="techQ" placeholder="Поиск по разделу…">
+          <span class="note" id="techCnt"></span>
+        </div>
+        <div style="overflow:auto;" id="techList"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
   </main>
 
   <footer class="foot">3DMP Service · справочники</footer>
@@ -187,7 +208,7 @@
   <script src="../../assets/js/auth.js?v=4"></script>
   <script src="../../assets/js/notify.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=24"></script>
-  <script src="registry.js?v=4"></script>
+  <script src="registry.js?v=5"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
 </body>
 </html>

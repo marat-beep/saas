@@ -9,6 +9,8 @@
   var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa, SB = window.SB;
   var token = null, me = null, eq = [], mats = [], ops = [], tps = [], routes = [], orders = [], wcs = [], refs = [];
   var curTp = null, curRoute = null, refGroup = '', refQ = '';
+  var tech = { cutting: [], tools: [], machines: [], fits: [], fasteners: [], heat: [], fluids: [], processes: [] };
+  var techCat = 'cutting', techQ = '';
 
   var KIND = { frezerny: 'Фрезерный', tokarny: 'Токарный', lazer: 'Лазер', sverlilny: 'Сверлильный', shlifovalny: 'Шлифовальный', edm: 'Электроэрозия', sborka: 'Сборка' };
   var GRP = { steel: 'Констр. сталь', tool_steel: 'Инстр. сталь', stainless: 'Нержавеющая', bearing: 'Подшипниковая', aluminum: 'Алюминий', bronze: 'Бронза', brass: 'Латунь', copper: 'Медь', cast_iron: 'Чугун', plastic: 'Пластик', titanium: 'Титан' };
@@ -30,10 +32,20 @@
       rpc('app_route_list', { p_token: token }).catch(function () { return []; }),
       rpc('app_order_list', { p_token: token }).catch(function () { return []; }),
       rpc('app_wc_list', { p_token: token }).catch(function () { return []; }),
-      rpc('app_ref_material_list', { p_token: token, p_group: null, p_q: null }).catch(function () { return []; })
+      rpc('app_ref_material_list', { p_token: token, p_group: null, p_q: null }).catch(function () { return []; }),
+      rpc('app_ref_cutting_list', { p_token: token, p_group: null, p_q: null }).catch(function () { return []; }),
+      rpc('app_ref_tools_list', { p_token: token, p_q: null }).catch(function () { return []; }),
+      rpc('app_ref_machines_list', { p_token: token, p_q: null }).catch(function () { return []; }),
+      rpc('app_ref_fits_list', { p_token: token, p_kind: null, p_q: null }).catch(function () { return []; }),
+      rpc('app_ref_fasteners_list', { p_token: token, p_q: null }).catch(function () { return []; }),
+      rpc('app_ref_heat_list', { p_token: token, p_q: null }).catch(function () { return []; }),
+      rpc('app_ref_fluids_list', { p_token: token, p_q: null }).catch(function () { return []; }),
+      rpc('app_ref_processes_list', { p_token: token, p_category: null, p_q: null }).catch(function () { return []; })
     ]).then(function (r) {
       eq = r[0] || []; mats = r[1] || []; ops = r[2] || []; tps = r[3] || []; routes = r[4] || []; orders = r[5] || []; wcs = r[6] || []; refs = r[7] || [];
-      renderEq(); renderMat(); renderOp(); renderTp(); renderRt(); renderRef();
+      tech.cutting = r[8] || []; tech.tools = r[9] || []; tech.machines = r[10] || []; tech.fits = r[11] || [];
+      tech.fasteners = r[12] || []; tech.heat = r[13] || []; tech.fluids = r[14] || []; tech.processes = r[15] || [];
+      renderEq(); renderMat(); renderOp(); renderTp(); renderRt(); renderRef(); renderTech();
       $('#tpMat').innerHTML = opt('— нет —', '') + mats.map(function (m) { return opt(m.name, m.id); }).join('');
       $('#stOp').innerHTML = ops.map(function (o) { return opt(o.name + ' (' + kLabel(o.kind) + ')', o.id); }).join('');
       $('#stEq').innerHTML = opt('— не выбрано —', '') + eq.map(function (e) { return opt(e.name + ' (' + kLabel(e.kind) + ')', e.id); }).join('');
@@ -109,6 +121,34 @@
           '<td>' + esc(g.standard || '—') + '</td><td>' + num(g.density) + '</td><td>' + num(g.tensile) + '</td>' +
           '<td>' + num(g.hardness) + '</td><td>' + fmt(g.price) + '</td><td>' + esc(g.note || '') + '</td></tr>';
       }).join('') : '<tr><td colspan="8"><span class="note">Ничего не найдено.</span></td></tr>') + '</tbody></table>';
+  }
+
+  var TCOL = {
+    cutting: [['material_group', 'Материал'], ['operation', 'Операция'], ['tool_type', 'Инструмент'], ['tool_material', 'Матер. инстр.'], ['vc', 'Vc, м/мин'], ['feed', 'Подача'], ['ap', 'ap, мм'], ['ae', 'ae, мм'], ['cooling', 'СОЖ'], ['note', 'Примечание']],
+    tools: [['tool_type', 'Тип'], ['designation', 'Обозначение'], ['material', 'Материал'], ['coating', 'Покрытие'], ['diameter', 'Ø'], ['note', 'Примечание']],
+    machines: [['manufacturer', 'Производитель'], ['model', 'Модель'], ['kind', 'Тип'], ['axes', 'Осей'], ['max_x', 'X'], ['max_y', 'Y'], ['max_z', 'Z'], ['spindle_rpm', 'Об/мин'], ['spindle_kw', 'кВт'], ['accuracy', 'Точн.'], ['price', 'Стоимость, ₽'], ['note', '']],
+    fits: [['nominal', 'Ø'], ['designation', 'Посадка'], ['kind', 'Тип'], ['hole_dev', 'Отверстие'], ['shaft_dev', 'Вал'], ['clearance_max', 'Smax'], ['clearance_min', 'Smin'], ['note', '']],
+    fasteners: [['kind', 'Тип'], ['standard', 'ГОСТ'], ['size', 'Размер'], ['material', 'Материал'], ['coating', 'Покрытие'], ['note', '']],
+    heat: [['kind', 'Вид'], ['material_group', 'Материалы'], ['hardness', 'Твёрдость'], ['depth', 'Глубина'], ['note', '']],
+    fluids: [['kind', 'Тип'], ['name', 'Название'], ['purpose', 'Назначение'], ['concentration', 'Концентрация'], ['note', '']],
+    processes: [['code', 'Код'], ['name', 'Процесс'], ['category', 'Категория'], ['stages', 'Этапы'], ['inputs', 'Входы'], ['outputs', 'Выходы'], ['executors', 'Исполнители'], ['tools', 'Инструменты'], ['time_norm', 'Время']]
+  };
+  function cellV(v) { if (v == null || v === '') return ''; if (typeof v === 'number') return fmt(v); return esc(String(v)); }
+  function renderTech() {
+    var cols = TCOL[techCat] || [];
+    var rows = (tech[techCat] || []).filter(function (row) {
+      if (!techQ) return true; var s = techQ.toLowerCase();
+      return cols.map(function (c) { var v = row[c[0]]; return v == null ? '' : String(v); }).join(' ').toLowerCase().indexOf(s) >= 0;
+    });
+    $('#techCnt').textContent = rows.length + ' записей';
+    $('#techList').innerHTML = '<table class="tab"><thead><tr>' + cols.map(function (c) { return '<th>' + esc(c[1]) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      (rows.length ? rows.map(function (row) {
+        return '<tr>' + cols.map(function (c) {
+          var v = row[c[0]];
+          var strong = (c[0] === 'code' || c[0] === 'model' || c[0] === 'designation' || c[0] === 'name' || c[0] === 'kind');
+          return '<td>' + (strong && v ? '<b>' + cellV(v) + '</b>' : cellV(v)) + '</td>';
+        }).join('') + '</tr>';
+      }).join('') : '<tr><td colspan="' + cols.length + '"><span class="note">Ничего не найдено.</span></td></tr>') + '</tbody></table>';
   }
 
   function openTp(id) {
@@ -238,7 +278,7 @@
   $('#tabs').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     $$('#tabs button').forEach(function (x) { x.classList.toggle('active', x === b); });
-    ['eq', 'mat', 'op', 'tp', 'rt', 'ref'].forEach(function (t) { $('#p-' + t).style.display = (b.dataset.t === t) ? '' : 'none'; });
+    ['eq', 'mat', 'op', 'tp', 'rt', 'ref', 'tech'].forEach(function (t) { $('#p-' + t).style.display = (b.dataset.t === t) ? '' : 'none'; });
   });
 
   $('#eqAdd').addEventListener('click', function () {
@@ -266,6 +306,12 @@
   });
   $('#refQ').addEventListener('input', function () { refQ = this.value; renderRef(); });
   $('#refGroup').addEventListener('change', function () { refGroup = this.value; renderRef(); });
+  $('#techSeg').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    $$('#techSeg button').forEach(function (x) { x.classList.toggle('active', x === b); });
+    techCat = b.dataset.cat; renderTech();
+  });
+  $('#techQ').addEventListener('input', function () { techQ = this.value; renderTech(); });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
   window.Auth.guard('../auth/index.html').then(function (s) {
