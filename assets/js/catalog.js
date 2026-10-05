@@ -6,7 +6,7 @@
    guest:false — требует авторизации (хаб перенаправит в apps/auth/).
    ============================================================ */
 window.AppCatalog = {
-  version: '1.1',
+  version: '1.2',
   updated: '05.10.2026',
   apps: [
     { id: 'auth', icon: '🔐', title: 'Вход', desc: 'Логин и пароль (без email).', href: 'apps/auth/index.html', guest: true },
@@ -17,6 +17,8 @@ window.AppCatalog = {
     { id: 'warehouse', icon: '📦', title: 'Склад', desc: 'Материалы, приход/расход, контроль минимума.', href: 'apps/warehouse/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
     { id: 'bom', icon: '📐', title: 'Спецификации', desc: 'Состав изделия (BOM): материалы и операции.', href: 'apps/bom/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
     { id: 'planning', icon: '🗓', title: 'Планирование', desc: 'Диаграмма Ганта и загрузка рабочих центров.', href: 'apps/planning/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
+    { id: 'qc', icon: '✅', title: 'ОТК', desc: 'Чек-листы контроля, дефекты, решения.', href: 'apps/qc/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
+    { id: 'passport', icon: '🪪', title: 'Паспорта изделий', desc: 'Цифровой паспорт изделия и QR-метка.', href: 'apps/passport/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
     { id: 'dashboard', icon: '📊', title: 'Личный кабинет', desc: 'Профиль, роль и модули.', href: 'apps/dashboard/index.html', guest: false },
     { id: 'supplier', icon: '📦', title: 'Портал закупок (поставщик)', desc: 'Витрина закупок, карточка, подача предложения, мои КП.', href: 'apps/supplier/index.html', guest: false },
     { id: 'admin', icon: '🛡', title: 'Администрирование', desc: 'Пользователи и роли сервиса (только для admin).', href: 'apps/admin/index.html', guest: false, roles: ['admin'] }
