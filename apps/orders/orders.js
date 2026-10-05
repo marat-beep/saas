@@ -85,6 +85,15 @@
 
   /* ---------- Карточка ---------- */
   function kv(k, v) { return v ? '<div class="kvr"><span class="k">' + k + '</span><b>' + esc(v) + '</b></div>' : ''; }
+  function mkDoc(fn, label) {
+    if (!cur) return;
+    rpc(fn, { p_token: token, p_order_id: cur.id }).then(function (d) {
+      var r = d && d[0]; if (!r) { ui.toast('Ошибка'); return; }
+      window.Auth.log(label, r.number); ui.toast(r.message + ': ' + r.number);
+      if (window.AppNotify) window.AppNotify.refresh(true);
+      openDetail(cur.id);
+    }).catch(function (e) { ui.toast('Ошибка: ' + e.message); });
+  }
   function openDetail(id) {
     cur = null;
     Promise.all([
@@ -108,8 +117,13 @@
         (o.description ? '<p style="color:var(--muted);line-height:1.6;margin-bottom:10px;white-space:pre-wrap;">' + esc(o.description) + '</p>' : '') +
         kv('Заказчик', o.customer_name || o.customer) + kv('Контакт', o.contact) + kv('Тип заказа', TYP[o.order_type] || o.order_type) + kv('Источник', o.source) +
         kv('Срок', o.due_date) + kv('Исполнитель', o.assignee) + kv('Сумма', money(o.amount)) +
-        kv('Автор', o.created_login) + kv('Создана', fmt(o.created_at)) + kv('Обновлена', fmt(o.updated_at));
+        kv('Автор', o.created_login) + kv('Создана', fmt(o.created_at)) + kv('Обновлена', fmt(o.updated_at)) +
+        '<div class="toolbar mt"><button class="btn secondary" id="mkQuote" style="width:auto;padding:9px 16px;">Создать КП</button>' +
+        '<button class="btn secondary" id="mkInv" style="width:auto;padding:9px 16px;">Создать счёт</button></div>';
       $('#stStatus').value = o.status;
+      var qb = $('#mkQuote'), ib = $('#mkInv');
+      if (qb) qb.addEventListener('click', function () { mkDoc('app_order_create_quote', 'КП'); });
+      if (ib) ib.addEventListener('click', function () { mkDoc('app_order_create_invoice', 'Счёт'); });
       renderItems(r[2] || []);
       renderLinks(r[3] || [], r[4] || [], r[5] || [], r[6] || []);
       $('#history').innerHTML = (r[1] || []).map(function (x) {

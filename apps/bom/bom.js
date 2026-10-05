@@ -60,7 +60,20 @@
     $('#bomView').innerHTML =
       '<b style="font-size:1rem;">' + esc(cur.product) + '</b>' +
       kv('Код', cur.product_code) + kv('Версия', cur.version || '1') + kv('Заявка', cur.order_number) +
-      kv('Количество', cur.qty != null ? String(cur.qty) : '') + kv('Позиций', String(cur.lines_count)) + kv('Нормо-часы', String(cur.norm_hours_sum));
+      kv('Количество', cur.qty != null ? String(cur.qty) : '') + kv('Позиций', String(cur.lines_count)) + kv('Нормо-часы', String(cur.norm_hours_sum)) +
+      '<div class="toolbar mt"><button class="btn secondary" id="bomNar" style="width:auto;padding:9px 16px;">Создать наряд</button>' +
+      '<button class="btn secondary" id="bomWo" style="width:auto;padding:9px 16px;">Списать материалы</button></div>';
+    var nb = $('#bomNar'), wb = $('#bomWo');
+    if (nb) nb.addEventListener('click', function () {
+      rpc('app_naryad_from_bom', { p_token: token, p_bom_id: cur.id, p_wc_id: null, p_assignee: null, p_due_date: null })
+        .then(function (d) { var r = d && d[0]; if (!r) { ui.toast('Ошибка'); return; } window.Auth.log('Наряд из BOM', r.number); ui.toast(r.message + ': ' + r.number); if (window.AppNotify) window.AppNotify.refresh(true); })
+        .catch(function (e) { ui.toast('Ошибка: ' + e.message); });
+    });
+    if (wb) wb.addEventListener('click', function () {
+      rpc('app_bom_writeoff', { p_token: token, p_bom_id: cur.id, p_order_id: cur.order_id || null, p_qty: cur.qty || 1 })
+        .then(function (d) { var r = d && d[0]; if (!r || !r.ok) { ui.toast((r && r.message) || 'Ошибка'); return; } window.Auth.log('Списание по BOM', cur.product); ui.toast(r.message); if (window.AppNotify) window.AppNotify.refresh(true); })
+        .catch(function (e) { ui.toast('Ошибка: ' + e.message); });
+    });
     rpc('app_bom_lines_list', { p_token: token, p_bom_id: id }).then(function (ls) {
       ls = ls || [];
       $('#bomLines').innerHTML = ls.length ? ls.map(function (l) {
