@@ -4,25 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ОТК — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=2">
+<link rel="stylesheet" href="../../assets/css/app.css?v=3">
 <style>
-  .qcard { background:#fff; border:1px solid var(--border); border-radius:var(--r); padding:13px 15px; cursor:pointer; }
-  .qcard:hover { border-color:var(--accent); }
-  .qlist { display:flex; flex-direction:column; gap:10px; }
-  .b { font-size:.68rem; font-weight:700; border-radius:999px; padding:3px 9px; }
-  .b.draft { background:#f1f5f9; color:#475569; }
-  .b.passed { background:var(--accent-100); color:var(--accent-700); }
-  .b.failed { background:#fee2e2; color:#b91c1c; }
-  .b.minor { background:#f1f5f9; color:#475569; }
-  .b.major { background:#fef3c7; color:#92400e; }
-  .b.critical { background:#fee2e2; color:#b91c1c; }
-  .b.resolved { background:var(--accent-100); color:var(--accent-700); }
   .line { display:grid; grid-template-columns:1fr 120px 120px 90px; gap:8px; align-items:center; padding:7px 0; border-top:1px solid var(--border); font-size:.82rem; }
   .line:first-child{border-top:none}.line input,.line select{padding:6px 8px;font-size:.8rem}
-  .kvr{display:flex;gap:10px;padding:7px 0;border-top:1px solid var(--border);font-size:.82rem}.kvr:first-child{border-top:none}.kvr .k{color:var(--muted);min-width:110px}
-  .back{background:none;border:none;color:var(--accent-700);font-weight:700;cursor:pointer;font-size:.84rem;margin-bottom:10px}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  @media(max-width:680px){.line{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}}
+  @media(max-width:680px){.line{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -35,16 +21,21 @@
 
   <main class="wrap">
     <section class="screen active" id="s-list">
-      <div class="hero"><h1>ОТК и качество</h1><p>Чек-листы контроля, дефекты и решения.</p></div>
-      <div class="card">
-        <button class="btn" id="toNew" style="width:auto;padding:11px 18px;">＋ Новый чек-лист</button>
+      <div class="hero"><h1>ОТК и качество</h1><p>Чек-листы контроля, количество годных/брак, дефекты и трассируемость изделия.</p></div>
+      <div class="kpi-row" id="kpis"></div>
+      <div class="card mt">
+        <div class="toolbar">
+          <input type="search" class="search" id="q" placeholder="Поиск: номер, изделие, наряд, контролёр…">
+          <div class="chips" id="filters">
+            <span class="chip active" data-f="">Все</span><span class="chip" data-f="draft">Черновики</span>
+            <span class="chip" data-f="passed">Годен</span><span class="chip" data-f="failed">Брак</span>
+          </div>
+          <button class="btn" id="toNew" style="width:auto;padding:11px 18px;">＋ Новый чек-лист</button>
+        </div>
         <div id="listMsg"></div>
-        <div class="qlist mt" id="list"><span class="note">Загрузка…</span></div>
+        <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
       </div>
-      <div class="card">
-        <h2>Дефекты</h2>
-        <div id="defects"><span class="note">—</span></div>
-      </div>
+      <div class="card"><h2>Дефекты</h2><div id="defects"><span class="note">—</span></div></div>
     </section>
 
     <section class="screen" id="s-new">
@@ -53,11 +44,15 @@
         <h2>Новый чек-лист</h2>
         <div class="msg" id="nMsg"></div>
         <div class="field"><label>Изделие</label><input type="text" id="cProduct" placeholder="Кронштейн"></div>
-        <div class="grid2">
-          <div class="field"><label>Контролёр</label><input type="text" id="cInspector" placeholder="ОТК"></div>
+        <div class="grid2c">
+          <div class="field"><label>Контролёр</label><input type="text" id="cInspector" placeholder="otk"></div>
           <div class="field"><label>Наряд</label><select id="cNaryad"><option value="">— нет —</option></select></div>
         </div>
-        <button class="btn" id="createBtn">Создать</button>
+        <div class="grid2c">
+          <div class="field"><label>Кол-во всего</label><input type="text" id="cQtyTotal" inputmode="decimal" placeholder="10"></div>
+          <div class="field"><label>Годных</label><input type="text" id="cQtyGood" inputmode="decimal" placeholder="10"></div>
+        </div>
+        <button class="btn" id="createBtn">Создать чек-лист</button>
       </div>
     </section>
 
@@ -76,14 +71,14 @@
         </div>
         <button class="btn secondary mt" id="addLine">＋ Добавить позицию</button>
         <div class="msg" id="iMsg"></div>
-        <div class="grid2 mt">
+        <div class="toolbar mt">
           <button class="btn" id="passBtn">Принять (годен)</button>
           <button class="btn secondary" id="failBtn">Зафиксировать брак</button>
         </div>
       </div>
       <div class="card">
         <h2>Дефект по чек-листу</h2>
-        <div class="grid2">
+        <div class="grid2c">
           <div class="field"><label>Описание</label><input type="text" id="dTitle" placeholder="Задир кромки"></div>
           <div class="field"><label>Кол-во</label><input type="text" id="dQty" inputmode="decimal" placeholder="1"></div>
         </div>
@@ -91,6 +86,11 @@
           <select id="dSev"><option value="minor">Незначительный</option><option value="major">Значительный</option><option value="critical">Критический</option></select>
         </div>
         <button class="btn secondary" id="addDefect">Зарегистрировать дефект</button>
+      </div>
+      <div class="card">
+        <h2>Трассируемость изделия</h2>
+        <p class="note">Заявка → наряд → операции → материалы → дефекты.</p>
+        <div id="trace"><span class="note">—</span></div>
       </div>
     </section>
   </main>
@@ -105,7 +105,7 @@
   <script src="../../assets/js/router.js?v=1"></script>
   <script src="../../assets/js/notify.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=23"></script>
-  <script src="qc.js?v=1"></script>
+  <script src="qc.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
 </body>
 </html>
