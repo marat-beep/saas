@@ -134,6 +134,15 @@
         <h2>Маршрут: <span id="rtTitle"></span></h2>
         <div id="rtSummary" class="sum"></div>
         <div id="rtSteps" class="mt"></div>
+        <div class="card mt" style="box-shadow:none;">
+          <h3>Наряды по маршруту</h3>
+          <div id="rtNaryads"><span class="note">—</span></div>
+          <div class="grid3 mt">
+            <div class="field"><label>Исполнитель (логин)</label><input type="text" id="rtAssignee" placeholder="manager"></div>
+            <div class="field"><label>Рабочий центр</label><select id="rtWc"><option value="">— из маршрута —</option></select></div>
+            <div class="field"><label>&nbsp;</label><button class="btn" id="rtMakeNaryad" style="width:100%;">Создать наряд из маршрута</button></div>
+          </div>
+        </div>
         <div class="btn-row mt">
           <button class="btn secondary" id="rtToActive">Перевести в работу</button>
           <button class="btn" id="rtToDone">Завершить</button>
@@ -152,7 +161,7 @@
   <script src="../../assets/js/auth.js?v=3"></script>
   <script src="../../assets/js/notify.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=22"></script>
-  <script src="registry.js?v=2"></script>
+  <script src="registry.js?v=3"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
 </body>
 </html>

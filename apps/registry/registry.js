@@ -7,7 +7,7 @@
 (function () {
   'use strict';
   var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa, SB = window.SB;
-  var token = null, me = null, eq = [], mats = [], ops = [], tps = [], routes = [], orders = [];
+  var token = null, me = null, eq = [], mats = [], ops = [], tps = [], routes = [], orders = [], wcs = [];
   var curTp = null, curRoute = null;
 
   var KIND = { frezerny: 'Фрезерный', tokarny: 'Токарный', lazer: 'Лазер', sverlilny: 'Сверлильный', shlifovalny: 'Шлифовальный', edm: 'Электроэрозия', sborka: 'Сборка' };
@@ -27,9 +27,10 @@
       rpc('app_operations_list', { p_token: token }).catch(function () { return []; }),
       rpc('app_process_list', { p_token: token }).catch(function () { return []; }),
       rpc('app_route_list', { p_token: token }).catch(function () { return []; }),
-      rpc('app_order_list', { p_token: token }).catch(function () { return []; })
+      rpc('app_order_list', { p_token: token }).catch(function () { return []; }),
+      rpc('app_wc_list', { p_token: token }).catch(function () { return []; })
     ]).then(function (r) {
-      eq = r[0] || []; mats = r[1] || []; ops = r[2] || []; tps = r[3] || []; routes = r[4] || []; orders = r[5] || [];
+      eq = r[0] || []; mats = r[1] || []; ops = r[2] || []; tps = r[3] || []; routes = r[4] || []; orders = r[5] || []; wcs = r[6] || [];
       renderEq(); renderMat(); renderOp(); renderTp(); renderRt();
       $('#tpMat').innerHTML = opt('— нет —', '') + mats.map(function (m) { return opt(m.name, m.id); }).join('');
       $('#stOp').innerHTML = ops.map(function (o) { return opt(o.name + ' (' + kLabel(o.kind) + ')', o.id); }).join('');
@@ -37,6 +38,7 @@
       $('#rtTpl').innerHTML = opt('— выберите —', '') + tps.map(function (t) { return opt((t.code ? t.code + ' · ' : '') + t.name + (t.material_name ? ' [' + t.material_name + ']' : ''), t.id); }).join('');
       $('#rtMatSel').innerHTML = opt('— из техпроцесса —', '') + mats.map(function (m) { return opt(m.name + (m.price ? ' · ' + fmt(m.price) + ' ₽' : ''), m.id); }).join('');
       $('#rtOrder').innerHTML = opt('— без заказа —', '') + orders.map(function (o) { return opt(o.number + ' · ' + o.title, o.id); }).join('');
+      $('#rtWc').innerHTML = opt('— из маршрута —', '') + wcs.map(function (w) { return opt(w.name, w.id); }).join('');
     }).catch(function (e) { msg('#eqMsg', 'Ошибка: ' + e.message, 'err'); });
   }
 
@@ -163,9 +165,10 @@
     curRoute = routes.filter(function (r) { return r.id === id; })[0] || null;
     Promise.all([
       rpc('app_route_get', { p_token: token, p_id: id }),
-      rpc('app_route_steps_list', { p_token: token, p_id: id })
+      rpc('app_route_steps_list', { p_token: token, p_id: id }),
+      rpc('app_route_naryads', { p_token: token, p_route_id: id }).catch(function () { return []; })
     ]).then(function (r) {
-      var h = (r[0] && r[0][0]) || null, steps = r[1] || [];
+      var h = (r[0] && r[0][0]) || null, steps = r[1] || [], nr = r[2] || [];
       if (!h) return;
       curRoute = h;
       $('#rtDetail').style.display = '';
@@ -185,9 +188,24 @@
         return '<div class="step5"><div>' + s.seq + '</div><div><b>' + esc(s.operation || '—') + '</b></div><div>' + esc(s.equipment || '—') + '</div>' +
           '<div><span class="b">' + esc(s.norm_source) + '</span></div><div>' + fmt(s.plan_min) + ' мин</div><div>' + fmt(s.cost) + ' ₽</div></div>';
       }).join('') : '<span class="note">Шагов нет.</span>';
+      $('#rtNaryads').innerHTML = nr.length ? nr.map(function (n) {
+        return '<div class="step"><div>' + (RT_STATUS[n.status] || n.status) + '</div><div><b>' + esc(n.number) + '</b></div>' +
+          '<div>' + esc(n.assignee || '—') + '</div><div>' + fmt(n.plan_hours) + ' ч</div></div>';
+      }).join('') : '<span class="note">Нарядов по маршруту нет.</span>';
       window.scrollTo(0, document.body.scrollHeight);
     }).catch(function (e) { msg('#rtDetMsg', 'Ошибка: ' + e.message, 'err'); });
   }
+  $('#rtMakeNaryad').addEventListener('click', function () {
+    if (!curRoute) return;
+    var wc = $('#rtWc').value || null, asg = $('#rtAssignee').value.trim();
+    rpc('app_naryad_from_route', { p_token: token, p_route_id: curRoute.id, p_wc_id: wc, p_assignee: asg, p_due_date: null })
+      .then(function (d) {
+        var r = d && d[0]; if (!r) { msg('#rtDetMsg', 'Ошибка', 'err'); return; }
+        msg('#rtDetMsg', r.message + ': ' + r.number, 'ok');
+        if (window.AppNotify) window.AppNotify.refresh(true);
+        load().then(function () { openRoute(curRoute.id); });
+      }).catch(function (e) { msg('#rtDetMsg', 'Ошибка: ' + e.message, 'err'); });
+  });
   function setStatus(st) {
     if (!curRoute) return;
     rpc('app_route_set_status', { p_token: token, p_id: curRoute.id, p_status: st }).then(function (d) {

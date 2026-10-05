@@ -58,7 +58,7 @@
       $('#detail').innerHTML =
         '<div style="display:flex;gap:8px;align-items:center;">' + stBadge(n.status) + '<b style="margin-left:auto;">' + esc(n.number) + '</b></div>' +
         '<h1 style="font-size:1.15rem;margin:10px 0;">' + esc(n.title) + '</h1>' +
-        kv('Рабочий центр', n.wc_name) + kv('Исполнитель', n.assignee) + kv('Заявка', n.order_number) +
+        kv('Рабочий центр', n.wc_name) + kv('Исполнитель', n.assignee) + kv('Заявка', n.order_number) + kv('Маршрут', n.route_number) +
         kv('Срок', n.due_date ? fmt(n.due_date) : '') + kv('План / факт', num(n.plan_hours) + ' / ' + num(n.fact_hours) + ' ч') +
         kv('Автор', n.created_login);
       renderOps(r[1] || []);
