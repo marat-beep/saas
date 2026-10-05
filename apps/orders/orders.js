@@ -126,6 +126,7 @@
       if (ib) ib.addEventListener('click', function () { mkDoc('app_order_create_invoice', 'Счёт'); });
       renderItems(r[2] || []);
       renderLinks(r[3] || [], r[4] || [], r[5] || [], r[6] || []);
+      if (window.AppFiles) window.AppFiles.mount({ token: token, entityType: 'order', entityId: cur.id, el: '#filesBox' });
       $('#history').innerHTML = (r[1] || []).map(function (x) {
         return '<div class="kvr"><span class="k">' + fmt(x.created_at) + '</span><b>' + (ST[x.status] || x.status) + '</b>' +
           '<span class="note" style="margin-left:auto;">' + esc(x.by_login || '') + (x.comment ? ' · ' + esc(x.comment) : '') + '</span></div>';

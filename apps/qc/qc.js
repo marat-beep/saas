@@ -89,6 +89,7 @@
       $('#dTitle').value = ''; $('#dQty').value = '';
       clearMsg('#iMsg');
       loadLines(); loadTrace();
+      if (window.AppFiles) window.AppFiles.mount({ token: token, entityType: 'qc', entityId: cur.id, el: '#filesBox' });
       screens.go('s-item');
     }).catch(function (e) { msg('#listMsg', 'Ошибка: ' + e.message, 'err'); });
   }

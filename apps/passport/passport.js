@@ -73,6 +73,7 @@
       try { if (window.QRCode) new QRCode(box, { text: link, width: 160, height: 160 }); else box.innerHTML = '<span class="note">QR-библиотека не загрузилась</span>'; }
       catch (e) { box.innerHTML = '<span class="note">QR недоступен</span>'; }
       loadTrace(p.qc_check_id);
+      if (window.AppFiles) window.AppFiles.mount({ token: token, entityType: 'passport', entityId: p.id, el: '#filesBox' });
       screens.go('s-item');
     }).catch(function (e) { msg('#listMsg', 'Ошибка: ' + e.message, 'err'); });
   }

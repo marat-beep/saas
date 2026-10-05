@@ -184,3 +184,6 @@ input:focus { outline: none; border-color: var(--accent); }
 .kvr { display:flex; gap:10px; padding:8px 0; border-top:1px solid var(--border); font-size:.85rem; }
 .kvr:first-child { border-top:none; } .kvr .k { color:var(--muted); min-width:150px; }
 @media(max-width:640px){ .grid2c{grid-template-columns:1fr} }
+/* Файлы/вложения */
+.files-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.files-head b{font-size:.9rem}

@@ -92,6 +92,7 @@
       fillCustomers('#uCustomerSel'); $('#uCustomerSel').value = d.customer_id || '';
       clearMsg('#uMsg');
       loadVersions(id);
+      if (window.AppFiles) window.AppFiles.mount({ token: token, entityType: 'document', entityId: id, el: '#filesBox' });
       screens.go('s-item');
     }).catch(function (e) { msg('#listMsg', 'Ошибка: ' + e.message, 'err'); });
   }
