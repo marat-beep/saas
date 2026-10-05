@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Обслуживание и ремонт — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=6">
+<style>
+  .tabs2{display:flex;gap:4px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:4px;margin:14px 0;width:fit-content;flex-wrap:wrap}
+  .tabs2 button{padding:8px 16px;border:none;background:transparent;border-radius:8px;font-weight:600;font-size:.82rem;color:var(--muted);cursor:pointer}
+  .tabs2 button.active{background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(15,23,42,.08)}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🧰</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Обслуживание и ремонт (ТОиР)</h1><p>Планы ТО/ППР по оборудованию, регистрация работ и история. Процессы ПР.17/ПР.19 — снижение простоев.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="tabs2" id="tabs">
+      <button class="active" data-t="plans">Планы ТО/ППР</button>
+      <button data-t="log">История работ</button>
+    </div>
+
+    <section id="t-plans">
+      <div class="card">
+        <h2>Новый план обслуживания</h2>
+        <div class="msg" id="pMsg"></div>
+        <div class="grid2c">
+          <div class="field"><label>Оборудование *</label><select id="pEq"><option value="">— выберите —</option></select></div>
+          <div class="field"><label>Вид</label><select id="pKind">
+            <option value="to1">ТО-1</option><option value="to2">ТО-2</option><option value="to3">ТО-3</option>
+            <option value="ppr">ППР</option><option value="repair">Ремонт</option><option value="service">Сервис</option></select></div>
+        </div>
+        <div class="grid2c">
+          <div class="field"><label>Название</label><input type="text" id="pTitle" placeholder="ТО-1 фрезерного ЧПУ"></div>
+          <div class="field"><label>Периодичность, дней</label><input type="text" id="pPeriod" inputmode="numeric" placeholder="30"></div>
+        </div>
+        <div class="grid2c">
+          <div class="field"><label>Последнее ТО</label><input type="date" id="pLast"></div>
+          <div class="field"><label>Ответственный (логин)</label><input type="text" id="pResp" placeholder="master"></div>
+        </div>
+        <div class="field"><label>Примечание</label><input type="text" id="pNote" placeholder="что проверять"></div>
+        <button class="btn" id="pAdd">Добавить план</button>
+      </div>
+      <div class="card">
+        <div class="toolbar"><input type="search" class="search" id="pq" placeholder="Поиск: оборудование, название, ответственный…"></div>
+        <h2>Планы <span class="note" id="plansCnt"></span></h2>
+        <div class="olist mt" id="plans"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <section id="t-log" style="display:none;">
+      <div class="card">
+        <h2>Регистрация работы</h2>
+        <div class="msg" id="rMsg"></div>
+        <div class="grid2c">
+          <div class="field"><label>Оборудование *</label><select id="rEq"><option value="">— выберите —</option></select></div>
+          <div class="field"><label>Вид</label><select id="rKind">
+            <option value="to1">ТО-1</option><option value="to2">ТО-2</option><option value="to3">ТО-3</option>
+            <option value="ppr">ППР</option><option value="repair">Ремонт</option><option value="service">Сервис</option></select></div>
+        </div>
+        <div class="grid2c">
+          <div class="field"><label>Дата</label><input type="date" id="rDate"></div>
+          <div class="field"><label>Исполнитель</label><input type="text" id="rExec" placeholder="master / сервис"></div>
+        </div>
+        <div class="grid2c">
+          <div class="field"><label>Стоимость, ₽</label><input type="text" id="rCost" inputmode="decimal" placeholder="0"></div>
+          <div class="field"><label>Что заменено</label><input type="text" id="rRepl" placeholder="подшипник, ремень…"></div>
+        </div>
+        <div class="field"><label>Что сделано</label><input type="text" id="rWorks" placeholder="замена смазки, чистка СОЖ…"></div>
+        <button class="btn" id="rAdd">Зарегистрировать</button>
+      </div>
+      <div class="card">
+        <div class="toolbar"><input type="search" class="search" id="rQ" placeholder="Поиск: оборудование, работы, исполнитель…"></div>
+        <h2>История работ</h2>
+        <div style="overflow:auto;" id="log"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">3DMP Service · обслуживание и ремонт</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=24"></script>
+  <script src="maintenance.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
