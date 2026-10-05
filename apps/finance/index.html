@@ -4,22 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Финансы — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=2">
-<style>
-  .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
-  .kpi{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:14px}
-  .kpi .v{font-size:1.4rem;font-weight:800}.kpi .l{font-size:.72rem;color:var(--muted);text-transform:uppercase;margin-top:3px}
-  .icard{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;cursor:pointer}
-  .icard:hover{border-color:var(--accent)}
-  .ilist{display:flex;flex-direction:column;gap:10px}
-  .b{font-size:.68rem;font-weight:700;border-radius:999px;padding:3px 9px}
-  .b.draft{background:#f1f5f9;color:#475569}.b.sent{background:#dbeafe;color:#1d4ed8}
-  .b.paid{background:var(--accent-100);color:var(--accent-700)}.b.overdue{background:#fee2e2;color:#b91c1c}.b.cancelled{background:#f1f5f9;color:#94a3b8}
-  .kvr{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--border);font-size:.85rem}.kvr:first-child{border-top:none}.kvr .k{color:var(--muted);min-width:130px}
-  .back{background:none;border:none;color:var(--accent-700);font-weight:700;cursor:pointer;font-size:.84rem;margin-bottom:10px}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  @media(max-width:640px){.grid2{grid-template-columns:1fr}}
-</style>
+<link rel="stylesheet" href="../../assets/css/app.css?v=3">
 </head>
 <body>
   <header class="topbar">
@@ -31,12 +16,20 @@
 
   <main class="wrap">
     <section class="screen active" id="s-list">
-      <div class="hero"><h1>Финансы</h1><p>Счета, платежи и дебиторская задолженность.</p></div>
-      <div class="kpis" id="kpis"></div>
+      <div class="hero"><h1>Финансы</h1><p>Счета, частичные оплаты и дебиторская задолженность. Связь с заявкой, договором и заказчиком (CRM).</p></div>
+      <div class="kpi-row" id="kpis"></div>
       <div class="card mt">
-        <button class="btn" id="toNew" style="width:auto;padding:11px 18px;">＋ Новый счёт</button>
+        <div class="toolbar">
+          <input type="search" class="search" id="q" placeholder="Поиск: номер счёта, заказчик, заявка…">
+          <div class="chips" id="filters">
+            <span class="chip active" data-f="">Все</span><span class="chip" data-f="draft">Черновики</span>
+            <span class="chip" data-f="sent">Отправлены</span><span class="chip" data-f="paid">Оплачены</span>
+            <span class="chip" data-f="overdue">Просрочены</span>
+          </div>
+          <button class="btn" id="toNew" style="width:auto;padding:11px 18px;">＋ Новый счёт</button>
+        </div>
         <div id="listMsg"></div>
-        <div class="ilist mt" id="list"><span class="note">Загрузка…</span></div>
+        <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
       </div>
     </section>
 
@@ -45,13 +38,19 @@
       <div class="card">
         <h2>Новый счёт</h2>
         <div class="msg" id="nMsg"></div>
-        <div class="field"><label>Заказчик</label><input type="text" id="fCustomer" placeholder="ООО «Привод»"></div>
-        <div class="grid2">
+        <div class="grid2c">
+          <div class="field"><label>Заявка (заказ)</label><select id="fOrder"><option value="">— нет —</option></select></div>
+          <div class="field"><label>Заказчик (CRM)</label><select id="fCustomerSel"><option value="">— не выбран —</option></select></div>
+        </div>
+        <div class="field"><label>Заказчик (если не из CRM)</label><input type="text" id="fCustomer" placeholder="ООО «Привод»"></div>
+        <div class="grid2c">
           <div class="field"><label>Сумма, ₽ *</label><input type="text" id="fAmount" inputmode="decimal" placeholder="184000"></div>
           <div class="field"><label>Срок оплаты</label><input type="date" id="fDue"></div>
         </div>
-        <div class="field"><label>Заявка</label><select id="fOrder"><option value="">— нет —</option></select></div>
-        <div class="field"><label>Примечание</label><input type="text" id="fNote" placeholder="условия оплаты"></div>
+        <div class="grid2c">
+          <div class="field"><label>Исполнитель (логин)</label><input type="text" id="fAssignee" placeholder="economist"></div>
+          <div class="field"><label>Примечание</label><input type="text" id="fNote" placeholder="условия оплаты"></div>
+        </div>
         <button class="btn" id="createBtn">Создать счёт</button>
       </div>
     </section>
@@ -60,15 +59,18 @@
       <button class="back" id="back2">← К списку</button>
       <div class="card" id="invoice"></div>
       <div class="card">
-        <h2>Платёж</h2>
+        <h2>Добавить платёж</h2>
         <div class="msg" id="pMsg"></div>
-        <div class="grid2">
+        <div class="grid2c">
           <div class="field"><label>Сумма, ₽</label><input type="text" id="pAmount" inputmode="decimal" placeholder="50000"></div>
           <div class="field"><label>Способ</label><select id="pMethod"><option value="bank">Безнал</option><option value="cash">Наличные</option><option value="card">Карта</option></select></div>
         </div>
         <div class="field"><label>Комментарий</label><input type="text" id="pNote" placeholder="№ платёжки"></div>
         <button class="btn" id="payBtn">Добавить платёж</button>
-        <button class="btn secondary mt" id="sendBtn">Отметить «Отправлен»</button>
+        <div class="toolbar mt">
+          <button class="btn secondary" id="sendBtn">Отметить «Отправлен»</button>
+          <button class="btn secondary" id="cancelBtn">Отменить счёт</button>
+        </div>
       </div>
       <div class="card">
         <h2>История платежей</h2>
@@ -87,7 +89,7 @@
   <script src="../../assets/js/router.js?v=1"></script>
   <script src="../../assets/js/notify.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=23"></script>
-  <script src="finance.js?v=1"></script>
+  <script src="finance.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
 </body>
 </html>

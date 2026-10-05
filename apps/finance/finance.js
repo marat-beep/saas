@@ -1,15 +1,16 @@
 /* ============================================================
-   3DMP Service · apps/finance — счета и платежи
-   Данные: app_invoice_*, app_payment_*, app_finance_kpi (0015). Роли: admin/owner/manager.
+   3DMP Service · apps/finance — Финансы (счета/оплаты, дебиторка)
+   CRM-заказчик, связь с заявкой/договором, остаток и просрочка.
+   Данные: 0015+0031. Стандарт: docs/MODULE_STANDARD.md
    ============================================================ */
 (function () {
   'use strict';
   var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa, SB = window.SB;
-  var token = null, me = null, inv = [], orders = [], cur = null;
+  var token = null, me = null, inv = [], orders = [], customers = [], cur = null, filter = '', q = '';
 
   var ST = { draft: 'Черновик', sent: 'Отправлен', paid: 'Оплачен', overdue: 'Просрочен', cancelled: 'Отменён' };
   function esc(v) { return ui.esc(v); }
-  function money(v) { return (Number(v) || 0).toLocaleString('ru-RU') + ' ₽'; }
+  function money(v) { return v == null ? '—' : (Number(v) || 0).toLocaleString('ru-RU', { maximumFractionDigits: 2 }) + ' ₽'; }
   function fmt(d) { if (!d) return '—'; var x = new Date(d); return isNaN(x.getTime()) ? '—' : x.toLocaleDateString('ru-RU'); }
   function msg(id, t, k) { var e = $(id); e.className = 'msg show ' + (k || 'info'); e.textContent = t; }
   function clearMsg(id) { var e = $(id); e.className = 'msg'; e.textContent = ''; }
@@ -20,46 +21,70 @@
     return Promise.all([
       rpc('app_invoice_list', { p_token: token }),
       rpc('app_finance_kpi', { p_token: token }).catch(function () { return []; }),
-      rpc('app_order_list', { p_token: token }).catch(function () { return []; })
+      rpc('app_order_list', { p_token: token }).catch(function () { return []; }),
+      rpc('app_customer_list', { p_token: token }).catch(function () { return []; })
     ]).then(function (r) {
-      inv = r[0] || []; var k = (r[1] && r[1][0]) || {}; orders = r[2] || [];
+      inv = r[0] || []; var k = (r[1] && r[1][0]) || {}; orders = r[2] || []; customers = r[3] || [];
       $('#kpis').innerHTML =
-        kpi(k.invoices_total || 0, 'Счетов') + kpi(money(k.sum_total), 'Выставлено') +
-        kpi(money(k.sum_paid), 'Оплачено') + kpi(money(k.receivable), 'Дебиторка') + kpi(k.overdue || 0, 'Просрочено');
+        cell('Счетов', k.invoices_total || 0) + cell('Выставлено', money(k.sum_total)) + cell('Оплачено', money(k.sum_paid)) +
+        cell('Дебиторка', money(k.receivable)) + cell('Просрочено', k.overdue || 0, (k.overdue ? '#b91c1c' : ''));
       $('#fOrder').innerHTML = '<option value="">— нет —</option>' + orders.map(function (o) { return '<option value="' + o.id + '">' + esc(o.number) + ' · ' + esc(o.title) + '</option>'; }).join('');
+      $('#fCustomerSel').innerHTML = '<option value="">— не выбран —</option>' + customers.map(function (c) { return '<option value="' + c.id + '">' + esc(c.name) + '</option>'; }).join('');
       render();
     }).catch(function (e) { msg('#listMsg', 'Ошибка: ' + e.message, 'err'); });
   }
-  function kpi(v, l) { return '<div class="kpi"><div class="v">' + v + '</div><div class="l">' + l + '</div></div>'; }
+  function cell(l, v, color) { return '<div class="kpi"><small>' + l + '</small><b' + (color ? ' style="color:' + color + '"' : '') + '>' + v + '</b></div>'; }
+  function filtered() {
+    var s = q.toLowerCase();
+    return inv.filter(function (i) {
+      var okF = !filter || (filter === 'overdue' ? i.is_overdue : i.status === filter);
+      if (!okF) return false;
+      if (!s) return true;
+      return [i.number, i.customer, i.customer_name, i.order_number].join(' ').toLowerCase().indexOf(s) >= 0;
+    });
+  }
   function render() {
-    if (!inv.length) { $('#list').innerHTML = '<span class="note">Счетов нет.</span>'; return; }
-    $('#list').innerHTML = inv.map(function (i) {
-      var rest = (Number(i.amount) || 0) - (Number(i.paid) || 0);
-      return '<div class="icard" data-id="' + i.id + '">' +
-        '<div style="display:flex;gap:8px;align-items:center;"><span class="b ' + i.status + '">' + (ST[i.status] || i.status) + '</span>' +
-        '<span class="note" style="margin-left:auto;">' + esc(i.number) + '</span></div>' +
-        '<h3 style="font-size:.94rem;margin:8px 0 4px;">' + esc(i.customer || 'Счёт') + '</h3>' +
-        '<div style="font-size:.78rem;color:var(--muted);">' + money(i.amount) + ' · оплачено ' + money(i.paid) +
-        (rest > 0 ? ' · остаток <b>' + money(rest) + '</b>' : '') + (i.due_date ? ' · до ' + fmt(i.due_date) : '') + '</div></div>';
+    var list = filtered();
+    if (!list.length) { $('#list').innerHTML = '<span class="note">Счетов нет.</span>'; return; }
+    $('#list').innerHTML = list.map(function (i) {
+      var bal = Number(i.balance) || 0;
+      return '<div class="ocard" data-id="' + i.id + '">' +
+        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">' +
+          '<span class="badge ' + (i.is_overdue ? 'overdue' : i.status) + '">' + (i.is_overdue ? 'Просрочен' : (ST[i.status] || i.status)) + '</span>' +
+          '<span class="note" style="margin-left:auto;">' + esc(i.number) + '</span></div>' +
+        '<h3 style="font-size:.94rem;margin:8px 0 4px;">' + esc(i.customer_name || i.customer || 'Счёт') + '</h3>' +
+        '<div style="font-size:.78rem;color:var(--muted);">' +
+          money(i.amount) + ' · оплачено ' + money(i.paid) +
+          (bal > 0 ? ' · остаток <b>' + money(bal) + '</b>' : '') +
+          (i.due_date ? ' · до ' + fmt(i.due_date) : '') +
+          (i.order_number ? ' · 📥 ' + esc(i.order_number) : '') +
+          (i.document_number ? ' · 📄 ' + esc(i.document_number) : '') + '</div></div>';
     }).join('');
-    $$('#list .icard').forEach(function (c) { c.addEventListener('click', function () { openItem(c.dataset.id); }); });
+    $$('#list .ocard').forEach(function (c) { c.addEventListener('click', function () { openItem(c.dataset.id); }); });
   }
 
-  function openItem(id) {
-    cur = inv.filter(function (i) { return i.id === id; })[0]; if (!cur) return;
-    var rest = (Number(cur.amount) || 0) - (Number(cur.paid) || 0);
-    $('#invoice').innerHTML =
-      '<div style="display:flex;gap:8px;align-items:center;"><span class="b ' + cur.status + '">' + (ST[cur.status] || cur.status) + '</span>' +
-      '<b style="margin-left:auto;">' + esc(cur.number) + '</b></div>' +
-      '<h1 style="font-size:1.1rem;margin:10px 0;">' + esc(cur.customer || 'Счёт') + '</h1>' +
-      kv('Сумма', money(cur.amount)) + kv('Оплачено', money(cur.paid)) + kv('Остаток', money(rest)) +
-      kv('Заявка', cur.order_number) + kv('Срок', fmt(cur.due_date));
-    $('#pAmount').value = rest > 0 ? rest : '';
-    clearMsg('#pMsg'); $('#sendBtn').disabled = cur.status === 'paid';
-    loadPayments();
-    screens.go('s-item');
-  }
   function kv(k, v) { return v ? '<div class="kvr"><span class="k">' + k + '</span><b>' + esc(v) + '</b></div>' : ''; }
+  function openItem(id) {
+    rpc('app_invoice_get', { p_token: token, p_id: id }).then(function (r) {
+      var i = r && r[0]; if (!i) { ui.toast('Счёт не найден'); return; }
+      cur = i;
+      var bal = Number(i.balance) || 0;
+      $('#invoice').innerHTML =
+        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">' +
+          '<span class="badge ' + (i.is_overdue ? 'overdue' : i.status) + '">' + (i.is_overdue ? 'Просрочен' : (ST[i.status] || i.status)) + '</span>' +
+          '<b style="margin-left:auto;">' + esc(i.number) + '</b></div>' +
+        '<h1 style="font-size:1.1rem;margin:10px 0;">' + esc(i.customer_name || i.customer || 'Счёт') + '</h1>' +
+        kv('Сумма', money(i.amount)) + kv('Оплачено', money(i.paid)) + kv('Остаток', money(bal)) +
+        kv('Заявка', i.order_number) + kv('Договор', i.document_number) + kv('Срок', fmt(i.due_date)) +
+        kv('Исполнитель', i.assignee) + kv('Примечание', i.note) + kv('Автор', i.created_login) + kv('Оплачен', i.paid_at ? fmt(i.paid_at) : '');
+      $('#pAmount').value = bal > 0 ? bal : '';
+      clearMsg('#pMsg');
+      $('#sendBtn').disabled = (i.status === 'paid');
+      $('#cancelBtn').disabled = (i.status === 'paid' || i.status === 'cancelled');
+      loadPayments();
+      screens.go('s-item');
+    }).catch(function (e) { msg('#listMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
   function loadPayments() {
     rpc('app_payment_list', { p_token: token, p_invoice_id: cur.id }).then(function (list) {
       list = list || [];
@@ -74,40 +99,55 @@
   $('#back1').addEventListener('click', function () { screens.go('s-list'); });
   $('#back2').addEventListener('click', function () { load(); screens.go('s-list'); });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
+  $('#filters').addEventListener('click', function (e) {
+    var c = e.target.closest('.chip'); if (!c) return;
+    $$('#filters .chip').forEach(function (x) { x.classList.toggle('active', x === c); });
+    filter = c.dataset.f; render();
+  });
+  $('#q').addEventListener('input', function () { q = this.value; render(); });
 
   $('#createBtn').addEventListener('click', function () {
-    var amt = parseFloat($('#fAmount').value.replace(',', '.'));
+    var amt = parseFloat(($('#fAmount').value || '').replace(',', '.'));
     if (!amt || amt <= 0) { msg('#nMsg', 'Укажите сумму больше нуля.', 'err'); return; }
-    rpc('app_invoice_create', { p_token: token, p_order_id: $('#fOrder').value || null, p_customer: $('#fCustomer').value.trim(), p_amount: amt, p_due_date: $('#fDue').value || null, p_note: $('#fNote').value.trim() })
-      .then(function (d) { var row = d && d[0]; if (!row) { msg('#nMsg', 'Ошибка', 'err'); return; }
-        window.Auth.log('Счёт', row.number); ui.toast('Счёт ' + row.number + ' создан');
-        ['#fCustomer', '#fAmount', '#fNote'].forEach(function (s) { $(s).value = ''; });
-        load().then(function () { openItem(row.id); }); })
-      .catch(function (e) { msg('#nMsg', 'Ошибка: ' + e.message, 'err'); });
+    rpc('app_invoice_create', {
+      p_token: token, p_order_id: $('#fOrder').value || null, p_customer: $('#fCustomer').value.trim(),
+      p_amount: amt, p_due_date: $('#fDue').value || null, p_note: $('#fNote').value.trim(),
+      p_customer_id: $('#fCustomerSel').value || null, p_document_id: null, p_assignee: $('#fAssignee').value.trim()
+    }).then(function (d) {
+      var row = d && d[0]; if (!row) { msg('#nMsg', 'Ошибка', 'err'); return; }
+      window.Auth.log('Счёт', row.number); ui.toast('Счёт ' + row.number + ' создан');
+      ['#fCustomer', '#fAmount', '#fNote', '#fDue', '#fAssignee'].forEach(function (s) { $(s).value = ''; });
+      $('#fCustomerSel').value = ''; $('#fOrder').value = '';
+      load().then(function () { openItem(row.id); });
+    }).catch(function (e) { msg('#nMsg', 'Ошибка: ' + e.message, 'err'); });
   });
 
   $('#payBtn').addEventListener('click', function () {
     if (!cur) return;
-    var amt = parseFloat($('#pAmount').value.replace(',', '.'));
+    var amt = parseFloat(($('#pAmount').value || '').replace(',', '.'));
     if (!amt || amt <= 0) { msg('#pMsg', 'Сумма платежа > 0.', 'err'); return; }
     rpc('app_payment_add', { p_token: token, p_invoice_id: cur.id, p_amount: amt, p_method: $('#pMethod').value, p_note: $('#pNote').value.trim() })
-      .then(function (d) { var r = d && d[0]; if (!r || !r.ok) { msg('#pMsg', (r && r.message) || 'Ошибка', 'err'); return; }
+      .then(function (d) {
+        var r = d && d[0]; if (!r || !r.ok) { msg('#pMsg', (r && r.message) || 'Ошибка', 'err'); return; }
         window.Auth.log('Платёж', cur.number + ' ' + amt); ui.toast('Платёж добавлен'); $('#pNote').value = '';
         if (window.AppNotify) window.AppNotify.refresh(true);
-        load().then(function () { openItem(cur.id); }); })
-      .catch(function (e) { msg('#pMsg', 'Ошибка: ' + e.message, 'err'); });
+        load().then(function () { openItem(cur.id); });
+      }).catch(function (e) { msg('#pMsg', 'Ошибка: ' + e.message, 'err'); });
   });
-  $('#sendBtn').addEventListener('click', function () {
+  $('#sendBtn').addEventListener('click', function () { setStatus('sent'); });
+  $('#cancelBtn').addEventListener('click', function () { setStatus('cancelled'); });
+  function setStatus(st) {
     if (!cur) return;
-    rpc('app_invoice_set_status', { p_token: token, p_id: cur.id, p_status: 'sent' })
-      .then(function () { window.Auth.log('Счёт отправлен', cur.number); load().then(function () { openItem(cur.id); }); });
-  });
+    rpc('app_invoice_set_status', { p_token: token, p_id: cur.id, p_status: st })
+      .then(function (d) { var r = d && d[0]; if (r && !r.ok) { msg('#pMsg', r.message, 'err'); return; } window.Auth.log('Статус счёта', cur.number + ' → ' + st); load().then(function () { openItem(cur.id); }); })
+      .catch(function (e) { msg('#pMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
 
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
     me = s; token = s.token;
-    $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '');
+    $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#listMsg', 'Supabase не подключён.', 'err'); return; }
     load();
   });
