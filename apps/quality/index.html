@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Качество/СМК — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=2">
+<style>
+  .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+  .kpi{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:14px}
+  .kpi .v{font-size:1.4rem;font-weight:800}.kpi .l{font-size:.72rem;color:var(--muted);text-transform:uppercase;margin-top:3px}
+  .tabs2{display:flex;gap:4px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:4px;margin:14px 0;width:fit-content}
+  .tabs2 button{padding:8px 16px;border:none;background:transparent;border-radius:8px;font-weight:600;font-size:.82rem;color:var(--muted);cursor:pointer}
+  .tabs2 button.active{background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(15,23,42,.08)}
+  .b{font-size:.66rem;font-weight:700;border-radius:999px;padding:3px 9px}
+  .b.ok{background:var(--accent-100);color:var(--accent-700)}.b.due{background:#fef3c7;color:#92400e}.b.expired{background:#fee2e2;color:#b91c1c}.b.none{background:#f1f5f9;color:#64748b}
+  .row{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--border);font-size:.83rem}.row:first-child{border-top:none}
+  .act{background:none;border:1px solid var(--border);border-radius:8px;padding:5px 9px;font-size:.74rem;cursor:pointer}.act:hover{border-color:var(--accent);color:var(--accent-700)}.act.danger:hover{border-color:var(--danger);color:var(--danger)}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media(max-width:680px){.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">📏</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Качество и СМК</h1><p>Средства измерений (поверка) и трассируемость изделий.</p></div>
+    <div class="kpis" id="kpis"></div>
+
+    <div class="tabs2" id="tabs">
+      <button class="active" data-t="tools">Средства измерений</button>
+      <button data-t="trace">Трассируемость</button>
+    </div>
+
+    <section class="tab" id="t-tools">
+      <div class="card">
+        <h2>Новое СИ</h2>
+        <div class="msg" id="tMsg"></div>
+        <div class="grid3">
+          <div class="field"><label>Наименование *</label><input type="text" id="gName" placeholder="Штангенциркуль ШЦ-125"></div>
+          <div class="field"><label>Серийный №</label><input type="text" id="gSerial" placeholder="SN-001"></div>
+          <div class="field"><label>Тип</label><input type="text" id="gType" placeholder="Штангенциркуль"></div>
+        </div>
+        <div class="grid3">
+          <div class="field"><label>Расположение</label><input type="text" id="gLoc" placeholder="ОТК"></div>
+          <div class="field"><label>Поверка (последняя)</label><input type="date" id="gLast"></div>
+          <div class="field"><label>Поверка (следующая)</label><input type="date" id="gNext"></div>
+        </div>
+        <button class="btn" id="gAdd">Добавить СИ</button>
+      </div>
+      <div class="card"><h2>Средства измерений</h2><div id="tools"></div></div>
+    </section>
+
+    <section class="tab" id="t-trace" style="display:none;">
+      <div class="card">
+        <h2>Новая запись трассируемости</h2>
+        <div class="msg" id="rMsg"></div>
+        <div class="grid3">
+          <div class="field"><label>Изделие/партия *</label><input type="text" id="rItem" placeholder="Кронштейн"></div>
+          <div class="field"><label>Серийный № / партия</label><input type="text" id="rSerial" placeholder="BATCH-1"></div>
+          <div class="field"><label>Материал</label><input type="text" id="rMat" placeholder="Сталь 40Х"></div>
+        </div>
+        <div class="grid3">
+          <div class="field"><label>Заявка</label><select id="rOrder"><option value="">— нет —</option></select></div>
+          <div class="field"><label>Оператор</label><input type="text" id="rOp" placeholder="логин"></div>
+          <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="rAdd">Добавить</button></div>
+        </div>
+      </div>
+      <div class="card"><h2>Трассируемость</h2><div id="trace"></div></div>
+    </section>
+  </main>
+
+  <footer class="foot">3DMP Service · качество/СМК</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=1"></script>
+  <script src="../../assets/js/auth.js?v=3"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=18"></script>
+  <script src="quality.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
