@@ -6,7 +6,7 @@
    guest:false — требует авторизации (хаб перенаправит в apps/auth/).
    ============================================================ */
 window.AppCatalog = {
-  version: '1.4',
+  version: '1.5',
   updated: '05.10.2026',
   apps: [
     { id: 'auth', icon: '🔐', title: 'Вход', desc: 'Логин и пароль (без email).', href: 'apps/auth/index.html', guest: true },
@@ -21,6 +21,7 @@ window.AppCatalog = {
     { id: 'passport', icon: '🪪', title: 'Паспорта изделий', desc: 'Цифровой паспорт изделия и QR-метка.', href: 'apps/passport/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
     { id: 'economics', icon: '💰', title: 'Экономика', desc: 'KPI, себестоимость заявок, нормочас.', href: 'apps/economics/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
     { id: 'reports', icon: '🧾', title: 'Отчёты и экспорт', desc: 'Выгрузки PDF/DOC/CSV/JSON и сводные отчёты.', href: 'apps/reports/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
+    { id: 'org', icon: '🏢', title: 'Организация', desc: 'Тариф, пользователи и доступные модули.', href: 'apps/org/index.html', guest: false, roles: ['admin', 'owner', 'manager'] },
     { id: 'dashboard', icon: '📊', title: 'Личный кабинет', desc: 'Профиль, роль и модули.', href: 'apps/dashboard/index.html', guest: false },
     { id: 'supplier', icon: '📦', title: 'Портал закупок (поставщик)', desc: 'Витрина закупок, карточка, подача предложения, мои КП.', href: 'apps/supplier/index.html', guest: false },
     { id: 'admin', icon: '🛡', title: 'Администрирование', desc: 'Пользователи и роли сервиса (только для admin).', href: 'apps/admin/index.html', guest: false, roles: ['admin'] }

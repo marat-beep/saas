@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Организация — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=2">
+<style>
+  .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+  .kpi{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:14px}
+  .kpi .v{font-size:1.4rem;font-weight:800}.kpi .l{font-size:.72rem;color:var(--muted);text-transform:uppercase;margin-top:3px}
+  .tab{width:100%;border-collapse:collapse}
+  .tab th,.tab td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--border);font-size:.83rem}
+  .tab th{color:var(--muted);font-size:.72rem;text-transform:uppercase}
+  .act{background:none;border:1px solid var(--border);border-radius:8px;padding:5px 9px;font-size:.74rem;font-weight:600;cursor:pointer;margin-right:4px}
+  .act:hover{border-color:var(--accent);color:var(--accent-700)}
+  .act.danger:hover{border-color:var(--danger);color:var(--danger)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .flag{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--border);font-size:.85rem}
+  .flag:first-child{border-top:none}
+  .flag input{width:auto}
+  @media(max-width:640px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🏢</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Организация</h1><p>Тариф, пользователи и доступные модули.</p></div>
+    <div class="kpis" id="kpis"></div>
+
+    <div class="card mt">
+      <h2>Новый пользователь</h2>
+      <div class="msg" id="cMsg"></div>
+      <div class="grid2">
+        <div class="field"><label>Логин</label><input type="text" id="uLogin" placeholder="ivanov"></div>
+        <div class="field"><label>Пароль</label><input type="text" id="uPass" placeholder="мин. 4 символа"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Имя</label><input type="text" id="uName" placeholder="Иванов И.И."></div>
+        <div class="field"><label>Роль</label><select id="uRole">
+          <option value="manager">Менеджер</option><option value="owner">Владелец</option>
+          <option value="supplier">Поставщик</option><option value="admin">Администратор</option>
+        </select></div>
+      </div>
+      <button class="btn" id="uCreate">Добавить пользователя</button>
+    </div>
+
+    <div class="card">
+      <h2>Пользователи <span class="note" id="uCount"></span></h2>
+      <div class="msg" id="lMsg"></div>
+      <div style="overflow:auto;"><table class="tab" id="users"></table></div>
+    </div>
+
+    <div class="card">
+      <h2>Тариф</h2>
+      <div class="grid2">
+        <div class="field"><label>Текущий тариф</label><select id="planSel"></select></div>
+        <div class="field" style="display:flex;align-items:flex-end;"><button class="btn secondary" id="planSave">Сменить тариф</button></div>
+      </div>
+      <div class="msg" id="pMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2>Модули (feature flags)</h2>
+      <div id="flags"></div>
+      <div class="msg" id="fMsg"></div>
+      <button class="btn secondary mt" id="flagSave">Сохранить модули</button>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · организация</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=1"></script>
+  <script src="../../assets/js/auth.js?v=3"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=10"></script>
+  <script src="org.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
