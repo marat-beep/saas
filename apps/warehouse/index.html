@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Склад — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=2">
+<style>
+  .mcard { background:#fff; border:1px solid var(--border); border-radius:var(--r); padding:13px 15px; cursor:pointer; }
+  .mcard:hover { border-color:var(--accent); }
+  .mcard.low { border-left:4px solid var(--danger); }
+  .mlist { display:flex; flex-direction:column; gap:10px; }
+  .b { font-size:.68rem; font-weight:700; border-radius:999px; padding:3px 9px; }
+  .b.low { background:#fee2e2; color:#b91c1c; }
+  .b.ok { background:var(--accent-100); color:var(--accent-700); }
+  .b.in { background:var(--accent-100); color:var(--accent-700); }
+  .b.out { background:#fee2e2; color:#b91c1c; }
+  .kvr { display:flex; gap:10px; padding:8px 0; border-top:1px solid var(--border); font-size:.85rem; }
+  .kvr:first-child{border-top:none}.kvr .k{color:var(--muted);min-width:130px}
+  .back { background:none;border:none;color:var(--accent-700);font-weight:700;cursor:pointer;font-size:.84rem;margin-bottom:10px; }
+  .grid2 { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+  @media(max-width:640px){ .grid2{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">📦</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <section class="screen active" id="s-list">
+      <div class="hero"><h1>Склад</h1><p>Остатки материалов, приход и расход, контроль минимума.</p></div>
+      <div class="card">
+        <button class="btn" id="toForm" style="width:auto;padding:11px 18px;">＋ Новый материал</button>
+        <div id="listMsg"></div>
+        <div class="mlist mt" id="list"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="s-form">
+      <button class="back" id="back1">← К списку</button>
+      <div class="card">
+        <h2 id="formTitle">Новый материал</h2>
+        <div class="msg" id="fMsg"></div>
+        <div class="field"><label>Наименование *</label><input type="text" id="mName" placeholder="Сталь 40Х, круг"></div>
+        <div class="grid2">
+          <div class="field"><label>Код</label><input type="text" id="mCode" placeholder="М-40Х"></div>
+          <div class="field"><label>Ед.</label><input type="text" id="mUnit" placeholder="кг"></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Цена, ₽</label><input type="text" id="mPrice" inputmode="decimal" placeholder="120"></div>
+          <div class="field"><label>Мин. остаток</label><input type="text" id="mMin" inputmode="decimal" placeholder="100"></div>
+        </div>
+        <button class="btn" id="saveMat">Сохранить</button>
+      </div>
+    </section>
+
+    <section class="screen" id="s-item">
+      <button class="back" id="back2">← К списку</button>
+      <div class="card" id="material"></div>
+      <div class="card">
+        <h2>Движение</h2>
+        <div class="msg" id="mvMsg"></div>
+        <div class="grid2">
+          <div class="field"><label>Тип</label><select id="mvKind"><option value="in">Приход</option><option value="out">Расход</option></select></div>
+          <div class="field"><label>Количество</label><input type="text" id="mvQty" inputmode="decimal" placeholder="10"></div>
+        </div>
+        <div class="field"><label>Комментарий</label><input type="text" id="mvNote" placeholder="поставка / в производство"></div>
+        <button class="btn" id="mvBtn">Провести</button>
+      </div>
+      <div class="card">
+        <h2>История движений</h2>
+        <div id="moves"><span class="note">—</span></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">3DMP Service · склад</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=1"></script>
+  <script src="../../assets/js/auth.js?v=3"></script>
+  <script src="../../assets/js/router.js?v=1"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=5"></script>
+  <script src="warehouse.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
