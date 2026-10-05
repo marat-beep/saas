@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Кадры — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=2">
+<style>
+  .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+  .kpi{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:14px}
+  .kpi .v{font-size:1.4rem;font-weight:800}.kpi .l{font-size:.72rem;color:var(--muted);text-transform:uppercase;margin-top:3px}
+  .tabs2{display:flex;gap:4px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:4px;margin:14px 0;width:fit-content}
+  .tabs2 button{padding:8px 16px;border:none;background:transparent;border-radius:8px;font-weight:600;font-size:.82rem;color:var(--muted);cursor:pointer}
+  .tabs2 button.active{background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(15,23,42,.08)}
+  .line{display:grid;grid-template-columns:1fr 1fr 1fr 100px;gap:8px;align-items:center;padding:7px 0;border-top:1px solid var(--border);font-size:.82rem}
+  .line:first-child{border-top:none}.line input,.line select{padding:6px 8px;font-size:.8rem}
+  .act{background:none;border:1px solid var(--border);border-radius:8px;padding:5px 9px;font-size:.74rem;cursor:pointer}
+  .act:hover{border-color:var(--accent);color:var(--accent-700)}.act.danger:hover{border-color:var(--danger);color:var(--danger)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .row{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--border);font-size:.84rem}.row:first-child{border-top:none}
+  @media(max-width:640px){.line{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">👥</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Кадры</h1><p>Сотрудники, смены (табель) и обучение.</p></div>
+    <div class="kpis" id="kpis"></div>
+
+    <div class="tabs2" id="tabs">
+      <button class="active" data-t="emp">Сотрудники</button>
+      <button data-t="shift">Смены</button>
+      <button data-t="train">Обучение</button>
+    </div>
+
+    <section class="tab" id="t-emp">
+      <div class="card">
+        <h2>Новый сотрудник</h2>
+        <div class="msg" id="eMsg"></div>
+        <div class="grid2">
+          <div class="field"><label>ФИО *</label><input type="text" id="eName" placeholder="Иванов И.И."></div>
+          <div class="field"><label>Должность</label><input type="text" id="eJob" placeholder="Оператор ЧПУ"></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Отдел</label><input type="text" id="eDept" placeholder="Механообработка"></div>
+          <div class="field"><label>Телефон</label><input type="text" id="ePhone" placeholder="+7…"></div>
+        </div>
+        <button class="btn" id="eAdd">Добавить</button>
+      </div>
+      <div class="card"><h2>Сотрудники <span class="note" id="empCount"></span></h2><div id="emps"></div></div>
+    </section>
+
+    <section class="tab" id="t-shift" style="display:none;">
+      <div class="card">
+        <h2>Добавить смену</h2>
+        <div class="msg" id="sMsg"></div>
+        <div class="line" style="border-top:none;font-size:.72rem;color:var(--muted);"><span>Сотрудник</span><span>Дата</span><span>Тип</span><span>Часы</span></div>
+        <div class="grid2">
+          <div class="field"><label>Сотрудник</label><select id="shEmp"></select></div>
+          <div class="field"><label>Дата</label><input type="date" id="shDate"></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Тип</label><select id="shKind"><option value="day">Дневная</option><option value="night">Ночная</option><option value="off">Выходной</option><option value="vacation">Отпуск</option><option value="sick">Больничный</option></select></div>
+          <div class="field"><label>Часы</label><input type="text" id="shHours" inputmode="decimal" placeholder="8"></div>
+        </div>
+        <button class="btn" id="shAdd">Добавить смену</button>
+      </div>
+      <div class="card"><h2>Смены</h2><div id="shifts"><span class="note">—</span></div></div>
+    </section>
+
+    <section class="tab" id="t-train" style="display:none;">
+      <div class="card">
+        <h2>Новое обучение</h2>
+        <div class="msg" id="tMsg"></div>
+        <div class="grid2">
+          <div class="field"><label>Сотрудник</label><select id="trEmp"></select></div>
+          <div class="field"><label>Тема *</label><input type="text" id="trTitle" placeholder="Охрана труда"></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Статус</label><select id="trStatus"><option value="planned">Запланировано</option><option value="passed">Пройдено</option></select></div>
+          <div class="field"><label>Дата</label><input type="date" id="trDate"></div>
+        </div>
+        <button class="btn" id="trAdd">Добавить</button>
+      </div>
+      <div class="card"><h2>Обучение</h2><div id="trains"><span class="note">—</span></div></div>
+    </section>
+  </main>
+
+  <footer class="foot">3DMP Service · кадры</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=1"></script>
+  <script src="../../assets/js/auth.js?v=3"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=12"></script>
+  <script src="hr.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
