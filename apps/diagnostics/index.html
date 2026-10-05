@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Диагностика — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=2">
+<style>
+  .checks{list-style:none}
+  .chk{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--border);font-size:.84rem}
+  .chk:first-child{border-top:none}
+  .chk .mark{font-weight:800;width:18px}
+  .chk.ok .mark{color:var(--accent-700)}.chk.err .mark{color:var(--danger)}.chk.wait .mark{color:var(--warning)}
+  .chk .t{margin-left:auto;color:var(--muted);font-size:.74rem}
+  .kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+  .kv{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:12px}
+  .kv .v{font-weight:800;font-size:1.2rem}.kv .l{font-size:.7rem;color:var(--muted);text-transform:uppercase;margin-top:3px}
+  pre{background:#0f172a;color:#e2e8f0;padding:14px;border-radius:10px;font-size:.74rem;overflow:auto;margin-top:10px;white-space:pre-wrap}
+  code{background:#f1f5f9;border:1px solid var(--border);border-radius:6px;padding:1px 6px;font-size:.8em}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🧪</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Диагностика и self-test</h1><p>Проверка системы, окружения и доступности функций.</p></div>
+    <div class="kpi" id="kpis"></div>
+
+    <div class="card mt">
+      <h2>Проверки</h2>
+      <div class="btn-row" style="margin-bottom:8px;">
+        <button class="btn" id="run" style="width:auto;padding:11px 18px;">Запустить проверку</button>
+        <button class="btn secondary" id="copy" style="width:auto;padding:11px 18px;">Скопировать отчёт</button>
+      </div>
+      <ul class="checks" id="checks"><li class="chk wait"><span class="mark">…</span><span>Ожидание запуска</span></li></ul>
+      <div class="msg" id="msg"></div>
+    </div>
+
+    <div class="card">
+      <h2>Среда</h2>
+      <div id="env"><span class="note">—</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Тестовые данные</h2>
+      <p class="note">Создаёт тестовую заявку из диагностики (источник <code>diagnostics</code>).</p>
+      <button class="btn secondary" id="seed" style="width:auto;padding:11px 18px;">Создать тестовую заявку</button>
+      <pre id="report" style="display:none;"></pre>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · диагностика</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=1"></script>
+  <script src="../../assets/js/auth.js?v=3"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=20"></script>
+  <script src="diagnostics.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>

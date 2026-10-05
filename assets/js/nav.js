@@ -48,6 +48,7 @@
       ['🛠', 'Диспетчерская', ROOT + 'apps/mes/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
       ['📏', 'Качество/СМК', ROOT + 'apps/quality/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
       ['🤖', 'Помощник', ROOT + 'apps/assistant/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
+      ['🧪', 'Диагностика', ROOT + 'apps/diagnostics/index.html', role && ['admin', 'owner', 'manager'].indexOf(role) >= 0],
       ['📦', 'Портал закупок', ROOT + 'apps/supplier/index.html', true],
       ['🌐', 'Прототипы экосистемы', ROOT + 'eco/index.html', true],
       ['🛡', 'Администрирование', ROOT + 'apps/admin/index.html', role === 'admin'],
