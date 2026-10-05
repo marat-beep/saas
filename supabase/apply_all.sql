@@ -4608,7 +4608,7 @@ begin
     where t.tenant_id = ten and t.code = 'TP-01' limit 1;
   if tpl is null then return; end if;
   select id into ord from public.app_orders where tenant_id = ten order by created_at limit 1;
-  select coalesce(price,0) into price from public.app_materials where id = mat;
+  select coalesce(m.price,0) into price from public.app_materials m where m.id = mat;
 
   with rs as (
     select coalesce(o.setup_min,0) + coalesce(nullif(o.unit_min,0), st.plan_min,0) * q as pm,
