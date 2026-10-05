@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API и интеграции — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=2">
+<style>
+  .tab{width:100%;border-collapse:collapse}.tab th,.tab td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--border);font-size:.82rem}.tab th{color:var(--muted);font-size:.72rem;text-transform:uppercase}
+  .act{background:none;border:1px solid var(--border);border-radius:8px;padding:5px 9px;font-size:.74rem;cursor:pointer}
+  .act:hover{border-color:var(--accent);color:var(--accent-700)}.act.danger:hover{border-color:var(--danger);color:var(--danger)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  code{background:#f1f5f9;border:1px solid var(--border);border-radius:6px;padding:2px 6px;font-size:.8em;word-break:break-all}
+  pre{background:#0f172a;color:#e2e8f0;padding:14px;border-radius:10px;overflow:auto;font-size:.76rem;line-height:1.5}
+  @media(max-width:640px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🔌</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>API и интеграции</h1><p>Ключи доступа к данным организации и вебхуки на события.</p></div>
+
+    <div class="card">
+      <h2>API-ключи</h2>
+      <div class="grid2">
+        <div class="field"><label>Название ключа</label><input type="text" id="kName" placeholder="Интеграция 1С"></div>
+        <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="kCreate">Создать ключ</button></div>
+      </div>
+      <div class="msg" id="kMsg"></div>
+      <div style="overflow:auto;"><table class="tab" id="keys"></table></div>
+    </div>
+
+    <div class="card">
+      <h2>Вебхуки</h2>
+      <div class="grid2">
+        <div class="field"><label>URL</label><input type="text" id="wUrl" placeholder="https://example.com/hook"></div>
+        <div class="field"><label>Событие</label><select id="wEvent">
+          <option value="*">Все события</option><option value="order.created">Заявка создана</option>
+          <option value="bid.created">Новое КП</option><option value="naryad.closed">Наряд закрыт</option></select></div>
+      </div>
+      <button class="btn" id="wAdd">Добавить вебхук</button>
+      <div class="msg" id="wMsg"></div>
+      <div style="overflow:auto;"><table class="tab" id="hooks"></table></div>
+    </div>
+
+    <div class="card">
+      <h2>Примеры вызовов</h2>
+      <div class="note">API-ключ подставляется как параметр <code>p_key</code>. Функции доступны по адресу <code>POST https://zfkbzzmtbrueaksfaqbf.supabase.co/rest/v1/rpc/&lt;функция&gt;</code>.</div>
+      <pre id="sample"></pre>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · API</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=1"></script>
+  <script src="../../assets/js/auth.js?v=3"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=14"></script>
+  <script src="api.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
