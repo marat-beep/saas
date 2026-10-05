@@ -42,6 +42,32 @@
       name: 'Паспорта', load: function () { return rpc('app_passport_list', { p_token: token }); },
       cols: [{ key: 'number', label: 'Номер' }, { key: 'product', label: 'Изделие' }, { key: 'order_number', label: 'Заявка' },
              { key: 'created_at', label: 'Создан', value: function (r) { return day(r.created_at); } }]
+    },
+    invoices: {
+      name: 'Счета', load: function () { return rpc('app_invoice_list', { p_token: token }); },
+      cols: [{ key: 'number', label: 'Счёт' }, { key: 'customer_name', label: 'Заказчик' }, { key: 'order_number', label: 'Заявка' },
+             { key: 'amount', label: 'Сумма', num: true }, { key: 'paid', label: 'Оплачено', num: true },
+             { key: 'balance', label: 'Остаток', num: true }, { key: 'status', label: 'Статус' },
+             { key: 'due_date', label: 'Срок', value: function (r) { return day(r.due_date); } }]
+    },
+    economics: {
+      name: 'Экономика заявок', load: function () { return rpc('app_economics_orders', { p_token: token }); },
+      cols: [{ key: 'number', label: 'Заявка' }, { key: 'title', label: 'Тема' }, { key: 'amount', label: 'Сумма', num: true },
+             { key: 'work_cost', label: 'Работы', num: true }, { key: 'material_cost', label: 'Материалы', num: true },
+             { key: 'total', label: 'Себестоимость', num: true }, { key: 'margin', label: 'Маржа', num: true },
+             { key: 'margin_pct', label: 'Маржа %', num: true }]
+    },
+    qc: {
+      name: 'ОТК', load: function () { return rpc('app_qc_list', { p_token: token }); },
+      cols: [{ key: 'number', label: 'Чек-лист' }, { key: 'product', label: 'Изделие' }, { key: 'status', label: 'Итог' },
+             { key: 'qty_good', label: 'Годных', num: true }, { key: 'qty_total', label: 'Всего', num: true },
+             { key: 'defects_count', label: 'Дефектов', num: true }, { key: 'inspector', label: 'Контролёр' }]
+    },
+    routes: {
+      name: 'Маршруты', load: function () { return rpc('app_route_list', { p_token: token }); },
+      cols: [{ key: 'number', label: 'Маршрут' }, { key: 'name', label: 'Название' }, { key: 'template_name', label: 'Техпроцесс' },
+             { key: 'order_number', label: 'Заявка' }, { key: 'total_min', label: 'Мин', num: true },
+             { key: 'total_cost', label: 'Себестоимость', num: true }, { key: 'status', label: 'Статус' }]
     }
   };
 

@@ -4,11 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Аналитика — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=2">
+<link rel="stylesheet" href="../../assets/css/app.css?v=3">
 <style>
-  .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
-  .kpi{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:14px}
-  .kpi .v{font-size:1.4rem;font-weight:800}.kpi .l{font-size:.72rem;color:var(--muted);text-transform:uppercase;margin-top:3px}
   .charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
   .chart{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:16px}
   .chart h3{font-size:.9rem;margin-bottom:10px}
@@ -24,13 +21,17 @@
   </header>
 
   <main class="wrap">
-    <div class="hero"><h1>Аналитика</h1><p>Дашборд показателей организации.</p></div>
-    <div class="kpis" id="kpis"></div>
+    <div class="hero"><h1>Аналитика</h1><p>Дашборд показателей организации: финансы, заявки, производство, качество, закупки, склад, экономика.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
     <div class="charts">
-      <div class="chart"><h3>Оплаты по месяцам, ₽</h3><canvas id="cPay" height="160"></canvas></div>
-      <div class="chart"><h3>Заявки по статусам</h3><canvas id="cOrders" height="160"></canvas></div>
-      <div class="chart"><h3>Счета по статусам, ₽</h3><canvas id="cInv" height="160"></canvas></div>
-      <div class="chart"><h3>Наряды: план/факт, ч</h3><canvas id="cCap" height="160"></canvas></div>
+      <div class="chart"><h3>Оплаты по месяцам, ₽</h3><canvas id="cPay" height="150"></canvas></div>
+      <div class="chart"><h3>Заявки по статусам</h3><canvas id="cOrders" height="150"></canvas></div>
+      <div class="chart"><h3>Заявки по типам</h3><canvas id="cTypes" height="150"></canvas></div>
+      <div class="chart"><h3>Счета по статусам, ₽</h3><canvas id="cInv" height="150"></canvas></div>
+      <div class="chart"><h3>Производство: план/факт по центрам, ч</h3><canvas id="cProd" height="150"></canvas></div>
+      <div class="chart"><h3>Качество ОТК</h3><canvas id="cQual" height="150"></canvas></div>
+      <div class="chart"><h3>Закупки по статусам</h3><canvas id="cProc" height="150"></canvas></div>
     </div>
     <div class="msg mt" id="msg"></div>
   </main>
@@ -45,7 +46,7 @@
   <script src="../../assets/js/auth.js?v=4"></script>
   <script src="../../assets/js/notify.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=23"></script>
-  <script src="bi.js?v=1"></script>
+  <script src="bi.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
 </body>
 </html>
