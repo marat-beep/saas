@@ -22,7 +22,7 @@
       id: 'saas', badge: 'SaaS-администратор', cls: 'saas', roles: ['admin'],
       title: '🏗 Раздел SaaS-администратора',
       about: 'Организации, тарифы, пользователи и аудит всей платформы.',
-      apps: ['platform', 'admin', 'org', 'reports']
+      apps: ['platform', 'admin', 'org', 'industry', 'reports']
     },
     {
       id: 'client', badge: 'Администратор клиента', cls: 'client', roles: ['admin', 'owner'],
@@ -36,7 +36,7 @@
       about: 'Ежедневные модули: заявки, производство, качество, экономика.',
       apps: ['dashboard', 'crm', 'orders', 'tkp', 'procurement', 'suppliers', 'supplier', 'production', 'mes', 'planning',
              'warehouse', 'maintenance', 'tooling', 'oee', 'terminal', 'issues', 'service', 'calendar', 'registry', 'bom', 'assistant', 'nc', 'calc', 'qc', 'passport', 'quality',
-             'economics', 'teo', 'finance', 'reports', 'hr', 'docs', 'templates', 'engraving', 'labels']
+             'economics', 'teo', 'finance', 'bi', 'reports', 'industry', 'hr', 'docs', 'templates', 'engraving', 'labels']
     }
   ];
 
