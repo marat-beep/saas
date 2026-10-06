@@ -82,6 +82,44 @@
     $('#modules').innerHTML = html || '<span class="note">Модулей пока нет.</span>';
   }
 
+  function renderKpiLive(session) {
+    if (!window.SB) return;
+    function add(label, val) {
+      if (val == null) return;
+      var el = document.createElement('div'); el.className = 'kpi';
+      el.innerHTML = '<small>' + esc(label) + '</small><b>' + esc(String(val)) + '</b>';
+      $('#kpis').appendChild(el);
+    }
+    Promise.all([
+      rpc('app_notif_unread', { p_token: session.token }).catch(function () { return null; }),
+      rpc('app_naryad_list', { p_token: session.token }).catch(function () { return null; }),
+      rpc('app_support_ticket_list', { p_token: session.token, p_status: null, p_scope: null, p_mine: true }).catch(function () { return null; })
+    ]).then(function (res) {
+      add('Новых уведомлений', res[0]);
+      if (res[1]) add('Нарядов', res[1].length);
+      if (res[2]) add('Моих тикетов', res[2].length);
+    });
+  }
+
+  function renderNotifications(session) {
+    if (!window.SB) return;
+    function href(link) { if (!link) return ''; return /^apps\//.test(link) ? '../' + link.replace(/^apps\//, '') : link; }
+    rpc('app_notif_list', { p_token: session.token, p_limit: 6 }).then(function (list) {
+      list = list || [];
+      var un = list.filter(function (n) { return !n.read_at; }).length;
+      $('#notifCnt').textContent = un ? '(' + un + ' новых)' : '';
+      $('#notifs').innerHTML = list.length ? list.map(function (n) {
+        var h = href(n.link);
+        var inner = '<span><b>' + esc(n.title) + '</b>' + (n.body ? ' <span class="note">— ' + esc(n.body) + '</span>' : '') + '</span>' +
+          '<span class="role">' + fmtDT(n.created_at) + '</span>';
+        return h ? '<a class="tenant" style="text-decoration:none;color:inherit" href="' + esc(h) + '">' + inner + '</a>'
+                 : '<div class="tenant">' + inner + '</div>';
+      }).join('') : '<span class="note">Уведомлений нет.</span>';
+    }).catch(function () { $('#notifs').innerHTML = '<span class="note">Недоступно.</span>'; });
+    var b = $('#notifAll');
+    if (b) b.addEventListener('click', function () { rpc('app_notif_mark_all', { p_token: session.token }).then(function () { renderNotifications(session); }).catch(function () {}); });
+  }
+
   function renderEvents(session) {
     if (!window.SB) return;
     rpc('app_my_events', { p_token: session.token, p_limit: 8 }).then(function (list) {
@@ -134,7 +172,9 @@
     var list = visibleApps(s);
     renderAccount(s);
     renderKpi(s, list);
+    renderKpiLive(s);
     renderQuick(list);
+    renderNotifications(s);
     renderModules(s, list);
     renderEvents(s);
     renderTfa(s);
