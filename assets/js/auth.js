@@ -23,13 +23,15 @@
     user: function () { var s = read(); return s ? { user_id: s.user_id, login: s.login, full_name: s.full_name, role: s.role } : null; },
     role: function () { var s = read(); return s ? s.role : null; },
 
-    // возвращает объект пользователя или null (неверные данные)
+    lastError: null,
+    // возвращает объект пользователя или null (неверные данные/блокировка)
     login: function (login, password) {
       if (!g.SB) return Promise.reject(new Error('Supabase не подключён'));
+      Auth.lastError = null;
       return g.SB.rpc('app_login', { p_login: login, p_password: password }).then(function (r) {
         if (r.error) throw new Error(fail(r.error));
         var row = r.data && r.data[0];
-        if (!row) return null;
+        if (!row || row.ok === false) { Auth.lastError = row && row.message; return null; }
         write({ token: row.token, user_id: row.user_id, login: row.login, full_name: row.full_name, role: row.role, ts: Date.now() });
         return row;
       });

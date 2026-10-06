@@ -82,6 +82,13 @@
       rpc('admin_delete_user', { p_token: token, p_user_id: b.dataset.del }).then(function (d) { if (d && d[0] && d[0].ok) window.Auth.log('Удалён пользователь', b.dataset.login); resultMsg('#listMsg', d); load(); });
     }
   });
+  function loadAttempts() {
+    return rpc('app_login_attempts_list', { p_token: token, p_limit: 100 }).then(function (a) {
+      a = a || [];
+      $('#logins').innerHTML = a.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Логин</th><th>Результат</th><th>Время</th></tr></thead><tbody>' +
+        a.map(function (x) { return '<tr><td>' + esc(x.login || '—') + '</td><td><span class="badge ' + (x.success ? 'done' : 'cancelled') + '">' + (x.success ? 'успех' : 'отказ') + '</span></td><td class="muted">' + fmtDT(x.created_at) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<span class="note">Записей нет.</span>';
+    }).catch(function (e) { msg('#laMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
   $('#aq').addEventListener('input', function () { q = this.value; render(); });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
@@ -94,5 +101,6 @@
       .map(function (r) { return '<option value="' + r + '">' + esc(roleLabel(r)) + '</option>'; }).join('');
     if (!SB) { msg('#listMsg', 'Supabase не подключён.', 'err'); return; }
     load();
+    loadAttempts();
   });
 })();

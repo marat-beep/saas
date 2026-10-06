@@ -42,7 +42,7 @@
 
     window.Auth.login(login, pass).then(function (row) {
       b.disabled = false; b.textContent = 'Войти';
-      if (!row) { msg('Неверный логин или пароль.', 'err'); return; }
+      if (!row) { msg(window.Auth.lastError || 'Неверный логин или пароль.', 'err'); return; }
       msg('Вход выполнен. Переход…', 'ok');
       var role = (row && row.role) || (window.Auth.role && window.Auth.role()) || '';
       setTimeout(function () { location.href = landing(role); }, 400);
