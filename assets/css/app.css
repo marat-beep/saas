@@ -257,3 +257,18 @@ h1,h2,h3{line-height:1.25}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .hero h1{font-size:var(--fs-6)}
 .hero p{font-size:var(--fs-3)}
+/* ===== uCoz-каркас: глобальный левый сайдбар (.sh-*). Только layout, палитра та же. ===== */
+body.sh-has{padding-left:250px}
+body.sh-has.sh-collapsed{padding-left:64px}
+.sh-side{position:fixed;top:0;left:0;bottom:0;width:250px;background:var(--surface);border-right:1px solid var(--border);overflow:auto;padding:10px 8px;z-index:900}
+body.sh-collapsed .sh-side{width:64px;padding:10px 6px}
+.sh-brand{display:flex;gap:6px;align-items:baseline;padding:8px 10px 12px;font-weight:800;color:var(--accent-700)}
+.sh-brand b{color:var(--text)}
+.sh-grp{margin:10px 10px 4px;font-size:.68rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.sh-item{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:9px;text-decoration:none;color:var(--text);font-size:.84rem;white-space:nowrap;overflow:hidden}
+.sh-item:hover{background:var(--bg)}
+.sh-item.on{background:var(--accent-100,#d1fae5);color:var(--accent-700);font-weight:700}
+.sh-ic{width:20px;text-align:center}
+.sh-burger{margin-right:6px}
+body.sh-collapsed .sh-tx,body.sh-collapsed .sh-grp,body.sh-collapsed .sh-brand span{display:none}
+@media(max-width:768px){body.sh-has{padding-left:0}.sh-side{transform:translateX(-100%);transition:transform .2s;width:260px}body.sh-open .sh-side{transform:none}body.sh-collapsed .sh-tx,body.sh-collapsed .sh-grp{display:block}}
