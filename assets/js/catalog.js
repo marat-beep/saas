@@ -8,13 +8,28 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '6.7',
+  version: '6.8',
   updated: '06.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
      По умолчанию — done; здесь перечислены частично реализованные и черновые. */
   statuses: {},
   statusOf: function (id) { return (this.statuses && this.statuses[id]) || 'done'; },
+
+  /* Порядок внедрения (номер шага) и приоритет (1..4) */
+  implOrder: {
+    auth:1, panel:2, dashboard:3, orders:4, crm:5, tkp:6, docs:7, templates:8, client:9,
+    registry:10, bom:11, calc:12, norms:13, assistant:14,
+    production:15, mes:16, terminal:17, planning:18, slots:19, forecast:20, warehouse:21,
+    qc:22, passport:23, quality:24, maintenance:25, tooling:26, oee:27, iiot:28, setup:29, lean:30, issues:31, service:32, calendar:33,
+    economics:34, teo:35, finance:36, bi:37, reports:38,
+    hr:39, departments:40, staff:41, org:42, roles:43,
+    dicts:44, config:45, reverse:46, partners:47, equipment:48, suppliers:49, procurement:50, supplier:51,
+    marketplace:52, escrow:53, labels:54, engraving:55, files:56, builder:57, industry:58, usage:59, adoption:60,
+    guide:61, modules:62, platform:63, admin:64, diagnostics:65, scale:66, whitelabel:67, api:68, eco:99
+  },
+  implOrderOf: function (id) { return (this.implOrder && this.implOrder[id]) || 999; },
+  priorityOf: function (id) { var n = this.implOrderOf(id); return n <= 9 ? 1 : (n <= 21 ? 2 : (n <= 33 ? 3 : 4)); },
   groups: [
     { id: 'core',       icon: '🧭', title: 'Ядро' },
     { id: 'sales',      icon: '📥', title: 'Продажи и заказы' },

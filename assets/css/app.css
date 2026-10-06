@@ -239,3 +239,6 @@ input:focus { outline: none; border-color: var(--accent); }
 /* точка статуса на карточках хаба */
 .app-card{position:relative}
 .app-card .mdot{position:absolute;top:12px;right:12px;margin:0}
+
+/* номер порядка внедрения на карточках */
+.impn{display:inline-block;background:#eef2f7;color:#334155;border-radius:6px;padding:1px 6px;font-size:.68rem;font-weight:700;vertical-align:middle;margin-right:4px}

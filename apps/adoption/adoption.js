@@ -16,6 +16,7 @@
   function msg(t, k) { var e = $('#mMsg'); e.className = 'msg show ' + (k || 'info'); e.textContent = t; }
   function rpc(n, a) { return SB.rpc(n, a).then(function (r) { if (r.error) throw new Error(r.error.message); return r.data; }); }
   function cell(l, v) { return '<div class="kpi"><small>' + l + '</small><b>' + v + '</b></div>'; }
+  function orderOf(id) { return (window.AppCatalog && window.AppCatalog.implOrderOf) ? window.AppCatalog.implOrderOf(id) : 900; }
 
   function load() {
     return Promise.all([
@@ -37,11 +38,13 @@
       if (!mods.length) return;
       var recommended = prof.indexOf(w) >= 0;
       html += '<div class="wave">' + esc(WAVE_T[w]) + (recommended ? ' <span class="st used">рекомендуется профилю</span>' : ' <span class="st off">позже</span>') + '</div>';
-      html += '<table class="mini"><thead><tr><th>Модуль</th><th>Статус</th><th class="num">Записей</th><th></th></tr></thead><tbody>';
+      html += '<table class="mini"><thead><tr><th class="num">№</th><th>Модуль</th><th>Статус</th><th class="num">Записей</th><th></th></tr></thead><tbody>';
+      mods.sort(function (a, b) { return orderOf(a) - orderOf(b); });
       mods.forEach(function (m) {
         var x = map[m];
         var st = x.used ? '<span class="st used">используется</span>' : (x.enabled ? '<span class="st on">включён</span>' : '<span class="st off">не включён</span>');
-        html += '<tr><td>' + esc(TITLE[m] || m) + '</td><td>' + st + '</td><td class="num">' + (x.records || 0) + '</td>' +
+        var no = orderOf(m); var noS = no < 900 ? no : '';
+        html += '<tr><td class="num">' + noS + '</td><td>' + esc(TITLE[m] || m) + '</td><td>' + st + '</td><td class="num">' + (x.records || 0) + '</td>' +
           '<td>' + (x.enabled ? '' : '<button class="btn secondary" data-on="' + m + '" style="width:auto;padding:4px 10px;font-size:.72rem;">Включить</button>') +
           (x.enabled ? '<button class="btn secondary" data-off="' + m + '" style="width:auto;padding:4px 10px;font-size:.72rem;">Отключить</button>' : '') + '</td></tr>';
       });

@@ -13,7 +13,7 @@
     }
   })();
 </script>
-<link rel="stylesheet" href="assets/css/app.css?v=9">
+<link rel="stylesheet" href="assets/css/app.css?v=10">
 <style>
   .grp { margin-bottom: 18px; }
   .grp-t { font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 10px; }
@@ -62,7 +62,7 @@
   <script src="assets/js/ui.js?v=2"></script>
   <script src="assets/js/status.js?v=1"></script>
   <script src="assets/js/auth.js?v=4"></script>
-  <script src="assets/js/catalog.js?v=50"></script>
+  <script src="assets/js/catalog.js?v=51"></script>
   <script>
     (function () {
       'use strict';
@@ -77,10 +77,12 @@
         var tag = a.guest ? 'открыто' : (logged ? 'личный' : 'нужен вход');
         var st = (C.statusOf) ? C.statusOf(a.id) : 'done';
         var stTitle = st === 'done' ? 'готово' : (st === 'progress' ? 'в работе' : 'не начато');
+        var n = (C.implOrderOf) ? C.implOrderOf(a.id) : '';
+        var imp = (n && n < 900) ? '<span class="impn" title="Порядок внедрения">№' + n + '</span> ' : '';
         return '<a class="app-card" href="' + href + '">' +
           '<span class="mdot ' + st + '" title="' + stTitle + '"></span>' +
           '<span class="ic">' + a.icon + '</span>' +
-          '<h3>' + ui.esc(a.title) + '</h3>' +
+          '<h3>' + imp + ui.esc(a.title) + '</h3>' +
           '<p>' + ui.esc(a.desc) + '</p>' +
           '<span class="tag">' + tag + '</span></a>';
       }
