@@ -142,13 +142,25 @@
         return '<option value="' + e.id + '">' + esc(e.name) + (e.price != null ? ' — ' + Number(e.price).toLocaleString('ru-RU') + ' ' + esc(e.currency || '') : '') + '</option>';
       }).join('');
     }).catch(function () {});
+    var p4 = rpc('app_qc_list', { p_token: token }).then(function (r) {
+      var a = r || [];
+      $('#srcQc').innerHTML = '<option value="">— проверка ОТК —</option>' + a.map(function (q) {
+        return '<option value="' + q.id + '">' + esc(q.number || '') + ' · ' + esc(q.product || '') + (q.status ? ' [' + esc(q.status) + ']' : '') + '</option>';
+      }).join('');
+    }).catch(function () {});
+    var p5 = rpc('app_passport_list', { p_token: token }).then(function (r) {
+      var a = r || [];
+      $('#srcPass').innerHTML = '<option value="">— паспорт —</option>' + a.map(function (pp) {
+        return '<option value="' + pp.id + '">' + esc(pp.number || '') + ' · ' + esc(pp.product || '') + (pp.serial ? ' · ' + esc(pp.serial) : '') + '</option>';
+      }).join('');
+    }).catch(function () {});
     var p3 = rpc('app_route_list', { p_token: token }).then(function (r) {
       var a = r || [];
       $('#srcRoute').innerHTML = '<option value="">— маршрут —</option>' + a.map(function (rt) {
         return '<option value="' + rt.id + '">' + esc(rt.number || '') + ' · ' + esc(rt.name || '') + (rt.order_number ? ' · ' + esc(rt.order_number) : '') + ' (' + (rt.step_count || 0) + ' шаг.)</option>';
       }).join('');
     }).catch(function () {});
-    return Promise.all([p1, p2, p3]);
+    return Promise.all([p1, p2, p3, p4, p5]);
   }
 
   /* ---------- события ---------- */
@@ -174,6 +186,18 @@
     var id = $('#srcRoute').value; if (!id) { msg('#sMsg', 'Выберите маршрут', 'err'); return; }
     rpc('app_nc_from_route', { p_token: token, p_route_id: id, p_program_no: $('#ncNo').value || null, p_equipment_id: null })
       .then(function (r) { var x = r && r[0]; msg('#sMsg', x ? x.message : 'Ошибка', x ? 'ok' : 'err'); if (x) window.Auth.log('УП из маршрута', id); })
+      .catch(function (e) { msg('#sMsg', 'Ошибка: ' + e.message, 'err'); });
+  });
+  $('#protoFromQc').addEventListener('click', function () {
+    var id = $('#srcQc').value; if (!id) { msg('#sMsg', 'Выберите проверку ОТК', 'err'); return; }
+    rpc('app_doc_from_qc', { p_token: token, p_qc_id: id })
+      .then(function (r) { var x = r && r[0]; msg('#sMsg', x ? (x.message + ': ' + x.number) : 'Ошибка', x ? 'ok' : 'err'); if (x) { window.Auth.log('Протокол ОТК', x.number); loadList(); preview(x.id); } })
+      .catch(function (e) { msg('#sMsg', 'Ошибка: ' + e.message, 'err'); });
+  });
+  $('#passFromPass').addEventListener('click', function () {
+    var id = $('#srcPass').value; if (!id) { msg('#sMsg', 'Выберите паспорт', 'err'); return; }
+    rpc('app_doc_from_passport', { p_token: token, p_passport_id: id })
+      .then(function (r) { var x = r && r[0]; msg('#sMsg', x ? (x.message + ': ' + x.number) : 'Ошибка', x ? 'ok' : 'err'); if (x) { window.Auth.log('Паспорт-документ', x.number); loadList(); preview(x.id); } })
       .catch(function (e) { msg('#sMsg', 'Ошибка: ' + e.message, 'err'); });
   });
   $('#qFromEquip').addEventListener('click', function () {
