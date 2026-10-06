@@ -49,6 +49,9 @@
       $('#card').style.display = 'block';
       $('#cardTitle').textContent = t.number + ' · ' + t.subject;
       $('#cardMeta').textContent = 'Статус: ' + t.status + ' · приоритет: ' + t.priority + ' · scope: ' + t.scope + ' · заявитель: ' + (t.requester_name || '') + ' · исполнитель: ' + (t.assignee_login || '—') + ' · SLA ответа: ' + d(t.sla_response_due) + ' · SLA решения: ' + d(t.sla_resolve_due);
+      $('#cIssue').innerHTML = t.issue_id
+        ? ('Связанная проблема: <b>' + esc(t.issue_title || t.issue_id) + '</b> · <a href="../issues/index.html">реестр «Проблемы»</a>' + (t.status === 'resolved' || t.status === 'closed' ? ' · закрыта с тикетом' : ''))
+        : 'Связанной проблемы нет — эскалация создаст её автоматически.';
       $('#cStatus').value = ['open', 'in_progress', 'waiting', 'resolved', 'closed'].indexOf(t.status) >= 0 ? t.status : 'open';
       var ms = r[1] || [];
       $('#messages').innerHTML = ms.length ? ms.map(function (m) {
@@ -72,7 +75,7 @@
   });
   $('#cSet').addEventListener('click', function () { if (cur) rpc('app_support_ticket_set_status', { p_token: token, p_id: cur, p_status: $('#cStatus').value }).then(function () { load(); open(cur); }); });
   $('#cAssign').addEventListener('click', function () { if (!cur) return; var a = prompt('Логин исполнителя:', ''); if (a == null) return; rpc('app_support_ticket_assign', { p_token: token, p_id: cur, p_assignee_login: a }).then(function () { load(); open(cur); }); });
-  $('#cEsc').addEventListener('click', function () { if (cur) rpc('app_support_ticket_escalate', { p_token: token, p_id: cur }).then(function () { load(); open(cur); }); });
+  $('#cEsc').addEventListener('click', function () { if (!cur) return; rpc('app_support_ticket_escalate', { p_token: token, p_id: cur }).then(function (r) { var x = r && r[0]; msg('#cMsg', x ? x.message : 'Эскалировано', x && x.ok ? 'ok' : 'err'); load(); open(cur); }); });
   $('#cCsat').addEventListener('click', function () { if (!cur) return; var s = parseInt(prompt('Оценка 1–5:', '5'), 10) || 5; rpc('app_support_ticket_csat', { p_token: token, p_id: cur, p_score: s, p_comment: '' }).then(function () { loadKpi(); }); });
   $('#cClose').addEventListener('click', function () { $('#card').style.display = 'none'; cur = null; });
   $('#scanBtn').addEventListener('click', function () { rpc('app_support_escalate_scan', { p_token: token }).then(function (r) { var n = (r && r[0] && r[0].escalated) || 0; msg('#mMsg', 'Эскалировано: ' + n, n ? 'ok' : 'info'); load(); loadKpi(); }); });

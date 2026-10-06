@@ -3,7 +3,8 @@
    Публичный API: window.PageRemarks.init(opts)
    Зависимости (опц.): jsPDF (window.jspdf), html2canvas.
    Данные — через storage-адаптер: .rpc(SB,token) (Supabase RPC) | .local() (демо).
-   v1.0.
+   Backend /shot: opts.shotEndpoint или window.Screenshot (screenshot.client.js).
+   v1.1.
    ============================================================ */
 (function (g) {
   'use strict';
@@ -86,10 +87,12 @@
       var mount = opts.mount;
       if (!mount) throw new Error('page-remarks: не задан mount');
       var storage = opts.storage || RemarksStorage.local();
+      var sopt = (g.Screenshot && g.Screenshot.available && g.Screenshot.available()) ? g.Screenshot.shotOptions() : {};
       var S = {
         module: opts.module || (location.pathname.replace(/.*\/apps\//, '').replace(/\/.*/, '') || 'page'),
         url: '', shot: '', mode: 'click', remarks: [], filter: 'all', user: opts.user || { name: '', role: 'employee' },
-        shotEndpoint: opts.shotEndpoint || '', shotParams: opts.shotParams || { width: 1280, fullPage: true }, busy: false, bug: false
+        shotEndpoint: opts.shotEndpoint || sopt.shotEndpoint || '', shotHeaders: opts.shotHeaders || sopt.shotHeaders || {},
+        shotParams: opts.shotParams || sopt.shotParams || { width: 1280, fullPage: true }, busy: false, bug: false
       };
 
       mount.innerHTML =
