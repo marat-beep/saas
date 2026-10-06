@@ -54,6 +54,7 @@
       $('#messages').innerHTML = ms.length ? ms.map(function (m) {
         return '<div class="msg-row ' + (m.is_internal ? 'int' : '') + '"><div class="note">' + esc(m.author_name || m.author_login) + ' · ' + esc(m.author_role) + ' · ' + d(m.created_at) + (m.is_internal ? ' · внутренняя' : '') + '</div><div>' + esc(m.body) + '</div></div>';
       }).join('') : '<span class="note">Сообщений нет.</span>';
+      loadFiles(id);
       $('#card').scrollIntoView({ behavior: 'smooth' });
     }).catch(function (e) { msg('#mMsg', 'Ошибка: ' + e.message, 'err'); });
   }
@@ -85,6 +86,33 @@
       $('#kbList').innerHTML = rows.length ? rows.map(function (k) { return '<div class="ocard"><b>' + esc(k.title) + '</b> ' + (k.published ? '<span class="badge done">опубл.</span>' : '<span class="badge">черновик</span>') + '<div class="note mt">' + esc(k.body || '') + '</div></div>'; }).join('') : '<span class="note">Статей нет.</span>';
     });
   }
+  function loadAnalytics() {
+    return rpc('app_support_analytics', { p_token: token }).then(function (rows) {
+      rows = rows || []; var groups = {};
+      rows.forEach(function (x) { (groups[x.kind] = groups[x.kind] || []).push(x); });
+      var names = { status: 'По статусу', category: 'По категории', module: 'По модулям', scope: 'По уровню' };
+      $('#anList').innerHTML = Object.keys(groups).map(function (k) {
+        return '<div class="note mt">' + (names[k] || k) + '</div><table class="mini"><tbody>' +
+          groups[k].map(function (x) { return '<tr><td>' + esc(x.name) + '</td><td style="text-align:right;font-weight:700">' + x.cnt + '</td></tr>'; }).join('') + '</tbody></table>';
+      }).join('') || '<span class="note">Нет данных.</span>';
+    }).catch(function (e) { msg('#anMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
+  function loadFiles(id) {
+    return rpc('app_files_list', { p_token: token, p_entity_type: 'support_ticket', p_entity_id: id }).then(function (r) {
+      var rows = r || [];
+      $('#cFiles').innerHTML = rows.length ? ('<div class="note">Вложения:</div>' + rows.map(function (f) { return '<div class="note">📎 <a href="' + esc(f.url) + '" target="_blank">' + esc(f.name) + '</a></div>'; }).join('')) : '<span class="note">Вложений нет.</span>';
+    }).catch(function () {});
+  }
+  function uploadFile(id, file) {
+    if (!file) return;
+    var path = 'support_ticket/' + id + '/' + Date.now() + '_' + file.name.replace(/[^\w.\-]+/g, '_');
+    SB.storage.from('saas-files').upload(path, file, { upsert: false }).then(function (r) {
+      if (r.error) throw new Error(r.error.message);
+      return rpc('app_file_register', { p_token: token, p_entity_type: 'support_ticket', p_entity_id: id, p_name: file.name, p_mime: file.type, p_size: file.size, p_path: path, p_note: null });
+    }).then(function () { loadFiles(id); }).catch(function (e) { msg('#cMsg', 'Ошибка вложения: ' + e.message, 'err'); });
+  }
+  $('#cFile').addEventListener('change', function () { if (cur) uploadFile(cur, this.files[0]); this.value = ''; });
+
   $('#kbSave').addEventListener('click', function () { rpc('app_support_kb_save', { p_token: token, p_id: null, p_title: $('#kbT').value, p_body: $('#kbB').value, p_tags: null, p_published: true }).then(function (r) { var x = r && r[0]; msg('#kbMsg', x ? x.message : 'Ошибка', x && x.ok ? 'ok' : 'err'); $('#kbT').value = ''; $('#kbB').value = ''; loadKb(); }); });
   $('#kbQ').addEventListener('input', loadKb);
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
@@ -94,6 +122,6 @@
     token = s.token; role = s.role;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#mMsg', 'Supabase не подключён.', 'err'); return; }
-    loadKpi(); load(); loadKb();
+    loadKpi(); load(); loadKb(); loadAnalytics();
   });
 })();

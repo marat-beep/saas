@@ -66,8 +66,16 @@
       <div id="messages" class="mt"></div>
       <div class="field mt"><label>Ответ</label><textarea id="cBody" rows="3" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:9px;"></textarea></div>
       <label class="note"><input type="checkbox" id="cInternal"> Внутренняя заметка (заявителю не видна)</label>
+      <div class="field mt"><label>Вложение (файл, в т.ч. скриншот)</label><input type="file" id="cFile"></div>
+      <div id="cFiles" class="mt"></div>
       <div class="btn-row mt"><button class="btn" id="cReply">Отправить</button><button class="btn secondary" id="cClose">Свернуть</button></div>
       <div class="msg" id="cMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2>Аналитика поддержки</h2>
+      <div id="anList" class="mt"><span class="note">Загрузка…</span></div>
+      <div class="msg" id="anMsg"></div>
     </div>
 
     <div class="card">
@@ -94,7 +102,7 @@
   <script src="../../assets/js/support-widget.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=46"></script>
   <script src="../../assets/js/shell.js?v=2"></script>
-  <script src="support.js?v=1"></script>
+  <script src="support.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
 </body>
 </html>
