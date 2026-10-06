@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Конструктор документов — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=16">
+<style>
+  #pvText{white-space:pre-wrap;font:13px/1.6 Consolas,monospace;background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px;max-height:60vh;overflow:auto}
+  @media print{ body *{visibility:hidden} #pvText,#pvText *{visibility:visible} #pvText{position:absolute;left:0;top:0;width:100%;border:0;max-height:none;font-size:12pt} }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">📑</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Конструктор документов</h1><p>Тип документа → поля (динамически) → документ с номером, предпросмотр и печать. Партия B «Документы L3».</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="card mt">
+      <h2>Новый документ</h2>
+      <div class="msg" id="dMsg"></div>
+      <div class="form-grid">
+        <div class="field"><label>Тип документа <span class="req">*</span></label><select id="dType"></select></div>
+        <div class="field"><label>Название</label><input type="text" id="dTitle" placeholder="напр. Счёт на оснастку"></div>
+      </div>
+      <div id="dForm" class="form-grid mt"><span class="note">Выберите тип документа.</span></div>
+      <div class="btn-row mt">
+        <button class="btn" id="dCreate">Создать документ</button>
+        <button class="btn secondary" id="dReset">Очистить</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar wrap">
+        <select id="fType2" style="padding:9px;border:1px solid var(--border);border-radius:9px;min-width:220px;"><option value="">Все типы</option></select>
+        <input type="search" class="search grow" id="q" placeholder="Поиск по номеру/названию…">
+      </div>
+      <h2>Документы <span class="note" id="cnt"></span></h2>
+      <div id="list" class="mt"><span class="note">Загрузка…</span></div>
+      <div class="msg" id="mMsg"></div>
+    </div>
+
+    <div class="card" id="pvWrap" style="display:none">
+      <div class="toolbar wrap">
+        <h2 id="pvTitle" style="margin:0">Предпросмотр</h2>
+        <div class="spacer"></div>
+        <button class="btn secondary" id="pvEdit" style="width:auto;padding:8px 14px;">Редактировать</button>
+        <button class="btn secondary" id="pvPrint" style="width:auto;padding:8px 14px;">Печать</button>
+        <button class="btn secondary" id="pvClose" style="width:auto;padding:8px 14px;">Свернуть</button>
+      </div>
+      <div id="pvText" class="mt"></div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · конструктор документов</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=5"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/support-widget.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=50"></script>
+  <script src="../../assets/js/shell.js?v=5"></script>
+  <script src="docbuilder.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>

@@ -8,7 +8,7 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '7.3',
+  version: '7.4',
   updated: '06.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
@@ -18,7 +18,7 @@ window.AppCatalog = {
 
   /* Порядок внедрения (номер шага) и приоритет (1..4) */
   implOrder: {
-    auth:1, panel:2, dashboard:3, orders:4, crm:5, tkp:6, docs:7, templates:8, client:9,
+    auth:1, panel:2, dashboard:3, orders:4, crm:5, tkp:6, docs:7, templates:8, docbuilder:9, client:9,
     registry:10, bom:11, calc:12, norms:13, assistant:14,
     production:15, mes:16, terminal:17, planning:18, slots:19, forecast:20, warehouse:21,
     qc:22, passport:23, quality:24, maintenance:25, tooling:26, oee:27, iiot:28, setup:29, lean:30, issues:31, service:32, calendar:33,
@@ -200,6 +200,13 @@ window.AppCatalog = {
       purpose: 'Шаблоны документов с подстановками и создание документа из шаблона по заявке.',
       features: ['Шаблоны: КП/договор/акт/техкарта', 'Подстановки {customer}/{order}/{title}/{amount}/{date}', 'Создание документа из шаблона', 'Связь с заявкой', 'Версии документа'],
       connects: ['docs', 'orders', 'client'], in_: 'Шаблон + заявка', out: 'Готовый документ'
+    },
+    {
+      id: 'docbuilder', icon: '📑', title: 'Конструктор документов', href: 'apps/docbuilder/index.html', guest: false, group: 'sales', audience: 'user',
+      desc: 'L3: тип документа схемой → динамические поля, номер, предпросмотр и печать.',
+      purpose: 'Документы L3 (Партия B): тип документа описывается схемой полей (app_schemas), значения хранятся в документе (fields jsonb), текст формируется по полям и печатается.',
+      features: ['8 типов: КП/Договор/Акт/Техкарта/Счёт/Накладная/ТЗ/Паспорт', 'Динамическая форма по полям типа', 'Ссылки на справочники (заказчики/оборудование/материалы)', 'Номер по префиксу типа (KP/DOG/ACT/TC/SCH/NAK/TZ/PSP)', 'Предпросмотр и печать', 'Редактирование полей документа'],
+      connects: ['docs', 'templates', 'registry', 'orders'], in_: 'Тип + значения полей', out: 'Документ → предпросмотр/печать'
     },
     {
       id: 'labels', icon: '🏷', title: 'Упаковка и маркировка', href: 'apps/labels/index.html', guest: false, group: 'sales', audience: 'user',
