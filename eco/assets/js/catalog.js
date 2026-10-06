@@ -15,7 +15,7 @@ window.AppCatalog = {
         
     B2: 'progress', B5: 'progress',  
     B30: 'progress', B32: 'progress', B36: 'progress',
-    P1: 'progress', P8: 'progress', P12: 'progress'
+     P8: 'progress', P12: 'progress'
   },
   statusOf: function (id) { return (this.statuses && this.statuses[id]) || 'done'; },
   changelog: [

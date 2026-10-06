@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Счётчики использования — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=9">
+<style>
+  table.mini{width:100%;border-collapse:collapse;font-size:.86rem}
+  table.mini th,table.mini td{border-bottom:1px solid #eef2f7;padding:8px 10px;text-align:left}
+  table.mini th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:680px){.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">📊</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Счётчики использования (P1)</h1><p>Метрики по организациям для тарифов и аналитики.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="card mt">
+      <h2>Инкремент метрики</h2>
+      <div class="msg" id="fMsg"></div>
+      <div class="grid3">
+        <div class="field"><label>Метрика</label><input type="text" id="fMetric" placeholder="orders / documents / logins"></div>
+        <div class="field"><label>Приращение</label><input type="number" step="any" id="fDelta" value="1"></div>
+        <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="fBump">Увеличить</button></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Значения <span class="note" id="cnt"></span></h2>
+      <div id="list" class="mt"><span class="note">Загрузка…</span></div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · счётчики</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=41"></script>
+  <script src="usage.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
