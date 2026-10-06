@@ -42,10 +42,18 @@
         (b.status !== 'in_work' ? '<button class="btn secondary" data-st="in_work" data-id="' + b.id + '" style="width:auto;padding:7px 12px;">В работу</button>' : '') +
         (b.status !== 'fixed' ? '<button class="btn" data-st="fixed" data-id="' + b.id + '" style="width:auto;padding:7px 12px;">Исправлен</button>' : '') +
         (b.status !== 'rejected' ? '<button class="btn secondary" data-st="rejected" data-id="' + b.id + '" style="width:auto;padding:7px 12px;">Отклонить</button>' : '') +
+        '<button class="btn secondary" data-tk="' + b.id + '" style="width:auto;padding:7px 12px;">В поддержку</button>' +
         '</div></div>';
     }).join('') : '<span class="note">Баг-репортов нет.</span>';
     $$('#list [data-st]').forEach(function (bt) { bt.addEventListener('click', function () {
       rpc('app_bug_set_status', { p_token: token, p_id: bt.dataset.id, p_status: bt.dataset.st }).then(load).catch(function (e) { msg(e.message, 'err'); });
+    }); });
+    $$('#list [data-tk]').forEach(function (bt) { bt.addEventListener('click', function () {
+      bt.disabled = true;
+      rpc('app_support_from_remark', { p_token: token, p_remark_id: bt.dataset.tk })
+        .then(function (r) { var x = r && r[0]; ui.toast(x ? (x.message + (x.number ? ': ' + x.number : '')) : 'Готово', x ? 'ok' : 'err'); msg(x ? (x.message + (x.number ? ': ' + x.number : '')) : '', 'ok'); })
+        .catch(function (e) { msg('Ошибка: ' + e.message, 'err'); })
+        .finally(function () { bt.disabled = false; });
     }); });
   }
 
