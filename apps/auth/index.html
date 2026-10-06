@@ -14,7 +14,28 @@
   </header>
 
   <main class="wrap narrow">
-    <div class="hero"><h1>Вход в сервис</h1><p>Логин и пароль. Пароли хранятся в виде bcrypt-хешей.</p></div>
+    <div class="hero"><h1>Вход в сервис</h1><p>Выберите, как вы входите, затем введите логин и пароль. Пароли хранятся в виде bcrypt-хешей.</p></div>
+
+    <style>
+      .atiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:4px 0 2px}
+      .atile{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);cursor:pointer;color:var(--text);font-size:.84rem;text-align:center}
+      .atile:hover{border-color:var(--accent)}
+      .atile.on{border-color:var(--accent);background:var(--accent-100,#d1fae5)}
+      .atile b{font-size:1.3rem}
+      .atile small{color:var(--muted);font-size:.7rem}
+      @media(max-width:768px){.atiles{grid-template-columns:1fr}}
+    </style>
+
+    <div class="card">
+      <h3>Кто входит</h3>
+      <div class="atiles" id="atiles">
+        <button type="button" class="atile on" data-a="employee" data-login="manager"><b>👤</b><span>Сотрудник</span><small>рабочее место</small></button>
+        <button type="button" class="atile" data-a="org_admin" data-login="owner"><b>🏢</b><span>Администратор организации</span><small>пользователи, роли, бренд</small></button>
+        <button type="button" class="atile" data-a="saas_admin" data-login="admin"><b>🏗</b><span>Администратор SaaS</span><small>платформа, организации</small></button>
+        <button type="button" class="atile" data-a="client" data-login="client"><b>🤝</b><span>Заказчик</span><small>кабинет заказчика</small></button>
+      </div>
+      <p class="note" id="entryHint">Выбрано: Сотрудник — вход в рабочее место.</p>
+    </div>
 
     <div class="card">
       <div class="msg" id="msg"></div>
@@ -45,8 +66,8 @@
   <script src="../../assets/js/config.js?v=1"></script>
   <script src="../../assets/js/supabase-client.js?v=1"></script>
   <script src="../../assets/js/ui.js?v=2"></script>
-  <script src="../../assets/js/auth.js?v=5"></script>
-  <script src="auth.js?v=5"></script>
+  <script src="../../assets/js/auth.js?v=6"></script>
+  <script src="auth.js?v=6"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=25"></script>
   <script src="../../assets/js/notify.js?v=1"></script>
