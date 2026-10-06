@@ -14,6 +14,13 @@
   .mod-tx span { display:block; font-size:.76rem; color:var(--muted); margin-top:2px; line-height:1.45; }
   .mod-btn { background:var(--accent); color:#fff !important; text-decoration:none; border-radius:10px; padding:10px 18px; font-size:.8rem; font-weight:700; white-space:nowrap; }
   .mod-btn:hover { background:var(--accent-700); }
+  .cab-head { display:flex; gap:16px; align-items:center; }
+  .cab-ava { width:64px; height:64px; border-radius:18px; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.6rem; font-weight:800; flex:0 0 auto; }
+  .cab-info h1 { font-size:1.4rem; margin:0 0 2px; }
+  .cab-badges { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .qa { display:flex; gap:10px; flex-wrap:wrap; }
+  .qa a { display:inline-flex; align-items:center; gap:8px; border:1px solid var(--border); border-radius:999px; padding:9px 16px; text-decoration:none; color:var(--fg); font-weight:600; font-size:.85rem; background:#fff; }
+  .qa a:hover { border-color:var(--accent); background:var(--accent-100); }
 </style>
 </head>
 <body>
@@ -25,14 +32,25 @@
   </header>
 
   <main class="wrap">
-    <section class="hero">
-      <h1>Личный кабинет</h1>
-      <p>Данные вашей учётной записи и роль в сервисе.</p>
-    </section>
+    <div class="card cab-head">
+      <div class="cab-ava" id="ava">…</div>
+      <div class="cab-info">
+        <h1 id="cabName">Личный кабинет</h1>
+        <div class="note" id="cabSub">…</div>
+        <div class="cab-badges mt" id="cabBadges"></div>
+      </div>
+    </div>
 
-    <div class="card">
-      <h2>Аккаунт</h2>
-      <div id="profile"><span class="note">Загрузка…</span></div>
+    <div class="kpi-row mt" id="kpis"></div>
+
+    <div class="card mt" id="quickCard" style="display:none">
+      <h2>Быстрые действия</h2>
+      <div class="qa" id="quick"></div>
+    </div>
+
+    <div class="card mt">
+      <h2>Модули по контурам</h2>
+      <div id="modules"><span class="note">Загрузка…</span></div>
     </div>
 
     <div class="card">
@@ -49,11 +67,6 @@
     </div>
 
     <div class="card">
-      <h2>Модули</h2>
-      <div id="modules"></div>
-    </div>
-
-    <div class="card">
       <h2>Последние действия</h2>
       <div id="events"><span class="note">Загрузка…</span></div>
     </div>
@@ -67,7 +80,7 @@
   <script src="../../assets/js/ui.js?v=3"></script>
   <script src="../../assets/js/auth.js?v=6"></script>
   <script src="../../assets/js/catalog.js?v=56"></script>
-  <script src="dashboard.js?v=6"></script>
+  <script src="dashboard.js?v=7"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=56"></script>
   <script src="../../assets/js/notify.js?v=1"></script>
