@@ -142,7 +142,13 @@
         return '<option value="' + e.id + '">' + esc(e.name) + (e.price != null ? ' — ' + Number(e.price).toLocaleString('ru-RU') + ' ' + esc(e.currency || '') : '') + '</option>';
       }).join('');
     }).catch(function () {});
-    return Promise.all([p1, p2]);
+    var p3 = rpc('app_route_list', { p_token: token }).then(function (r) {
+      var a = r || [];
+      $('#srcRoute').innerHTML = '<option value="">— маршрут —</option>' + a.map(function (rt) {
+        return '<option value="' + rt.id + '">' + esc(rt.number || '') + ' · ' + esc(rt.name || '') + (rt.order_number ? ' · ' + esc(rt.order_number) : '') + ' (' + (rt.step_count || 0) + ' шаг.)</option>';
+      }).join('');
+    }).catch(function () {});
+    return Promise.all([p1, p2, p3]);
   }
 
   /* ---------- события ---------- */
@@ -150,6 +156,24 @@
     var id = $('#srcBom').value; if (!id) { msg('#sMsg', 'Выберите спецификацию', 'err'); return; }
     rpc('app_quote_from_bom', { p_token: token, p_bom_id: id, p_margin_pct: parseFloat($('#bomMargin').value) || 0, p_valid_days: 30 })
       .then(function (r) { var x = r && r[0]; msg('#sMsg', x ? (x.message + ': ' + x.number + ' — ' + Number(x.amount).toLocaleString('ru-RU') + ' ₽') : 'Ошибка', x ? 'ok' : 'err'); if (x) { window.Auth.log('КП из спецификации', x.number); loadList(); preview(x.id); } })
+      .catch(function (e) { msg('#sMsg', 'Ошибка: ' + e.message, 'err'); });
+  });
+  $('#rFromBom').addEventListener('click', function () {
+    var id = $('#srcBom').value; if (!id) { msg('#sMsg', 'Выберите спецификацию', 'err'); return; }
+    rpc('app_route_from_bom', { p_token: token, p_bom_id: id, p_name: null })
+      .then(function (r) { var x = r && r[0]; msg('#sMsg', x ? (x.message + ': ' + x.number) : 'Ошибка', x ? 'ok' : 'err'); if (x) { window.Auth.log('Маршрут из BOM', x.number); loadSources(); } })
+      .catch(function (e) { msg('#sMsg', 'Ошибка: ' + e.message, 'err'); });
+  });
+  $('#tcFromRoute').addEventListener('click', function () {
+    var id = $('#srcRoute').value; if (!id) { msg('#sMsg', 'Выберите маршрут', 'err'); return; }
+    rpc('app_doc_from_route', { p_token: token, p_route_id: id })
+      .then(function (r) { var x = r && r[0]; msg('#sMsg', x ? (x.message + ': ' + x.number) : 'Ошибка', x ? 'ok' : 'err'); if (x) { window.Auth.log('Техкарта из маршрута', x.number); loadList(); preview(x.id); } })
+      .catch(function (e) { msg('#sMsg', 'Ошибка: ' + e.message, 'err'); });
+  });
+  $('#ncFromRoute').addEventListener('click', function () {
+    var id = $('#srcRoute').value; if (!id) { msg('#sMsg', 'Выберите маршрут', 'err'); return; }
+    rpc('app_nc_from_route', { p_token: token, p_route_id: id, p_program_no: $('#ncNo').value || null, p_equipment_id: null })
+      .then(function (r) { var x = r && r[0]; msg('#sMsg', x ? x.message : 'Ошибка', x ? 'ok' : 'err'); if (x) window.Auth.log('УП из маршрута', id); })
       .catch(function (e) { msg('#sMsg', 'Ошибка: ' + e.message, 'err'); });
   });
   $('#qFromEquip').addEventListener('click', function () {
