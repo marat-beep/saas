@@ -1,0 +1,46 @@
+/* ============================================================
+   3DMP · page-remarks.css — модуль «Замечания к странице» (префикс .pr-)
+   Изолированные стили, не конфликтуют с app.css. v1.
+   ============================================================ */
+.pr-root{--pr-accent:#c82627;--pr-dark:#0b2a4a;--pr-bg:#f6f8fb;--pr-bd:#dfe5ee;--pr-mut:#64748b;
+  background:var(--pr-bg);border:1px solid var(--pr-bd);border-radius:14px;padding:14px;color:#0f172a;
+  font:14px/1.45 system-ui,Segoe UI,Arial,sans-serif}
+.pr-root *{box-sizing:border-box}
+.pr-top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.pr-inp{flex:1;min-width:220px;padding:10px 12px;border:1px solid var(--pr-bd);border-radius:9px;background:#fff}
+.pr-btn{padding:10px 14px;border:0;border-radius:9px;background:var(--pr-accent);color:#fff;font-weight:700;cursor:pointer}
+.pr-btn:hover{filter:brightness(.94)}.pr-btn:disabled{opacity:.55;cursor:not-allowed}
+.pr-btn.sec{background:#fff;color:#0f172a;border:1px solid var(--pr-bd)}
+.pr-chip{padding:6px 12px;border:1px solid var(--pr-bd);border-radius:20px;background:#fff;cursor:pointer;font-size:.8rem}
+.pr-chip.on{background:var(--pr-accent);color:#fff;border-color:var(--pr-accent)}
+.pr-wrap{position:relative;border:1px solid var(--pr-bd);border-radius:12px;overflow:auto;max-height:70vh;background:#fff;margin-top:8px}
+.pr-snapshot-wrap{position:relative;display:block;line-height:0}
+.pr-snapshot-wrap img{display:block;width:100%;height:auto}
+.pr-layer{position:absolute;inset:0;z-index:2}
+.pr-layer.view{pointer-events:none}
+.pr-mark{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:var(--pr-accent);
+  color:#fff;font-weight:700;font-size:.78rem;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);z-index:3;transition:transform .12s}
+.pr-mark:hover{transform:scale(1.12)}
+.pr-mark.client{background:var(--pr-dark)}.pr-mark.resolved{background:#94a3b8}
+.pr-mark.pulse{animation:pr-pulse 1.2s ease 2}
+.pr-mark.dim{opacity:.55}
+@keyframes pr-pulse{0%,100%{box-shadow:0 0 0 0 rgba(200,38,39,.6)}50%{box-shadow:0 0 0 12px rgba(200,38,39,0)}}
+.pr-empty{padding:18px;text-align:center;color:var(--pr-mut)}
+.pr-list{margin-top:12px;display:grid;gap:8px}
+.pr-card{border:1px solid var(--pr-bd);border-radius:10px;padding:10px 12px;background:#fff}
+.pr-card.resolved{opacity:.6}.pr-card.resolved .pr-txt{text-decoration:line-through}
+.pr-line{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pr-badge{padding:2px 8px;border-radius:20px;background:#eef2f7;font-size:.72rem;font-weight:700}
+.pr-badge.emp{background:#fde8e8;color:#9b1c1c}.pr-badge.cli{background:#e0e7ff;color:#1e40af}
+.pr-txt{font-weight:600;margin:4px 0}
+.pr-mut{color:var(--pr-mut);font-size:.78rem}
+.pr-acts{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.pr-modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px}
+.pr-modal .pr-dialog{background:#fff;border-radius:14px;max-width:560px;width:100%;padding:16px;max-height:90vh;overflow:auto}
+.pr-field{margin:8px 0}.pr-field label{display:block;font-size:.78rem;font-weight:600;margin-bottom:4px;color:#334155}
+.pr-field input,.pr-field textarea,.pr-field select{width:100%;padding:9px 11px;border:1px solid var(--pr-bd);border-radius:9px}
+.pr-overlay{position:fixed;inset:0;background:rgba(15,23,42,.7);color:#fff;display:flex;align-items:center;justify-content:center;z-index:10000;font-weight:700;flex-direction:column;gap:8px}
+.pr-spin{width:34px;height:34px;border:4px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:pr-rot 1s linear infinite}
+@keyframes pr-rot{to{transform:rotate(360deg)}}
+@media(max-width:768px){.pr-modal .pr-dialog{max-width:none}.pr-root{padding:10px}}
