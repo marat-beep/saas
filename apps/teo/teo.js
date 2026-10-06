@@ -69,6 +69,15 @@
     }); });
   }
 
+  function loadDict() {
+    return rpc('app_dict_items_by_code', { p_token: token, p_code: 'teo_line_kind' }).then(function (r) {
+      if (!r || !r.length) return;
+      var map = {}; r.forEach(function (x) { map[x.value] = x.label; }); KIND = map;
+      $('#lKind').innerHTML = r.map(function (x) { return '<option value="' + esc(x.value) + '">' + esc(x.label) + '</option>'; }).join('');
+      if (cur) openLines(cur.id);
+    }).catch(function () {});
+  }
+
   $('#q').addEventListener('input', function () { q = this.value; render(); });
   $('#fSave').addEventListener('click', function () {
     var title = $('#fTitle').value.trim(); if (!title) { msg('#fMsg', 'Укажите название.', 'err'); return; }
@@ -97,6 +106,6 @@
     token = s.token;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#fMsg', 'Supabase не подключён.', 'err'); return; }
-    load();
+    load().then(loadDict);
   });
 })();

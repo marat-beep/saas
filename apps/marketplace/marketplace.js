@@ -81,6 +81,15 @@
       .catch(function (e) { msg('#lMsg', 'Ошибка: ' + e.message, 'err'); });
   }
 
+  function loadDict() {
+    return rpc('app_dict_items_by_code', { p_token: token, p_code: 'marketplace_process' }).then(function (r) {
+      if (!r || !r.length) return;
+      var map = {}; r.forEach(function (x) { map[x.value] = x.label; }); PR = map;
+      $('#lProcess').innerHTML = r.map(function (x) { return '<option value="' + esc(x.value) + '">' + esc(x.label) + '</option>'; }).join('');
+      renderShop();
+    }).catch(function () {});
+  }
+
   $$('.tab').forEach(function (b) { b.addEventListener('click', function () {
     $$('.tab').forEach(function (x) { x.classList.remove('active'); }); b.classList.add('active');
     $('#tabShop').style.display = b.dataset.tab === 'shop' ? 'block' : 'none';
@@ -102,6 +111,6 @@
     token = s.token;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#lMsg', 'Supabase не подключён.', 'err'); return; }
-    load();
+    load().then(loadDict);
   });
 })();
