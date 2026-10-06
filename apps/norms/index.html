@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Нормирование PRO — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=6">
+<style>
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .tab{padding:8px 12px;border:1px solid var(--border);border-radius:9px;background:#fff;cursor:pointer;font-size:.8rem}
+  .tab.active{border-color:var(--accent);color:var(--accent-700);font-weight:700}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  table.mini{width:100%;border-collapse:collapse;font-size:.84rem}
+  table.mini th,table.mini td{border-bottom:1px solid #eef2f7;padding:7px 9px;text-align:left}
+  table.mini th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .resbox{border:1px dashed var(--border);border-radius:12px;padding:12px 14px;background:#fafcff;margin-top:10px}
+  .resline{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid #eef2f7;font-size:.86rem}
+  .resline:last-child{border-bottom:0}
+  @media(max-width:760px){.grid3,.grid4{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">📐</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Нормирование PRO (P14)</h1><p>Операции и ставки по сложности, K-коэффициенты, серийность, база аналогов и расчёт нормы. Ядро перенесено из «Нормирования PRO».</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="card mt">
+      <div class="tabs" id="tabs"></div>
+
+      <section id="sec-calc">
+        <h2>Калькулятор нормы</h2>
+        <div class="msg" id="cMsg"></div>
+        <div class="grid4">
+          <div class="field"><label>Операция</label><select id="cOp"></select></div>
+          <div class="field"><label>Сложность</label><select id="cCx"><option value="simple">Простая</option><option value="mid" selected>Средняя</option><option value="hard">Сложная</option></select></div>
+          <div class="field"><label>Количество, шт</label><input type="number" step="any" id="cQty" value="1"></div>
+          <div class="field"><label>База (override, ₽/н·ч)</label><input type="number" step="any" id="cBase" placeholder="авто"></div>
+          <div class="field"><label>K материала</label><select id="cKm"></select></div>
+          <div class="field"><label>K точности</label><select id="cKa"></select></div>
+          <div class="field"><label>K геометрии</label><select id="cKg"></select></div>
+          <div class="field"><label>K оснастки</label><select id="cKf"></select></div>
+        </div>
+        <button class="btn mt" id="cCalc">Рассчитать норму</button>
+        <div id="cRes"></div>
+        <div class="toolbar mt" id="cSaveRow" style="display:none">
+          <input type="text" id="cTitle" placeholder="Название расчёта" style="padding:9px;border:1px solid var(--border);border-radius:9px;flex:1;min-width:200px;">
+          <button class="btn" id="cSave">Сохранить в историю</button>
+        </div>
+      </section>
+
+      <section id="sec-ops" style="display:none">
+        <h2>Операции и ставки</h2>
+        <div class="msg" id="oMsg"></div>
+        <div class="grid3">
+          <div class="field"><label>Код</label><input type="text" id="oCode" placeholder="MILL3"></div>
+          <div class="field"><label>Название</label><input type="text" id="oName"></div>
+          <div class="field"><label>Категория</label><input type="text" id="oCat" placeholder="milling"></div>
+          <div class="field"><label>Оборудование</label><input type="text" id="oMt"></div>
+          <div class="field" style="display:flex;align-items:flex-end;gap:8px;"><button class="btn" id="oSave">Сохранить операцию</button><button class="btn secondary" id="oClear">Очистить</button></div>
+        </div>
+        <div class="olist mt" id="oList"></div>
+      </section>
+
+      <section id="sec-k" style="display:none">
+        <h2>K-коэффициенты</h2>
+        <div class="msg" id="kMsg"></div>
+        <div class="grid3">
+          <div class="field"><label>Категория</label><select id="kCat"><option value="material">Материал</option><option value="accuracy">Точность</option><option value="geometry">Геометрия</option><option value="fixture">Оснастка</option></select></div>
+          <div class="field"><label>Название</label><input type="text" id="kName"></div>
+          <div class="field"><label>Значение</label><input type="number" step="0.01" id="kVal" value="1"></div>
+        </div>
+        <button class="btn mt" id="kSave">Добавить коэффициент</button>
+        <div id="kList" class="mt"></div>
+      </section>
+
+      <section id="sec-ser" style="display:none">
+        <h2>Серийность</h2>
+        <div class="msg" id="sMsg"></div>
+        <div class="grid3">
+          <div class="field"><label>Название</label><input type="text" id="sLabel"></div>
+          <div class="field"><label>Кол-во от</label><input type="number" id="sMin" value="1"></div>
+          <div class="field"><label>Кол-во до (пусто = ∞)</label><input type="number" id="sMax"></div>
+          <div class="field"><label>Коэффициент</label><input type="number" step="0.01" id="sFactor" value="1"></div>
+          <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="sSave">Добавить диапазон</button></div>
+        </div>
+        <div id="sList" class="mt"></div>
+      </section>
+
+      <section id="sec-an" style="display:none">
+        <h2>База аналогов и автоподбор</h2>
+        <div class="msg" id="aMsg"></div>
+        <div class="grid4">
+          <div class="field"><label>Материал (подбор)</label><input type="text" id="aFMat"></div>
+          <div class="field"><label>Операция (код)</label><input type="text" id="aFOp" placeholder="MILL3"></div>
+          <div class="field"><label>Масса, кг</label><input type="number" step="any" id="aFW"></div>
+          <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="aFind">Подобрать аналоги</button></div>
+        </div>
+        <div id="aFindRes" class="mt"></div>
+        <h3 class="mt">Добавить аналог</h3>
+        <div class="grid4">
+          <div class="field"><label>Название</label><input type="text" id="aName"></div>
+          <div class="field"><label>Материал</label><input type="text" id="aMat"></div>
+          <div class="field"><label>Операция</label><input type="text" id="aOp"></div>
+          <div class="field"><label>Масса, кг</label><input type="number" step="any" id="aW"></div>
+          <div class="field"><label>Габариты</label><input type="text" id="aDims"></div>
+          <div class="field"><label>Норма (н·ч)</label><input type="number" step="any" id="aNorm"></div>
+          <div class="field"><label>Теги</label><input type="text" id="aTags"></div>
+          <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="aSave">Добавить</button></div>
+        </div>
+        <div class="toolbar mt"><input type="search" class="search" id="aQ" placeholder="Поиск аналогов…"></div>
+        <div id="aList" class="mt"></div>
+      </section>
+
+      <section id="sec-h" style="display:none">
+        <h2>История расчётов норм</h2>
+        <div class="msg" id="hMsg"></div>
+        <div class="olist" id="hList"><span class="note">Загрузка…</span></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · нормирование PRO</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=27"></script>
+  <script src="norms.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
