@@ -311,6 +311,17 @@ table.mini{width:100%;border-collapse:collapse}
 .tbl tbody tr[data-open]{cursor:pointer}
 .tbl .muted{color:var(--muted)}
 [data-theme="dark"] .tbl thead th{background:var(--surface)}
+/* Унификация: сетки и таблицы применяются во ВСЕХ модулях (замена локальных .gridN/table.mini) */
+.grid2,.grid3,.grid4{display:grid;gap:var(--space-3)}
+.grid2{grid-template-columns:repeat(2,1fr)}
+.grid3{grid-template-columns:repeat(3,1fr)}
+.grid4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:860px){.grid2,.grid3,.grid4{grid-template-columns:1fr}}
+table.mini{width:100%;border-collapse:collapse;font-size:var(--fs-2)}
+table.mini th,table.mini td{padding:9px 11px;text-align:left;border-bottom:1px solid var(--border)}
+table.mini th{color:var(--muted);font-weight:700;font-size:var(--fs-1);text-transform:uppercase;letter-spacing:.02em}
+table.mini tbody tr:hover{background:var(--bg)}
+[data-theme="dark"] table.mini th,[data-theme="dark"] table.mini td{border-color:var(--border)}
 /* модалка: размер и прокрутка формы */
 .modal.lg{max-width:720px}
 .modal .modal-body .form-grid{margin-top:var(--space-1)}
