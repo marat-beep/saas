@@ -35,14 +35,20 @@
     e.preventDefault();
     var login = $('#login').value.trim();
     var pass = $('#password').value;
+    var code = ($('#code') && $('#code').value || '').trim();
     if (!login || !pass) { msg('Введите логин и пароль.', 'err'); return; }
 
     var b = $('#submit');
     b.disabled = true; b.textContent = 'Проверка…';
 
-    window.Auth.login(login, pass).then(function (row) {
+    window.Auth.login(login, pass, code).then(function (row) {
       b.disabled = false; b.textContent = 'Войти';
-      if (!row) { msg(window.Auth.lastError || 'Неверный логин или пароль.', 'err'); return; }
+      if (!row) {
+        var err = window.Auth.lastError || 'Неверный логин или пароль.';
+        msg(err, 'err');
+        if (/двухфакторн/i.test(err)) { $('#codeField').style.display = ''; $('#code').focus(); }
+        return;
+      }
       msg('Вход выполнен. Переход…', 'ok');
       var role = (row && row.role) || (window.Auth.role && window.Auth.role()) || '';
       setTimeout(function () { location.href = landing(role); }, 400);

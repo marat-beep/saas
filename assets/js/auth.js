@@ -24,11 +24,11 @@
     role: function () { var s = read(); return s ? s.role : null; },
 
     lastError: null,
-    // возвращает объект пользователя или null (неверные данные/блокировка)
-    login: function (login, password) {
+    // возвращает объект пользователя или null (неверные данные/блокировка/2FA)
+    login: function (login, password, code) {
       if (!g.SB) return Promise.reject(new Error('Supabase не подключён'));
       Auth.lastError = null;
-      return g.SB.rpc('app_login', { p_login: login, p_password: password }).then(function (r) {
+      return g.SB.rpc('app_login', { p_login: login, p_password: password, p_code: code || null }).then(function (r) {
         if (r.error) throw new Error(fail(r.error));
         var row = r.data && r.data[0];
         if (!row || row.ok === false) { Auth.lastError = row && row.message; return null; }
