@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Конфигуратор — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=9">
+<style>
+  .cols{display:grid;grid-template-columns:280px 1fr;gap:16px;align-items:start}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .opt{border:1px solid var(--border);border-radius:10px;padding:9px 12px;margin:6px 0;display:flex;gap:8px;align-items:center;background:#fff}
+  .opt .num{margin-left:auto;font-variant-numeric:tabular-nums}
+  .total{font-size:1.3rem;font-weight:800}
+  @media(max-width:860px){.cols{grid-template-columns:1fr}.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🧩</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Конфигуратор спец-технологий (A8)</h1><p>Отметьте нужные опции — система посчитает суммарное удорожание.</p></div>
+
+    <div class="cols mt">
+      <div class="card">
+        <h2>Группы опций</h2>
+        <div class="olist mt" id="groups"><span class="note">Загрузка…</span></div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h2>Опции <span class="note" id="gTitle"></span></h2>
+          <div class="msg" id="oMsg"></div>
+          <div id="options"><span class="note">Выберите группу слева.</span></div>
+          <div class="card" style="margin-top:12px;background:#f0fdfa;border-color:var(--accent);">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+              <span class="note">Выбрано опций: <b id="cCnt">0</b></span>
+              <span class="total" style="margin-left:auto;">Итого удорожание: <span id="cTotal">0 ₽</span></span>
+              <button class="btn secondary" id="cReset" style="width:auto;padding:8px 14px;">Сброс</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Добавить опцию</h2>
+          <div class="msg" id="fMsg"></div>
+          <div class="grid3">
+            <div class="field"><label>Группа</label><input type="text" id="fGroup" placeholder="Покрытие"></div>
+            <div class="field"><label>Название</label><input type="text" id="fName" placeholder="Хромирование"></div>
+            <div class="field"><label>Наценка, ₽</label><input type="number" step="any" id="fPrice" value="0"></div>
+          </div>
+          <button class="btn" id="fSave">Добавить</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · конфигуратор</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=38"></script>
+  <script src="configurator.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
