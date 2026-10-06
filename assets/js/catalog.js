@@ -13,13 +13,7 @@ window.AppCatalog = {
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
      По умолчанию — done; здесь перечислены частично реализованные и черновые. */
-  statuses: {
-    registry: 'progress', assistant: 'progress', tooling: 'progress', oee: 'progress',
-    nc: 'progress', quality: 'progress', bi: 'progress', docs: 'progress', hr: 'progress',
-    org: 'progress', calc: 'progress', industry: 'progress', scale: 'progress',
-    diagnostics: 'progress', api: 'progress', terminal: 'progress', planning: 'progress',
-    eco: 'todo'
-  },
+  statuses: {},
   statusOf: function (id) { return (this.statuses && this.statuses[id]) || 'done'; },
   groups: [
     { id: 'core',       icon: '🧭', title: 'Ядро' },
