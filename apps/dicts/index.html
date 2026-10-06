@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Справочники (настраиваемые) — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=6">
+<style>
+  .cols{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  table.mini{width:100%;border-collapse:collapse;font-size:.84rem}
+  table.mini th,table.mini td{border-bottom:1px solid #eef2f7;padding:7px 9px;text-align:left}
+  table.mini th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase}
+  @media(max-width:860px){.cols{grid-template-columns:1fr}.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🗂</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Настраиваемые справочники (J)</h1><p>Единые списки/варианты для самостоятельного наполнения — категории, виды, типы. Значения подставляются в выпадающие списки модулей.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="cols mt">
+      <div class="card">
+        <h2>Справочники</h2>
+        <div class="msg" id="dMsg"></div>
+        <div class="grid3">
+          <div class="field" style="grid-column:span 3;"><input type="text" id="dCode" placeholder="Код (латиницей, напр. client_type)"></div>
+          <div class="field" style="grid-column:span 3;"><input type="text" id="dName" placeholder="Название (напр. Типы клиентов)"></div>
+        </div>
+        <div class="btn-row"><button class="btn" id="dSave">Добавить справочник</button><button class="btn secondary" id="dClear">Очистить</button></div>
+        <div class="toolbar mt"><input type="search" class="search" id="q" placeholder="Поиск…"></div>
+        <div class="olist mt" id="dList"><span class="note">Загрузка…</span></div>
+      </div>
+
+      <div>
+        <div class="card" id="itemsCard" style="display:none">
+          <h2 id="dTitle">Значения</h2>
+          <div class="msg" id="iMsg"></div>
+          <div class="grid3">
+            <div class="field"><label>Значение (код)</label><input type="text" id="iValue"></div>
+            <div class="field"><label>Название</label><input type="text" id="iLabel"></div>
+            <div class="field"><label>Порядок</label><input type="number" id="iSort" value="100"></div>
+          </div>
+          <div class="btn-row"><button class="btn" id="iSave">Добавить значение</button><button class="btn secondary" id="iClear">Очистить</button></div>
+          <div id="iList" class="mt"></div>
+        </div>
+        <div class="card" id="emptyCard"><span class="note">Выберите справочник слева или создайте новый.</span></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · настраиваемые справочники</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=33"></script>
+  <script src="dicts.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
