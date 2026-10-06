@@ -93,12 +93,31 @@
     Promise.all([
       rpc('app_notif_unread', { p_token: session.token }).catch(function () { return null; }),
       rpc('app_naryad_list', { p_token: session.token }).catch(function () { return null; }),
-      rpc('app_support_ticket_list', { p_token: session.token, p_status: null, p_scope: null, p_mine: true }).catch(function () { return null; })
+      rpc('app_support_ticket_list', { p_token: session.token, p_status: null, p_scope: null, p_mine: true }).catch(function () { return null; }),
+      rpc('app_order_list', { p_token: session.token }).catch(function () { return null; })
     ]).then(function (res) {
       add('Новых уведомлений', res[0]);
       if (res[1]) add('Нарядов', res[1].length);
       if (res[2]) add('Моих тикетов', res[2].length);
+      if (res[3]) add('Заявок', res[3].length);
     });
+  }
+
+  function renderMes(session) {
+    if (!window.SB) return;
+    rpc('app_mes_board', { p_token: session.token }).then(function (list) {
+      list = (list || []).filter(function (t) { return t.status !== 'done'; });
+      list.sort(function (a, b) {
+        var ao = (a.operator === session.login) ? 0 : 1, bo = (b.operator === session.login) ? 0 : 1;
+        return ao - bo;
+      });
+      var show = list.slice(0, 6);
+      $('#mes').innerHTML = show.length ? show.map(function (t) {
+        return '<a class="tenant" style="text-decoration:none;color:inherit" href="../mes/index.html"><span>' +
+          '<b>' + esc(t.title) + '</b> <span class="note">' + esc(t.wc_name || '') + (t.naryad_number ? ' · ' + esc(t.naryad_number) : '') + '</span></span>' +
+          '<span class="role"><span class="badge">' + esc(t.status) + '</span>' + (t.operator ? ' ' + esc(t.operator) : '') + '</span></a>';
+      }).join('') : '<span class="note">Открытых задач нет.</span>';
+    }).catch(function () { $('#mes').innerHTML = '<span class="note">Недоступно.</span>'; });
   }
 
   function renderNotifications(session) {
@@ -175,6 +194,7 @@
     renderKpiLive(s);
     renderQuick(list);
     renderNotifications(s);
+    renderMes(s);
     renderModules(s, list);
     renderEvents(s);
     renderTfa(s);
