@@ -8,7 +8,7 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '6.9',
+  version: '7.0',
   updated: '06.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
@@ -91,6 +91,13 @@ window.AppCatalog = {
       purpose: 'Модуль замечаний: ввод URL → снимок страницы → метки (роль/тип/описание) → список и экспорт PDF. Данные через RPC (0098) или demo-localStorage.',
       features: ['Снимок страницы (backend /shot или демо-заглушка)', 'Метки в % с ролями и типами', 'Режимы клик/просмотр', 'Список, фильтры, статусы', 'Экспорт PDF (снимок+метки+таблица)'],
       connects: ['issues', 'files', 'diagnostics'], in_: 'Замечание к интерфейсу', out: 'PDF/уведомление'
+    },
+    {
+      id: 'bugbox', icon: '🐞', title: 'Баг-бокс', href: 'apps/bugbox/index.html', guest: false, roles: ['admin', 'owner', 'manager'], group: 'platform', audience: 'developer',
+      desc: 'Дашборд баг-репортов: контекст, статусы, разбор разработчиком.',
+      purpose: 'Баг-бокс: баг-репорты из режима бага (селектор, console, breadcrumbs) со статусами новый/в работе/исправлен/отклонён и разбором.',
+      features: ['Список багов (модуль/статус)', 'KPI по статусам', 'Смена статуса', 'Диагностический контекст'],
+      connects: ['remarks', 'issues', 'diagnostics'], in_: 'Баг-репорт', out: 'Исправление'
     },
     {
       id: 'eco', icon: '🌐', title: 'Прототипы экосистемы', href: 'eco/index.html', guest: true, group: 'refs', audience: 'guest',

@@ -17,6 +17,7 @@
         kind: 'local',
         list: function (module, url) { try { return Promise.resolve(JSON.parse(localStorage.getItem(key(module, url)) || '[]')); } catch (e) { return Promise.resolve([]); } },
         add: function (r) { return this.list(r.module, r.url).then(function (a) { a.push(r); localStorage.setItem(key(r.module, r.url), JSON.stringify(a)); return r; }); },
+        addBug: function (r) { return this.add(r); },
         resolve: function (r) { return this.list(r.module, r.url).then(function (a) { a.forEach(function (x) { if (x.id === r.id) x.resolved = r.resolved; }); localStorage.setItem(key(r.module, r.url), JSON.stringify(a)); return r; }); },
         remove: function (r) { return this.list(r.module, r.url).then(function (a) { a = a.filter(function (x) { return x.id !== r.id; }); localStorage.setItem(key(r.module, r.url), JSON.stringify(a)); }); },
         clear: function (module, url) { localStorage.removeItem(key(module, url)); return Promise.resolve(); }
@@ -30,6 +31,7 @@
         kind: 'rpc',
         list: function (module, url) { return call('app_remark_list', { p_token: tk(), p_module: module || null, p_url: url || null }); },
         add: function (r) { return call('app_remark_create', { p_token: tk(), p_module: r.module, p_url: r.url, p_x: r.x, p_y: r.y, p_role: r.role, p_role_name: r.roleName, p_author: r.author, p_type: r.type, p_text: r.text }).then(function (d) { return (d && d[0]) ? Object.assign(r, { id: d[0].id }) : r; }); },
+        addBug: function (r) { return call('app_bug_create', { p_token: tk(), p_module: r.module, p_url: r.url, p_x: r.x, p_y: r.y, p_role_name: r.roleName, p_author: r.author, p_type: r.type, p_text: r.text, p_payload: r.payload || {} }).then(function (d) { return (d && d[0]) ? Object.assign(r, { id: d[0].id }) : r; }); },
         resolve: function (r) { return call('app_remark_resolve', { p_token: tk(), p_id: r.id, p_resolved: r.resolved }); },
         remove: function (r) { return call('app_remark_delete', { p_token: tk(), p_id: r.id }); },
         clear: function (module, url) { return call('app_remark_delete_all', { p_token: tk(), p_module: module || null, p_url: url || null }); }
@@ -43,6 +45,34 @@
     '<rect x="0" y="64" width="1280" height="736" fill="#fff"/><text x="40" y="130" fill="#334155" font-size="22" font-family="Arial">Это заглушка снимка. Backend /shot подключите для реальных страниц.</text>' +
     '<rect x="40" y="170" width="560" height="220" fill="#f1f5f9"/><text x="60" y="205" fill="#64748b" font-size="16" font-family="Arial">Блок контента</text>' +
     '<rect x="640" y="170" width="600" height="480" fill="#f8fafc"/><text x="660" y="205" fill="#64748b" font-size="16" font-family="Arial">Панель</text></svg>');
+
+  /* ---------- «чёрный ящик» + Bug Mode ---------- */
+  var PR_LOG = g.__PR_LOG || (g.__PR_LOG = []);
+  function prlog(level, m, extra) { PR_LOG.push({ ts: new Date().toISOString(), level: level, msg: String(m).slice(0, 500), extra: extra || null }); if (PR_LOG.length > 180) PR_LOG.shift(); }
+  if (!g.__prHooks) {
+    g.__prHooks = true;
+    g.addEventListener('error', function (e) { prlog('error', e.message, { src: (e.filename || '') + ':' + (e.lineno || 0) }); });
+    g.addEventListener('unhandledrejection', function (e) { prlog('rejection', (e.reason && e.reason.message) || String(e.reason)); });
+  }
+  function cssSelector(el) {
+    if (!el || el.nodeType !== 1) return '';
+    if (el.id) return '#' + el.id;
+    var parts = [];
+    while (el && el.nodeType === 1 && parts.length < 4) {
+      var s = el.tagName.toLowerCase();
+      if (el.className && typeof el.className === 'string') s += '.' + el.className.trim().split(/\s+/).slice(0, 2).join('.');
+      parts.unshift(s); el = el.parentElement;
+    }
+    return parts.join(' > ');
+  }
+  function ctxEnvelope(S, el) {
+    return { route: location.pathname + location.search, viewport: innerWidth + 'x' + innerHeight, ua: navigator.userAgent,
+      lang: navigator.language, ts: new Date().toISOString(), appVersion: (g.AppCatalog && g.AppCatalog.version) || '',
+      catalogVersion: (g.AppCatalog && g.AppCatalog.version) || '', module: S.module, url: S.url,
+      element: el ? { selector: cssSelector(el), text: (el.textContent || '').trim().slice(0, 120), aria: el.getAttribute && el.getAttribute('aria-label') } : null,
+      console: PR_LOG.slice(-60), breadcrumbs: (g.Auth && g.Auth.__log ? g.Auth.__log() : []).slice(-30) };
+  }
+  function downloadJson(obj, name) { try { var b = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' }); var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name; a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000); } catch (e) {} }
 
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function uid() { return 'r-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7); }
@@ -59,7 +89,7 @@
       var S = {
         module: opts.module || (location.pathname.replace(/.*\/apps\//, '').replace(/\/.*/, '') || 'page'),
         url: '', shot: '', mode: 'click', remarks: [], filter: 'all', user: opts.user || { name: '', role: 'employee' },
-        shotEndpoint: opts.shotEndpoint || '', shotParams: opts.shotParams || { width: 1280, fullPage: true }, busy: false
+        shotEndpoint: opts.shotEndpoint || '', shotParams: opts.shotParams || { width: 1280, fullPage: true }, busy: false, bug: false
       };
 
       mount.innerHTML =
@@ -68,6 +98,7 @@
         '<input class="pr-inp" id="prUrl" placeholder="https://… — адрес страницы для снимка" />' +
         '<button class="pr-btn" id="prLoad">Загрузить</button>' +
         '<button class="pr-chip on" id="prMode">Режим: клик</button>' +
+        '<button class="pr-chip" id="prBug" title="Режим бага: клик по элементу + контекст">🐞 Баг</button>' +
         '<button class="pr-btn sec" id="prPdf">PDF</button>' +
         '<button class="pr-btn sec" id="prClear">Удалить все</button>' +
         '</div>' +
@@ -146,10 +177,23 @@
         dlg.addEventListener('click', function (e) { if (e.target === dlg) close(); });
         setTimeout(function () { var f = dlg.querySelector('#prAf'); if (f) f.focus(); }, 30);
         dlg.querySelector('#prSave').addEventListener('click', function () {
+          var isBug = !!(preset && preset._bug);
           var r = { id: uid(), module: S.module, url: S.url, x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10,
             role: role, roleName: role === 'client' ? 'Клиент' : 'Сотрудник', author: dlg.querySelector('#prAf').value.trim() || S.user.name || '—',
             type: chosenType, text: dlg.querySelector('#prAt').value.trim(), date: nowISO(), resolved: false };
-          storage.add(r).then(function () { S.remarks.push(r); close(); renderMarks(); msg('Замечание сохранено.', 'ok'); if (opts.onRemarkAdded) opts.onRemarkAdded(r); }).catch(function (e) { msg('Ошибка сохранения: ' + e.message, 'err'); });
+          if (isBug) { r.kind = 'bug'; r.status = 'new'; r.payload = ctxEnvelope(S, preset && preset._el); }
+          var op = (isBug && storage.addBug) ? storage.addBug(r) : storage.add(r);
+          op.then(function () {
+            S.remarks.push(r); close(); renderMarks();
+            msg(isBug ? 'Баг передан разработчику.' : 'Замечание сохранено.', 'ok');
+            if (isBug) {
+              downloadJson({ kind: 'bug', id: r.id, url: S.url, module: S.module, x: r.x, y: r.y, type: r.type, text: r.text || '—', context: r.payload }, 'bug_' + r.id + '.json');
+              var link = location.origin + location.pathname + '?module=' + encodeURIComponent(S.module) + '#yaremark=' + r.id;
+              try { if (navigator.clipboard) navigator.clipboard.writeText(link); } catch (e) {}
+              if (g.AppNotify && g.AppNotify.info) g.AppNotify.info('Баг отправлен. Ссылка скопирована.');
+            }
+            if (opts.onRemarkAdded) opts.onRemarkAdded(r);
+          }).catch(function (e) { msg('Ошибка сохранения: ' + e.message, 'err'); });
         });
       }
 
@@ -158,6 +202,13 @@
         var rect = layer.getBoundingClientRect();
         var x = ((e.clientX - rect.left) / rect.width) * 100, y = ((e.clientY - rect.top) / rect.height) * 100;
         if (x < 0 || x > 100 || y < 0 || y > 100) return;
+        if (S.bug) {
+          var prev = layer.style.pointerEvents; layer.style.pointerEvents = 'none';
+          var el = document.elementFromPoint(e.clientX, e.clientY);
+          layer.style.pointerEvents = prev || '';
+          openModal(x, y, { type: 'Ошибка', _bug: true, _el: el, author: S.user.name, text: '' });
+          return;
+        }
         openModal(x, y, null);
       });
 
@@ -224,6 +275,7 @@
       $('prLoad').addEventListener('click', load);
       $('prUrl').addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
       $('prMode').addEventListener('click', function () { S.mode = (S.mode === 'click') ? 'view' : 'click'; this.textContent = 'Режим: ' + (S.mode === 'click' ? 'клик' : 'просмотр'); layer.className = 'pr-layer' + (S.mode === 'view' ? ' view' : ''); });
+      $('prBug').addEventListener('click', function () { S.bug = !S.bug; this.classList.toggle('on', S.bug); if (S.bug && S.mode === 'view') { S.mode = 'click'; $('prMode').textContent = 'Режим: клик'; layer.className = 'pr-layer'; } if (g.AppNotify && g.AppNotify.info) g.AppNotify.info(S.bug ? 'Режим бага включён: клик по элементу.' : 'Режим бага выключен.'); });
       $('prPdf').addEventListener('click', exportPdf);
       $('prClear').addEventListener('click', function () { if (!confirm('Удалить все замечания для этой страницы?')) return; storage.clear(S.module, S.url).then(function () { S.remarks = []; renderMarks(); msg('Замечания удалены.', 'ok'); }); });
       mount.querySelectorAll('[data-f]').forEach(function (b) { b.addEventListener('click', function () { S.filter = b.dataset.f; mount.querySelectorAll('[data-f]').forEach(function (z) { z.classList.toggle('on', z === b); }); renderList(); }); });
