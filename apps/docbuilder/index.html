@@ -50,9 +50,9 @@
         <div class="field" style="display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;"><button class="btn" id="qFromEquip">Прайс оборудования</button></div>
       </div>
       <div class="form-grid mt">
-        <div class="field"><label>Маршрут (КТПП: техкарта/УП)</label><select id="srcRoute"></select></div>
-        <div class="field"><label>№ УП (необязательно)</label><input type="text" id="ncNo" placeholder="авто"></div>
-        <div class="field" style="display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;"><button class="btn secondary" id="tcFromRoute">Техкарта из маршрута</button><button class="btn secondary" id="ncFromRoute">УП из маршрута</button></div>
+        <div class="field"><label>Маршрут (КТПП: КП/техкарта/УП)</label><select id="srcRoute"></select></div>
+        <div class="field"><label>№ УП (авто) / наценка КП, %</label><div style="display:flex;gap:8px;"><input type="text" id="ncNo" placeholder="№ УП (авто)"><input type="number" id="rtMargin" value="15" min="0" step="0.1" style="max-width:90px"></div></div>
+        <div class="field" style="display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;"><button class="btn secondary" id="kpFromRoute">КП из маршрута</button><button class="btn secondary" id="tcFromRoute">Техкарта</button><button class="btn secondary" id="ncFromRoute">УП</button></div>
       </div>
       <div class="form-grid mt">
         <div class="field"><label>Проверка ОТК (протокол)</label><select id="srcQc"></select></div>
@@ -92,9 +92,9 @@
   <script src="../../assets/js/auth.js?v=5"></script>
   <script src="../../assets/js/notify.js?v=1"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=53"></script>
-  <script src="../../assets/js/shell.js?v=8"></script>
-  <script src="docbuilder.js?v=4"></script>
+  <script src="../../assets/js/nav.js?v=54"></script>
+  <script src="../../assets/js/shell.js?v=9"></script>
+  <script src="docbuilder.js?v=5"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
 </body>
 </html>
