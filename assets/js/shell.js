@@ -36,6 +36,22 @@
     var bar = document.querySelector('.topbar');
     if (bar) bar.insertBefore(btn, bar.firstChild ? bar.firstChild.nextSibling : null);
 
+    /* Тема: светлая/тёмная (светлая палитра не меняется; тёмная — доп. режим) */
+    function applyTheme(t) { document.documentElement.setAttribute('data-theme', t); try { localStorage.setItem('3dmp:theme', t); } catch (e) {} }
+    var saved = ''; try { saved = localStorage.getItem('3dmp:theme') || ''; } catch (e) {}
+    applyTheme(saved || 'light');
+    if (bar) {
+      var tb = document.createElement('button');
+      tb.className = 'tbtn'; tb.type = 'button'; tb.title = 'Тема'; tb.setAttribute('aria-label', 'Переключить тему');
+      tb.textContent = (document.documentElement.getAttribute('data-theme') === 'dark') ? '☀' : '🌙';
+      tb.addEventListener('click', function () {
+        var cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        applyTheme(cur); tb.textContent = cur === 'dark' ? '☀' : '🌙';
+        if (g.AppNotify && g.AppNotify.info) g.AppNotify.info(cur === 'dark' ? 'Тёмная тема' : 'Светлая тема');
+      });
+      bar.appendChild(tb);
+    }
+
     function applyCollapsed() {
       document.body.classList.toggle('sh-collapsed', collapsed);
       try { localStorage.setItem('sh:collapsed', collapsed ? '1' : '0'); } catch (e) {}
