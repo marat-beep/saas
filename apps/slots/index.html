@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Слоты и загрузка — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=6">
+<style>
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  table.mini{width:100%;border-collapse:collapse;font-size:.84rem}
+  table.mini th,table.mini td{border-bottom:1px solid #eef2f7;padding:7px 9px;text-align:left}
+  table.mini th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .bar{height:8px;border-radius:6px;background:#eef2f7;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--accent)}
+  @media(max-width:760px){.grid3,.grid4{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🗓</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Слоты и загрузка (P14 · Сессия D)</h1><p>Мощность рабочих центров по датам и сменам, бронирование часов, SLA и эскалация просрочек.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="card mt">
+      <h2>Новый/редактируемый слот</h2>
+      <div class="msg" id="fMsg"></div>
+      <div class="grid4">
+        <div class="field"><label>Центр *</label><input type="text" id="fCenter" placeholder="Фрезерный участок"></div>
+        <div class="field"><label>Дата *</label><input type="date" id="fDate"></div>
+        <div class="field"><label>Смена</label><select id="fShift"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="night">Ночь</option></select></div>
+        <div class="field"><label>Мощность, ч</label><input type="number" step="any" id="fCap" value="8"></div>
+      </div>
+      <div class="btn-row mt"><button class="btn" id="fSave">Сохранить слот</button><button class="btn secondary" id="fClear">Очистить</button></div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <input type="date" id="qFrom" style="padding:9px;border:1px solid var(--border);border-radius:9px;">
+        <input type="date" id="qTo" style="padding:9px;border:1px solid var(--border);border-radius:9px;">
+        <input type="search" class="search" id="qCenter" placeholder="Центр (фильтр)…">
+        <button class="btn secondary" id="qRefresh" style="width:auto;padding:8px 14px;">Показать</button>
+      </div>
+      <h2>Слоты <span class="note" id="cnt"></span></h2>
+      <div id="list" class="mt"><span class="note">Загрузка…</span></div>
+      <div class="msg" id="mMsg"></div>
+    </div>
+
+    <div class="grid3">
+      <div class="card" style="grid-column:span 2;">
+        <h2>SLA и эскалация</h2>
+        <div class="msg" id="sMsg"></div>
+        <div id="sla"></div>
+        <div class="grid3 mt">
+          <div class="field"><label>Приоритет</label><select id="sPr"><option value="critical">critical</option><option value="high">high</option><option value="normal">normal</option><option value="low">low</option></select></div>
+          <div class="field"><label>Часов до просрочки</label><input type="number" id="sHours" value="24"></div>
+          <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="sSave">Сохранить SLA</button></div>
+        </div>
+        <button class="btn mt" id="scanBtn">Запустить эскалацию (просрочки)</button>
+      </div>
+      <div class="card">
+        <h2>Бронирование часов</h2>
+        <div class="msg" id="bMsg"></div>
+        <div class="field"><label>Центр</label><input type="text" id="bCenter" placeholder="ЭЭО"></div>
+        <div class="field"><label>Дата</label><input type="date" id="bDate"></div>
+        <div class="field"><label>Смена</label><input type="text" id="bShift" value="1"></div>
+        <div class="field"><label>Часы</label><input type="number" step="any" id="bHours" value="2"></div>
+        <button class="btn" id="bBook">Забронировать</button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · слоты и загрузка</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=28"></script>
+  <script src="slots.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
