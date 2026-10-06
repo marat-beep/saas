@@ -12,8 +12,11 @@
 
   function runSmoke() {
     msg('#smMsg', '');
-    rpc('app_smoke_test', { p_token: token }).then(function (rows) {
-      rows = rows || [];
+    Promise.all([
+      rpc('app_smoke_test', { p_token: token }),
+      rpc('app_smoke_test_ext', { p_token: token }).catch(function () { return []; })
+    ]).then(function (res) {
+      var rows = (res[0] || []).concat(res[1] || []);
       var okc = rows.filter(function (r) { return r.ok; }).length;
       $('#smCnt').textContent = '(' + okc + '/' + rows.length + ')';
       $('#smoke').innerHTML = '<table class="mini"><thead><tr><th>Проверка</th><th>Результат</th><th>Детали</th></tr></thead><tbody>' +
