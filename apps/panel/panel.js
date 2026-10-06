@@ -48,6 +48,19 @@
     }
   }
 
+  function renderHead(s) {
+    var name = s.full_name || s.login || '';
+    var ini = (name.trim().split(/\s+/).map(function (w) { return w[0] || ''; }).slice(0, 2).join('') || (s.login || '?').slice(0, 1)).toUpperCase();
+    var av = $('#ava'); if (av) av.textContent = ini;
+    var cn = $('#cabName'); if (cn) cn.textContent = name || 'Пульт управления';
+    var cs = $('#cabSub'); if (cs) cs.textContent = (s.tenant_name ? s.tenant_name + ' · ' : '') + (window.Auth.roleLabel(s.role) || s.role || '');
+    var cb = $('#cabBadges'); if (cb) cb.innerHTML = '<span class="badge">' + esc(window.Auth.roleLabel(s.role) || s.role || '') + '</span>' + (s.tenant_name ? '<span class="badge">' + esc(s.tenant_name) + '</span>' : '');
+    var zs = zonesForRole(), cnt = 0; zs.forEach(function (z) { cnt += appsOfZone(z.id).length; });
+    var k = $('#kpis'); if (k) k.innerHTML = '<div class="kpi"><small>Зон</small><b>' + zs.length + '</b></div>' +
+      '<div class="kpi"><small>Модулей</small><b>' + cnt + '</b></div>' +
+      '<div class="kpi"><small>Роль</small><b style="font-size:1rem;">' + esc(window.Auth.roleLabel(s.role) || s.role || '—') + '</b></div>';
+  }
+
   var sEl = $('#search'); if (sEl) sEl.addEventListener('input', function () { query = this.value.trim(); render(); });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
@@ -57,6 +70,7 @@
     role = s.role;
     var rl = (window.Auth.roleLabel ? window.Auth.roleLabel(s.role) : '') || s.role;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + rl;
+    renderHead(s);
     render();
   });
 })();

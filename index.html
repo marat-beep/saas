@@ -13,10 +13,13 @@
     }
   })();
 </script>
-<link rel="stylesheet" href="assets/css/app.css?v=17">
+<link rel="stylesheet" href="assets/css/app.css?v=18">
 <style>
   .grp { margin-bottom: 18px; }
   .grp-t { font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 10px; }
+  .hub-hero { background: linear-gradient(135deg, var(--accent-100, #eef2ff), #fff 70%); border: 1px solid var(--border); border-radius: var(--r); padding: 24px; margin-bottom: 16px; }
+  .hub-hero h1 { font-size: 1.85rem; margin: 0 0 8px; }
+  .hub-hero p { margin: 0; max-width: 780px; }
 </style>
 </head>
 <body>
@@ -27,10 +30,12 @@
   </header>
 
   <main class="wrap">
-    <section class="hero">
+    <section class="hub-hero">
       <h1>Рабочий сервис 3DMP</h1>
-      <p>Статический фронтенд + Supabase: данные, авторизация и права — в облаке. Публикация — на <b>sapfir.eu/saas</b>.</p>
+      <p>Единое рабочее пространство предприятия: заявки и КП, подготовка производства (КТПП), производство и MES, качество, экономика, персонал и администрирование. Данные, вход и права — в облаке Supabase. Публикация — на <b>sapfir.eu/saas</b>.</p>
     </section>
+
+    <div class="kpi-row" id="hubStats" style="margin-bottom:16px;"></div>
 
     <section class="card">
       <h2>Подключение</h2>
@@ -70,6 +75,14 @@
       var ui = window.AppUI;
 
       document.getElementById('ver').textContent = 'v' + C.version;
+      (function () {
+        var el = document.getElementById('hubStats'); if (!el) return;
+        el.innerHTML =
+          '<div class="kpi"><small>Модулей</small><b>' + (C.apps || []).length + '</b></div>' +
+          '<div class="kpi"><small>Контуров</small><b>' + (C.groups || []).length + '</b></div>' +
+          '<div class="kpi"><small>Версия</small><b>v' + C.version + '</b></div>' +
+          '<div class="kpi"><small>Обновлено</small><b style="font-size:1rem;">' + ui.esc(C.updated || '') + '</b></div>';
+      })();
 
       function card(a, logged) {
         var needAuth = !a.guest && !logged;
