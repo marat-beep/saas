@@ -19,6 +19,7 @@ returns table (id uuid, number text, customer text, customer_id uuid, customer_n
                is_overdue boolean, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -48,6 +49,7 @@ returns table (id uuid, number text, customer text, customer_id uuid, customer_n
                is_overdue boolean, note text, created_login text, created_at timestamptz, paid_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -75,6 +77,7 @@ create or replace function public.app_invoice_create(p_token uuid, p_order_id uu
 returns table (id uuid, number text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; ten uuid; iid uuid; inum text; cname text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -97,6 +100,7 @@ create or replace function public.app_invoice_set_status(p_token uuid, p_id uuid
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ulogin text; ten uuid; inum text;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;

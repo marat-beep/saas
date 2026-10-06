@@ -44,6 +44,7 @@ returns table (id uuid, title text, process text, machine text, capacity_hours n
                lead_days int, status text, seller text, mine boolean, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -64,6 +65,7 @@ create or replace function public.app_market_listing_save(p_token uuid, p_id uui
 returns table (id uuid, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; ulogin text; lid uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -89,6 +91,7 @@ create or replace function public.app_market_listing_set_status(p_token uuid, p_
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -105,6 +108,7 @@ returns table (id uuid, listing_title text, seller text, title text, qty numeric
                status text, mine boolean, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -125,6 +129,7 @@ create or replace function public.app_market_request_save(p_token uuid, p_id uui
 returns table (id uuid, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; ulogin text; rid uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -152,6 +157,7 @@ create or replace function public.app_market_request_set_status(p_token uuid, p_
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; lid uuid; seller uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -170,6 +176,7 @@ create or replace function public.app_market_kpi(p_token uuid)
 returns table (my_listings bigint, active_listings bigint, my_requests bigint, accepted bigint)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

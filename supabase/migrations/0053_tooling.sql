@@ -31,6 +31,7 @@ create or replace function public.app_tool_kpi(p_token uuid)
 returns table (tools_total bigint, worn bigint, scrapped bigint, avg_life numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -51,6 +52,7 @@ returns table (id uuid, code text, name text, tool_type text, material text, coa
                life_pct numeric, status text, location text, note text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -73,6 +75,7 @@ create or replace function public.app_tool_life_save(p_token uuid, p_id uuid, p_
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -98,6 +101,7 @@ create or replace function public.app_tool_life_use(p_token uuid, p_id uuid, p_m
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; t public.app_tool_life; newused numeric;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -122,6 +126,7 @@ create or replace function public.app_tool_life_resharpen(p_token uuid, p_id uui
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; t public.app_tool_life; nw integer;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;

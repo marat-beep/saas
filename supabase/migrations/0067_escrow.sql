@@ -42,6 +42,7 @@ returns table (id uuid, number text, order_number text, buyer text, seller text,
                fee numeric, payout numeric, milestone text, status text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -60,6 +61,7 @@ create or replace function public.app_escrow_kpi(p_token uuid)
 returns table (total bigint, active bigint, released_sum numeric, frozen_sum numeric, fee_sum numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -78,6 +80,7 @@ create or replace function public.app_escrow_save(p_token uuid, p_id uuid, p_ord
 returns table (id uuid, number text, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; ulogin text; did uuid; dnum text; tname text; cname text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -108,6 +111,7 @@ create or replace function public.app_escrow_set_status(p_token uuid, p_id uuid,
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; ulogin text; d record;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -133,6 +137,7 @@ create or replace function public.app_escrow_events_list(p_token uuid, p_deal_id
 returns table (id uuid, kind text, comment text, by_login text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

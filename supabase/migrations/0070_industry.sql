@@ -24,6 +24,7 @@ create or replace function public.app_industry_benchmarks_list(p_token uuid, p_m
 returns table (id uuid, metric text, category text, region text, value numeric, unit text, period text, source text, note text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -39,6 +40,7 @@ create or replace function public.app_industry_benchmark_save(p_token uuid, p_id
 returns table (id uuid, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; bid uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -65,6 +67,7 @@ create or replace function public.app_industry_compare(p_token uuid)
 returns table (metric text, own numeric, benchmark numeric, unit text, delta_pct numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; own_nh numeric; own_oee numeric; own_def numeric; b_nh numeric; b_oee numeric; b_def numeric;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -98,6 +101,7 @@ create or replace function public.app_industry_stats(p_token uuid)
 returns table (tenants bigint, active_tenants bigint, users bigint, orders bigint, naryads bigint, tenders bigint, escrow_released numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

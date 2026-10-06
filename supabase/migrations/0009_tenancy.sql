@@ -72,6 +72,7 @@ create or replace function public.app_order_create(
 ) returns table (id uuid, number text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; oid uuid; onum text; ten uuid;
 begin
   select s.uid, s.ulogin into uid, ulogin from public.app_session_user(p_token) s;
@@ -91,11 +92,13 @@ begin
   return query select oid, onum;
 end $$;
 
+drop function if exists public.app_order_list(uuid);
 create or replace function public.app_order_list(p_token uuid)
 returns table (id uuid, number text, title text, source text, customer text, status text, priority text,
                created_login text, created_at timestamptz, updated_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text; ten uuid; all_admin boolean;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
@@ -110,11 +113,13 @@ begin
     order by o.created_at desc;
 end $$;
 
+drop function if exists public.app_order_get(uuid, uuid);
 create or replace function public.app_order_get(p_token uuid, p_id uuid)
 returns table (id uuid, number text, title text, description text, source text, customer text, contact text,
                status text, priority text, created_login text, created_at timestamptz, updated_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text; ten uuid;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
@@ -132,6 +137,7 @@ create or replace function public.app_order_history_list(p_token uuid, p_id uuid
 returns table (status text, comment text, by_login text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text; ten uuid;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
@@ -149,6 +155,7 @@ create or replace function public.app_order_set_status(p_token uuid, p_id uuid, 
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; urole text; ten uuid; owner uuid; onum text; oten uuid;
 begin
   select s.uid, s.ulogin, s.urole into uid, ulogin, urole from public.app_session_user(p_token) s;
@@ -176,6 +183,7 @@ create or replace function public.app_tender_create(
 ) returns table (id uuid, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; tid uuid; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -189,11 +197,13 @@ begin
   return query select tid, 'Закупка опубликована';
 end $$;
 
+drop function if exists public.app_tender_list_full(uuid);
 create or replace function public.app_tender_list_full(p_token uuid)
 returns table (id uuid, title text, category text, customer text, deadline date, status text,
                bids_count bigint, awarded_bid_id uuid, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -211,6 +221,7 @@ create or replace function public.app_bids_for_tender(p_token uuid, p_tender_id 
 returns table (id uuid, supplier_name text, price numeric, term_days integer, comment text, status text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -227,6 +238,7 @@ create or replace function public.app_tender_award(p_token uuid, p_tender_id uui
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; ttitle text; win_user uuid; win_name text; sup record;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -255,6 +267,7 @@ create or replace function public.app_tender_set_status(p_token uuid, p_tender_i
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -272,6 +285,7 @@ create or replace function public.supplier_submit_bid(
 ) returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; uname text; ttitle text; pstatus text; tten uuid;
 begin
   select u.id, coalesce(u.full_name, u.login) into uid, uname
@@ -301,6 +315,7 @@ create or replace function public.app_wc_list(p_token uuid)
 returns table (id uuid, code text, name text, kind text, cost_hour numeric, active boolean)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -314,6 +329,7 @@ create or replace function public.app_norms_list(p_token uuid)
 returns table (id uuid, operation text, machine_kind text, setup_min numeric, unit_min numeric, rate_hour numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -323,11 +339,13 @@ begin
     where (urole = 'admin' or n.tenant_id = ten) order by n.operation;
 end $$;
 
+drop function if exists public.app_naryad_list(uuid);
 create or replace function public.app_naryad_list(p_token uuid)
 returns table (id uuid, number text, title text, order_number text, wc_name text, assignee text,
                status text, plan_hours numeric, fact_hours numeric, due_date date, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -347,6 +365,7 @@ create or replace function public.app_naryad_create(
 ) returns table (id uuid, number text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; nid uuid; nnum text; target uuid; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -368,11 +387,13 @@ begin
   return query select nid, nnum;
 end $$;
 
+drop function if exists public.app_naryad_get(uuid, uuid);
 create or replace function public.app_naryad_get(p_token uuid, p_id uuid)
 returns table (id uuid, number text, title text, order_id uuid, order_number text, wc_name text, assignee text,
                status text, plan_hours numeric, fact_hours numeric, due_date date, created_login text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -386,10 +407,12 @@ begin
     where n.id = p_id and (urole = 'admin' or n.tenant_id = ten);
 end $$;
 
+drop function if exists public.app_naryad_ops(uuid, uuid);
 create or replace function public.app_naryad_ops(p_token uuid, p_id uuid)
 returns table (id uuid, seq integer, operation text, worker text, plan_hours numeric, fact_hours numeric, done boolean)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -406,6 +429,7 @@ create or replace function public.app_naryad_add_op(
 ) returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare seqn integer; nid uuid; urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -427,6 +451,7 @@ create or replace function public.app_naryad_op_done(p_token uuid, p_op_id uuid,
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare nid uuid; urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -445,6 +470,7 @@ create or replace function public.app_naryad_close(p_token uuid, p_id uuid)
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ulogin text; nnum text; urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;

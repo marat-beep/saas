@@ -46,6 +46,7 @@ create or replace function public.app_mnt_kpi(p_token uuid)
 returns table (plans_total bigint, due bigint, overdue bigint, done_month bigint, cost_month numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -65,6 +66,7 @@ returns table (id uuid, equipment_id uuid, equipment text, kind text, title text
                last_done date, next_due date, days_left integer, status text, responsible text, active boolean, note text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -89,6 +91,7 @@ create or replace function public.app_mnt_plan_save(p_token uuid, p_id uuid, p_e
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; nd date;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -114,6 +117,7 @@ create or replace function public.app_mnt_register(p_token uuid, p_plan_id uuid,
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; ulogin text; eid uuid; nd date; pd integer; k text;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -143,6 +147,7 @@ create or replace function public.app_mnt_log_list(p_token uuid, p_q text defaul
 returns table (id uuid, equipment text, kind text, work_date date, executor text, cost numeric, works text, replaced text, note text, created_login text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

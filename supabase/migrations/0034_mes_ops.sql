@@ -19,6 +19,7 @@ returns table (op_id uuid, naryad_id uuid, naryad_number text, naryad_title text
                mes_status text, priority text, due_date date, assignee text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -41,6 +42,7 @@ create or replace function public.app_mes_ops_set_status(p_token uuid, p_op_id u
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ulogin text; ten uuid; nid uuid; nnum text; st text; left_c integer;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;

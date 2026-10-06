@@ -72,11 +72,13 @@ alter table public.app_defects   enable row level security;
 alter table public.app_passports enable row level security;
 
 -- ---------- ОТК: список ----------
+drop function if exists public.app_qc_list(uuid);
 create or replace function public.app_qc_list(p_token uuid)
 returns table (id uuid, number text, product text, status text, inspector text, naryad_number text,
                order_number text, lines_count bigint, defects_count bigint, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -99,6 +101,7 @@ create or replace function public.app_qc_create(p_token uuid, p_naryad_id uuid, 
 returns table (id uuid, number text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; ten uuid; cid uuid; cnum text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -116,6 +119,7 @@ create or replace function public.app_qc_add_line(p_token uuid, p_check_id uuid,
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; cid uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -133,6 +137,7 @@ create or replace function public.app_qc_lines_list(p_token uuid, p_check_id uui
 returns table (id uuid, name text, norm text, value text, result text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -148,6 +153,7 @@ create or replace function public.app_qc_set_status(p_token uuid, p_check_id uui
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; cnum text;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -167,6 +173,7 @@ create or replace function public.app_defect_list(p_token uuid)
 returns table (id uuid, title text, qty numeric, severity text, status text, note text, by_login text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -180,6 +187,7 @@ create or replace function public.app_defect_add(p_token uuid, p_check_id uuid, 
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ulogin text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -198,6 +206,7 @@ create or replace function public.app_defect_resolve(p_token uuid, p_id uuid, p_
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -213,6 +222,7 @@ create or replace function public.app_passport_create(p_token uuid, p_order_id u
 returns table (id uuid, number text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; ten uuid; pid uuid; pnum text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -226,10 +236,12 @@ begin
   return query select pid, pnum;
 end $$;
 
+drop function if exists public.app_passport_list(uuid);
 create or replace function public.app_passport_list(p_token uuid)
 returns table (id uuid, number text, product text, order_number text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -240,10 +252,12 @@ begin
     where (urole='admin' or p.tenant_id = ten) order by p.created_at desc;
 end $$;
 
+drop function if exists public.app_passport_get(uuid, uuid);
 create or replace function public.app_passport_get(p_token uuid, p_id uuid)
 returns table (id uuid, number text, product text, order_number text, data jsonb, created_login text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

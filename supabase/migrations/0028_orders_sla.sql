@@ -16,6 +16,7 @@ create or replace function public.app_order_create(
 ) returns table (id uuid, number text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; oid uuid; onum text; ten uuid; cname text;
 begin
   select s.uid, s.ulogin into uid, ulogin from public.app_session_user(p_token) s;
@@ -50,6 +51,7 @@ returns table (id uuid, number text, title text, source text, customer text, cus
                created_login text, created_at timestamptz, updated_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text; ten uuid; all_admin boolean;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
@@ -67,12 +69,14 @@ end $$;
 
 -- ---------- Одна заявка (с типом) ----------
 drop function if exists public.app_order_get(uuid,uuid);
+drop function if exists public.app_order_get(uuid, uuid);
 create or replace function public.app_order_get(p_token uuid, p_id uuid)
 returns table (id uuid, number text, title text, description text, source text, customer text, customer_id uuid, customer_name text,
                contact text, status text, priority text, due_date date, assignee text, amount numeric, order_type text,
                created_login text, created_at timestamptz, updated_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text; ten uuid;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
@@ -94,6 +98,7 @@ create or replace function public.app_order_update(p_token uuid, p_id uuid, p_ti
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; urole text; ten uuid; cname text;
 begin
   select s.uid, s.ulogin, s.urole into uid, ulogin, urole from public.app_session_user(p_token) s;
@@ -126,6 +131,7 @@ create or replace function public.app_order_sla_check(p_token uuid)
 returns table (notified bigint)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text; ten uuid; n bigint;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;

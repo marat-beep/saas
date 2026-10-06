@@ -28,6 +28,7 @@ returns table (id uuid, group_code text, grade text, standard text, density nume
                hardness numeric, price numeric, note text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -49,6 +50,7 @@ create or replace function public.app_ref_material_save(p_token uuid, p_id uuid,
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; gid uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;

@@ -23,6 +23,7 @@ create function public.admin_list_users(p_token uuid)
 returns table (id uuid, login text, full_name text, role text, active boolean, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 begin
   if not public.is_admin(p_token) then raise exception 'Доступ запрещён'; end if;
   return query
@@ -37,6 +38,7 @@ create or replace function public.admin_create_user(
 ) returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public, extensions
 as $$
+#variable_conflict use_column
 begin
   if not public.is_admin(p_token) then return query select false, 'Доступ запрещён'; return; end if;
   if coalesce(trim(p_login), '') = '' then return query select false, 'Укажите логин'; return; end if;
@@ -61,6 +63,7 @@ create or replace function public.admin_update_user(
 ) returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare caller uuid;
 begin
   if not public.is_admin(p_token) then return query select false, 'Доступ запрещён'; return; end if;
@@ -86,6 +89,7 @@ create or replace function public.admin_reset_password(
 ) returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public, extensions
 as $$
+#variable_conflict use_column
 begin
   if not public.is_admin(p_token) then return query select false, 'Доступ запрещён'; return; end if;
   if length(coalesce(p_password, '')) < 4 then return query select false, 'Пароль — минимум 4 символа'; return; end if;
@@ -100,6 +104,7 @@ create or replace function public.admin_delete_user(p_token uuid, p_user_id uuid
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare caller uuid;
 begin
   if not public.is_admin(p_token) then return query select false, 'Доступ запрещён'; return; end if;

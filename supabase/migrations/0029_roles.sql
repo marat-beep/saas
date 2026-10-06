@@ -14,6 +14,7 @@ returns boolean language sql immutable
 as $$ select coalesce(p_role, '') = any (public.app_staff_roles()) $$;
 
 -- Расширяем доступ к производственным/учётным RPC на все роли предприятия.
+drop function if exists public.app_production_allowed(uuid);
 create or replace function public.app_production_allowed(p_token uuid)
 returns boolean language sql security definer set search_path = public
 as $$
@@ -24,12 +25,14 @@ as $$
 $$;
 
 -- ---------- Заявки: доступ по ролям предприятия ----------
+drop function if exists public.app_order_list(uuid);
 create or replace function public.app_order_list(p_token uuid)
 returns table (id uuid, number text, title text, source text, customer text, customer_name text, status text, priority text,
                due_date date, assignee text, amount numeric, order_type text,
                created_login text, created_at timestamptz, updated_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text; ten uuid; all_admin boolean;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
@@ -45,12 +48,14 @@ begin
     order by o.created_at desc;
 end $$;
 
+drop function if exists public.app_order_get(uuid, uuid);
 create or replace function public.app_order_get(p_token uuid, p_id uuid)
 returns table (id uuid, number text, title text, description text, source text, customer text, customer_id uuid, customer_name text,
                contact text, status text, priority text, due_date date, assignee text, amount numeric, order_type text,
                created_login text, created_at timestamptz, updated_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text; ten uuid;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
@@ -69,6 +74,7 @@ create or replace function public.app_order_set_status(p_token uuid, p_id uuid, 
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; urole text; ten uuid; owner uuid; onum text; oten uuid;
 begin
   select s.uid, s.ulogin, s.urole into uid, ulogin, urole from public.app_session_user(p_token) s;
@@ -104,6 +110,7 @@ create or replace function public.app_roles_list(p_token uuid)
 returns table (role text, users_count bigint, view_count bigint, edit_count bigint)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -122,6 +129,7 @@ create or replace function public.app_role_matrix(p_token uuid)
 returns table (role text, module_id text, can_view boolean, can_edit boolean)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -137,6 +145,7 @@ create or replace function public.app_role_perm_set(p_token uuid, p_role text, p
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   select s.urole into urole from public.app_session_user(p_token) s;

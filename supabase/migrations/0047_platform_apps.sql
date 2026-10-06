@@ -10,6 +10,7 @@ returns table (id uuid, login text, full_name text, role text, active boolean,
                tenant_name text, last_login_at timestamptz, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 begin
   if not public.is_admin(p_token) then raise exception 'Доступ запрещён'; end if;
   return query

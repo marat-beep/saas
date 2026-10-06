@@ -20,6 +20,7 @@ create or replace function public.app_client_context(p_token uuid)
 returns table (customer_id uuid, customer text, tenant_name text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
@@ -38,6 +39,7 @@ create or replace function public.app_client_orders(p_token uuid)
 returns table (number text, title text, status text, priority text, due_date date, amount numeric, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
@@ -55,6 +57,7 @@ create or replace function public.app_client_docs(p_token uuid)
 returns table (number text, doc_type text, title text, status text, amount numeric, valid_until date, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
@@ -72,6 +75,7 @@ create or replace function public.app_client_invoices(p_token uuid)
 returns table (number text, amount numeric, paid numeric, balance numeric, status text, due_date date, is_overdue boolean)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
@@ -93,6 +97,7 @@ create or replace function public.app_client_tkp(p_token uuid)
 returns table (number text, subject text, valid_until date, price numeric, status text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;

@@ -56,6 +56,7 @@ returns table (id uuid, material_group text, operation text, tool_type text, too
                vc numeric, feed numeric, ap numeric, ae numeric, cooling text, note text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -72,6 +73,7 @@ create or replace function public.app_ref_tools_list(p_token uuid, p_q text defa
 returns table (id uuid, tool_type text, designation text, material text, coating text, diameter numeric, note text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -88,6 +90,7 @@ returns table (id uuid, manufacturer text, model text, kind text, axes integer, 
                spindle_rpm integer, spindle_kw numeric, accuracy numeric, price numeric, note text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

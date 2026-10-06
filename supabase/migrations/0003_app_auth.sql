@@ -37,6 +37,7 @@ create or replace function public.app_login(p_login text, p_password text)
 returns table (token uuid, user_id uuid, login text, full_name text, role text)
 language plpgsql security definer set search_path = public, extensions
 as $$
+#variable_conflict use_column
 declare
   u  public.app_users;
   tk uuid;
@@ -122,6 +123,7 @@ create or replace function public.supplier_submit_bid(
 ) returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare
   uid uuid; uname text;
 begin

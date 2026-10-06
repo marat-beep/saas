@@ -35,6 +35,7 @@ create or replace function public.app_customer_list(p_token uuid)
 returns table (id uuid, name text, inn text, contact_person text, phone text, email text, address text, note text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -49,6 +50,7 @@ create or replace function public.app_customer_save(p_token uuid, p_id uuid, p_n
 returns table (id uuid, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; cid uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -81,6 +83,7 @@ create or replace function public.app_order_create(
 ) returns table (id uuid, number text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; oid uuid; onum text; ten uuid; cname text;
 begin
   select s.uid, s.ulogin into uid, ulogin from public.app_session_user(p_token) s;
@@ -112,11 +115,13 @@ begin
 end $$;
 
 -- Список заявок (расширенный).
+drop function if exists public.app_order_list(uuid);
 create or replace function public.app_order_list(p_token uuid)
 returns table (id uuid, number text, title text, source text, customer text, customer_name text, status text, priority text,
                due_date date, assignee text, amount numeric, created_login text, created_at timestamptz, updated_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text; ten uuid; all_admin boolean;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
@@ -133,12 +138,14 @@ begin
 end $$;
 
 -- Одна заявка (расширенная).
+drop function if exists public.app_order_get(uuid, uuid);
 create or replace function public.app_order_get(p_token uuid, p_id uuid)
 returns table (id uuid, number text, title text, description text, source text, customer text, customer_id uuid, customer_name text,
                contact text, status text, priority text, due_date date, assignee text, amount numeric,
                created_login text, created_at timestamptz, updated_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text; ten uuid;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
@@ -159,6 +166,7 @@ create or replace function public.app_order_update(p_token uuid, p_id uuid, p_ti
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; urole text; ten uuid; cname text;
 begin
   select s.uid, s.ulogin, s.urole into uid, ulogin, urole from public.app_session_user(p_token) s;
@@ -190,6 +198,7 @@ create or replace function public.app_order_items_list(p_token uuid, p_order_id 
 returns table (id uuid, name text, qty numeric, unit text, price numeric, amount numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text; ten uuid;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
@@ -206,6 +215,7 @@ create or replace function public.app_order_item_add(p_token uuid, p_order_id uu
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text; ten uuid; total numeric;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
@@ -226,6 +236,7 @@ create or replace function public.app_order_item_remove(p_token uuid, p_id uuid)
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text; ten uuid; oid uuid;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
@@ -243,6 +254,7 @@ create or replace function public.app_order_docs(p_token uuid, p_order_id uuid)
 returns table (id uuid, doc_type text, number text, title text, status text, amount numeric, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text; ten uuid;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
@@ -257,6 +269,7 @@ create or replace function public.app_order_naryads(p_token uuid, p_order_id uui
 returns table (id uuid, number text, title text, status text, plan_hours numeric, fact_hours numeric, route_number text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text; ten uuid;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
@@ -272,6 +285,7 @@ create or replace function public.app_order_invoices(p_token uuid, p_order_id uu
 returns table (id uuid, number text, amount numeric, status text, due_date date)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text; ten uuid;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
@@ -286,6 +300,7 @@ create or replace function public.app_order_routes(p_token uuid, p_order_id uuid
 returns table (id uuid, number text, name text, status text, total_min numeric, total_cost numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text; ten uuid;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;

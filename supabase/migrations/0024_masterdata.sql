@@ -84,6 +84,7 @@ returns table (id uuid, code text, name text, model text, kind text, axis intege
                accuracy numeric, cost_hour numeric, dept text, status text, wc_name text, ops_count bigint)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -103,6 +104,7 @@ create or replace function public.app_equipment_save(p_token uuid, p_id uuid, p_
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -125,6 +127,7 @@ create or replace function public.app_operations_list(p_token uuid)
 returns table (id uuid, code text, name text, kind text, setup_min numeric, unit_min numeric, base_rate numeric, unit text, equipment_count bigint)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -140,6 +143,7 @@ create or replace function public.app_operation_save(p_token uuid, p_id uuid, p_
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -160,6 +164,7 @@ create or replace function public.app_process_list(p_token uuid)
 returns table (id uuid, code text, name text, product_type text, material_name text, steps_count bigint, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -176,6 +181,7 @@ create or replace function public.app_process_get(p_token uuid, p_id uuid)
 returns table (id uuid, code text, name text, product_type text, material_name text, note text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -190,6 +196,7 @@ create or replace function public.app_process_steps_list(p_token uuid, p_id uuid
 returns table (id uuid, seq integer, operation text, equipment text, material text, plan_min numeric, note text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -210,6 +217,7 @@ create or replace function public.app_process_create(p_token uuid, p_code text, 
 returns table (id uuid, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; tid uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -225,6 +233,7 @@ create or replace function public.app_process_add_step(p_token uuid, p_id uuid, 
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; seqn integer; tid uuid; urole text;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -243,6 +252,7 @@ create or replace function public.app_materials_reg(p_token uuid)
 returns table (id uuid, code text, name text, material_group text, grade text, standard text, density numeric, unit text, price numeric, qty numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

@@ -12,6 +12,7 @@ returns table (id uuid, name text, plan text, plan_name text, status text,
                users_count bigint, orders_count bigint, brand jsonb, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 begin
   if not public.app_is_platform_admin(p_token) then raise exception 'Доступ запрещён'; end if;
   return query
@@ -29,6 +30,7 @@ create or replace function public.app_platform_tenant_create(
 ) returns table (ok boolean, message text, tenant_id uuid)
 language plpgsql security definer set search_path = public, extensions
 as $$
+#variable_conflict use_column
 declare tid uuid;
 begin
   if not public.app_is_platform_admin(p_token) then return query select false,'Доступ запрещён', null::uuid; return; end if;
@@ -52,6 +54,7 @@ create or replace function public.app_platform_tenant_update(
 ) returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 begin
   if not public.app_is_platform_admin(p_token) then return query select false,'Доступ запрещён'; return; end if;
   if p_plan is not null and not exists (select 1 from public.app_plans where code = p_plan) then
@@ -70,6 +73,7 @@ create or replace function public.app_tenant_set_brand(p_token uuid, p_brand jso
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid;
 begin
   if not public.app_is_owner(p_token) then return query select false,'Недостаточно прав'; return; end if;

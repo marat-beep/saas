@@ -16,6 +16,7 @@ returns table (id uuid, code text, name text, unit text, price numeric, qty nume
                stock_value numeric, low boolean)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -31,6 +32,7 @@ create or replace function public.app_stock_low(p_token uuid)
 returns table (id uuid, code text, name text, unit text, price numeric, qty numeric, min_qty numeric, deficit numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -50,6 +52,7 @@ create or replace function public.app_stock_move(
 ) returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ulogin text; urole text; ten uuid; m public.app_materials; newqty numeric;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -77,12 +80,14 @@ end $$;
 
 -- ---------- История движений (со связями) ----------
 drop function if exists public.app_stock_moves_list(uuid,uuid,integer);
+drop function if exists public.app_stock_moves_list(uuid, uuid, integer);
 create or replace function public.app_stock_moves_list(p_token uuid, p_material_id uuid, p_limit integer default 50)
 returns table (id uuid, kind text, qty numeric, price numeric, note text, source text,
                order_id uuid, order_number text, naryad_id uuid, naryad_number text,
                by_login text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

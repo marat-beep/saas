@@ -8,6 +8,7 @@ create or replace function public.app_bi(p_token uuid)
 returns jsonb
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; res jsonb;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

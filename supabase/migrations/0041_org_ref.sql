@@ -11,6 +11,7 @@ returns table (id uuid, name text, plan text, plan_name text, max_users integer,
                users_count bigint, features jsonb, brand jsonb, status text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid;
 begin
   select u.tenant_id into ten from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
@@ -28,6 +29,7 @@ end $$;
 create or replace function public.app_tenant_brand(p_token uuid)
 returns jsonb language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; b jsonb;
 begin
   select u.tenant_id into ten from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
@@ -40,6 +42,7 @@ create or replace function public.app_tenant_modules(p_token uuid, p_modules tex
 returns table (module_id text, enabled boolean)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; f jsonb;
 begin
   select u.tenant_id into ten from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;

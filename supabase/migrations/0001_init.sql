@@ -80,6 +80,7 @@ language plpgsql
 security definer
 set search_path = public
 as $$
+#variable_conflict use_column
 begin
   insert into public.profiles (id, email)
   values (new.id, new.email)

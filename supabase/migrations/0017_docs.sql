@@ -40,10 +40,12 @@ alter table public.app_documents         enable row level security;
 alter table public.app_document_versions enable row level security;
 
 -- ---------- Список ----------
+drop function if exists public.app_doc_list(uuid, text);
 create or replace function public.app_doc_list(p_token uuid, p_type text)
 returns table (id uuid, doc_type text, number text, title text, counterparty text, amount numeric, status text, version integer, order_number text, updated_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -56,10 +58,12 @@ begin
     order by d.updated_at desc;
 end $$;
 
+drop function if exists public.app_doc_get(uuid, uuid);
 create or replace function public.app_doc_get(p_token uuid, p_id uuid)
 returns table (id uuid, doc_type text, number text, title text, order_id uuid, counterparty text, amount numeric, status text, version integer, content text, created_login text, created_at timestamptz, updated_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -74,6 +78,7 @@ create or replace function public.app_doc_create(p_token uuid, p_doc_type text, 
 returns table (id uuid, number text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; ten uuid; did uuid; dnum text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -94,6 +99,7 @@ create or replace function public.app_doc_update(p_token uuid, p_id uuid, p_titl
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ulogin text; urole text; ten uuid; v integer;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -114,6 +120,7 @@ create or replace function public.app_doc_set_status(p_token uuid, p_id uuid, p_
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -127,6 +134,7 @@ create or replace function public.app_doc_versions(p_token uuid, p_id uuid)
 returns table (version integer, title text, by_login text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

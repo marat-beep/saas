@@ -32,11 +32,13 @@ as $$
 $$;
 
 -- ---------- Инфо об организации ----------
+drop function if exists public.app_tenant_info(uuid);
 create or replace function public.app_tenant_info(p_token uuid)
 returns table (id uuid, name text, plan text, plan_name text, max_users integer,
                users_count bigint, features jsonb, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid;
 begin
   select u.tenant_id into ten from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
@@ -55,6 +57,7 @@ create or replace function public.app_tenant_users(p_token uuid)
 returns table (id uuid, login text, full_name text, role text, active boolean, last_login_at timestamptz, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text;
 begin
   select u.tenant_id, s.urole into ten, urole from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
@@ -67,6 +70,7 @@ create or replace function public.app_tenant_user_create(p_token uuid, p_login t
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public, extensions
 as $$
+#variable_conflict use_column
 declare ten uuid; cnt bigint; mx integer;
 begin
   if not public.app_is_owner(p_token) then return query select false,'Только владелец организации может добавлять пользователей'; return; end if;
@@ -89,6 +93,7 @@ create or replace function public.app_tenant_user_update(p_token uuid, p_user_id
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; caller uuid;
 begin
   if not public.app_is_owner(p_token) then return query select false,'Недостаточно прав'; return; end if;
@@ -105,6 +110,7 @@ create or replace function public.app_tenant_user_reset(p_token uuid, p_user_id 
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public, extensions
 as $$
+#variable_conflict use_column
 declare ten uuid;
 begin
   if not public.app_is_owner(p_token) then return query select false,'Недостаточно прав'; return; end if;
@@ -120,6 +126,7 @@ create or replace function public.app_plans_list(p_token uuid)
 returns table (code text, name text, price numeric, max_users integer, features jsonb)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 begin
   if not public.app_is_owner(p_token) then raise exception 'Доступ запрещён'; end if;
   return query select p.code, p.name, p.price, p.max_users, p.features from public.app_plans p order by p.sort;
@@ -129,6 +136,7 @@ create or replace function public.app_tenant_set_plan(p_token uuid, p_plan text)
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid;
 begin
   if not public.app_is_owner(p_token) then return query select false,'Недостаточно прав'; return; end if;
@@ -143,6 +151,7 @@ create or replace function public.app_tenant_flags(p_token uuid)
 returns jsonb
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; f jsonb;
 begin
   select u.tenant_id into ten from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
@@ -154,6 +163,7 @@ create or replace function public.app_tenant_set_flag(p_token uuid, p_module tex
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid;
 begin
   if not public.app_is_owner(p_token) then return query select false,'Недостаточно прав'; return; end if;

@@ -15,6 +15,7 @@ returns table (id uuid, full_name text, job text, dept text, phone text, email t
                active boolean, user_login text, role text, shifts_month bigint, trainings_open bigint)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -33,6 +34,7 @@ create or replace function public.app_employee_save(p_token uuid, p_id uuid, p_f
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; ulogin text; urole text;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -59,6 +61,7 @@ create or replace function public.app_employee_link_user(p_token uuid, p_employe
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; uid uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;

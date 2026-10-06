@@ -73,6 +73,7 @@ returns table (seq integer, operation text, equipment text, norm_source text,
                setup_min numeric, unit_min numeric, qty numeric, plan_min numeric, rate_hour numeric, cost numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; q numeric;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -110,6 +111,7 @@ create or replace function public.app_route_cost(p_token uuid, p_id uuid, p_qty 
 returns table (step_count bigint, total_min numeric, work_cost numeric, material_cost numeric, overhead numeric, total numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; q numeric; mq numeric; price numeric; rwork numeric; rmin numeric; rcnt bigint;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -154,6 +156,7 @@ create or replace function public.app_route_from_tpl(p_token uuid, p_id uuid, p_
 returns table (id uuid, number text, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; uid uuid; ulogin text; q numeric; rid uuid; rnum text; tname text; tmat uuid;
         vcnt bigint; vmin numeric; vwork numeric; vmat numeric; vovh numeric; vtot numeric;
 begin
@@ -208,6 +211,7 @@ returns table (id uuid, number text, name text, template_name text, order_number
                total_cost numeric, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -232,6 +236,7 @@ returns table (id uuid, number text, name text, template_name text, order_id uui
                note text, created_login text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -253,6 +258,7 @@ returns table (id uuid, seq integer, operation text, equipment text, norm_source
                setup_min numeric, unit_min numeric, qty numeric, plan_min numeric, rate_hour numeric, cost numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -275,6 +281,7 @@ create or replace function public.app_route_set_status(p_token uuid, p_id uuid, 
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; rnum text; st text;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -296,6 +303,7 @@ create or replace function public.app_order_routes_cost(p_token uuid, p_order_id
 returns table (route_count bigint, total_min numeric, work_cost numeric, material_cost numeric, total numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; oten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

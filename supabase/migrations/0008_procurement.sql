@@ -29,6 +29,7 @@ create or replace function public.app_supplier_profile_get(p_token uuid)
 returns table (company text, inn text, contact text, phone text, email text, status text, note text, updated_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid;
 begin
   select s.uid into uid from public.app_session_user(p_token) s;
@@ -42,6 +43,7 @@ create or replace function public.app_supplier_profile_save(
 ) returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text;
 begin
   select s.uid, s.ulogin into uid, ulogin from public.app_session_user(p_token) s;
@@ -66,6 +68,7 @@ create or replace function public.app_tender_create(
 ) returns table (id uuid, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; tid uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -83,11 +86,13 @@ begin
 end $$;
 
 -- ---------- Закупки для закупщика (с числом КП) ----------
+drop function if exists public.app_tender_list_full(uuid);
 create or replace function public.app_tender_list_full(p_token uuid)
 returns table (id uuid, title text, category text, customer text, deadline date, status text,
                bids_count bigint, awarded_bid_id uuid, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
   return query
@@ -100,6 +105,7 @@ create or replace function public.app_bids_for_tender(p_token uuid, p_tender_id 
 returns table (id uuid, supplier_name text, price numeric, term_days integer, comment text, status text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
   return query select b.id, b.supplier_name, b.price, b.term_days, b.comment, b.status, b.created_at
@@ -111,6 +117,7 @@ create or replace function public.app_tender_award(p_token uuid, p_tender_id uui
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ttitle text; win_user uuid; win_name text; sup record;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -137,6 +144,7 @@ create or replace function public.app_tender_set_status(p_token uuid, p_tender_i
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
   update public.tenders set status = p_status, closed_at = case when p_status in ('closed','awarded') then now() else closed_at end
@@ -150,6 +158,7 @@ create or replace function public.supplier_submit_bid(
 ) returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; uname text; ttitle text; pstatus text;
 begin
   select u.id, coalesce(u.full_name, u.login) into uid, uname

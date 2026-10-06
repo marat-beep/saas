@@ -39,11 +39,13 @@ alter table public.app_invoices enable row level security;
 alter table public.app_payments enable row level security;
 
 -- ---------- Счета: список с оплаченной суммой ----------
+drop function if exists public.app_invoice_list(uuid);
 create or replace function public.app_invoice_list(p_token uuid)
 returns table (id uuid, number text, customer text, order_number text, amount numeric, paid numeric,
                status text, due_date date, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -62,6 +64,7 @@ create or replace function public.app_invoice_create(p_token uuid, p_order_id uu
 returns table (id uuid, number text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; ten uuid; iid uuid; inum text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -79,6 +82,7 @@ create or replace function public.app_invoice_set_status(p_token uuid, p_id uuid
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -94,6 +98,7 @@ create or replace function public.app_payment_add(p_token uuid, p_invoice_id uui
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ulogin text; urole text; ten uuid; inv public.app_invoices; paid numeric;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -119,6 +124,7 @@ create or replace function public.app_payment_list(p_token uuid, p_invoice_id uu
 returns table (id uuid, amount numeric, method text, note text, by_login text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -135,6 +141,7 @@ create or replace function public.app_finance_kpi(p_token uuid)
 returns table (invoices_total bigint, sum_total numeric, sum_paid numeric, receivable numeric, overdue bigint)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

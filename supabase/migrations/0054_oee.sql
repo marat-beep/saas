@@ -30,6 +30,7 @@ returns table (id uuid, equipment_id uuid, equipment text, shift_date date, shif
                good_qty numeric, total_qty numeric, availability numeric, quality numeric, oee numeric, note text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -54,6 +55,7 @@ create or replace function public.app_oee_kpi(p_token uuid)
 returns table (records bigint, avg_oee numeric, avg_availability numeric, avg_quality numeric, downtime_total numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -74,6 +76,7 @@ create or replace function public.app_oee_by_equipment(p_token uuid)
 returns table (equipment text, records bigint, avg_oee numeric, downtime_total numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -96,6 +99,7 @@ create or replace function public.app_oee_save(p_token uuid, p_id uuid, p_equipm
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; ulogin text;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;

@@ -49,6 +49,7 @@ returns table (id uuid, name text, code text, icon text, description text, activ
                fields_count bigint, records_count bigint, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -70,6 +71,7 @@ create or replace function public.app_entity_save(p_token uuid, p_id uuid, p_nam
 returns table (id uuid, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; ulogin text; eid uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -96,6 +98,7 @@ create or replace function public.app_entity_fields_list(p_token uuid, p_entity_
 returns table (id uuid, name text, code text, field_type text, options text, required boolean, sort int)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -113,6 +116,7 @@ create or replace function public.app_entity_field_save(p_token uuid, p_id uuid,
 returns table (id uuid, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; fid uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -139,6 +143,7 @@ create or replace function public.app_entity_field_delete(p_token uuid, p_id uui
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -154,6 +159,7 @@ create or replace function public.app_entity_records_list(p_token uuid, p_entity
 returns table (id uuid, data jsonb, created_login text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -170,6 +176,7 @@ create or replace function public.app_entity_record_save(p_token uuid, p_id uuid
 returns table (id uuid, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; ulogin text; rid uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -191,6 +198,7 @@ create or replace function public.app_entity_record_delete(p_token uuid, p_id uu
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;

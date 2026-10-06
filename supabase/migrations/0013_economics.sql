@@ -23,6 +23,7 @@ create or replace function public.app_cost_rates_list(p_token uuid)
 returns table (id uuid, kind text, name text, rate_hour numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -33,11 +34,13 @@ begin
 end $$;
 
 -- ---------- Себестоимость заявки ----------
+drop function if exists public.app_order_cost(uuid, uuid);
 create or replace function public.app_order_cost(p_token uuid, p_order_id uuid)
 returns table (plan_hours numeric, fact_hours numeric, work_cost numeric,
                material_cost numeric, overhead numeric, total numeric, amount numeric, margin numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; oten uuid; amt numeric;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -69,11 +72,13 @@ begin
 end $$;
 
 -- ---------- Сводные KPI ----------
+drop function if exists public.app_economics(uuid);
 create or replace function public.app_economics(p_token uuid)
 returns table (orders_total bigint, orders_open bigint, naryads_open bigint, naryads_closed bigint,
                plan_hours numeric, fact_hours numeric, defects_open bigint, low_stock bigint, avg_rate numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

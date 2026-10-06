@@ -17,6 +17,7 @@ returns table (id uuid, number text, title text, order_id uuid, order_number tex
                ops_total bigint, ops_done bigint, start_date date, due_date date, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -44,6 +45,7 @@ create or replace function public.app_naryad_create(
 ) returns table (id uuid, number text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; nid uuid; nnum text; target uuid; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -73,6 +75,7 @@ create or replace function public.app_naryad_update(p_token uuid, p_id uuid, p_a
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -90,6 +93,7 @@ end $$;
 
 -- ---------- Карточка наряда (с новыми полями) ----------
 drop function if exists public.app_naryad_get(uuid,uuid);
+drop function if exists public.app_naryad_get(uuid, uuid);
 create or replace function public.app_naryad_get(p_token uuid, p_id uuid)
 returns table (id uuid, number text, title text, order_id uuid, order_number text, route_id uuid, route_number text,
                wc_id uuid, wc_name text, assignee text, status text, priority text,
@@ -97,6 +101,7 @@ returns table (id uuid, number text, title text, order_id uuid, order_number tex
                created_login text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -114,11 +119,13 @@ end $$;
 
 -- ---------- Операции наряда (с связью на операцию/шаг маршрута) ----------
 drop function if exists public.app_naryad_ops(uuid,uuid);
+drop function if exists public.app_naryad_ops(uuid, uuid);
 create or replace function public.app_naryad_ops(p_token uuid, p_id uuid)
 returns table (id uuid, seq integer, operation text, operation_id uuid, route_step_id uuid, worker text,
                plan_hours numeric, fact_hours numeric, done boolean)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -137,6 +144,7 @@ create or replace function public.app_naryad_add_op(p_token uuid, p_naryad_id uu
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare seqn integer; nid uuid; urole text; ten uuid; oname text;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -165,6 +173,7 @@ create or replace function public.app_naryad_op_done(p_token uuid, p_op_id uuid,
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare nid uuid; nnum text; left_c integer; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;

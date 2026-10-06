@@ -31,6 +31,7 @@ create or replace function public.app_api_key_list(p_token uuid)
 returns table (id uuid, name text, api_key uuid, active boolean, created_at timestamptz, last_used_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text;
 begin
   select u.tenant_id, s.urole into ten, urole from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
@@ -43,6 +44,7 @@ create or replace function public.app_api_key_create(p_token uuid, p_name text)
 returns table (id uuid, api_key uuid)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; kid uuid; kkey uuid; uid uuid;
 begin
   if not public.app_is_owner(p_token) then raise exception 'Только владелец может создавать ключи'; end if;
@@ -56,6 +58,7 @@ create or replace function public.app_api_key_revoke(p_token uuid, p_id uuid)
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid;
 begin
   if not public.app_is_owner(p_token) then return query select false,'Недостаточно прав'; return; end if;
@@ -69,6 +72,7 @@ create or replace function public.app_webhook_list(p_token uuid)
 returns table (id uuid, url text, event text, active boolean, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text;
 begin
   select u.tenant_id, s.urole into ten, urole from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
@@ -80,6 +84,7 @@ create or replace function public.app_webhook_add(p_token uuid, p_url text, p_ev
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid;
 begin
   if not public.app_is_owner(p_token) then return query select false,'Недостаточно прав'; return; end if;
@@ -93,6 +98,7 @@ create or replace function public.app_webhook_toggle(p_token uuid, p_id uuid, p_
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid;
 begin
   if not public.app_is_owner(p_token) then return query select false,'Недостаточно прав'; return; end if;
@@ -105,6 +111,7 @@ create or replace function public.app_webhook_delete(p_token uuid, p_id uuid)
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid;
 begin
   if not public.app_is_owner(p_token) then return query select false,'Недостаточно прав'; return; end if;
@@ -130,6 +137,7 @@ create or replace function public.api_orders(p_key uuid)
 returns table (number text, title text, customer text, status text, priority text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid;
 begin
   ten := public.api_tenant_of(p_key);
@@ -143,6 +151,7 @@ create or replace function public.api_tenders(p_key uuid)
 returns table (title text, category text, customer text, status text, bids_count bigint)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid;
 begin
   ten := public.api_tenant_of(p_key);
@@ -157,6 +166,7 @@ create or replace function public.api_stock(p_key uuid)
 returns table (name text, unit text, qty numeric, min_qty numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid;
 begin
   ten := public.api_tenant_of(p_key);

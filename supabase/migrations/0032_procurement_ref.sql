@@ -18,6 +18,7 @@ create or replace function public.app_tender_create(
 ) returns table (id uuid, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; tid uuid; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -40,6 +41,7 @@ returns table (id uuid, title text, description text, category text, material te
                bids_count bigint, best_price numeric, awarded_bid_id uuid, created_at timestamptz, closed_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -63,6 +65,7 @@ returns table (id uuid, title text, description text, category text, material te
                bids_count bigint, best_price numeric, awarded_bid_id uuid, created_at timestamptz, closed_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

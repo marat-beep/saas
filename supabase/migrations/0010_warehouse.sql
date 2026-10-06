@@ -69,10 +69,12 @@ alter table public.app_bom         enable row level security;
 alter table public.app_bom_lines   enable row level security;
 
 -- ---------- Материалы: список ----------
+drop function if exists public.app_material_list(uuid);
 create or replace function public.app_material_list(p_token uuid)
 returns table (id uuid, code text, name text, unit text, price numeric, qty numeric, min_qty numeric, low boolean)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -88,6 +90,7 @@ create or replace function public.app_material_save(
 ) returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -110,6 +113,7 @@ create or replace function public.app_stock_move(
 ) returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ulogin text; urole text; ten uuid; m public.app_materials; newqty numeric;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -135,10 +139,12 @@ begin
 end $$;
 
 -- ---------- История движений ----------
+drop function if exists public.app_stock_moves_list(uuid, uuid, integer);
 create or replace function public.app_stock_moves_list(p_token uuid, p_material_id uuid, p_limit integer default 50)
 returns table (id uuid, kind text, qty numeric, price numeric, note text, by_login text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -151,10 +157,12 @@ begin
 end $$;
 
 -- ---------- BOM: список ----------
+drop function if exists public.app_bom_list(uuid);
 create or replace function public.app_bom_list(p_token uuid)
 returns table (id uuid, product text, version text, order_number text, lines_count bigint, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -168,10 +176,12 @@ begin
     order by b.created_at desc;
 end $$;
 
+drop function if exists public.app_bom_lines_list(uuid, uuid);
 create or replace function public.app_bom_lines_list(p_token uuid, p_bom_id uuid)
 returns table (id uuid, seq integer, item_type text, name text, qty numeric, unit text, norm_hours numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -189,6 +199,7 @@ create or replace function public.app_bom_save(
 ) returns table (id uuid, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; ten uuid; bid uuid; ln jsonb; i integer := 0;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

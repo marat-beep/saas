@@ -10,13 +10,14 @@ create index if not exists app_naryads_tenant_status_idx on public.app_naryads (
 create index if not exists app_stock_moves_tenant_idx on public.app_stock_moves (tenant_id, created_at desc);
 create index if not exists app_notifications_unread_idx on public.app_notifications (user_id) where read_at is null;
 create index if not exists app_documents_tenant_idx on public.app_documents (tenant_id, doc_type, created_at desc);
-create index if not exists app_attachments_ref_idx on public.app_attachments (ref_type, ref_id);
+create index if not exists app_attachments_ref_idx on public.app_attachments (entity_type, entity_id);
 
 -- ---------- Пагинация длинных списков ----------
 create or replace function public.app_page_count(p_token uuid, p_kind text, p_q text default null)
 returns bigint
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; ulogin text; qq text; n bigint;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -44,6 +45,7 @@ create or replace function public.app_page_rows(p_token uuid, p_kind text, p_pag
 returns table (id uuid, title text, subtitle text, meta text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; ulogin text; qq text; off int; lim int;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -88,6 +90,7 @@ create or replace function public.app_backup_note(p_token uuid, p_kind text, p_s
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; ulogin text;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -103,6 +106,7 @@ create or replace function public.app_backup_list(p_token uuid, p_limit int defa
 returns table (id uuid, kind text, scope text, note text, by_login text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -117,6 +121,7 @@ create or replace function public.app_smoke_test(p_token uuid)
 returns table (name text, ok boolean, detail text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; cnt bigint;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -176,6 +181,7 @@ create or replace function public.app_scale_stats(p_token uuid)
 returns table (tables bigint, functions bigint, users bigint, orders bigint, naryads bigint, notifications bigint, attachments bigint, attachments_bytes bigint)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -189,7 +195,7 @@ begin
     (select count(*) from public.app_naryads),
     (select count(*) from public.app_notifications),
     (select count(*) from public.app_attachments),
-    (select coalesce(sum(length(content)),0) from public.app_attachments);
+    (select coalesce(sum(length(data)),0) from public.app_attachments);
 end $$;
 
 grant execute on function public.app_page_count(uuid,text,text) to anon, authenticated;

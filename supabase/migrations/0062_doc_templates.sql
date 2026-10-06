@@ -21,6 +21,7 @@ create or replace function public.app_doc_templates_list(p_token uuid, p_doc_typ
 returns table (id uuid, doc_type text, name text, body text, active boolean)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -38,6 +39,7 @@ create or replace function public.app_doc_template_save(p_token uuid, p_id uuid,
 returns table (id uuid, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; tid uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -61,6 +63,7 @@ create or replace function public.app_doc_from_template(p_token uuid, p_template
 returns table (id uuid, number text, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; ulogin text; t record; o record; prefix text; dnum text; did uuid; body text; cust text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

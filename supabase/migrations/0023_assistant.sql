@@ -33,6 +33,7 @@ create or replace function public.app_kb_list(p_token uuid)
 returns table (id uuid, category text, question text, answer text, tags text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -46,6 +47,7 @@ create or replace function public.app_kb_add(p_token uuid, p_category text, p_qu
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -63,6 +65,7 @@ create or replace function public.app_kb_search(p_token uuid, p_query text)
 returns table (id uuid, category text, question text, answer text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; q text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -81,6 +84,7 @@ create or replace function public.app_tech_recommend(p_token uuid, p_material te
 returns table (recommendation text, note text, matched_material text, matched_feature text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

@@ -9,6 +9,7 @@ create or replace function public.app_order_create_quote(p_token uuid, p_order_i
 returns table (id uuid, number text, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; ten uuid; o record; amt numeric; did uuid; dnum text; vd date;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -38,6 +39,7 @@ create or replace function public.app_order_create_invoice(p_token uuid, p_order
 returns table (id uuid, number text, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; ten uuid; o record; amt numeric; inum text; iid uuid; did_link uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -68,6 +70,7 @@ create or replace function public.app_naryad_from_bom(p_token uuid, p_bom_id uui
 returns table (id uuid, number text, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; ten uuid; b record; nid uuid; nnum text; i integer := 0; ln record;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -97,6 +100,7 @@ create or replace function public.app_bom_writeoff(p_token uuid, p_bom_id uuid, 
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare b record; ln record; rec record; cnt integer := 0; k numeric;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

@@ -31,6 +31,7 @@ returns table (id uuid, number text, tkp_date date, counterparty text, customer 
                price numeric, status text, order_id uuid, order_number text, document_number text, note text, expired boolean)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -53,6 +54,7 @@ create or replace function public.app_tkp_save(p_token uuid, p_id uuid, p_custom
 returns table (id uuid, number text, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; ulogin text; tid uuid; tnum text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -78,6 +80,7 @@ create or replace function public.app_tkp_set_status(p_token uuid, p_id uuid, p_
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;

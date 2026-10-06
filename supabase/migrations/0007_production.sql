@@ -67,6 +67,7 @@ alter table public.app_naryads      enable row level security;
 alter table public.app_naryad_ops   enable row level security;
 
 -- ---------- Доступ к производству ----------
+drop function if exists public.app_production_allowed(uuid);
 create or replace function public.app_production_allowed(p_token uuid)
 returns boolean language sql security definer set search_path = public
 as $$
@@ -81,6 +82,7 @@ create or replace function public.app_wc_list(p_token uuid)
 returns table (id uuid, code text, name text, kind text, cost_hour numeric, active boolean)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
   return query select w.id, w.code, w.name, w.kind, w.cost_hour, w.active from public.app_work_centers w order by w.name;
@@ -90,17 +92,20 @@ create or replace function public.app_norms_list(p_token uuid)
 returns table (id uuid, operation text, machine_kind text, setup_min numeric, unit_min numeric, rate_hour numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
   return query select n.id, n.operation, n.machine_kind, n.setup_min, n.unit_min, n.rate_hour from public.app_norms n order by n.operation;
 end $$;
 
 -- ---------- Наряды: список ----------
+drop function if exists public.app_naryad_list(uuid);
 create or replace function public.app_naryad_list(p_token uuid)
 returns table (id uuid, number text, title text, order_number text, wc_name text, assignee text,
                status text, plan_hours numeric, fact_hours numeric, due_date date, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
   return query
@@ -118,6 +123,7 @@ create or replace function public.app_naryad_create(
 ) returns table (id uuid, number text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; nid uuid; nnum text; target uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -140,11 +146,13 @@ begin
 end $$;
 
 -- ---------- Наряд: карточка + операции ----------
+drop function if exists public.app_naryad_get(uuid, uuid);
 create or replace function public.app_naryad_get(p_token uuid, p_id uuid)
 returns table (id uuid, number text, title text, order_id uuid, order_number text, wc_name text, assignee text,
                status text, plan_hours numeric, fact_hours numeric, due_date date, created_login text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
   return query select n.id, n.number, n.title, n.order_id, o.number, w.name, n.assignee,
@@ -155,10 +163,12 @@ begin
     where n.id = p_id;
 end $$;
 
+drop function if exists public.app_naryad_ops(uuid, uuid);
 create or replace function public.app_naryad_ops(p_token uuid, p_id uuid)
 returns table (id uuid, seq integer, operation text, worker text, plan_hours numeric, fact_hours numeric, done boolean)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
   return query select op.id, op.seq, op.operation, op.worker, op.plan_hours, op.fact_hours, op.done
@@ -171,6 +181,7 @@ create or replace function public.app_naryad_add_op(
 ) returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare seqn integer; nid uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -193,6 +204,7 @@ create or replace function public.app_naryad_op_done(p_token uuid, p_op_id uuid,
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare nid uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -209,6 +221,7 @@ create or replace function public.app_naryad_close(p_token uuid, p_id uuid)
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ulogin text; nnum text;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;

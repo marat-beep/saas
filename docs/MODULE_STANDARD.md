@@ -33,7 +33,10 @@ config.js → supabase-client.js → ui.js → status.js (если нужно) �
 - Мутации возвращают `table(ok boolean, message text)`; создание — `table(id uuid, number text)`.
 - Каждый RPC — `security definer set search_path = public`, проверка роли/тенанта, аккуратные сообщения об ошибках на русском.
 - Миграции — только `supabase/migrations/NNNN_*.sql`, идемпотентно; после — пересобрать `apply_all.sql`.
-- Смена типа возврата функции — сначала `drop function if exists ...;`.
+- Смена типа возврата функции — сначала `drop function if exists ...;` (иначе повторный `apply_all` падает на `42P13`).
+- **Обязательно:** в plpgsql-функциях, возвращающих таблицу с колонкой `id` (и вообще при `RETURNS TABLE(...)`), первой строкой тела (после `as $$`, перед `declare`/`begin`) указывать прагму
+  `#variable_conflict use_column`
+  иначе `RETURNING id` / `WHERE id = ...` падают с `42702 column reference "id" is ambiguous` (OUT-параметр конфликтует с колонкой). Проверено на всех 385 функциях (`app_smoke_test`).
 
 ## 4. Поведение модуля (обязательный минимум)
 - Уведомления: `app_notif_roles_t` / `app_notif_send` на значимые события.

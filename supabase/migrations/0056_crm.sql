@@ -31,6 +31,7 @@ returns table (id uuid, customer_id uuid, customer text, title text, stage text,
                weighted numeric, source text, owner_login text, next_action text, due_date date, order_id uuid, order_number text, note text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -52,6 +53,7 @@ create or replace function public.app_deal_kpi(p_token uuid)
 returns table (deals_total bigint, open_deals bigint, pipeline numeric, won_sum numeric, won_count bigint, conversion numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -74,6 +76,7 @@ create or replace function public.app_deal_save(p_token uuid, p_id uuid, p_custo
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; ulogin text;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -99,6 +102,7 @@ create or replace function public.app_deal_set_stage(p_token uuid, p_id uuid, p_
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; t record;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;

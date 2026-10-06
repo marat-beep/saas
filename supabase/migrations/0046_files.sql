@@ -27,6 +27,7 @@ create or replace function public.app_attachment_add(p_token uuid, p_entity_type
 returns table (id uuid, name text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ulogin text; ten uuid; aid uuid; bytes bytea; allowed text[] := array['order','document','qc','passport','naryad','tender'];
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -50,6 +51,7 @@ create or replace function public.app_attachment_list(p_token uuid, p_entity_typ
 returns table (id uuid, name text, mime text, size integer, uploaded_by text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -66,6 +68,7 @@ create or replace function public.app_attachment_get(p_token uuid, p_id uuid)
 returns table (id uuid, name text, mime text, size integer, data text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -81,6 +84,7 @@ create or replace function public.app_attachment_delete(p_token uuid, p_id uuid)
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;

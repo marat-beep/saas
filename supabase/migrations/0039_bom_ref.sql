@@ -18,6 +18,7 @@ returns table (id uuid, product text, product_code text, version text, status te
                lines_count bigint, materials_count bigint, norm_hours_sum numeric, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -36,11 +37,13 @@ end $$;
 
 -- ---------- Позиции спецификации (с себестоимостью позиции) ----------
 drop function if exists public.app_bom_lines_list(uuid,uuid);
+drop function if exists public.app_bom_lines_list(uuid, uuid);
 create or replace function public.app_bom_lines_list(p_token uuid, p_bom_id uuid)
 returns table (id uuid, seq integer, item_type text, material_id uuid, operation_id uuid, name text,
                qty numeric, unit text, norm_hours numeric, price numeric, cost numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -66,6 +69,7 @@ create or replace function public.app_bom_save(p_token uuid, p_id uuid, p_order_
 returns table (id uuid, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; ten uuid; bid uuid; ln jsonb; i integer := 0;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -108,6 +112,7 @@ create or replace function public.app_bom_cost(p_token uuid, p_bom_id uuid, p_qt
 returns table (materials_cost numeric, work_cost numeric, total numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; mc numeric; wc numeric; k numeric;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -134,6 +139,7 @@ create or replace function public.app_bom_from_template(p_token uuid, p_template
 returns table (id uuid, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; ten uuid; bid uuid; tname text; tmat uuid; matname text; munit text; i integer := 0; st record;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

@@ -23,6 +23,7 @@ create or replace function public.app_can(p_token uuid, p_module text, p_action 
 returns boolean
 language plpgsql stable security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; vw boolean; ed boolean;
 begin
   select s.urole into urole from public.app_session_user(p_token) s;
@@ -51,6 +52,7 @@ create or replace function public.app_my_permissions(p_token uuid)
 returns table (module_id text, can_view boolean, can_edit boolean)
 language plpgsql stable security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   select s.urole into urole from public.app_session_user(p_token) s;
@@ -81,6 +83,7 @@ create or replace function public.app_order_create(
 ) returns table (id uuid, number text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; oid uuid; onum text; ten uuid; cname text;
 begin
   select s.uid, s.ulogin into uid, ulogin from public.app_session_user(p_token) s;
@@ -113,6 +116,7 @@ create or replace function public.app_order_update(p_token uuid, p_id uuid, p_ti
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; urole text; ten uuid; cname text;
 begin
   select s.uid, s.ulogin, s.urole into uid, ulogin, urole from public.app_session_user(p_token) s;
@@ -145,6 +149,7 @@ create or replace function public.app_order_set_status(p_token uuid, p_id uuid, 
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; urole text; ten uuid; owner uuid; onum text; oten uuid;
 begin
   select s.uid, s.ulogin, s.urole into uid, ulogin, urole from public.app_session_user(p_token) s;

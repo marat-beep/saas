@@ -48,10 +48,12 @@ alter table public.app_shifts    enable row level security;
 alter table public.app_trainings enable row level security;
 
 -- ---------- Сотрудники ----------
+drop function if exists public.app_employees_list(uuid);
 create or replace function public.app_employees_list(p_token uuid)
 returns table (id uuid, full_name text, job text, dept text, phone text, active boolean, shifts_month bigint)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -66,6 +68,7 @@ create or replace function public.app_employee_save(p_token uuid, p_id uuid, p_f
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -87,6 +90,7 @@ create or replace function public.app_shifts_list(p_token uuid, p_from date, p_t
 returns table (id uuid, employee_id uuid, employee text, shift_date date, kind text, hours numeric, note text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -103,6 +107,7 @@ create or replace function public.app_shift_add(p_token uuid, p_employee_id uuid
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; ulogin text; eid uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -120,6 +125,7 @@ create or replace function public.app_shift_delete(p_token uuid, p_id uuid)
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -134,6 +140,7 @@ create or replace function public.app_training_list(p_token uuid)
 returns table (id uuid, employee text, title text, status text, train_date date, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -148,6 +155,7 @@ create or replace function public.app_training_add(p_token uuid, p_employee_id u
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; eid uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -164,6 +172,7 @@ create or replace function public.app_training_set_status(p_token uuid, p_id uui
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -178,6 +187,7 @@ create or replace function public.app_hr_kpi(p_token uuid)
 returns table (employees bigint, shifts_month bigint, hours_month numeric, trainings_planned bigint, trainings_passed bigint)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

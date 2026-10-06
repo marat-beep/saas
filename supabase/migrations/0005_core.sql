@@ -25,6 +25,7 @@ create or replace function public.app_log_event(p_token uuid, p_action text, p_d
 returns void
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text;
 begin
   select u.id, u.login into uid, ulogin
@@ -40,6 +41,7 @@ create or replace function public.app_my_events(p_token uuid, p_limit integer de
 returns table (action text, detail text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid;
 begin
   select s.user_id into uid from public.app_sessions s
@@ -57,6 +59,7 @@ create or replace function public.admin_list_events(p_token uuid, p_limit intege
 returns table (id uuid, login text, action text, detail text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 begin
   if not public.is_admin(p_token) then raise exception 'Доступ запрещён'; end if;
   return query select e.id, e.login, e.action, e.detail, e.created_at
@@ -70,6 +73,7 @@ create or replace function public.app_login(p_login text, p_password text)
 returns table (token uuid, user_id uuid, login text, full_name text, role text)
 language plpgsql security definer set search_path = public, extensions
 as $$
+#variable_conflict use_column
 declare u public.app_users; tk uuid;
 begin
   select * into u from public.app_users au
@@ -101,6 +105,7 @@ create function public.admin_list_users(p_token uuid)
 returns table (id uuid, login text, full_name text, role text, active boolean, created_at timestamptz, last_login_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 begin
   if not public.is_admin(p_token) then raise exception 'Доступ запрещён'; end if;
   return query select u.id, u.login, u.full_name, u.role, u.active, u.created_at, u.last_login_at

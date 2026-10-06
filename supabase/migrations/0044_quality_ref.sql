@@ -13,6 +13,7 @@ returns table (id uuid, name text, serial text, tool_type text, location text,
                last_verified date, next_verified date, days_left integer, status text, note text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -36,6 +37,7 @@ create or replace function public.app_tool_verify(p_token uuid, p_id uuid, p_dat
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; tname text;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -58,6 +60,7 @@ returns table (id uuid, item text, serial text, order_id uuid, order_number text
                material text, operator text, note text, by_login text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

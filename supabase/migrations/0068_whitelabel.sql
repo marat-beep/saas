@@ -16,6 +16,7 @@ returns table (tenant_id uuid, name text, subdomain text, custom_domain text, pl
                brand jsonb, theme jsonb)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -36,6 +37,7 @@ create or replace function public.app_whitelabel_save(p_token uuid, p_subdomain 
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; sd text;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -61,6 +63,7 @@ create or replace function public.app_whitelabel_resolve(p_subdomain text)
 returns table (tenant_id uuid, name text, brand jsonb, theme jsonb, plan text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare sd text;
 begin
   sd := lower(nullif(trim(coalesce(p_subdomain,'')),''));

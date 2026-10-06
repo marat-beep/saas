@@ -73,6 +73,7 @@ create or replace function public.app_ref_fits_list(p_token uuid, p_kind text de
 returns table (id uuid, nominal numeric, designation text, kind text, hole_dev text, shaft_dev text, clearance_max numeric, clearance_min numeric, note text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -89,6 +90,7 @@ create or replace function public.app_ref_fasteners_list(p_token uuid, p_q text 
 returns table (id uuid, kind text, standard text, size text, material text, coating text, note text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -104,6 +106,7 @@ create or replace function public.app_ref_heat_list(p_token uuid, p_q text defau
 returns table (id uuid, kind text, material_group text, hardness text, depth text, note text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -119,6 +122,7 @@ create or replace function public.app_ref_fluids_list(p_token uuid, p_q text def
 returns table (id uuid, kind text, name text, purpose text, concentration text, note text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -134,6 +138,7 @@ create or replace function public.app_ref_processes_list(p_token uuid, p_categor
 returns table (id uuid, code text, name text, category text, stages text, inputs text, outputs text, executors text, tools text, time_norm text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

@@ -28,6 +28,7 @@ create or replace function public.app_calc_mass(
 returns table (area_mm2 numeric, volume_mm3 numeric, mass_kg numeric, mass_total_kg numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare a numeric; area numeric; vol numeric; m numeric;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -52,6 +53,7 @@ create or replace function public.app_calc_cutting(
 returns table (n_rpm numeric, feed_rev numeric, vf_mm_min numeric, mrr_cm3_min numeric, pc_kw numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare n numeric; vf numeric; mrr numeric; pc numeric; fz numeric; z int;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -72,6 +74,7 @@ returns table (hole_max numeric, hole_min numeric, shaft_max numeric, shaft_min 
                clearance_min numeric, clearance_max numeric, fit text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare hmax numeric; hmin numeric; smax numeric; smin numeric; cmin numeric; cmax numeric; ft text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -90,6 +93,7 @@ create or replace function public.app_calc_cnc(
 returns table (amort numeric, energy numeric, fot numeric, tools numeric, direct numeric, overhead numeric, rate numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare am numeric; en numeric; ft numeric; toc numeric; dr numeric; ov numeric;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -109,6 +113,7 @@ create or replace function public.app_calc_cost(
 returns table (material numeric, work numeric, overhead numeric, total numeric, per_unit numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare mat numeric; wrk numeric; ov numeric; tot numeric; q numeric;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -126,6 +131,7 @@ create or replace function public.app_calc_decimal(
 returns table (designation text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare code text; num text; lit text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -140,6 +146,7 @@ create or replace function public.app_calc_convert(p_token uuid, p_kind text, p_
 returns table (result numeric, unit text, formula text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare r numeric; u text; f text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -166,6 +173,7 @@ create or replace function public.app_calc_tech(p_token uuid, p_material text, p
 returns table (recommendation text, note text, source text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -196,6 +204,7 @@ create or replace function public.app_calc_save(p_token uuid, p_kind text, p_tit
 returns table (id uuid, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; ulogin text; cid uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -212,6 +221,7 @@ create or replace function public.app_calc_list(p_token uuid, p_kind text defaul
 returns table (id uuid, kind text, title text, ref text, order_number text, result jsonb, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -231,6 +241,7 @@ create or replace function public.app_calc_get(p_token uuid, p_id uuid)
 returns table (id uuid, kind text, title text, input jsonb, result jsonb, ref text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -245,6 +256,7 @@ create or replace function public.app_calc_delete(p_token uuid, p_id uuid)
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;

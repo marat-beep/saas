@@ -14,11 +14,13 @@ update public.app_naryads set plan_start = created_at::date, plan_end = (created
 create index if not exists app_naryads_plan_idx on public.app_naryads (plan_start, plan_end);
 
 -- ---------- Гант: наряды с план-датами ----------
+drop function if exists public.app_schedule(uuid);
 create or replace function public.app_schedule(p_token uuid)
 returns table (id uuid, number text, title text, wc_name text, assignee text, status text,
                plan_start date, plan_end date, due_date date, plan_hours numeric, fact_hours numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -34,11 +36,13 @@ begin
 end $$;
 
 -- ---------- Загрузка рабочих центров ----------
+drop function if exists public.app_capacity(uuid);
 create or replace function public.app_capacity(p_token uuid)
 returns table (wc_id uuid, wc_name text, kind text, cost_hour numeric,
                active_naryads bigint, plan_hours numeric, fact_hours numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -59,6 +63,7 @@ create or replace function public.app_naryad_schedule(p_token uuid, p_id uuid, p
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;

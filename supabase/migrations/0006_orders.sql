@@ -93,6 +93,7 @@ create or replace function public.app_order_create(
 ) returns table (id uuid, number text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; oid uuid; onum text;
 begin
   select s.uid, s.ulogin into uid, ulogin from public.app_session_user(p_token) s;
@@ -114,11 +115,13 @@ begin
 end $$;
 
 -- ---------- Список заявок ----------
+drop function if exists public.app_order_list(uuid);
 create or replace function public.app_order_list(p_token uuid)
 returns table (id uuid, number text, title text, source text, customer text, status text, priority text,
                created_login text, created_at timestamptz, updated_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
@@ -133,11 +136,13 @@ begin
 end $$;
 
 -- ---------- Одна заявка + позиции + история ----------
+drop function if exists public.app_order_get(uuid, uuid);
 create or replace function public.app_order_get(p_token uuid, p_id uuid)
 returns table (id uuid, number text, title text, description text, source text, customer text, contact text,
                status text, priority text, created_login text, created_at timestamptz, updated_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; urole text; owner uuid;
 begin
   select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
@@ -154,6 +159,7 @@ create or replace function public.app_order_history_list(p_token uuid, p_id uuid
 returns table (status text, comment text, by_login text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid;
 begin
   select s.uid into uid from public.app_session_user(p_token) s;
@@ -167,6 +173,7 @@ create or replace function public.app_order_set_status(p_token uuid, p_id uuid, 
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; urole text; owner uuid; onum text;
 begin
   select s.uid, s.ulogin, s.urole into uid, ulogin, urole from public.app_session_user(p_token) s;
@@ -188,6 +195,7 @@ create or replace function public.app_notif_list(p_token uuid, p_limit integer d
 returns table (id uuid, title text, body text, link text, read_at timestamptz, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid;
 begin
   select s.uid into uid from public.app_session_user(p_token) s;
@@ -200,6 +208,7 @@ end $$;
 create or replace function public.app_notif_unread(p_token uuid)
 returns integer language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; c integer;
 begin
   select s.uid into uid from public.app_session_user(p_token) s;
@@ -211,6 +220,7 @@ end $$;
 create or replace function public.app_notif_mark_read(p_token uuid, p_id uuid)
 returns void language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid;
 begin
   select s.uid into uid from public.app_session_user(p_token) s;
@@ -221,6 +231,7 @@ end $$;
 create or replace function public.app_notif_mark_all(p_token uuid)
 returns void language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid;
 begin
   select s.uid into uid from public.app_session_user(p_token) s;
@@ -234,6 +245,7 @@ create or replace function public.supplier_submit_bid(
 ) returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin uuid; uname text; ttitle text;
 begin
   select u.id, coalesce(u.full_name, u.login) into uid, uname

@@ -13,6 +13,7 @@ returns table (id uuid, number text, title text, wc_id uuid, wc_name text, assig
                plan_start date, plan_end date, due_date date, plan_hours numeric, fact_hours numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -39,6 +40,7 @@ returns table (wc_id uuid, wc_name text, kind text, cost_hour numeric,
                active_naryads bigint, plan_hours numeric, fact_hours numeric, ops_open bigint, overdue bigint)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

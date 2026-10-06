@@ -22,6 +22,7 @@ create or replace function public.app_calendar_list(p_token uuid, p_from date de
 returns table (id uuid, cal_date date, kind text, name text, note text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -39,6 +40,7 @@ create or replace function public.app_calendar_save(p_token uuid, p_date date, p
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -56,6 +58,7 @@ create or replace function public.app_calendar_delete(p_token uuid, p_id uuid)
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -71,6 +74,7 @@ create or replace function public.app_calendar_add_days(p_token uuid, p_start da
 returns table (result date)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; d date; left_n integer;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

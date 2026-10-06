@@ -19,6 +19,7 @@ returns table (id uuid, number text, title text, order_id uuid, order_number tex
                route_id uuid, route_number text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -39,6 +40,7 @@ create or replace function public.app_naryad_from_route(p_token uuid, p_route_id
 returns table (id uuid, number text, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; uid uuid; ulogin text; rid uuid; rnum text; rname text; rorder uuid;
         target uuid; dwc uuid; nid uuid; nnum text;
 begin
@@ -94,6 +96,7 @@ create or replace function public.app_route_naryads(p_token uuid, p_route_id uui
 returns table (id uuid, number text, title text, status text, assignee text, plan_hours numeric, fact_hours numeric, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

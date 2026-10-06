@@ -36,11 +36,13 @@ alter table public.app_measuring_tools enable row level security;
 alter table public.app_traceability    enable row level security;
 
 -- ---------- Средства измерений ----------
+drop function if exists public.app_tools_list(uuid);
 create or replace function public.app_tools_list(p_token uuid)
 returns table (id uuid, name text, serial text, tool_type text, location text,
                last_verified date, next_verified date, status text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -61,6 +63,7 @@ create or replace function public.app_tool_save(p_token uuid, p_id uuid, p_name 
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -81,6 +84,7 @@ create or replace function public.app_tool_delete(p_token uuid, p_id uuid)
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -91,10 +95,12 @@ begin
 end $$;
 
 -- ---------- Трассируемость ----------
+drop function if exists public.app_trace_list(uuid);
 create or replace function public.app_trace_list(p_token uuid)
 returns table (id uuid, item text, serial text, order_number text, material text, operator text, by_login text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -109,6 +115,7 @@ create or replace function public.app_trace_add(p_token uuid, p_item text, p_ser
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; ulogin text;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -125,6 +132,7 @@ create or replace function public.app_quality_kpi(p_token uuid)
 returns table (tools bigint, expired bigint, due bigint, trace_records bigint)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

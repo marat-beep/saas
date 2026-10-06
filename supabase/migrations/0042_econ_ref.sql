@@ -7,12 +7,14 @@
 
 -- ---------- Себестоимость заявки (по факту) ----------
 drop function if exists public.app_order_cost(uuid,uuid);
+drop function if exists public.app_order_cost(uuid, uuid);
 create or replace function public.app_order_cost(p_token uuid, p_order_id uuid)
 returns table (plan_hours numeric, fact_hours numeric, work_cost numeric,
                material_cost numeric, overhead numeric, total numeric, amount numeric,
                margin numeric, margin_pct numeric, materials_from_moves boolean)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; oten uuid; amt numeric; ph numeric; fh numeric;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -62,6 +64,7 @@ returns table (id uuid, number text, title text, status text, amount numeric,
                work_cost numeric, material_cost numeric, total numeric, margin numeric, margin_pct numeric, fact_hours numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -84,6 +87,7 @@ returns table (orders_total bigint, orders_open bigint, naryads_open bigint, nar
                orders_amount_sum numeric, cost_total numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; amt numeric; cost numeric;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

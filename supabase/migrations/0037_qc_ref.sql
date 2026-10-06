@@ -16,6 +16,7 @@ returns table (id uuid, number text, product text, status text, inspector text,
                checked_at timestamptz, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -42,6 +43,7 @@ create or replace function public.app_qc_create(p_token uuid, p_naryad_id uuid, 
 returns table (id uuid, number text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; ten uuid; cid uuid; cnum text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -59,6 +61,7 @@ create or replace function public.app_qc_set_status(p_token uuid, p_check_id uui
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; cnum text;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -78,6 +81,7 @@ create or replace function public.app_qc_trace(p_token uuid, p_check_id uuid)
 returns table (kind text, title text, detail text, ts timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; c record;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

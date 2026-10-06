@@ -18,6 +18,7 @@ returns table (id uuid, number text, product text, serial text, qty numeric, sta
                created_login text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -36,12 +37,14 @@ end $$;
 
 -- ---------- Карточка паспорта (расширенная) ----------
 drop function if exists public.app_passport_get(uuid,uuid);
+drop function if exists public.app_passport_get(uuid, uuid);
 create or replace function public.app_passport_get(p_token uuid, p_id uuid)
 returns table (id uuid, number text, product text, serial text, qty numeric, status text,
                order_id uuid, order_number text, naryad_id uuid, naryad_number text,
                qc_check_id uuid, qc_number text, data jsonb, created_login text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -64,6 +67,7 @@ create or replace function public.app_passport_create(p_token uuid, p_order_id u
 returns table (id uuid, number text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare uid uuid; ulogin text; ten uuid; pid uuid; pnum text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;

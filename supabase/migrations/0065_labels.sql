@@ -55,6 +55,7 @@ returns table (id uuid, order_number text, package_no int, kind text, dims text,
                positions int, marks text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -72,6 +73,7 @@ create or replace function public.app_package_kpi(p_token uuid)
 returns table (packages bigint, gross_sum numeric, net_sum numeric, positions_sum bigint)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -86,6 +88,7 @@ create or replace function public.app_package_save(p_token uuid, p_id uuid, p_or
 returns table (id uuid, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; ulogin text; pid uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -110,6 +113,7 @@ create or replace function public.app_package_delete(p_token uuid, p_id uuid)
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -125,6 +129,7 @@ returns table (id uuid, label_type text, order_number text, recipient text, send
                dims text, gross numeric, net numeric, position_no int, identifier text, cargo_no int, cargo_total int, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -141,9 +146,10 @@ begin
 end $$;
 
 create or replace function public.app_label_kpi(p_token uuid)
-returns table (total bigint, cargo bigint, position bigint, tag bigint)
+returns table (total bigint, cargo bigint, pos_lbl bigint, tag_lbl bigint)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -160,6 +166,7 @@ create or replace function public.app_label_save(p_token uuid, p_id uuid, p_orde
 returns table (id uuid, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; ulogin text; lid uuid; onum text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -191,6 +198,7 @@ create or replace function public.app_label_delete(p_token uuid, p_id uuid)
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;

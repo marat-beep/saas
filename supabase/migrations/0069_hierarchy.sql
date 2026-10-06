@@ -30,6 +30,7 @@ create or replace function public.app_departments_list(p_token uuid, p_q text de
 returns table (id uuid, parent_id uuid, name text, code text, head text, active boolean, employees bigint)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -48,6 +49,7 @@ create or replace function public.app_department_kpi(p_token uuid)
 returns table (total bigint, root bigint, with_head bigint, max_depth int)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -71,6 +73,7 @@ create or replace function public.app_department_save(p_token uuid, p_id uuid, p
 returns table (id uuid, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; did uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -96,6 +99,7 @@ create or replace function public.app_department_delete(p_token uuid, p_id uuid)
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; kids int;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;

@@ -28,6 +28,7 @@ create or replace function public.app_attachment_add(p_token uuid, p_entity_type
 returns table (id uuid, name text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ulogin text; ten uuid; aid uuid; bytes bytea;
         allowed text[] := array['order','document','qc','passport','naryad','tender','nc','issue','service','tkp','deal','client'];
 begin
@@ -50,6 +51,7 @@ returns table (id uuid, order_id uuid, order_number text, equipment_id uuid, equ
                program_no text, version integer, program_time_min numeric, status text, note text, created_at timestamptz)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid; qq text;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -69,6 +71,7 @@ create or replace function public.app_nc_kpi(p_token uuid)
 returns table (programs bigint, approved bigint, draft bigint, total_min numeric)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare urole text; ten uuid;
 begin
   if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
@@ -86,6 +89,7 @@ create or replace function public.app_nc_save(p_token uuid, p_id uuid, p_order_i
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text; ulogin text;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
@@ -108,6 +112,7 @@ create or replace function public.app_nc_set_status(p_token uuid, p_id uuid, p_s
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
+#variable_conflict use_column
 declare ten uuid; urole text;
 begin
   if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
