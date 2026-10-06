@@ -36,6 +36,21 @@
       </div>
     </div>
 
+    <div class="card mt">
+      <h2>Из источников</h2>
+      <div class="msg" id="sMsg"></div>
+      <div class="form-grid">
+        <div class="field"><label>Спецификация (КП из BOM)</label><select id="srcBom"></select></div>
+        <div class="field"><label>Наценка, %</label><input type="number" id="bomMargin" value="15" min="0" step="0.1"></div>
+        <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="qFromBom">Создать КП из спецификации</button></div>
+      </div>
+      <div class="form-grid mt">
+        <div class="field"><label>Оборудование (прайс; Ctrl — несколько)</label><select id="srcEquip" multiple size="5" style="height:auto"></select></div>
+        <div class="field"><label>Наценка, %</label><input type="number" id="eqMargin" value="10" min="0" step="0.1"></div>
+        <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="qFromEquip">Создать прайс оборудования</button></div>
+      </div>
+    </div>
+
     <div class="card">
       <div class="toolbar wrap">
         <select id="fType2" style="padding:9px;border:1px solid var(--border);border-radius:9px;min-width:220px;"><option value="">Все типы</option></select>
@@ -67,9 +82,9 @@
   <script src="../../assets/js/auth.js?v=5"></script>
   <script src="../../assets/js/notify.js?v=1"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=50"></script>
-  <script src="../../assets/js/shell.js?v=5"></script>
-  <script src="docbuilder.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=51"></script>
+  <script src="../../assets/js/shell.js?v=6"></script>
+  <script src="docbuilder.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
 </body>
 </html>

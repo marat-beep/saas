@@ -129,7 +129,36 @@
     $('#dMsg').className = 'msg'; $('#dMsg').textContent = '';
   }
 
+  function loadSources() {
+    var p1 = rpc('app_bom_list', { p_token: token }).then(function (r) {
+      var a = r || [];
+      $('#srcBom').innerHTML = '<option value="">— спецификация —</option>' + a.map(function (b) {
+        return '<option value="' + b.id + '">' + esc(b.product || 'BOM') + (b.order_number ? ' · ' + esc(b.order_number) : '') + '</option>';
+      }).join('');
+    }).catch(function () {});
+    var p2 = rpc('app_equipment_price_options', { p_token: token }).then(function (r) {
+      var a = r || [];
+      $('#srcEquip').innerHTML = a.map(function (e) {
+        return '<option value="' + e.id + '">' + esc(e.name) + (e.price != null ? ' — ' + Number(e.price).toLocaleString('ru-RU') + ' ' + esc(e.currency || '') : '') + '</option>';
+      }).join('');
+    }).catch(function () {});
+    return Promise.all([p1, p2]);
+  }
+
   /* ---------- события ---------- */
+  $('#qFromBom').addEventListener('click', function () {
+    var id = $('#srcBom').value; if (!id) { msg('#sMsg', 'Выберите спецификацию', 'err'); return; }
+    rpc('app_quote_from_bom', { p_token: token, p_bom_id: id, p_margin_pct: parseFloat($('#bomMargin').value) || 0, p_valid_days: 30 })
+      .then(function (r) { var x = r && r[0]; msg('#sMsg', x ? (x.message + ': ' + x.number + ' — ' + Number(x.amount).toLocaleString('ru-RU') + ' ₽') : 'Ошибка', x ? 'ok' : 'err'); if (x) { window.Auth.log('КП из спецификации', x.number); loadList(); preview(x.id); } })
+      .catch(function (e) { msg('#sMsg', 'Ошибка: ' + e.message, 'err'); });
+  });
+  $('#qFromEquip').addEventListener('click', function () {
+    var ids = ui.qsa('#srcEquip option:checked').map(function (o) { return o.value; });
+    if (!ids.length) { msg('#sMsg', 'Выберите позиции оборудования', 'err'); return; }
+    rpc('app_quote_from_equipment', { p_token: token, p_ids: ids, p_margin_pct: parseFloat($('#eqMargin').value) || 0 })
+      .then(function (r) { var x = r && r[0]; msg('#sMsg', x ? (x.message + ': ' + x.number + ' — ' + Number(x.amount).toLocaleString('ru-RU') + ' ₽') : 'Ошибка', x ? 'ok' : 'err'); if (x) { window.Auth.log('Прайс оборудования', x.number); loadList(); preview(x.id); } })
+      .catch(function (e) { msg('#sMsg', 'Ошибка: ' + e.message, 'err'); });
+  });
   $('#dType').addEventListener('change', function () {
     if (!this.value) { $('#dForm').innerHTML = '<span class="note">Выберите тип документа.</span>'; return; }
     loadFields(this.value);
@@ -161,6 +190,6 @@
     token = s.token; role = s.role;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#mMsg', 'Supabase не подключён.', 'err'); return; }
-    loadTypes().then(loadList);
+    loadTypes().then(loadList).then(loadSources);
   });
 })();
