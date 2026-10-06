@@ -16,7 +16,7 @@
       id: 'dev', badge: 'Разработчик', cls: 'dev', roles: ['admin'],
       title: '🧰 Раздел разработчика',
       about: 'Технические инструменты и документация системы.',
-      apps: ['diagnostics', 'api', 'guide', 'modules', 'eco']
+      apps: ['diagnostics', 'scale', 'api', 'guide', 'modules', 'eco']
     },
     {
       id: 'saas', badge: 'SaaS-администратор', cls: 'saas', roles: ['admin'],

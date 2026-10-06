@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Масштаб и эксплуатация — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=6">
+<style>
+  table.mini{width:100%;border-collapse:collapse;font-size:.84rem}
+  table.mini th,table.mini td{border-bottom:1px solid #eef2f7;padding:8px 10px;text-align:left}
+  table.mini th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase}
+  .ok{color:#047857;font-weight:700}.bad{color:#b91c1c;font-weight:700}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🧪</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Масштаб и эксплуатация</h1><p>Автотесты (смоук), статистика объёма, журнал резервных копий и постраничный вывод.</p></div>
+
+    <div class="card">
+      <h2>Смоук-тест системы <span class="note" id="smCnt"></span></h2>
+      <div class="msg" id="smMsg"></div>
+      <button class="btn" id="runSmoke">Запустить проверку</button>
+      <div id="smoke" class="mt"><span class="note">Нажмите «Запустить проверку».</span></div>
+    </div>
+
+    <div class="card" id="statsCard" style="display:none">
+      <h2>Объём БД (админ)</h2>
+      <div class="kpi-row" id="stats"></div>
+    </div>
+
+    <div class="card">
+      <h2>Постраничный вывод</h2>
+      <div class="toolbar">
+        <select id="pKind" style="padding:9px;border:1px solid var(--border);border-radius:9px;">
+          <option value="orders">Заявки</option><option value="knowledge">База знаний</option><option value="calc">Расчёты</option><option value="events">Журнал</option>
+        </select>
+        <input type="search" class="search" id="pQ" placeholder="Фильтр…">
+        <button class="btn secondary" id="pPrev" style="width:auto;padding:8px 14px;">←</button>
+        <span class="note" id="pInfo">стр. 1</span>
+        <button class="btn secondary" id="pNext" style="width:auto;padding:8px 14px;">→</button>
+      </div>
+      <div id="pList" class="mt"><span class="note">Загрузка…</span></div>
+    </div>
+
+    <div class="card" id="backupCard" style="display:none">
+      <h2>Журнал резервных копий (админ)</h2>
+      <div class="toolbar">
+        <select id="bKind" style="padding:9px;border:1px solid var(--border);border-radius:9px;"><option value="manual">Ручная</option><option value="auto">Авто</option><option value="restore">Восстановление</option></select>
+        <input type="text" id="bScope" placeholder="Область (напр. full)" style="padding:9px;border:1px solid var(--border);border-radius:9px;">
+        <input type="text" id="bNote" placeholder="Примечание" style="padding:9px;border:1px solid var(--border);border-radius:9px;flex:1;min-width:160px;">
+        <button class="btn" id="bAdd">Записать</button>
+      </div>
+      <div class="msg" id="bMsg"></div>
+      <div id="backup" class="mt"></div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · масштаб и эксплуатация</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=26"></script>
+  <script src="scale.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
