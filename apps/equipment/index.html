@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Каталог оборудования — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=9">
+<style>
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:760px){.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🏗</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Каталог оборудования (A11)</h1><p>Станки и оборудование к поставке: производитель, тип, оси, точность, цена.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="card mt">
+      <h2>Новая/редактируемая позиция</h2>
+      <div class="msg" id="fMsg"></div>
+      <div class="grid3">
+        <div class="field"><label>Модель/название *</label><input type="text" id="fName"></div>
+        <div class="field"><label>Производитель</label><input type="text" id="fBrand"></div>
+        <div class="field"><label>Тип</label><select id="fCat"><option value="cnc">ЧПУ</option><option value="lathe">Токарные</option><option value="edm">ЭЭО</option><option value="grinding">Шлифование</option><option value="press">Прессы</option><option value="measuring">Измерения</option><option value="other">Прочее</option></select></div>
+        <div class="field"><label>Число осей</label><input type="number" id="fAxes" value="0"></div>
+        <div class="field"><label>Точность</label><input type="text" id="fAcc" placeholder="±0.005 мм"></div>
+        <div class="field"><label>Цена, ₽</label><input type="number" step="any" id="fPrice" value="0"></div>
+      </div>
+      <div class="field"><label>Описание</label><input type="text" id="fDescr"></div>
+      <div class="btn-row"><button class="btn" id="fSave">Сохранить</button><button class="btn secondary" id="fClear">Очистить</button></div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <select id="qCat" style="padding:9px;border:1px solid var(--border);border-radius:9px;"><option value="">Все типы</option><option value="cnc">ЧПУ</option><option value="lathe">Токарные</option><option value="edm">ЭЭО</option><option value="grinding">Шлифование</option><option value="press">Прессы</option><option value="measuring">Измерения</option><option value="other">Прочее</option></select>
+        <input type="search" class="search" id="q" placeholder="Поиск по модели/производителю…">
+      </div>
+      <h2>Позиции <span class="note" id="cnt"></span></h2>
+      <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
+      <div class="msg" id="mMsg"></div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · каталог оборудования</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=36"></script>
+  <script src="equipment.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
