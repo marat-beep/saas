@@ -8,7 +8,7 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '7.8',
+  version: '7.9',
   updated: '06.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
@@ -18,7 +18,7 @@ window.AppCatalog = {
 
   /* Порядок внедрения (номер шага) и приоритет (1..4) */
   implOrder: {
-    auth:1, panel:2, dashboard:3, orders:4, crm:5, tkp:6, docs:7, templates:8, docbuilder:9, client:9,
+    auth:1, panel:2, dashboard:3, orders:4, crm:5, tkp:6, docs:7, templates:8, docbuilder:9, competences:10, client:11,
     registry:10, bom:11, calc:12, norms:13, assistant:14,
     production:15, mes:16, terminal:17, planning:18, slots:19, forecast:20, warehouse:21,
     qc:22, passport:23, quality:24, maintenance:25, tooling:26, oee:27, iiot:28, setup:29, lean:30, issues:31, service:32, calendar:33,
@@ -200,6 +200,13 @@ window.AppCatalog = {
       purpose: 'Шаблоны документов с подстановками и создание документа из шаблона по заявке.',
       features: ['Шаблоны: КП/договор/акт/техкарта', 'Подстановки {customer}/{order}/{title}/{amount}/{date}', 'Создание документа из шаблона', 'Связь с заявкой', 'Версии документа'],
       connects: ['docs', 'orders', 'client'], in_: 'Шаблон + заявка', out: 'Готовый документ'
+    },
+    {
+      id: 'competences', icon: '🎓', title: 'Компетенции и обучение', href: 'apps/competences/index.html', guest: false, group: 'staff', audience: 'user',
+      desc: 'Навыки, матрица компетенций сотрудников и план обучения.',
+      purpose: 'Партия J: навыки (app_skills) и уровни сотрудников (app_staff_skills) образуют матрицу компетенций; план обучения (app_training_plan) задаёт целевые уровни и сроки. Связано с оргструктурой и ролями.',
+      features: ['Справочник навыков (категории, макс. уровень)', 'Матрица «сотрудники × навыки» с быстрым вводом уровней', 'План обучения (цель/статус/срок)', 'Связь с оргструктурой (app_employees)'],
+      connects: ['staff', 'hr', 'roles'], in_: 'Навыки + сотрудники', out: 'Матрица компетенций, план обучения'
     },
     {
       id: 'docbuilder', icon: '📑', title: 'Конструктор документов', href: 'apps/docbuilder/index.html', guest: false, group: 'sales', audience: 'user',
