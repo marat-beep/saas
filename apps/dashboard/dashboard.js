@@ -103,6 +103,56 @@
     });
   }
 
+  function wpRow(href, title, sub, status) {
+    return '<a class="tenant" style="text-decoration:none;color:inherit" href="' + href + '">' +
+      '<span><b>' + esc(title || '') + '</b>' + (sub ? ' <span class="note">' + esc(sub) + '</span>' : '') + '</span>' +
+      '<span class="role">' + (status ? '<span class="badge">' + esc(status) + '</span>' : '') + '</span></a>';
+  }
+  function wpShow(title, inner, link) {
+    $('#wpTitle').textContent = title;
+    $('#workplace').innerHTML = inner || '<span class="note">Нет данных.</span>';
+    var a = $('#wpAll'); if (a) { if (link) { a.href = link; a.style.display = ''; } else { a.style.display = 'none'; } }
+    $('#workplaceCard').style.display = '';
+  }
+  function renderWorkplace(session) {
+    if (!window.SB) return;
+    var role = session.role;
+    var openNar = function () { return rpc('app_naryad_list', { p_token: session.token }).then(function (l) { return (l || []).filter(function (x) { return ['done', 'closed', 'cancelled'].indexOf(x.status) < 0; }); }); };
+    var p = null;
+    if (role === 'qc') {
+      p = rpc('app_qc_list', { p_token: session.token }).then(function (l) {
+        l = (l || []).filter(function (x) { return ['done', 'closed', 'passed', 'completed'].indexOf(x.status) < 0; });
+        wpShow('Рабочее место · ОТК', l.length ? l.slice(0, 6).map(function (x) { return wpRow('../qc/index.html', x.number + ' · ' + (x.product || ''), x.inspector || '', x.status); }).join('') : '<span class="note">Очередь ОТК пуста.</span>', '../qc/index.html');
+      });
+    } else if (role === 'supply') {
+      p = rpc('app_material_list', { p_token: session.token }).then(function (l) {
+        l = (l || []).filter(function (x) { return x.low; });
+        wpShow('Рабочее место · Снабжение', l.length ? l.slice(0, 8).map(function (x) { return wpRow('../warehouse/index.html', x.name, (x.qty || 0) + ' / мин ' + (x.min_qty || 0) + ' ' + (x.unit || ''), 'нехватка'); }).join('') : '<span class="note">Дефицита нет.</span>', '../warehouse/index.html');
+      });
+    } else if (role === 'support') {
+      p = rpc('app_support_ticket_list', { p_token: session.token, p_status: null, p_scope: null, p_mine: false }).then(function (l) {
+        l = (l || []).filter(function (x) { return ['resolved', 'closed'].indexOf(x.status) < 0; });
+        wpShow('Рабочее место · Поддержка', l.length ? l.slice(0, 6).map(function (x) { return wpRow('../support/index.html', x.number + ' · ' + (x.subject || ''), x.requester_name || '', x.priority); }).join('') : '<span class="note">Открытых тикетов нет.</span>', '../support/index.html');
+      });
+    } else if (['manager', 'owner', 'director', 'economist', 'chief'].indexOf(role) >= 0) {
+      p = rpc('app_finance_kpi', { p_token: session.token }).then(function (r) {
+        var k = (r && r[0]) || {};
+        var inn = '<div class="kpi-row">' +
+          '<div class="kpi"><small>Счетов</small><b>' + (k.invoices_total || 0) + '</b></div>' +
+          '<div class="kpi"><small>Сумма</small><b>' + Math.round(k.sum_total || 0) + '</b></div>' +
+          '<div class="kpi"><small>Оплачено</small><b>' + Math.round(k.sum_paid || 0) + '</b></div>' +
+          '<div class="kpi"><small>Дебиторка</small><b>' + Math.round(k.receivable || 0) + '</b></div>' +
+          '<div class="kpi"><small>Просрочено</small><b>' + (k.overdue || 0) + '</b></div></div>';
+        wpShow('Рабочее место · Финансы', inn, '../finance/index.html');
+      });
+    } else if (['operator', 'master', 'technologist'].indexOf(role) >= 0) {
+      p = openNar().then(function (l) {
+        wpShow('Рабочее место · Производство', l.length ? l.slice(0, 6).map(function (x) { return wpRow('../production/index.html', x.number + ' · ' + (x.title || ''), (x.wc_name || '') + (x.assignee ? ' · ' + x.assignee : ''), x.status); }).join('') : '<span class="note">Открытых нарядов нет.</span>', '../production/index.html');
+      });
+    } else { return; }
+    (p || Promise.resolve()).catch(function () { $('#workplaceCard').style.display = 'none'; });
+  }
+
   function renderOrders(session) {
     if (!window.SB) return;
     var ST = { new: 'Новая', open: 'Открыта', in_progress: 'В работе', waiting: 'Ожидание', done: 'Выполнена', closed: 'Закрыта', cancelled: 'Отменена' };
@@ -209,6 +259,7 @@
     renderAccount(s);
     renderKpi(s, list);
     renderKpiLive(s);
+    renderWorkplace(s);
     renderQuick(list);
     renderNotifications(s);
     renderOrders(s);
