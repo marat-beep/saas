@@ -36,7 +36,7 @@
       about: 'Ежедневные модули: заявки, производство, качество, экономика.',
       apps: ['dashboard', 'crm', 'orders', 'tkp', 'procurement', 'suppliers', 'supplier', 'production', 'mes', 'planning', 'slots',
              'warehouse', 'maintenance', 'tooling', 'oee', 'terminal', 'issues', 'service', 'calendar', 'registry', 'bom', 'assistant', 'nc', 'calc', 'norms', 'marketplace', 'qc', 'passport', 'quality',
-             'economics', 'teo', 'finance', 'bi', 'reports', 'industry', 'hr', 'docs', 'templates', 'engraving', 'labels']
+             'economics', 'teo', 'finance', 'bi', 'files', 'reports', 'industry', 'hr', 'docs', 'templates', 'engraving', 'labels']
     }
   ];
 

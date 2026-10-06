@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Файлы и журнал — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=6">
+<style>
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  table.mini{width:100%;border-collapse:collapse;font-size:.84rem}
+  table.mini th,table.mini td{border-bottom:1px solid #eef2f7;padding:7px 9px;text-align:left}
+  table.mini th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase}
+  .drop{border:2px dashed var(--border);border-radius:12px;padding:18px;text-align:center;background:#fafcff;cursor:pointer}
+  .drop.hover{border-color:var(--accent);background:#f0fdfa}
+  @media(max-width:760px){.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">📎</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Файлы и журнал (P14 · Сессия E)</h1><p>Вложения (чертежи, КД, фото, PDF) в Supabase Storage с привязкой к сущности и сводный журнал активности.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="card mt">
+      <h2>Загрузить файл</h2>
+      <div class="msg" id="uMsg"></div>
+      <div class="grid3">
+        <div class="field"><label>Тип сущности</label><select id="uType"><option value="order">Заявка</option><option value="naryad">Наряд</option><option value="client">Клиент</option><option value="invoice">Счёт</option><option value="spec">Спецификация</option><option value="norms">Нормирование</option><option value="other">Прочее</option></select></div>
+        <div class="field"><label>ID сущности (необязательно)</label><input type="text" id="uEid" placeholder="uuid"></div>
+        <div class="field"><label>Примечание</label><input type="text" id="uNote"></div>
+      </div>
+      <div class="drop" id="drop"><span class="note">Перетащите файл сюда или нажмите для выбора (≤ 10 МБ)</span><input type="file" id="file" style="display:none"></div>
+      <div class="msg" id="pMsg"></div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <select id="fType" style="padding:9px;border:1px solid var(--border);border-radius:9px;"><option value="">Все типы</option><option value="order">Заявки</option><option value="naryad">Наряды</option><option value="client">Клиенты</option><option value="invoice">Счета</option><option value="spec">Спецификации</option><option value="norms">Нормирование</option><option value="other">Прочее</option></select>
+        <input type="search" class="search" id="q" placeholder="Поиск по имени…">
+      </div>
+      <h2>Файлы <span class="note" id="cnt"></span></h2>
+      <div id="list" class="mt"><span class="note">Загрузка…</span></div>
+      <div class="msg" id="mMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2>Сводный журнал</h2>
+      <div class="toolbar"><input type="number" id="jLimit" value="30" min="5" max="200" style="padding:9px;border:1px solid var(--border);border-radius:9px;width:110px;"><button class="btn secondary" id="jRefresh" style="width:auto;padding:8px 14px;">Обновить</button></div>
+      <div id="journal" class="mt"><span class="note">Загрузка…</span></div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · файлы и журнал</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=29"></script>
+  <script src="files.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
