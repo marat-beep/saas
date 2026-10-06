@@ -97,6 +97,7 @@
         '<div class="pr-top">' +
         '<input class="pr-inp" id="prUrl" placeholder="https://… — адрес страницы для снимка" />' +
         '<button class="pr-btn" id="prLoad">Загрузить</button>' +
+        '<button class="pr-btn sec" id="prCur" title="Снять текущую страницу">Снять текущую</button>' +
         '<button class="pr-chip on" id="prMode">Режим: клик</button>' +
         '<button class="pr-chip" id="prBug" title="Режим бага: клик по элементу + контекст">🐞 Баг</button>' +
         '<button class="pr-btn sec" id="prPdf">PDF</button>' +
@@ -117,21 +118,56 @@
       function overlay(t) { var o = document.createElement('div'); o.className = 'pr-overlay'; o.innerHTML = '<div class="pr-spin"></div><div>' + esc(t) + '</div>'; document.body.appendChild(o); return function () { o.remove(); }; }
       function normUrl(u) { u = (u || '').trim(); if (!u) return ''; if (!/^https?:\/\//i.test(u)) u = 'https://' + u; return u; }
 
+      /* Реальный снимок БЕЗ backend: страницы того же домена (same-origin) через iframe + html2canvas */
+      function captureSameOrigin(u) {
+        return new Promise(function (res, rej) {
+          if (!g.html2canvas) { rej(new Error('html2canvas не загружен')); return; }
+          var abs; try { abs = new URL(u, location.href); } catch (e) { rej(e); return; }
+          if (abs.origin !== location.origin) { rej(new Error('cross-origin')); return; }
+          var fr = document.createElement('iframe');
+          fr.setAttribute('sandbox', 'allow-same-origin allow-scripts');
+          fr.style.cssText = 'position:fixed;left:-10000px;top:0;width:1280px;height:900px;border:0;';
+          fr.src = abs.href;
+          var done = false;
+          fr.onload = function () {
+            setTimeout(function () {
+              try {
+                var doc = fr.contentDocument || (fr.contentWindow && fr.contentWindow.document);
+                if (!doc || !doc.body) throw new Error('документ недоступен');
+                g.html2canvas(doc.body, { backgroundColor: '#ffffff', useCORS: true, windowWidth: Math.max(1280, doc.documentElement.scrollWidth) })
+                  .then(function (canvas) { done = true; var d = canvas.toDataURL('image/png'); fr.remove(); res(d); })
+                  .catch(function (e) { done = true; fr.remove(); rej(e); });
+              } catch (e) { done = true; fr.remove(); rej(e); }
+            }, 400);
+          };
+          fr.onerror = function () { done = true; fr.remove(); rej(new Error('iframe не загрузился')); };
+          document.body.appendChild(fr);
+          setTimeout(function () { if (!done && fr.parentNode) { fr.remove(); rej(new Error('таймаут снимка')); } }, 20000);
+        });
+      }
+      function captureCurrent() {
+        if (!g.html2canvas) { msg('html2canvas не загружен.', 'err'); return; }
+        var done2 = overlay('Снимаю текущую страницу…');
+        g.html2canvas(document.body, { backgroundColor: '#ffffff', useCORS: true }).then(function (c) { done2(); setShot(c.toDataURL('image/png')); msg('Снимок текущей страницы готов.', 'ok'); }).catch(function (e) { done2(); msg('Ошибка снимка: ' + e.message, 'err'); });
+      }
+
+      function setShot(src) { S.shot = src; renderShot(); return reloadRemarks(); }
       function load() {
         var u = normUrl($('prUrl').value);
         if (!u) { msg('Введите адрес.', 'err'); return; }
         S.url = u; $('prUrl').value = u; msg('Загружаю снимок…');
         var done = overlay('Делаем снимок…');
-        function withShot(src) {
-          S.shot = src; renderShot(); done(); msg('Снимок готов.', 'ok');
-          return reloadRemarks();
+        function doneShot(src, note, kind) { setShot(src); done(); msg(note, kind); }
+        if (!S.shotEndpoint) {
+          captureSameOrigin(u).then(function (src) { doneShot(src, 'Снимок готов (same-origin).', 'ok'); })
+            .catch(function (e) { doneShot(MOCK_SVG, 'Реальный снимок недоступен (' + e.message + '). Для внешних сайтов нужен backend /shot; для внутренних укажите адрес этого домена или снимите текущую страницу.', 'err'); });
+          return;
         }
-        if (!S.shotEndpoint) { withShot(MOCK_SVG); return; }
         fetch(S.shotEndpoint + '?url=' + encodeURIComponent(u) + '&width=' + (S.shotParams.width || 1280) + '&fullPage=' + (S.shotParams.fullPage ? 'true' : 'false'), { headers: S.shotHeaders || {} })
           .then(function (r) { if (!r.ok) throw new Error('backend: ' + r.status); return r.blob(); })
           .then(function (b) { return new Promise(function (res, rej) { var fr = new FileReader(); fr.onload = function () { res(fr.result); }; fr.onerror = rej; fr.readAsDataURL(b); }); })
-          .then(withShot)
-          .catch(function (e) { done(); msg('Не удалось получить снимок (' + e.message + '). Показана заглушка.', 'err'); withShot(MOCK_SVG); });
+          .then(function (src) { doneShot(src, 'Снимок готов (backend).', 'ok'); })
+          .catch(function (e) { doneShot(MOCK_SVG, 'Backend недоступен (' + e.message + '). Заглушка.', 'err'); });
       }
 
       function renderShot() {
@@ -273,6 +309,7 @@
       }
 
       $('prLoad').addEventListener('click', load);
+      $('prCur').addEventListener('click', captureCurrent);
       $('prUrl').addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
       $('prMode').addEventListener('click', function () { S.mode = (S.mode === 'click') ? 'view' : 'click'; this.textContent = 'Режим: ' + (S.mode === 'click' ? 'клик' : 'просмотр'); layer.className = 'pr-layer' + (S.mode === 'view' ? ' view' : ''); });
       $('prBug').addEventListener('click', function () { S.bug = !S.bug; this.classList.toggle('on', S.bug); if (S.bug && S.mode === 'view') { S.mode = 'click'; $('prMode').textContent = 'Режим: клик'; layer.className = 'pr-layer'; } if (g.AppNotify && g.AppNotify.info) g.AppNotify.info(S.bug ? 'Режим бага включён: клик по элементу.' : 'Режим бага выключен.'); });
