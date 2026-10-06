@@ -50,6 +50,16 @@
     $$('#list [data-del]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_lean_delete', { p_token: token, p_id: b.dataset.del }).then(load); }); });
   }
 
+  function loadDict() {
+    return rpc('app_dict_items_by_code', { p_token: token, p_code: 'loss_type' }).then(function (r) {
+      if (!r || !r.length) return;
+      var map = {}; r.forEach(function (x) { map[x.value] = x.label; });
+      CAT = map;
+      $('#fCat').innerHTML = r.map(function (x) { return '<option value="' + esc(x.value) + '">' + esc(x.label) + '</option>'; }).join('');
+      render();
+    }).catch(function () {});
+  }
+
   function edit(id) {
     cur = list.filter(function (x) { return x.id === id; })[0]; if (!cur) return;
     $('#fTitle').value = cur.title || ''; $('#fCat').value = cur.category || 'other'; $('#fAuthor').value = cur.author || '';
@@ -73,6 +83,6 @@
     token = s.token;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#fMsg', 'Supabase не подключён.', 'err'); return; }
-    load();
+    load().then(loadDict);
   });
 })();

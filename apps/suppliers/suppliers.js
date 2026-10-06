@@ -47,6 +47,14 @@
     }); });
   }
 
+  function loadCatDict() {
+    return rpc('app_dict_items_by_code', { p_token: token, p_code: 'supplier_category' }).then(function (r) {
+      if (!r || !r.length) return;
+      $('#fCat').innerHTML = r.map(function (x) { return '<option value="' + esc(x.value) + '">' + esc(x.label) + '</option>'; }).join('');
+      $('#fCatFilter').innerHTML = '<option value="">Все категории</option>' + r.map(function (x) { return '<option value="' + esc(x.value) + '">' + esc(x.label) + '</option>'; }).join('');
+    }).catch(function () {});
+  }
+
   function edit(id) {
     cur = list.filter(function (x) { return x.id === id; })[0]; if (!cur) return;
     $('#fName').value = cur.name || ''; $('#fInn').value = cur.inn || ''; $('#fContact').value = cur.contact || '';
@@ -73,6 +81,6 @@
     token = s.token;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#fMsg', 'Supabase не подключён.', 'err'); return; }
-    load();
+    load(); loadCatDict();
   });
 })();

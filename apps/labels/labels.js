@@ -65,6 +65,16 @@
     $$('#lList [data-lprint]').forEach(function (b) { b.addEventListener('click', function () { printLabel(labels.filter(function (l) { return l.id === b.dataset.lprint; })[0]); }); });
   }
 
+  function fillDict(code, selId, mapTarget) {
+    return rpc('app_dict_items_by_code', { p_token: token, p_code: code }).then(function (r) {
+      if (!r || !r.length) return;
+      var map = {}; r.forEach(function (x) { map[x.value] = x.label; });
+      if (mapTarget === 'PK') PK = map; else LT = map;
+      var el = $(selId); if (el) el.innerHTML = r.map(function (x) { return '<option value="' + esc(x.value) + '">' + esc(x.label) + '</option>'; }).join('');
+    }).catch(function () {});
+  }
+  function loadDicts() { return Promise.all([fillDict('package_kind', '#pKind', 'PK'), fillDict('label_type', '#lType', 'LT')]).then(function () { renderPackages(); renderLabels(); }); }
+
   function editP(id) {
     curP = packages.filter(function (p) { return p.id === id; })[0]; if (!curP) return;
     $('#pNo').value = curP.package_no || 1; $('#pKind').value = curP.kind || 'box'; $('#pDims').value = curP.dims || '';
@@ -139,6 +149,6 @@
     token = s.token;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#pMsg', 'Supabase не подключён.', 'err'); return; }
-    load();
+    load().then(loadDicts);
   });
 })();
