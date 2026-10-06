@@ -6,13 +6,8 @@
 <title>Служба поддержки — 3DMP Service</title>
 <link rel="stylesheet" href="../../assets/css/app.css?v=16">
 <style>
-  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-  table.mini{width:100%;border-collapse:collapse;font-size:.84rem}
-  table.mini th,table.mini td{border-bottom:1px solid #eef2f7;padding:7px 9px;text-align:left}
-  table.mini th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase}
   .msg-row{border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin:6px 0;background:#fff}
   .msg-row.int{border-color:var(--warning,#f59e0b);background:#fffbeb}
-  @media(max-width:768px){.grid3{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -30,7 +25,7 @@
     <div class="card mt">
       <h2>Новый тикет</h2>
       <div class="msg" id="nMsg"></div>
-      <div class="grid3">
+      <div class="form-grid">
         <div class="field" style="grid-column:span 2;"><label>Тема *</label><input type="text" id="nSubject"></div>
         <div class="field"><label>Приоритет</label><select id="nPriority"><option value="low">Низкий</option><option value="normal" selected>Обычный</option><option value="high">Высокий</option><option value="critical">Критический</option></select></div>
         <div class="field"><label>Категория</label><select id="nCategory"><option>Техсбой</option><option>Вопрос</option><option>Доработка</option><option>Доступ</option><option>Оплата</option><option>Другое</option></select></div>
@@ -83,7 +78,7 @@
       <h2>База знаний <span class="note" id="kbCnt"></span></h2>
       <div class="toolbar"><input type="search" class="search" id="kbQ" placeholder="Поиск по статьям…"></div>
       <div id="kbList" class="mt"><span class="note">Загрузка…</span></div>
-      <div class="grid3 mt">
+      <div class="form-grid mt">
         <div class="field"><label>Заголовок статьи</label><input type="text" id="kbT"></div>
         <div class="field"><label>Текст</label><input type="text" id="kbB"></div>
         <div class="field" style="display:flex;align-items:flex-end;gap:8px;"><button class="btn secondary" id="kbSave">Опубликовать</button></div>
@@ -103,7 +98,7 @@
   <script src="../../assets/js/support-widget.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=49"></script>
   <script src="../../assets/js/shell.js?v=4"></script>
-  <script src="support.js?v=3"></script>
+  <script src="support.js?v=4"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
 </body>
 </html>

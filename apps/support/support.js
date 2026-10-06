@@ -27,15 +27,15 @@
   }
   function render() {
     $('#cnt').textContent = '(' + list.length + ')';
-    $('#list').innerHTML = list.length ? '<table class="mini"><thead><tr><th>№</th><th>Тема</th><th>Кат.</th><th>Приоритет</th><th>Статус</th><th>Заявитель</th><th>Исполнитель</th><th>SLA до</th></tr></thead><tbody>' +
+    $('#list').innerHTML = list.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>№</th><th>Тема</th><th>Кат.</th><th>Приоритет</th><th>Статус</th><th>Заявитель</th><th>Исполнитель</th><th>SLA до</th></tr></thead><tbody>' +
       list.map(function (t) {
         var st = ST[t.status] || [t.status, ''];
         var over = t.sla_resolve_due && new Date(t.sla_resolve_due) < new Date() && ['resolved', 'closed'].indexOf(t.status) < 0;
-        return '<tr data-open="' + t.id + '" style="cursor:pointer;"><td>' + esc(t.number) + '</td><td>' + esc(t.subject) + '</td><td>' + esc(t.category) + '</td>' +
+        return '<tr data-open="' + t.id + '"><td>' + esc(t.number) + '</td><td>' + esc(t.subject) + '</td><td>' + esc(t.category) + '</td>' +
           '<td>' + esc(t.priority) + '</td><td><span class="badge ' + st[1] + '">' + esc(st[0]) + '</span>' + (t.escalated ? ' ⚠' : '') + '</td>' +
           '<td>' + esc(t.requester_name || '') + '</td><td>' + esc(t.assignee_login || '') + '</td>' +
           '<td' + (over ? ' style="color:#b91c1c;font-weight:700"' : '') + '>' + d(t.sla_resolve_due) + '</td></tr>';
-      }).join('') + '</tbody></table>' : '<span class="note">Тикетов нет.</span>';
+      }).join('') + '</tbody></table></div>' : '<span class="note">Тикетов нет.</span>';
     $$('#list [data-open]').forEach(function (tr) { tr.addEventListener('click', function () { open(tr.dataset.open); }); });
   }
 
@@ -95,8 +95,8 @@
       rows.forEach(function (x) { (groups[x.kind] = groups[x.kind] || []).push(x); });
       var names = { status: 'По статусу', category: 'По категории', module: 'По модулям', scope: 'По уровню' };
       $('#anList').innerHTML = Object.keys(groups).map(function (k) {
-        return '<div class="note mt">' + (names[k] || k) + '</div><table class="mini"><tbody>' +
-          groups[k].map(function (x) { return '<tr><td>' + esc(x.name) + '</td><td style="text-align:right;font-weight:700">' + x.cnt + '</td></tr>'; }).join('') + '</tbody></table>';
+        return '<div class="note mt">' + (names[k] || k) + '</div><div class="tbl-wrap"><table class="tbl"><tbody>' +
+          groups[k].map(function (x) { return '<tr><td>' + esc(x.name) + '</td><td class="num"><b>' + x.cnt + '</b></td></tr>'; }).join('') + '</tbody></table></div>';
       }).join('') || '<span class="note">Нет данных.</span>';
     }).catch(function (e) { msg('#anMsg', 'Ошибка: ' + e.message, 'err'); });
   }
