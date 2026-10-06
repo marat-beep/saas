@@ -49,7 +49,19 @@
       if (open) { refresh(true); }
     });
     document.addEventListener('click', function () { open = false; if (drop) drop.style.display = 'none'; });
-    drop.addEventListener('click', function (e) { e.stopPropagation(); });
+    drop.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var a = e.target.closest && e.target.closest('a[data-nid]');
+      if (a) { e.preventDefault(); markOne(a.getAttribute('data-nid'), a.getAttribute('href')); return; }
+      if (e.target.closest && e.target.closest('#ntfAll')) { markAll(); renderList([]); setCount(0); }
+    });
+  }
+
+  function markOne(id, href) {
+    if (g.SB && g.Auth && g.Auth.token() && id) {
+      g.SB.rpc('app_notif_mark_read', { p_token: g.Auth.token(), p_id: id }).then(function () { refresh(true); }).catch(function () {});
+    }
+    if (href) location.href = href;
   }
 
   function setCount(n) {
@@ -60,8 +72,11 @@
 
   function renderList(items) {
     if (!els.drop) return;
-    if (!items.length) { els.drop.innerHTML = '<div style="padding:12px;color:#64748b;font-size:.84rem;">Уведомлений нет.</div>'; return; }
-    els.drop.innerHTML = items.map(function (n) {
+    var head = '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px;">' +
+      '<b style="font-size:.82rem;">Уведомления</b>' +
+      '<button id="ntfAll" type="button" style="border:1px solid #e2e8f0;background:#fff;color:#334155;border-radius:8px;padding:5px 10px;font-size:.72rem;font-weight:600;cursor:pointer;">Отметить все</button></div>';
+    if (!items.length) { els.drop.innerHTML = head + '<div style="padding:12px;color:#64748b;font-size:.84rem;">Уведомлений нет.</div>'; return; }
+    els.drop.innerHTML = head + items.map(function (n) {
       return '<a href="' + (ROOT + (n.link || '')) + '" data-nid="' + n.id + '" style="display:block;padding:10px 11px;border-radius:10px;text-decoration:none;color:#0f172a;' +
         (n.read_at ? '' : 'background:#f0fdf4;') + '">' +
         '<div style="font-weight:700;font-size:.84rem;">' + esc(n.title) + '</div>' +
@@ -110,8 +125,6 @@
     if (!document.querySelector('.topbar') || !g.Auth || !g.Auth.token()) return;
     buildUI();
     refresh(false);
-    // при открытии панели — помечаем прочитанными
-    document.addEventListener('click', function () { if (open) markAll(); });
     if (timer) clearInterval(timer);
     timer = setInterval(function () { refresh(false); }, 15000);
     document.addEventListener('visibilitychange', function () { if (!document.hidden) refresh(false); });
