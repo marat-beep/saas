@@ -11,6 +11,7 @@
      2) <meta name="shot-endpoint" content="https://.../shot">  (+ <meta name="shot-token">)
      3) localStorage 'pr:shot:endpoint' / 'pr:shot:token'
    Без настроенного endpoint модуль «Замечания» работает в демо/same-origin режиме.
+   Backend-пример — в основной директории проекта: `backend-example/` (вне FTP-набора).
    v1.0.
    ============================================================ */
 (function (g) {
