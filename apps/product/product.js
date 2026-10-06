@@ -39,40 +39,21 @@
   }
 
   function openDemo(plan) {
-    var back = document.createElement('div');
-    back.className = 'modal-backdrop';
-    back.innerHTML =
-      '<div class="modal" role="dialog" aria-modal="true">' +
-        '<div class="modal-head">Запросить демо' + (plan ? ' · ' + esc(plan) : '') + '</div>' +
-        '<div class="modal-body">' +
-          '<div class="field"><label>Организация</label><input type="text" id="dOrg" placeholder="ООО «Мой завод»"></div>' +
-          '<div class="field"><label>Контактное лицо</label><input type="text" id="dName" placeholder="Иванов И.И."></div>' +
-          '<div class="grid2c">' +
-            '<div class="field"><label>Телефон</label><input type="text" id="dPhone" placeholder="+7 …"></div>' +
-            '<div class="field"><label>E-mail</label><input type="text" id="dEmail" placeholder="mail@…"></div>' +
-          '</div>' +
-          '<div class="field"><label>Комментарий</label><input type="text" id="dNote" placeholder="что интересует"></div>' +
-          '<div class="msg" id="dMsg"></div>' +
-        '</div>' +
-        '<div class="modal-foot">' +
-          '<button class="btn secondary" data-cancel>Отмена</button>' +
-          '<button class="btn" data-send>Отправить</button>' +
-        '</div>' +
-      '</div>';
-    document.body.appendChild(back);
-    requestAnimationFrame(function () { back.classList.add('show'); });
-    function close() { back.classList.remove('show'); setTimeout(function () { back.remove(); }, 160); }
-    back.addEventListener('click', function (e) {
-      if (e.target === back || e.target.closest('[data-cancel]')) { close(); return; }
-      if (e.target.closest('[data-send]')) {
-        var org = back.querySelector('#dOrg').value.trim();
-        var nm = back.querySelector('#dName').value.trim();
-        var msg = back.querySelector('#dMsg');
-        if (!org || !nm) { msg.className = 'msg show err'; msg.textContent = 'Укажите организацию и контактное лицо.'; return; }
-        // В след. волнах: запись в app_orders (source='product'). Сейчас — подтверждение.
-        msg.className = 'msg show ok'; msg.textContent = 'Спасибо! Заявка принята — мы свяжемся с вами.';
-        setTimeout(function () { close(); ui.toast('Заявка на демо отправлена', 'ok'); }, 900);
-      }
+    // Модальная форма — общий компонент дизайн-системы AppUI.formDialog
+    ui.formDialog({
+      title: 'Запросить демо' + (plan ? ' · ' + plan : ''),
+      okText: 'Отправить',
+      fields: [
+        { name: 'org', label: 'Организация', required: true, placeholder: 'ООО «Мой завод»' },
+        { name: 'name', label: 'Контактное лицо', required: true, placeholder: 'Иванов И.И.' },
+        { name: 'phone', label: 'Телефон', placeholder: '+7 …' },
+        { name: 'email', label: 'E-mail', type: 'email', placeholder: 'mail@…' },
+        { name: 'note', label: 'Комментарий', placeholder: 'что интересует' }
+      ]
+    }).then(function (v) {
+      if (!v) return;
+      // В след. волнах: запись заявки в app_orders (source='product'). Сейчас — подтверждение.
+      ui.toast('Заявка на демо отправлена', 'ok');
     });
   }
 
