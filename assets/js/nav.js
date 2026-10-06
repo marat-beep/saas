@@ -9,7 +9,7 @@
   'use strict';
 
   var SELF = document.currentScript;
-  var CATALOG_V = '33';
+  var CATALOG_V = '34';
 
   function ready(fn) {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
@@ -30,7 +30,8 @@
     var role = (g.Auth && g.Auth.role) ? g.Auth.role() : null;
 
     function link(a) {
-      return '<a href="' + ROOT + a.href + '">' + a.icon + ' ' + esc(a.title) + '</a>';
+      var st = (g.AppCatalog && g.AppCatalog.statusOf) ? g.AppCatalog.statusOf(a.id) : 'done';
+      return '<a href="' + ROOT + a.href + '"><span class="mdot ' + st + '" title="' + st + '"></span>' + a.icon + ' ' + esc(a.title) + '</a>';
     }
 
     function buildFromCatalog(cat) {

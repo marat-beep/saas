@@ -230,3 +230,8 @@ input:focus { outline: none; border-color: var(--accent); }
 .guide-hero .links{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .guide-hero .links a{background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:9px;padding:8px 14px;font-size:.78rem;font-weight:600;text-decoration:none}
 .guide-hero .links a:hover{background:rgba(255,255,255,.28)}
+/* метки статуса модулей (nav) */
+.mdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle;background:#94a3b8}
+.mdot.done{background:#22c55e}
+.mdot.progress{background:#f59e0b}
+.mdot.todo{background:#ef4444}
