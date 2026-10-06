@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Брендирование — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=6">
+<style>
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+  .prev{border:1px solid var(--border);border-radius:14px;overflow:hidden}
+  .prev .bar{padding:12px 16px;color:#fff;display:flex;align-items:center;gap:10px;font-weight:700}
+  .prev .body{padding:16px;background:#fff}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🎨</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Брендирование (White-label, P6)</h1><p>Поддомен, свой домен, логотип, акцентный цвет и слоган организации.</p></div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>Настройки бренда</h2>
+        <div class="msg" id="fMsg"></div>
+        <div class="field"><label>Поддомен (латиница)</label><input type="text" id="fSub" placeholder="demo"></div>
+        <div class="field"><label>Свой домен</label><input type="text" id="fDomain" placeholder="erp.company.ru"></div>
+        <div class="field"><label>Логотип (текст)</label><input type="text" id="fLogo" placeholder="3DMP"></div>
+        <div class="field"><label>Слоган</label><input type="text" id="fSlogan"></div>
+        <div class="field"><label>Акцентный цвет</label><input type="color" id="fAccent" value="#0e7490" style="height:40px;padding:2px"></div>
+        <div class="btn-row mt"><button class="btn" id="fSave">Сохранить</button></div>
+      </div>
+
+      <div class="card">
+        <h2>Предпросмотр</h2>
+        <div class="prev">
+          <div class="bar" id="pBar"><span id="pLogo">3DMP</span><span class="note" id="pSlogan" style="color:#fff;opacity:.85;margin-left:auto;"></span></div>
+          <div class="body">
+            <p style="font-weight:700;margin:0 0 6px">Пульт управления</p>
+            <p class="note">Так шапка и акцент будут выглядеть в интерфейсе организации.</p>
+            <button class="btn" id="pBtn" style="width:auto;margin-top:8px;">Кнопка действия</button>
+          </div>
+        </div>
+        <p class="note mt" id="host"></p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · брендирование</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=26"></script>
+  <script src="whitelabel.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
