@@ -103,6 +103,23 @@
     });
   }
 
+  function renderOrders(session) {
+    if (!window.SB) return;
+    var ST = { new: 'Новая', open: 'Открыта', in_progress: 'В работе', waiting: 'Ожидание', done: 'Выполнена', closed: 'Закрыта', cancelled: 'Отменена' };
+    rpc('app_order_list', { p_token: session.token }).then(function (list) {
+      list = list || [];
+      if (!list.length) { $('#orders').innerHTML = '<span class="note">Заявок нет.</span>'; return; }
+      var by = {}; list.forEach(function (o) { by[o.status] = (by[o.status] || 0) + 1; });
+      var today = new Date(); today.setHours(0, 0, 0, 0);
+      var overdue = list.filter(function (o) { return o.due_date && new Date(o.due_date) < today && ['done', 'closed', 'cancelled'].indexOf(o.status) < 0; }).length;
+      var chips = Object.keys(by).map(function (k) {
+        return '<span class="badge" style="margin:0 6px 6px 0;">' + esc(ST[k] || k) + ': <b>' + by[k] + '</b></span>';
+      }).join('');
+      $('#orders').innerHTML = '<div>' + chips + '</div>' +
+        (overdue ? '<div class="note" style="color:#b91c1c;font-weight:700;margin-top:6px;">Просрочено: ' + overdue + '</div>' : '<div class="note" style="margin-top:6px;">Просрочек нет.</div>');
+    }).catch(function () { $('#orders').innerHTML = '<span class="note">Недоступно.</span>'; });
+  }
+
   function renderMes(session) {
     if (!window.SB) return;
     rpc('app_mes_board', { p_token: session.token }).then(function (list) {
@@ -194,6 +211,7 @@
     renderKpiLive(s);
     renderQuick(list);
     renderNotifications(s);
+    renderOrders(s);
     renderMes(s);
     renderModules(s, list);
     renderEvents(s);
