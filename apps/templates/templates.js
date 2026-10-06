@@ -35,6 +35,7 @@
         '<span class="note" style="margin-left:auto;">' + (t.body ? esc(t.body.slice(0, 60)) + '…' : '') + '</span></div>' +
         '<div class="toolbar mt">' +
         '<button class="btn secondary" data-edit="' + t.id + '" style="width:auto;padding:8px 14px;">Редактировать</button>' +
+        '<button class="btn secondary" data-dup="' + t.id + '" style="width:auto;padding:8px 14px;">Дублировать</button>' +
         '<button class="btn" data-make="' + t.id + '" style="width:auto;padding:8px 14px;">Создать документ из шаблона</button>' +
         '</div></div>';
     }).join('') : '<span class="note">Шаблонов нет.</span>';
@@ -46,6 +47,13 @@
         window.scrollTo(0, 0);
       });
     });
+    $$('#list [data-dup]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        rpc('app_doc_template_duplicate', { p_token: token, p_id: b.dataset.dup })
+          .then(function (d) { var r = d && d[0]; msg('#mMsg', r ? r.message : 'Ошибка', r ? 'ok' : 'err'); load(); })
+          .catch(function (e) { msg('#mMsg', 'Ошибка: ' + e.message, 'err'); });
+      });
+    });
     $$('#list [data-make]').forEach(function (b) {
       b.addEventListener('click', function () {
         rpc('app_doc_from_template', { p_token: token, p_template_id: b.dataset.make, p_order_id: $('#fOrder').value || null })
@@ -54,6 +62,16 @@
       });
     });
   }
+  function loadDict() {
+    return rpc('app_dict_items_by_code', { p_token: token, p_code: 'doc_type' }).then(function (r) {
+      if (!r || !r.length) return;
+      var map = {}; r.forEach(function (x) { map[x.value] = x.label; });
+      T = map;
+      $('#fType').innerHTML = r.map(function (x) { return '<option value="' + esc(x.value) + '">' + esc(x.label) + '</option>'; }).join('');
+      render();
+    }).catch(function () {});
+  }
+
   $('#q').addEventListener('input', function () { q = this.value; render(); });
   $('#fSave').addEventListener('click', function () {
     var name = $('#fName').value.trim(); if (!name) { msg('#fMsg', 'Укажите название.', 'err'); return; }
@@ -70,6 +88,6 @@
     me = s; token = s.token;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#fMsg', 'Supabase не подключён.', 'err'); return; }
-    load();
+    load().then(loadDict);
   });
 })();
