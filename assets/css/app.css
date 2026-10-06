@@ -287,3 +287,8 @@ body.sh-collapsed .sh-tx,body.sh-collapsed .sh-grp,body.sh-collapsed .sh-brand s
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 table.mini{width:100%;border-collapse:collapse}
 .badge{border-radius:999px}
+/* ===== Хаб: сворачиваемые группы контуров ===== */
+.grp-t{display:flex;align-items:center;gap:8px}
+.grp-tog{background:none;border:0;cursor:pointer;font-size:.95rem;color:var(--muted);transition:transform .15s;padding:0 4px}
+.grp.collapsed .grp-tog{transform:rotate(-90deg)}
+.grp.collapsed .apps-grid{display:none}
