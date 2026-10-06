@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Партнёры — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=9">
+<style>
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media(max-width:760px){.grid3,.grid4{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🤝</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Партнёрский кабинет (C2)</h1><p>Агенты и интеграторы, сделки-рефералы, комиссия и статусы.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="card mt">
+      <h2>Новый/редактируемый партнёр</h2>
+      <div class="msg" id="fMsg"></div>
+      <div class="grid3">
+        <div class="field"><label>Наименование *</label><input type="text" id="fName"></div>
+        <div class="field"><label>ИНН</label><input type="text" id="fInn"></div>
+        <div class="field"><label>Контакт</label><input type="text" id="fContact"></div>
+        <div class="field"><label>Телефон</label><input type="text" id="fPhone"></div>
+        <div class="field"><label>E-mail</label><input type="text" id="fEmail"></div>
+        <div class="field"><label>Регион</label><input type="text" id="fRegion"></div>
+        <div class="field"><label>Категория</label><select id="fCat"><option value="агент">Агент</option><option value="интегратор">Интегратор</option><option value="сервис">Сервис-партнёр</option><option value="поставщик">Поставщик</option><option value="прочее">Прочее</option></select></div>
+        <div class="field"><label>Комиссия, %</label><input type="number" step="0.1" id="fCom" value="5"></div>
+        <div class="field" style="display:flex;align-items:flex-end;gap:8px;"><button class="btn" id="fSave">Сохранить</button><button class="btn secondary" id="fClear">Очистить</button></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar"><input type="search" class="search" id="q" placeholder="Поиск партнёров…"></div>
+      <h2>Партнёры <span class="note" id="cnt"></span></h2>
+      <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
+      <div class="msg" id="mMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2>Сделки-рефералы <span class="note" id="dCnt"></span></h2>
+      <div class="grid4">
+        <div class="field"><label>Партнёр</label><select id="dPartner"></select></div>
+        <div class="field"><label>Заявка</label><select id="dOrder"><option value="">— не выбрана —</option></select></div>
+        <div class="field"><label>Предмет *</label><input type="text" id="dTitle"></div>
+        <div class="field"><label>Сумма, ₽</label><input type="number" step="any" id="dAmount" value="0"></div>
+        <div class="field"><label>Комиссия, ₽</label><input type="number" step="any" id="dCom" value="0"></div>
+        <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="dSave">Добавить сделку</button></div>
+      </div>
+      <div class="olist mt" id="dList"><span class="note">Загрузка…</span></div>
+      <div class="msg" id="dMsg"></div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · партнёры</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=35"></script>
+  <script src="partners.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
