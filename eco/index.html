@@ -39,6 +39,8 @@
   .group-label .pill { font-size: .68rem; font-weight: 700; padding: 3px 9px; border-radius: var(--r-pill); background: var(--accent-100); color: var(--accent-700); }
   .apps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
   .app-card { position: relative; display: flex; flex-direction: column; height: 100%; cursor: pointer; }
+  .mdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; background: #94a3b8; }
+  .mdot.done { background: #22c55e; } .mdot.progress { background: #f59e0b; } .mdot.todo { background: #ef4444; }
   .app-card .app-num { font-size: .68rem; font-weight: 800; font-family: var(--mono); color: var(--accent-700); letter-spacing: .5px; }
   .app-card .app-icon { font-size: 1.6rem; margin: 8px 0 6px; }
   .app-card h3 { font-size: .98rem; }
@@ -110,7 +112,7 @@
 </footer>
 
 <script src="assets/js/utils.js?v=1"></script>
-<script src="assets/js/catalog.js?v=1"></script>
+<script src="assets/js/catalog.js?v=99"></script>
   <script src="assets/js/store.js?v=1"></script>
 <script src="assets/js/auth.js?v=1"></script>
 <script src="assets/js/theme.js?v=1"></script>
@@ -204,13 +206,17 @@
         html += '<div class="group-label" data-audience="' + g.audience + '"><h2>' + g.icon + ' ' + g.title + '</h2><span class="pill">' + apps.length + ' шт</span></div>';
         html += '<div class="apps-grid">' + apps.map(function (a) {
           var aud = a.audience || g.audience;
+          var st = (C.statusOf) ? C.statusOf(a.id) : 'done';
+          var stTxt = st === 'done' ? 'Перенесён' : (st === 'progress' ? 'В работе' : 'Не начат');
+          var stHtml = st === 'done' ? '<span class="badge accent">' + stTxt + '</span>'
+            : '<span class="badge" style="background:' + (st === 'progress' ? '#f59e0b;color:#111' : '#ef4444;color:#fff') + '">' + stTxt + '</span>';
           return '<div class="card clickable app-card" data-href="' + a.href + '" data-audience="' + aud + '">' +
             '<button class="fav-btn' + (isFav(a.id) ? ' on' : '') + '" data-fav="' + a.id + '" title="В избранное">' + (isFav(a.id) ? '★' : '☆') + '</button>' +
-            '<span class="app-num">' + a.id + '</span>' +
+            '<span class="app-num"><span class="mdot ' + st + '"></span>' + a.id + '</span>' +
             '<span class="app-icon">' + a.icon + '</span>' +
             '<h3>' + a.title + '</h3>' +
             '<p>' + a.desc + '</p>' +
-            '<div class="meta-row"><span class="faint">Открыть прототип</span><span class="badge accent">Готов</span></div>' +
+            '<div class="meta-row"><span class="faint">Открыть прототип</span>' + stHtml + '</div>' +
           '</div>';
         }).join('') + '</div>';
       });

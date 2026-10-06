@@ -13,7 +13,7 @@
     }
   })();
 </script>
-<link rel="stylesheet" href="assets/css/app.css?v=8">
+<link rel="stylesheet" href="assets/css/app.css?v=9">
 <style>
   .grp { margin-bottom: 18px; }
   .grp-t { font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 10px; }
@@ -75,7 +75,10 @@
         var needAuth = !a.guest && !logged;
         var href = needAuth ? 'apps/auth/index.html' : a.href;
         var tag = a.guest ? 'открыто' : (logged ? 'личный' : 'нужен вход');
+        var st = (C.statusOf) ? C.statusOf(a.id) : 'done';
+        var stTitle = st === 'done' ? 'готово' : (st === 'progress' ? 'в работе' : 'не начато');
         return '<a class="app-card" href="' + href + '">' +
+          '<span class="mdot ' + st + '" title="' + stTitle + '"></span>' +
           '<span class="ic">' + a.icon + '</span>' +
           '<h3>' + ui.esc(a.title) + '</h3>' +
           '<p>' + ui.esc(a.desc) + '</p>' +

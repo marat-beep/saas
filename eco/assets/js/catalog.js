@@ -5,8 +5,19 @@
    ============================================================ */
 
 window.AppCatalog = {
-  version: '2.7',
-  updated: '02.10.2026',
+  version: '2.8',
+  updated: '06.10.2026',
+
+  /* Статусы прототипов: done — перенесён в боевой модуль, progress — в работе, todo — не начат.
+     По умолчанию — done; ниже перечислены незакрытые. */
+  statuses: {
+    A1: 'progress', A2: 'progress', A4: 'progress', A5: 'progress',
+    A6: 'todo', A8: 'todo', A11: 'todo', B12: 'todo', C2: 'todo',
+    B2: 'progress', B5: 'progress', B13: 'progress', B18: 'progress',
+    B30: 'progress', B32: 'progress', B36: 'progress',
+    P1: 'progress', P8: 'progress', P12: 'progress'
+  },
+  statusOf: function (id) { return (this.statuses && this.statuses[id]) || 'done'; },
   changelog: [
     'v2.7 — центр экспорта и конструктор отчётов (P15): единый движок выгрузок PDF/DOC/CSV/JSON/ICS (assets/js/export.js), шаблоны отчётов, тенант и white-label — Сессия B интеграции «Нормирования PRO».',
     'v2.6 — интеграция «Нормирования PRO» как SaaS-продукта (P14), производственный календарь РФ (B38), прогноз загрузки (B39); документ интеграции NORMS_SAAS.md.',

@@ -235,3 +235,7 @@ input:focus { outline: none; border-color: var(--accent); }
 .mdot.done{background:#22c55e}
 .mdot.progress{background:#f59e0b}
 .mdot.todo{background:#ef4444}
+
+/* точка статуса на карточках хаба */
+.app-card{position:relative}
+.app-card .mdot{position:absolute;top:12px;right:12px;margin:0}
