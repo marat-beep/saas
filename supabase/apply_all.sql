@@ -1,4 +1,4 @@
--- 3DMP Service · apply_all.sql — единая схема (0001..0062), идемпотентно.
+-- 3DMP Service · apply_all.sql — единая схема (0001..0065), идемпотентно.
 
 -- >>>>>>>>>> 0001_init.sql >>>>>>>>>>
 -- ============================================================
@@ -10025,3 +10025,976 @@ from (values
 where not exists (select 1 from public.app_knowledge where tenant_id='aaaaaaaa-0000-0000-0000-000000000001' and question='Как использовать шаблоны документов?');
 -- <<<<<<<<<< 0062_doc_templates.sql <<<<<<<<<<
 
+-- >>>>>>>>>> 0063_calc.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0063_calc.sql  (v41 — ЭПИК F: 8 мини-сервисов/калькуляторов)
+-- Калькуляторы: масса проката, режимы резания, ISO 286, нормочас ЧПУ,
+-- себестоимость детали, децимальные/обозначения, конвертеры, подбор технологии.
+-- Сохранение расчётов (app_calc_saves) с привязкой к заявке.
+-- База знаний. Зависит от 0001..0062.
+-- ============================================================
+
+create table if not exists public.app_calc_saves (
+  id            uuid primary key default gen_random_uuid(),
+  tenant_id     uuid references public.tenants (id),
+  kind          text not null,   -- mass|cutting|iso|cnc|cost|decimal|convert|tech
+  title         text,
+  input         jsonb,
+  result        jsonb,
+  ref           text,
+  order_id      uuid references public.app_orders (id) on delete set null,
+  created_login text,
+  created_at    timestamptz not null default now()
+);
+create index if not exists app_calc_saves_idx on public.app_calc_saves (tenant_id, kind, created_at desc);
+alter table public.app_calc_saves enable row level security;
+
+-- ---------- 1. Масса проката ----------
+create or replace function public.app_calc_mass(
+  p_token uuid, p_profile text, p_a numeric, p_b numeric default 0, p_c numeric default 0,
+  p_len numeric default 0, p_density numeric default 7.85, p_qty numeric default 1)
+returns table (area_mm2 numeric, volume_mm3 numeric, mass_kg numeric, mass_total_kg numeric)
+language plpgsql security definer set search_path = public
+as $$
+declare a numeric; area numeric; vol numeric; m numeric;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  if coalesce(p_a,0) <= 0 then raise exception 'Укажите размер сечения'; end if;
+  area := case lower(coalesce(p_profile,'round'))
+    when 'round'  then pi()*p_a*p_a/4
+    when 'square' then p_a*p_a
+    when 'rect'   then p_a*coalesce(p_b,0)
+    when 'pipe'   then pi()*(p_a*p_a - greatest(p_a-2*coalesce(p_c,0),0)^2)/4
+    when 'sheet'  then p_a*coalesce(p_b,0)
+    when 'hex'    then sqrt(3)/2*p_a*p_a
+    else pi()*p_a*p_a/4 end;
+  vol := area * coalesce(p_len,0);
+  m := vol * coalesce(p_density,7.85) / 1000000.0;
+  return query select round(area,2), round(vol,2), round(m,4), round(m*coalesce(p_qty,1),4);
+end $$;
+
+-- ---------- 2. Режимы резания ----------
+create or replace function public.app_calc_cutting(
+  p_token uuid, p_vc numeric, p_d numeric, p_fz numeric, p_z int default 1,
+  p_ap numeric default 0, p_ae numeric default 0, p_kc numeric default 2000)
+returns table (n_rpm numeric, feed_rev numeric, vf_mm_min numeric, mrr_cm3_min numeric, pc_kw numeric)
+language plpgsql security definer set search_path = public
+as $$
+declare n numeric; vf numeric; mrr numeric; pc numeric; fz numeric; z int;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  if coalesce(p_vc,0) <= 0 or coalesce(p_d,0) <= 0 then raise exception 'Укажите Vc и диаметр'; end if;
+  fz := coalesce(p_fz,0); z := greatest(coalesce(p_z,1),1);
+  n := 1000.0*p_vc/(pi()*p_d);
+  vf := fz*z*n;
+  mrr := coalesce(p_ap,0)*coalesce(p_ae,0)*vf/1000.0;
+  pc := coalesce(p_ap,0)*coalesce(p_ae,0)*vf*coalesce(p_kc,2000)/(60.0*1000000.0);
+  return query select round(n,0), round(fz*z,3), round(vf,1), round(mrr,2), round(pc,2);
+end $$;
+
+-- ---------- 3. ISO 286 (посадки) ----------
+create or replace function public.app_calc_iso(
+  p_token uuid, p_nominal numeric, p_hole_es numeric, p_hole_ei numeric,
+  p_shaft_es numeric, p_shaft_ei numeric)
+returns table (hole_max numeric, hole_min numeric, shaft_max numeric, shaft_min numeric,
+               clearance_min numeric, clearance_max numeric, fit text)
+language plpgsql security definer set search_path = public
+as $$
+declare hmax numeric; hmin numeric; smax numeric; smin numeric; cmin numeric; cmax numeric; ft text;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  hmax := p_nominal + coalesce(p_hole_es,0); hmin := p_nominal + coalesce(p_hole_ei,0);
+  smax := p_nominal + coalesce(p_shaft_es,0); smin := p_nominal + coalesce(p_shaft_ei,0);
+  cmin := hmin - smax; cmax := hmax - smin;
+  ft := case when cmin >= 0 then 'зазор' when cmax <= 0 then 'натяг' else 'переходная' end;
+  return query select round(hmax,4), round(hmin,4), round(smax,4), round(smin,4), round(cmin,4), round(cmax,4), ft;
+end $$;
+
+-- ---------- 4. Нормочас ЧПУ ----------
+create or replace function public.app_calc_cnc(
+  p_token uuid, p_machine_price numeric, p_life_years numeric default 7, p_hours_year numeric default 2000,
+  p_power_kw numeric default 10, p_energy_price numeric default 6, p_fot_rate numeric default 0,
+  p_tools_rate numeric default 0, p_overhead_pct numeric default 15)
+returns table (amort numeric, energy numeric, fot numeric, tools numeric, direct numeric, overhead numeric, rate numeric)
+language plpgsql security definer set search_path = public
+as $$
+declare am numeric; en numeric; ft numeric; toc numeric; dr numeric; ov numeric;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  am := case when coalesce(p_life_years,0)*coalesce(p_hours_year,0) > 0
+             then coalesce(p_machine_price,0)/(p_life_years*p_hours_year) else 0 end;
+  en := coalesce(p_power_kw,0)*coalesce(p_energy_price,0);
+  ft := coalesce(p_fot_rate,0); toc := coalesce(p_tools_rate,0);
+  dr := am + en + ft + toc;
+  ov := dr*coalesce(p_overhead_pct,0)/100.0;
+  return query select round(am,2), round(en,2), round(ft,2), round(toc,2), round(dr,2), round(ov,2), round(dr+ov,2);
+end $$;
+
+-- ---------- 5. Себестоимость детали ----------
+create or replace function public.app_calc_cost(
+  p_token uuid, p_material_cost numeric default 0, p_work_hours numeric default 0,
+  p_rate numeric default 0, p_overhead_pct numeric default 15, p_qty numeric default 1)
+returns table (material numeric, work numeric, overhead numeric, total numeric, per_unit numeric)
+language plpgsql security definer set search_path = public
+as $$
+declare mat numeric; wrk numeric; ov numeric; tot numeric; q numeric;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  mat := coalesce(p_material_cost,0);
+  wrk := coalesce(p_work_hours,0)*coalesce(p_rate,0);
+  ov := (mat+wrk)*coalesce(p_overhead_pct,0)/100.0;
+  tot := mat+wrk+ov;
+  q := greatest(coalesce(p_qty,1),1);
+  return query select round(mat,2), round(wrk,2), round(ov,2), round(tot,2), round(tot/q,2);
+end $$;
+
+-- ---------- 6. Децимальные обозначения ----------
+create or replace function public.app_calc_decimal(
+  p_token uuid, p_code text, p_doc_number text, p_litera text default null)
+returns table (designation text)
+language plpgsql security definer set search_path = public
+as $$
+declare code text; num text; lit text;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  code := upper(coalesce(nullif(trim(p_code),''),'АБВГ'));
+  num  := lpad(regexp_replace(coalesce(p_doc_number,'0'), '\D', '', 'g'), 6, '0');
+  lit  := nullif(trim(coalesce(p_litera,'')),'');
+  return query select code || '.' || num || coalesce('-'||upper(lit),'');
+end $$;
+
+-- ---------- 7. Конвертеры ----------
+create or replace function public.app_calc_convert(p_token uuid, p_kind text, p_value numeric)
+returns table (result numeric, unit text, formula text)
+language plpgsql security definer set search_path = public
+as $$
+declare r numeric; u text; f text;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  case lower(coalesce(p_kind,''))
+    when 'mm_in'   then r := p_value/25.4;          u := 'дюйм'; f := 'мм / 25.4';
+    when 'in_mm'   then r := p_value*25.4;          u := 'мм';   f := 'дюйм × 25.4';
+    when 'hb_sigma' then r := p_value*3.38;         u := 'МПа';  f := 'HB × 3.38 (σв)';
+    when 'sigma_hb' then r := p_value/3.38;         u := 'HB';   f := 'σв / 3.38';
+    when 'kg_lb'   then r := p_value*2.20462;       u := 'lb';   f := 'кг × 2.20462';
+    when 'lb_kg'   then r := p_value/2.20462;       u := 'кг';   f := 'lb / 2.20462';
+    when 'n_kgf'   then r := p_value/9.80665;       u := 'кгс';  f := 'Н / 9.80665';
+    when 'kgf_n'   then r := p_value*9.80665;       u := 'Н';    f := 'кгс × 9.80665';
+    when 'kw_hp'   then r := p_value*1.34102;       u := 'л.с.'; f := 'кВт × 1.34102';
+    when 'hp_kw'   then r := p_value/1.34102;       u := 'кВт';  f := 'л.с. / 1.34102';
+    when 'grad_rad' then r := p_value*pi()/180.0;   u := 'рад';  f := 'град × π/180';
+    when 'rad_grad' then r := p_value*180.0/pi();   u := 'град'; f := 'рад × 180/π';
+    else raise exception 'Неизвестный тип конвертации: %', p_kind;
+  end case;
+  return query select round(r,6), u, f;
+end $$;
+
+-- ---------- 8. Подбор технологии ----------
+create or replace function public.app_calc_tech(p_token uuid, p_material text, p_feature text)
+returns table (recommendation text, note text, source text)
+language plpgsql security definer set search_path = public
+as $$
+declare ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  ten := public.app_my_tenant(p_token);
+  return query
+    select r.recommendation, r.note, 'правило'::text
+    from public.app_tech_rules r
+    where (r.tenant_id is null or r.tenant_id = ten)
+      and (r.material is null or r.material = '*' or r.material = p_material or lower(coalesce(r.material,'')) = lower(coalesce(p_material,'')))
+      and (r.feature  is null or r.feature  = '*' or r.feature  = p_feature  or lower(coalesce(r.feature,''))  = lower(coalesce(p_feature,'')))
+    order by (case when lower(coalesce(r.material,''))=lower(coalesce(p_material,'')) then 0 else 1 end),
+             (case when lower(coalesce(r.feature,''))=lower(coalesce(p_feature,'')) then 0 else 1 end)
+    limit 5;
+  if not found then
+    return query
+      select k.answer, k.question, 'база знаний'::text
+      from public.app_knowledge k
+      where (k.tenant_id is null or k.tenant_id = ten)
+        and (lower(k.question) like '%'||lower(coalesce(p_material,''))||'%'
+          or lower(coalesce(k.tags,'')) like '%'||lower(coalesce(p_feature,''))||'%')
+      limit 3;
+  end if;
+end $$;
+
+-- ---------- Сохранение расчётов ----------
+create or replace function public.app_calc_save(p_token uuid, p_kind text, p_title text,
+  p_input jsonb, p_result jsonb, p_ref text default null, p_order_id uuid default null)
+returns table (id uuid, message text)
+language plpgsql security definer set search_path = public
+as $$
+declare ten uuid; ulogin text; cid uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.ulogin into ulogin from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  if coalesce(trim(p_kind),'') = '' then raise exception 'Укажите тип расчёта'; return; end if;
+  insert into public.app_calc_saves (tenant_id, kind, title, input, result, ref, order_id, created_login)
+  values (ten, lower(trim(p_kind)), nullif(trim(p_title),''), p_input, p_result, nullif(trim(p_ref),''), p_order_id, ulogin)
+  returning id into cid;
+  return query select cid, 'Расчёт сохранён';
+end $$;
+
+create or replace function public.app_calc_list(p_token uuid, p_kind text default null, p_q text default null)
+returns table (id uuid, kind text, title text, ref text, order_number text, result jsonb, created_at timestamptz)
+language plpgsql security definer set search_path = public
+as $$
+declare urole text; ten uuid; qq text;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token); qq := lower(coalesce(trim(p_q),''));
+  return query
+    select c.id, c.kind, c.title, c.ref, o.number, c.result, c.created_at
+    from public.app_calc_saves c
+    left join public.app_orders o on o.id = c.order_id
+    where (urole='admin' or c.tenant_id = ten)
+      and (coalesce(p_kind,'')='' or c.kind = p_kind)
+      and (qq='' or lower(coalesce(c.title,'')) like '%'||qq||'%' or lower(coalesce(c.ref,'')) like '%'||qq||'%')
+    order by c.created_at desc;
+end $$;
+
+create or replace function public.app_calc_get(p_token uuid, p_id uuid)
+returns table (id uuid, kind text, title text, input jsonb, result jsonb, ref text, created_at timestamptz)
+language plpgsql security definer set search_path = public
+as $$
+declare urole text; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  return query select c.id, c.kind, c.title, c.input, c.result, c.ref, c.created_at
+    from public.app_calc_saves c
+    where c.id = p_id and (urole='admin' or c.tenant_id = ten);
+end $$;
+
+create or replace function public.app_calc_delete(p_token uuid, p_id uuid)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+declare urole text; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  delete from public.app_calc_saves where id=p_id and (urole='admin' or tenant_id=ten);
+  return query select true,'Расчёт удалён';
+end $$;
+
+grant execute on function public.app_calc_mass(uuid,text,numeric,numeric,numeric,numeric,numeric,numeric) to anon, authenticated;
+grant execute on function public.app_calc_cutting(uuid,numeric,numeric,numeric,int,numeric,numeric,numeric) to anon, authenticated;
+grant execute on function public.app_calc_iso(uuid,numeric,numeric,numeric,numeric,numeric) to anon, authenticated;
+grant execute on function public.app_calc_cnc(uuid,numeric,numeric,numeric,numeric,numeric,numeric,numeric,numeric) to anon, authenticated;
+grant execute on function public.app_calc_cost(uuid,numeric,numeric,numeric,numeric,numeric) to anon, authenticated;
+grant execute on function public.app_calc_decimal(uuid,text,text,text) to anon, authenticated;
+grant execute on function public.app_calc_convert(uuid,text,numeric) to anon, authenticated;
+grant execute on function public.app_calc_tech(uuid,text,text) to anon, authenticated;
+grant execute on function public.app_calc_save(uuid,text,text,jsonb,jsonb,text,uuid) to anon, authenticated;
+grant execute on function public.app_calc_list(uuid,text,text) to anon, authenticated;
+grant execute on function public.app_calc_get(uuid,uuid) to anon, authenticated;
+grant execute on function public.app_calc_delete(uuid,uuid) to anon, authenticated;
+
+-- ---------- База знаний ----------
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+  ('Мини-сервисы','Какие калькуляторы есть в системе (B34/A1)?',
+   'Модуль «Калькуляторы»: масса проката (круг/квадрат/прямоугольник/труба/лист/шестигранник, плотность, количество), режимы резания (Vc→обороты, минутная подача, MRR, мощность), ISO 286 (посадки: предельные размеры, зазор/натяг), нормочас ЧПУ (амортизация+энергия+ФОТ+расходники+накладные), себестоимость детали (материал+работы+накладные), децимальные обозначения (ГОСТ 2.201), конвертеры (мм↔дюйм, HB↔σв, кг↔lb, Н↔кгс, кВт↔л.с.), подбор технологии (по материалу и признаку). Расчёт можно сохранить и привязать к заявке.',
+   'калькуляторы масса проката режимы резания ISO 286 нормочас себестоимость децимальные конвертер подбор технологии')
+) as v(category,question,answer,tags)
+where not exists (select 1 from public.app_knowledge where tenant_id='aaaaaaaa-0000-0000-0000-000000000001' and question='Какие калькуляторы есть в системе (B34/A1)?');
+
+-- <<<<<<<<<< 0063_calc.sql <<<<<<<<<<
+-- >>>>>>>>>> 0064_registries.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0064_registries.sql  (v42 — ЭПИК F: реестры)
+-- Реестры: гравирование (заказы на гравировку), поставщики (реестр/аккредитация),
+-- ТЭО (технико-экономическое обоснование: статьи и итог, из заявки).
+-- База знаний. Зависит от 0001..0063.
+-- ============================================================
+
+-- ---------- Гравирование ----------
+create sequence if not exists public.app_engraving_seq;
+create table if not exists public.app_engraving (
+  id               uuid primary key default gen_random_uuid(),
+  tenant_id        uuid references public.tenants (id),
+  number           text,
+  order_id         uuid references public.app_orders (id) on delete set null,
+  detail           text,
+  machine          text,
+  engraving_number text,
+  minutes          numeric,
+  ship_date        date,
+  status           text not null default 'new', -- new|in_progress|done|cancelled
+  note             text,
+  created_login    text,
+  created_at       timestamptz not null default now()
+);
+create index if not exists app_engraving_idx on public.app_engraving (tenant_id, status, ship_date);
+alter table public.app_engraving enable row level security;
+
+-- ---------- Поставщики ----------
+create table if not exists public.app_suppliers (
+  id         uuid primary key default gen_random_uuid(),
+  tenant_id  uuid references public.tenants (id),
+  name       text not null,
+  inn        text,
+  contact    text,
+  phone      text,
+  email      text,
+  category   text,   -- металл|инструмент|комплектующие|услуги|прочее
+  rating     numeric default 0,
+  status     text not null default 'pending', -- pending|accredited|blocked
+  note       text,
+  created_login text,
+  created_at timestamptz not null default now()
+);
+create index if not exists app_suppliers_idx on public.app_suppliers (tenant_id, status, category);
+alter table public.app_suppliers enable row level security;
+
+-- ---------- ТЭО ----------
+create sequence if not exists public.app_teo_seq;
+create table if not exists public.app_teo (
+  id            uuid primary key default gen_random_uuid(),
+  tenant_id     uuid references public.tenants (id),
+  number        text,
+  order_id      uuid references public.app_orders (id) on delete set null,
+  title         text not null,
+  status        text not null default 'draft', -- draft|approved|rejected
+  note          text,
+  created_login text,
+  created_at    timestamptz not null default now()
+);
+create index if not exists app_teo_idx on public.app_teo (tenant_id, status);
+alter table public.app_teo enable row level security;
+
+create table if not exists public.app_teo_lines (
+  id       uuid primary key default gen_random_uuid(),
+  teo_id   uuid references public.app_teo (id) on delete cascade,
+  kind     text not null default 'other', -- consumables|metal|labor|service|other
+  name     text not null,
+  qty      numeric default 1,
+  price    numeric default 0,
+  amount   numeric default 0,
+  sort     int default 100
+);
+create index if not exists app_teo_lines_idx on public.app_teo_lines (teo_id);
+alter table public.app_teo_lines enable row level security;
+
+-- ================= Гравирование: RPC =================
+create or replace function public.app_engraving_list(p_token uuid, p_q text default null)
+returns table (id uuid, number text, order_id uuid, order_number text, detail text, machine text, engraving_number text,
+               minutes numeric, ship_date date, status text, created_at timestamptz)
+language plpgsql security definer set search_path = public
+as $$
+declare urole text; ten uuid; qq text;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token); qq := lower(coalesce(trim(p_q),''));
+  return query
+    select g.id, g.number, g.order_id, o.number, g.detail, g.machine, g.engraving_number, g.minutes, g.ship_date, g.status, g.created_at
+    from public.app_engraving g left join public.app_orders o on o.id = g.order_id
+    where (urole='admin' or g.tenant_id = ten)
+      and (qq='' or lower(coalesce(g.detail,'')) like '%'||qq||'%' or lower(coalesce(g.engraving_number,'')) like '%'||qq||'%' or lower(coalesce(o.number,'')) like '%'||qq||'%')
+    order by (g.status='done'), coalesce(g.ship_date, current_date + 365), g.created_at desc;
+end $$;
+
+create or replace function public.app_engraving_kpi(p_token uuid)
+returns table (total bigint, queue bigint, done bigint, minutes_sum numeric)
+language plpgsql security definer set search_path = public
+as $$
+declare urole text; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  return query select count(*), count(*) filter (where status in ('new','in_progress')),
+    count(*) filter (where status='done'), coalesce(sum(minutes),0)
+    from public.app_engraving where (urole='admin' or tenant_id = ten);
+end $$;
+
+create or replace function public.app_engraving_save(p_token uuid, p_id uuid, p_order_id uuid, p_detail text,
+  p_machine text, p_engraving_number text, p_minutes numeric, p_ship_date date, p_note text)
+returns table (id uuid, number text, message text)
+language plpgsql security definer set search_path = public
+as $$
+declare ten uuid; urole text; ulogin text; gid uuid; gnum text;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole, s.ulogin into urole, ulogin from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  if urole not in ('admin','owner','manager','director','chief','master','technologist') then raise exception 'Недостаточно прав'; end if;
+  if coalesce(trim(p_detail),'') = '' and p_order_id is null then raise exception 'Укажите деталь или заявку'; return; end if;
+  if p_id is null then
+    gnum := 'ENG-' || lpad(nextval('public.app_engraving_seq')::text, 5, '0');
+    insert into public.app_engraving (tenant_id, number, order_id, detail, machine, engraving_number, minutes, ship_date, note, created_login)
+    values (ten, gnum, p_order_id, nullif(trim(p_detail),''), nullif(trim(p_machine),''), nullif(trim(p_engraving_number),''),
+            p_minutes, p_ship_date, nullif(trim(p_note),''), ulogin)
+    returning id into gid;
+    return query select gid, gnum, 'Заказ на гравирование создан';
+  else
+    update public.app_engraving set order_id=p_order_id, detail=nullif(trim(p_detail),''), machine=nullif(trim(p_machine),''),
+      engraving_number=nullif(trim(p_engraving_number),''), minutes=p_minutes, ship_date=p_ship_date, note=nullif(trim(p_note),'')
+     where id=p_id and (urole='admin' or tenant_id=ten) returning id, number into gid, gnum;
+    return query select gid, gnum, 'Заказ обновлён';
+  end if;
+end $$;
+
+create or replace function public.app_engraving_set_status(p_token uuid, p_id uuid, p_status text)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+declare ten uuid; urole text;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  if p_status not in ('new','in_progress','done','cancelled') then return query select false,'Неверный статус'; return; end if;
+  update public.app_engraving set status=p_status where id=p_id and (urole='admin' or tenant_id=ten);
+  return query select true,'Статус обновлён';
+end $$;
+
+-- ================= Поставщики: RPC =================
+create or replace function public.app_suppliers_list(p_token uuid, p_category text default null, p_q text default null)
+returns table (id uuid, name text, inn text, contact text, phone text, email text, category text, rating numeric, status text, created_at timestamptz)
+language plpgsql security definer set search_path = public
+as $$
+declare urole text; ten uuid; qq text;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token); qq := lower(coalesce(trim(p_q),''));
+  return query
+    select s.id, s.name, s.inn, s.contact, s.phone, s.email, s.category, s.rating, s.status, s.created_at
+    from public.app_suppliers s
+    where (urole='admin' or s.tenant_id = ten)
+      and (coalesce(p_category,'')='' or s.category = p_category)
+      and (qq='' or lower(s.name) like '%'||qq||'%' or lower(coalesce(s.inn,'')) like '%'||qq||'%' or lower(coalesce(s.contact,'')) like '%'||qq||'%')
+    order by (s.status='blocked'), s.rating desc nulls last, s.name;
+end $$;
+
+create or replace function public.app_suppliers_kpi(p_token uuid)
+returns table (total bigint, accredited bigint, pending bigint, blocked bigint)
+language plpgsql security definer set search_path = public
+as $$
+declare urole text; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  return query select count(*), count(*) filter (where status='accredited'),
+    count(*) filter (where status='pending'), count(*) filter (where status='blocked')
+    from public.app_suppliers where (urole='admin' or tenant_id = ten);
+end $$;
+
+create or replace function public.app_suppliers_save(p_token uuid, p_id uuid, p_name text, p_inn text, p_contact text,
+  p_phone text, p_email text, p_category text, p_rating numeric, p_note text)
+returns table (id uuid, message text)
+language plpgsql security definer set search_path = public
+as $$
+declare ten uuid; urole text; ulogin text; sid uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole, s.ulogin into urole, ulogin from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  if urole not in ('admin','owner','manager','director','supply') then raise exception 'Недостаточно прав'; end if;
+  if coalesce(trim(p_name),'') = '' then raise exception 'Укажите наименование поставщика'; return; end if;
+  if p_id is null then
+    insert into public.app_suppliers (tenant_id, name, inn, contact, phone, email, category, rating, note, created_login)
+    values (ten, trim(p_name), nullif(trim(p_inn),''), nullif(trim(p_contact),''), nullif(trim(p_phone),''),
+            nullif(trim(p_email),''), nullif(trim(p_category),''), coalesce(p_rating,0), nullif(trim(p_note),''), ulogin)
+    returning id into sid;
+    return query select sid, 'Поставщик добавлен';
+  else
+    update public.app_suppliers set name=trim(p_name), inn=nullif(trim(p_inn),''), contact=nullif(trim(p_contact),''),
+      phone=nullif(trim(p_phone),''), email=nullif(trim(p_email),''), category=nullif(trim(p_category),''),
+      rating=coalesce(p_rating,rating), note=nullif(trim(p_note),'')
+     where id=p_id and (urole='admin' or tenant_id=ten) returning id into sid;
+    return query select sid, 'Поставщик обновлён';
+  end if;
+end $$;
+
+create or replace function public.app_suppliers_set_status(p_token uuid, p_id uuid, p_status text)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+declare ten uuid; urole text;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  if p_status not in ('pending','accredited','blocked') then return query select false,'Неверный статус'; return; end if;
+  update public.app_suppliers set status=p_status where id=p_id and (urole='admin' or tenant_id=ten);
+  return query select true,'Статус обновлён';
+end $$;
+
+-- ================= ТЭО: RPC =================
+create or replace function public.app_teo_total(p_teo_id uuid) returns numeric
+language sql stable security definer set search_path = public
+as $$ select coalesce(sum(amount),0) from public.app_teo_lines where teo_id = p_teo_id $$;
+
+create or replace function public.app_teo_list(p_token uuid, p_q text default null)
+returns table (id uuid, number text, title text, order_number text, status text, total numeric, lines bigint, created_at timestamptz)
+language plpgsql security definer set search_path = public
+as $$
+declare urole text; ten uuid; qq text;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token); qq := lower(coalesce(trim(p_q),''));
+  return query
+    select t.id, t.number, t.title, o.number, t.status,
+      coalesce((select sum(l.amount) from public.app_teo_lines l where l.teo_id=t.id),0),
+      (select count(*) from public.app_teo_lines l where l.teo_id=t.id), t.created_at
+    from public.app_teo t left join public.app_orders o on o.id=t.order_id
+    where (urole='admin' or t.tenant_id = ten)
+      and (qq='' or lower(t.title) like '%'||qq||'%' or lower(coalesce(t.number,'')) like '%'||qq||'%')
+    order by t.created_at desc;
+end $$;
+
+create or replace function public.app_teo_kpi(p_token uuid)
+returns table (total bigint, drafts bigint, approved bigint, amount_sum numeric)
+language plpgsql security definer set search_path = public
+as $$
+declare urole text; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  return query
+    select (select count(*) from public.app_teo where (urole='admin' or tenant_id=ten)),
+      (select count(*) from public.app_teo where status='draft' and (urole='admin' or tenant_id=ten)),
+      (select count(*) from public.app_teo where status='approved' and (urole='admin' or tenant_id=ten)),
+      (select coalesce(sum(l.amount),0) from public.app_teo_lines l
+        join public.app_teo t on t.id=l.teo_id where (urole='admin' or t.tenant_id=ten));
+end $$;
+
+create or replace function public.app_teo_save(p_token uuid, p_id uuid, p_order_id uuid, p_title text, p_note text)
+returns table (id uuid, number text, message text)
+language plpgsql security definer set search_path = public
+as $$
+declare ten uuid; urole text; ulogin text; tid uuid; tnum text;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole, s.ulogin into urole, ulogin from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  if urole not in ('admin','owner','manager','director','economist') then raise exception 'Недостаточно прав'; end if;
+  if coalesce(trim(p_title),'') = '' then raise exception 'Укажите название ТЭО'; return; end if;
+  if p_id is null then
+    tnum := 'TEO-' || lpad(nextval('public.app_teo_seq')::text, 5, '0');
+    insert into public.app_teo (tenant_id, number, order_id, title, note, created_login)
+    values (ten, tnum, p_order_id, trim(p_title), nullif(trim(p_note),''), ulogin)
+    returning id into tid;
+    return query select tid, tnum, 'ТЭО создано';
+  else
+    update public.app_teo set order_id=p_order_id, title=trim(p_title), note=nullif(trim(p_note),'')
+     where id=p_id and (urole='admin' or tenant_id=ten) returning id, number into tid, tnum;
+    return query select tid, tnum, 'ТЭО обновлено';
+  end if;
+end $$;
+
+create or replace function public.app_teo_lines_list(p_token uuid, p_teo_id uuid)
+returns table (id uuid, kind text, name text, qty numeric, price numeric, amount numeric, sort int)
+language plpgsql security definer set search_path = public
+as $$
+declare urole text; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  return query select l.id, l.kind, l.name, l.qty, l.price, l.amount, l.sort
+    from public.app_teo_lines l join public.app_teo t on t.id=l.teo_id
+    where l.teo_id=p_teo_id and (urole='admin' or t.tenant_id=ten)
+    order by l.sort, l.name;
+end $$;
+
+create or replace function public.app_teo_line_save(p_token uuid, p_id uuid, p_teo_id uuid, p_kind text,
+  p_name text, p_qty numeric, p_price numeric)
+returns table (id uuid, message text)
+language plpgsql security definer set search_path = public
+as $$
+declare ten uuid; urole text; lid uuid; amt numeric;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  if urole not in ('admin','owner','manager','director','economist') then raise exception 'Недостаточно прав'; return; end if;
+  if coalesce(trim(p_name),'') = '' then raise exception 'Укажите статью'; return; end if;
+  if not exists (select 1 from public.app_teo where id=p_teo_id and (urole='admin' or tenant_id=ten)) then raise exception 'ТЭО не найдено'; end if;
+  amt := coalesce(p_qty,1)*coalesce(p_price,0);
+  if p_id is null then
+    insert into public.app_teo_lines (teo_id, kind, name, qty, price, amount)
+    values (p_teo_id, coalesce(nullif(trim(p_kind),''),'other'), trim(p_name), coalesce(p_qty,1), coalesce(p_price,0), amt)
+    returning id into lid;
+    return query select lid, 'Статья добавлена';
+  else
+    update public.app_teo_lines set kind=coalesce(nullif(trim(p_kind),''),kind), name=trim(p_name),
+      qty=coalesce(p_qty,1), price=coalesce(p_price,0), amount=amt
+     where id=p_id and teo_id=p_teo_id returning id into lid;
+    return query select lid, 'Статья обновлена';
+  end if;
+end $$;
+
+create or replace function public.app_teo_line_delete(p_token uuid, p_id uuid)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+declare urole text; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  delete from public.app_teo_lines l using public.app_teo t
+    where l.id=p_id and t.id=l.teo_id and (urole='admin' or t.tenant_id=ten);
+  return query select true,'Статья удалена';
+end $$;
+
+create or replace function public.app_teo_set_status(p_token uuid, p_id uuid, p_status text)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+declare ten uuid; urole text; t text;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  if p_status not in ('draft','approved','rejected') then return query select false,'Неверный статус'; return; end if;
+  select title into t from public.app_teo where id=p_id and (urole='admin' or tenant_id=ten);
+  update public.app_teo set status=p_status where id=p_id and (urole='admin' or tenant_id=ten);
+  if p_status='approved' then
+    perform public.app_notif_roles_t(ten, array['admin','owner','director','economist'], 'ТЭО утверждено: '||coalesce(t,''), '', 'apps/teo/index.html');
+  end if;
+  return query select true,'Статус обновлён';
+end $$;
+
+create or replace function public.app_teo_from_order(p_token uuid, p_order_id uuid)
+returns table (id uuid, number text, message text)
+language plpgsql security definer set search_path = public
+as $$
+declare ten uuid; urole text; ulogin text; tid uuid; tnum text; o record;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole, s.ulogin into urole, ulogin from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  select * into o from public.app_orders where id=p_order_id and (urole='admin' or tenant_id=ten);
+  if o.id is null then raise exception 'Заявка не найдена'; end if;
+  tnum := 'TEO-' || lpad(nextval('public.app_teo_seq')::text, 5, '0');
+  insert into public.app_teo (tenant_id, number, order_id, title, note, created_login)
+  values (ten, tnum, p_order_id, 'ТЭО по заявке '||o.number, 'Создано из заявки', ulogin) returning id into tid;
+  insert into public.app_teo_lines (teo_id, kind, name, qty, price, amount, sort)
+  values (tid, 'other', coalesce(o.title,'Изделие'), 1, coalesce(o.amount,0), coalesce(o.amount,0), 10);
+  return query select tid, tnum, 'ТЭО создано из заявки';
+end $$;
+
+grant execute on function public.app_engraving_list(uuid,text) to anon, authenticated;
+grant execute on function public.app_engraving_kpi(uuid) to anon, authenticated;
+grant execute on function public.app_engraving_save(uuid,uuid,uuid,text,text,text,numeric,date,text) to anon, authenticated;
+grant execute on function public.app_engraving_set_status(uuid,uuid,text) to anon, authenticated;
+grant execute on function public.app_suppliers_list(uuid,text,text) to anon, authenticated;
+grant execute on function public.app_suppliers_kpi(uuid) to anon, authenticated;
+grant execute on function public.app_suppliers_save(uuid,uuid,text,text,text,text,text,text,numeric,text) to anon, authenticated;
+grant execute on function public.app_suppliers_set_status(uuid,uuid,text) to anon, authenticated;
+grant execute on function public.app_teo_list(uuid,text) to anon, authenticated;
+grant execute on function public.app_teo_kpi(uuid) to anon, authenticated;
+grant execute on function public.app_teo_save(uuid,uuid,uuid,text,text) to anon, authenticated;
+grant execute on function public.app_teo_lines_list(uuid,uuid) to anon, authenticated;
+grant execute on function public.app_teo_line_save(uuid,uuid,uuid,text,text,numeric,numeric) to anon, authenticated;
+grant execute on function public.app_teo_line_delete(uuid,uuid) to anon, authenticated;
+grant execute on function public.app_teo_set_status(uuid,uuid,text) to anon, authenticated;
+grant execute on function public.app_teo_from_order(uuid,uuid) to anon, authenticated;
+
+-- ---------- Демо (тенант A) ----------
+insert into public.app_suppliers (tenant_id, name, inn, contact, phone, email, category, rating, status, note, created_login)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.name, v.inn, v.contact, v.phone, v.email, v.cat, v.rating, v.status, v.note, 'supply'
+from (values
+  ('ООО «МеталлСервис»','7712345678','Иванов И.И.','+7 495 111-22-33','sales@metall.ru','металл',4.8,'accredited','Поставки конструкционной стали'),
+  ('ООО «Инструмент-Про»','7798765432','Петров П.П.','+7 495 222-33-44','info@instr.ru','инструмент',4.5,'accredited','Твёрдосплавный инструмент'),
+  ('ООО «ОснасткаПлюс»','7734567890','Сидоров А.А.','+7 812 333-44-55','zakaz@osnastka.ru','комплектующие',3.9,'pending','На аккредитации')
+) as v(name,inn,contact,phone,email,cat,rating,status,note)
+where not exists (select 1 from public.app_suppliers where tenant_id='aaaaaaaa-0000-0000-0000-000000000001');
+
+insert into public.app_engraving (tenant_id, number, order_id, detail, machine, engraving_number, minutes, ship_date, status, created_login)
+select 'aaaaaaaa-0000-0000-0000-000000000001', 'ENG-' || lpad(nextval('public.app_engraving_seq')::text,5,'0'),
+  (select id from public.app_orders where tenant_id='aaaaaaaa-0000-0000-0000-000000000001' order by created_at limit 1),
+  'Маркировка партии деталей', 'Лазерный маркер', 'G-2026-001', 35, current_date + 2, 'in_progress', 'master'
+where not exists (select 1 from public.app_engraving where tenant_id='aaaaaaaa-0000-0000-0000-000000000001');
+
+insert into public.app_teo (tenant_id, number, order_id, title, status, note, created_login)
+select 'aaaaaaaa-0000-0000-0000-000000000001', 'TEO-' || lpad(nextval('public.app_teo_seq')::text,5,'0'),
+  (select id from public.app_orders where tenant_id='aaaaaaaa-0000-0000-0000-000000000001' order by created_at limit 1),
+  'ТЭО изготовления оснастки', 'draft', 'Демо-расчёт', 'economist'
+where not exists (select 1 from public.app_teo where tenant_id='aaaaaaaa-0000-0000-0000-000000000001');
+
+insert into public.app_teo_lines (teo_id, kind, name, qty, price, amount, sort)
+select t.id, v.kind, v.name, v.qty, v.price, v.qty*v.price, v.sort
+from public.app_teo t,
+(values
+  ('metal','Сталь 40Х, кг', 120, 85, 10),
+  ('consumables','СОЖ и расходники, л', 20, 350, 20),
+  ('labor','Слесарные работы, ч', 40, 700, 30),
+  ('labor','Фрезерная обработка, ч', 60, 1200, 40),
+  ('service','Термообработка, кг', 120, 90, 50)
+) as v(kind,name,qty,price,sort)
+where t.tenant_id='aaaaaaaa-0000-0000-0000-000000000001'
+  and not exists (select 1 from public.app_teo_lines l where l.teo_id=t.id);
+
+-- ---------- База знаний ----------
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+  ('Реестры','Реестр гравирования (B36)',
+   'Модуль «Гравирование»: заказ на гравировку (ENG-NNNNN) с заявкой, деталью, станком, номером гравировки, временем (мин) и датой отгрузки. Статусы: новый → в работе → выполнен. KPI: всего, в очереди, выполнено, сумма минут.',
+   'гравирование маркировка реестр отгрузка время'),
+  ('Реестры','Реестр поставщиков (B33/закупки)',
+   'Модуль «Поставщики»: карточки контрагентов (наименование, ИНН, контакт, категория, рейтинг), статусы: на аккредитации → аккредитован → заблокирован. Связь с закупками и порталом поставщика. KPI: всего, аккредитовано, на аккредитации, заблокировано.',
+   'поставщики реестр аккредитация ИНН рейтинг'),
+  ('Реестры','ТЭО — технико-экономическое обоснование',
+   'Модуль «ТЭО»: обоснование (TEO-NNNNN) со статьями (металл, расходники, работы, услуги, прочее). Итог считается по статьям. Можно создать из заявки одной кнопкой. Статусы: черновик → утверждено/отклонено. KPI: всего, черновиков, утверждено, сумма.',
+   'ТЭО обоснование статьи себестоимость металл работы услуги')
+) as v(category,question,answer,tags)
+where not exists (select 1 from public.app_knowledge where tenant_id='aaaaaaaa-0000-0000-0000-000000000001' and question='Реестр гравирования (B36)');
+
+-- <<<<<<<<<< 0064_registries.sql <<<<<<<<<<
+-- >>>>>>>>>> 0065_labels.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0065_labels.sql  (v43 — ЭПИК F: упаковка и маркировка)
+-- Формы упаковки (места) и этикеток: грузовая этикетка, бирка позиции,
+-- манипуляционные знаки. Печать (клиент). База знаний. Зависит от 0001..0064.
+-- ============================================================
+
+-- ---------- Упаковка (грузовые места) ----------
+create table if not exists public.app_packages (
+  id           uuid primary key default gen_random_uuid(),
+  tenant_id    uuid references public.tenants (id),
+  order_id     uuid references public.app_orders (id) on delete set null,
+  package_no   int,
+  kind         text not null default 'box',  -- box|pallet|crate|bag|other
+  dims         text,                          -- Д×Ш×В, мм
+  gross        numeric,
+  net          numeric,
+  positions    int,
+  marks        text,                          -- манипуляционные знаки (хрупкое/верх/не кантовать)
+  note         text,
+  created_login text,
+  created_at   timestamptz not null default now()
+);
+create index if not exists app_packages_idx on public.app_packages (tenant_id, order_id);
+alter table public.app_packages enable row level security;
+
+-- ---------- Этикетки ----------
+create table if not exists public.app_labels (
+  id           uuid primary key default gen_random_uuid(),
+  tenant_id    uuid references public.tenants (id),
+  order_id     uuid references public.app_orders (id) on delete set null,
+  package_id   uuid references public.app_packages (id) on delete set null,
+  label_type   text not null default 'cargo', -- cargo|position|tag
+  recipient    text,
+  sender       text default 'ООО «3Д Металлообработка Пресс»',
+  order_number text,
+  item         text,
+  qty          numeric,
+  dims         text,
+  gross        numeric,
+  net          numeric,
+  position_no  int,
+  identifier   text,
+  cargo_no     int,
+  cargo_total  int,
+  note         text,
+  created_login text,
+  created_at   timestamptz not null default now()
+);
+create index if not exists app_labels_idx on public.app_labels (tenant_id, label_type, order_id);
+alter table public.app_labels enable row level security;
+
+-- ================= Упаковка: RPC =================
+create or replace function public.app_package_list(p_token uuid, p_q text default null)
+returns table (id uuid, order_number text, package_no int, kind text, dims text, gross numeric, net numeric,
+               positions int, marks text, created_at timestamptz)
+language plpgsql security definer set search_path = public
+as $$
+declare urole text; ten uuid; qq text;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token); qq := lower(coalesce(trim(p_q),''));
+  return query
+    select p.id, o.number, p.package_no, p.kind, p.dims, p.gross, p.net, p.positions, p.marks, p.created_at
+    from public.app_packages p left join public.app_orders o on o.id=p.order_id
+    where (urole='admin' or p.tenant_id=ten)
+      and (qq='' or lower(coalesce(o.number,'')) like '%'||qq||'%' or lower(coalesce(p.dims,'')) like '%'||qq||'%')
+    order by coalesce(o.number,''), p.package_no;
+end $$;
+
+create or replace function public.app_package_kpi(p_token uuid)
+returns table (packages bigint, gross_sum numeric, net_sum numeric, positions_sum bigint)
+language plpgsql security definer set search_path = public
+as $$
+declare urole text; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  return query select count(*), coalesce(sum(gross),0), coalesce(sum(net),0), coalesce(sum(positions),0)
+    from public.app_packages where (urole='admin' or tenant_id=ten);
+end $$;
+
+create or replace function public.app_package_save(p_token uuid, p_id uuid, p_order_id uuid, p_package_no int,
+  p_kind text, p_dims text, p_gross numeric, p_net numeric, p_positions int, p_marks text, p_note text)
+returns table (id uuid, message text)
+language plpgsql security definer set search_path = public
+as $$
+declare ten uuid; urole text; ulogin text; pid uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole, s.ulogin into urole, ulogin from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  if urole not in ('admin','owner','manager','director','chief','master') then raise exception 'Недостаточно прав'; end if;
+  if p_id is null then
+    insert into public.app_packages (tenant_id, order_id, package_no, kind, dims, gross, net, positions, marks, note, created_login)
+    values (ten, p_order_id, p_package_no, coalesce(nullif(trim(p_kind),''),'box'), nullif(trim(p_dims),''),
+            p_gross, p_net, p_positions, nullif(trim(p_marks),''), nullif(trim(p_note),''), ulogin)
+    returning id into pid;
+    return query select pid, 'Грузовое место добавлено';
+  else
+    update public.app_packages set order_id=p_order_id, package_no=p_package_no, kind=coalesce(nullif(trim(p_kind),''),kind),
+      dims=nullif(trim(p_dims),''), gross=p_gross, net=p_net, positions=p_positions, marks=nullif(trim(p_marks),''), note=nullif(trim(p_note),'')
+     where id=p_id and (urole='admin' or tenant_id=ten) returning id into pid;
+    return query select pid, 'Грузовое место обновлено';
+  end if;
+end $$;
+
+create or replace function public.app_package_delete(p_token uuid, p_id uuid)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+declare urole text; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  delete from public.app_packages where id=p_id and (urole='admin' or tenant_id=ten);
+  return query select true,'Грузовое место удалено';
+end $$;
+
+-- ================= Этикетки: RPC =================
+create or replace function public.app_label_list(p_token uuid, p_type text default null, p_q text default null)
+returns table (id uuid, label_type text, order_number text, recipient text, sender text, item text, qty numeric,
+               dims text, gross numeric, net numeric, position_no int, identifier text, cargo_no int, cargo_total int, created_at timestamptz)
+language plpgsql security definer set search_path = public
+as $$
+declare urole text; ten uuid; qq text;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token); qq := lower(coalesce(trim(p_q),''));
+  return query
+    select l.id, l.label_type, l.order_number, l.recipient, l.sender, l.item, l.qty, l.dims, l.gross, l.net,
+           l.position_no, l.identifier, l.cargo_no, l.cargo_total, l.created_at
+    from public.app_labels l
+    where (urole='admin' or l.tenant_id=ten)
+      and (coalesce(p_type,'')='' or l.label_type=p_type)
+      and (qq='' or lower(coalesce(l.recipient,'')) like '%'||qq||'%' or lower(coalesce(l.item,'')) like '%'||qq||'%' or lower(coalesce(l.order_number,'')) like '%'||qq||'%')
+    order by l.created_at desc;
+end $$;
+
+create or replace function public.app_label_kpi(p_token uuid)
+returns table (total bigint, cargo bigint, position bigint, tag bigint)
+language plpgsql security definer set search_path = public
+as $$
+declare urole text; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  return query select count(*), count(*) filter (where label_type='cargo'),
+    count(*) filter (where label_type='position'), count(*) filter (where label_type='tag')
+    from public.app_labels where (urole='admin' or tenant_id=ten);
+end $$;
+
+create or replace function public.app_label_save(p_token uuid, p_id uuid, p_order_id uuid, p_package_id uuid,
+  p_label_type text, p_recipient text, p_sender text, p_item text, p_qty numeric, p_dims text,
+  p_gross numeric, p_net numeric, p_position_no int, p_identifier text, p_cargo_no int, p_cargo_total int, p_note text)
+returns table (id uuid, message text)
+language plpgsql security definer set search_path = public
+as $$
+declare ten uuid; urole text; ulogin text; lid uuid; onum text;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole, s.ulogin into urole, ulogin from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  if urole not in ('admin','owner','manager','director','chief','master','supply') then raise exception 'Недостаточно прав'; end if;
+  onum := (select number from public.app_orders where id=p_order_id);
+  if p_id is null then
+    insert into public.app_labels (tenant_id, order_id, package_id, label_type, recipient, sender, order_number, item, qty,
+      dims, gross, net, position_no, identifier, cargo_no, cargo_total, note, created_login)
+    values (ten, p_order_id, p_package_id, coalesce(nullif(trim(p_label_type),''),'cargo'),
+            nullif(trim(p_recipient),''), coalesce(nullif(trim(p_sender),''),'ООО «3Д Металлообработка Пресс»'),
+            onum, nullif(trim(p_item),''), p_qty, nullif(trim(p_dims),''), p_gross, p_net, p_position_no,
+            nullif(trim(p_identifier),''), p_cargo_no, p_cargo_total, nullif(trim(p_note),''), ulogin)
+    returning id into lid;
+    return query select lid, 'Этикетка сохранена';
+  else
+    update public.app_labels set order_id=p_order_id, package_id=p_package_id,
+      label_type=coalesce(nullif(trim(p_label_type),''),label_type), recipient=nullif(trim(p_recipient),''),
+      sender=coalesce(nullif(trim(p_sender),''),sender), order_number=onum, item=nullif(trim(p_item),''), qty=p_qty,
+      dims=nullif(trim(p_dims),''), gross=p_gross, net=p_net, position_no=p_position_no, identifier=nullif(trim(p_identifier),''),
+      cargo_no=p_cargo_no, cargo_total=p_cargo_total, note=nullif(trim(p_note),'')
+     where id=p_id and (urole='admin' or tenant_id=ten) returning id into lid;
+    return query select lid, 'Этикетка обновлена';
+  end if;
+end $$;
+
+create or replace function public.app_label_delete(p_token uuid, p_id uuid)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+declare urole text; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  delete from public.app_labels where id=p_id and (urole='admin' or tenant_id=ten);
+  return query select true,'Этикетка удалена';
+end $$;
+
+grant execute on function public.app_package_list(uuid,text) to anon, authenticated;
+grant execute on function public.app_package_kpi(uuid) to anon, authenticated;
+grant execute on function public.app_package_save(uuid,uuid,uuid,int,text,text,numeric,numeric,int,text,text) to anon, authenticated;
+grant execute on function public.app_package_delete(uuid,uuid) to anon, authenticated;
+grant execute on function public.app_label_list(uuid,text,text) to anon, authenticated;
+grant execute on function public.app_label_kpi(uuid) to anon, authenticated;
+grant execute on function public.app_label_save(uuid,uuid,uuid,uuid,text,text,text,text,numeric,text,numeric,numeric,int,text,int,int,text) to anon, authenticated;
+grant execute on function public.app_label_delete(uuid,uuid) to anon, authenticated;
+
+-- ---------- Демо (тенант A) ----------
+insert into public.app_packages (tenant_id, order_id, package_no, kind, dims, gross, net, positions, marks, note, created_login)
+select 'aaaaaaaa-0000-0000-0000-000000000001',
+  (select id from public.app_orders where tenant_id='aaaaaaaa-0000-0000-0000-000000000001' order by created_at limit 1),
+  v.no, v.kind, v.dims, v.gross, v.net, v.pos, v.marks, v.note, 'master'
+from (values
+  (1,'crate','1200×800×600', 340, 300, 4, 'Верх, не кантовать', 'Основное место'),
+  (2,'pallet','1200×800×400', 180, 160, 2, 'Хрупкое, верх', 'Комплектующие')
+) as v(no,kind,dims,gross,net,pos,marks,note)
+where not exists (select 1 from public.app_packages where tenant_id='aaaaaaaa-0000-0000-0000-000000000001');
+
+insert into public.app_labels (tenant_id, order_id, package_id, label_type, recipient, order_number, item, qty, dims, gross, net, cargo_no, cargo_total, created_login)
+select 'aaaaaaaa-0000-0000-0000-000000000001',
+  p.order_id, p.id, 'cargo', 'ООО «Заказчик-1»', o.number, 'Штамп вырубной', 4, p.dims, p.gross, p.net, p.package_no, 2, 'master'
+from public.app_packages p join public.app_orders o on o.id=p.order_id
+where p.tenant_id='aaaaaaaa-0000-0000-0000-000000000001'
+  and not exists (select 1 from public.app_labels where tenant_id='aaaaaaaa-0000-0000-0000-000000000001');
+
+-- ---------- База знаний ----------
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+  ('Упаковка','Упаковка и маркировка груза (B37)',
+   'Модуль «Упаковка и маркировка»: грузовые места (вид: коробка/паллета/ящик, габариты, брутто/нетто, число позиций, манипуляционные знаки) и этикетки: грузовая (получатель/отправитель, № заявки, товар, габариты, брутто/нетто, 1/3), бирка позиции (№ заявки, № позиции, описание, идентификатор, количество, срок) и манипуляционные знаки. Печать этикеток — из карточки.',
+   'упаковка маркировка грузовая этикетка бирка брутто нетто манипуляционные знаки')
+) as v(category,question,answer,tags)
+where not exists (select 1 from public.app_knowledge where tenant_id='aaaaaaaa-0000-0000-0000-000000000001' and question='Упаковка и маркировка груза (B37)');
+
+-- <<<<<<<<<< 0065_labels.sql <<<<<<<<<<

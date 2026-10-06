@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Упаковка и маркировка — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=6">
+<style>
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media(max-width:680px){.grid3,.grid4{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🏷</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Упаковка и маркировка</h1><p>Грузовые места и этикетки: грузовая этикетка, бирка позиции, манипуляционные знаки. Печать форм. Прототип B37.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="card mt">
+      <h2>Грузовое место</h2>
+      <div class="msg" id="pMsg"></div>
+      <div class="grid4">
+        <div class="field"><label>Заявка</label><select id="pOrder"><option value="">— не выбрана —</option></select></div>
+        <div class="field"><label>№ места</label><input type="number" id="pNo" value="1"></div>
+        <div class="field"><label>Вид</label><select id="pKind"><option value="box">Коробка</option><option value="pallet">Паллета</option><option value="crate">Ящик</option><option value="bag">Мешок</option><option value="other">Прочее</option></select></div>
+        <div class="field"><label>Габариты, мм</label><input type="text" id="pDims" placeholder="1200×800×600"></div>
+        <div class="field"><label>Брутто, кг</label><input type="number" step="any" id="pGross" value="0"></div>
+        <div class="field"><label>Нетто, кг</label><input type="number" step="any" id="pNet" value="0"></div>
+        <div class="field"><label>Позиций</label><input type="number" id="pPos" value="0"></div>
+        <div class="field"><label>Манипуляционные знаки</label><input type="text" id="pMarks" placeholder="Верх, хрупкое"></div>
+      </div>
+      <div class="btn-row mt"><button class="btn" id="pSave">Сохранить место</button><button class="btn secondary" id="pClear">Очистить</button></div>
+    </div>
+
+    <div class="card">
+      <h2>Грузовые места <span class="note" id="pCnt"></span></h2>
+      <div class="olist mt" id="pList"><span class="note">Загрузка…</span></div>
+      <div class="msg" id="pMsg2"></div>
+    </div>
+
+    <div class="card">
+      <h2>Этикетка</h2>
+      <div class="msg" id="lMsg"></div>
+      <div class="grid3">
+        <div class="field"><label>Тип</label><select id="lType"><option value="cargo">Грузовая этикетка</option><option value="position">Бирка позиции</option><option value="tag">Манипуляционный знак</option></select></div>
+        <div class="field"><label>Заявка</label><select id="lOrder"><option value="">— не выбрана —</option></select></div>
+        <div class="field"><label>Место</label><select id="lPackage"><option value="">— не выбрано —</option></select></div>
+        <div class="field"><label>Получатель</label><input type="text" id="lRecipient"></div>
+        <div class="field"><label>Отправитель</label><input type="text" id="lSender" value="ООО «3Д Металлообработка Пресс»"></div>
+        <div class="field"><label>Товар/описание</label><input type="text" id="lItem"></div>
+        <div class="field"><label>Кол-во</label><input type="number" step="any" id="lQty" value="0"></div>
+        <div class="field"><label>Габариты</label><input type="text" id="lDims"></div>
+        <div class="field"><label>Брутто/Нетто, кг</label><div style="display:flex;gap:6px"><input type="number" step="any" id="lGross" placeholder="брутто"><input type="number" step="any" id="lNet" placeholder="нетто"></div></div>
+        <div class="field"><label>№ позиции</label><input type="number" id="lPos"></div>
+        <div class="field"><label>Идентификатор</label><input type="text" id="lIdent"></div>
+        <div class="field"><label>Место (№ из всего)</label><div style="display:flex;gap:6px"><input type="number" id="lCargoNo" placeholder="№"><input type="number" id="lCargoTotal" placeholder="всего"></div></div>
+      </div>
+      <div class="btn-row mt"><button class="btn" id="lSave">Сохранить этикетку</button><button class="btn secondary" id="lClear">Очистить</button></div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <select id="lFilter" style="padding:9px;border:1px solid var(--border);border-radius:9px;"><option value="">Все этикетки</option><option value="cargo">Грузовые</option><option value="position">Бирки позиций</option><option value="tag">Манипуляционные</option></select>
+        <input type="search" class="search" id="q" placeholder="Поиск по получателю/товару/заявке…">
+      </div>
+      <h2>Этикетки <span class="note" id="lCnt"></span></h2>
+      <div class="olist mt" id="lList"><span class="note">Загрузка…</span></div>
+      <div class="msg" id="lMsg2"></div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · упаковка и маркировка</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=25"></script>
+  <script src="labels.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>

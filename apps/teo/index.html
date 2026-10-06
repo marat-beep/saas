@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ТЭО — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=6">
+<style>
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  table.mini{width:100%;border-collapse:collapse;font-size:.82rem}
+  table.mini th,table.mini td{border-bottom:1px solid #eef2f7;padding:7px 8px;text-align:left}
+  table.mini th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  @media(max-width:680px){.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">📋</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>ТЭО — технико-экономическое обоснование</h1><p>Статьи (металл, расходники, работы, услуги), итог, создание из заявки, утверждение. Прототипы B/экономика.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="card mt">
+      <h2>Новое/редактируемое ТЭО</h2>
+      <div class="msg" id="fMsg"></div>
+      <div class="grid3">
+        <div class="field"><label>Заявка</label><select id="fOrder"><option value="">— не выбрана —</option></select></div>
+        <div class="field"><label>Название *</label><input type="text" id="fTitle"></div>
+        <div class="field" style="display:flex;align-items:flex-end;gap:8px;"><button class="btn" id="fSave">Сохранить</button><button class="btn secondary" id="fFromOrder">Из заявки</button></div>
+      </div>
+      <div class="field"><label>Примечание</label><input type="text" id="fNote"></div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar"><input type="search" class="search" id="q" placeholder="Поиск ТЭО…"></div>
+      <h2>ТЭО <span class="note" id="cnt"></span></h2>
+      <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
+      <div class="msg" id="mMsg"></div>
+    </div>
+
+    <div class="card" id="linesCard" style="display:none">
+      <h2>Статьи ТЭО <span class="note" id="curTitle"></span></h2>
+      <div id="lines"></div>
+      <div class="grid3 mt">
+        <div class="field"><label>Вид статьи</label><select id="lKind"><option value="metal">Металл</option><option value="consumables">Расходники</option><option value="labor">Работы</option><option value="service">Услуги</option><option value="other">Прочее</option></select></div>
+        <div class="field"><label>Наименование</label><input type="text" id="lName"></div>
+        <div class="field"><label>Кол-во</label><input type="number" step="any" id="lQty" value="1"></div>
+        <div class="field"><label>Цена, ₽</label><input type="number" step="any" id="lPrice" value="0"></div>
+        <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="lAdd">Добавить статью</button></div>
+        <div class="field" style="display:flex;align-items:flex-end;gap:8px;"><button class="btn secondary" id="teoApprove">Утвердить</button><button class="btn secondary" id="teoReject">Отклонить</button></div>
+      </div>
+      <div class="msg" id="lMsg"></div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · ТЭО</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=25"></script>
+  <script src="teo.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>

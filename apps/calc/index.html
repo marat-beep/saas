@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькуляторы — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=6">
+<style>
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 14px}
+  .tab{padding:8px 12px;border:1px solid var(--border);border-radius:9px;background:#fff;cursor:pointer;font-size:.8rem}
+  .tab.active{border-color:var(--accent);color:var(--accent-700);font-weight:700}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .resbox{border:1px dashed var(--border);border-radius:12px;padding:12px 14px;background:#fafcff;margin-top:10px}
+  .resline{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid #eef2f7;font-size:.85rem}
+  .resline:last-child{border-bottom:0}
+  .resline b{font-variant-numeric:tabular-nums}
+  @media(max-width:680px){.grid3,.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🧮</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Калькуляторы и мини-сервисы</h1><p>8 инженерных калькуляторов: масса проката, режимы резания, ISO 286, нормочас ЧПУ, себестоимость детали, децимальные обозначения, конвертеры, подбор технологии. Прототипы B34/A1.</p></div>
+
+    <div class="card">
+      <div class="tabs" id="tabs"></div>
+      <div id="form" class="grid3"></div>
+      <div class="btn-row mt">
+        <button class="btn" id="calcBtn">Рассчитать</button>
+        <button class="btn secondary" id="clearBtn">Очистить</button>
+      </div>
+      <div class="msg mt" id="fMsg"></div>
+      <div id="res"></div>
+      <div id="saveRow" class="toolbar mt" style="display:none">
+        <input type="text" id="sTitle" placeholder="Название расчёта" style="padding:9px;border:1px solid var(--border);border-radius:9px;">
+        <select id="sOrder" style="padding:9px;border:1px solid var(--border);border-radius:9px;"><option value="">— привязать к заявке —</option></select>
+        <button class="btn" id="saveBtn">Сохранить расчёт</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <select id="fKind" style="padding:9px;border:1px solid var(--border);border-radius:9px;"><option value="">Все расчёты</option></select>
+        <input type="search" class="search" id="q" placeholder="Поиск сохранённых расчётов…">
+      </div>
+      <h2>Сохранённые расчёты <span class="note" id="cnt"></span></h2>
+      <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
+      <div class="msg" id="mMsg"></div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · калькуляторы</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=25"></script>
+  <script src="calc.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>

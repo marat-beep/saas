@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Поставщики — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=6">
+<style>
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:680px){.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🏭</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Реестр поставщиков</h1><p>Карточки контрагентов, аккредитация, категории и рейтинг. Связь с закупками и порталом поставщика.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="card mt">
+      <h2>Новый/редактируемый поставщик</h2>
+      <div class="msg" id="fMsg"></div>
+      <div class="grid3">
+        <div class="field"><label>Наименование *</label><input type="text" id="fName"></div>
+        <div class="field"><label>ИНН</label><input type="text" id="fInn"></div>
+        <div class="field"><label>Контактное лицо</label><input type="text" id="fContact"></div>
+        <div class="field"><label>Телефон</label><input type="text" id="fPhone"></div>
+        <div class="field"><label>E-mail</label><input type="text" id="fEmail"></div>
+        <div class="field"><label>Категория</label><select id="fCat"><option value="металл">Металл</option><option value="инструмент">Инструмент</option><option value="комплектующие">Комплектующие</option><option value="услуги">Услуги</option><option value="прочее">Прочее</option></select></div>
+        <div class="field"><label>Рейтинг (0–5)</label><input type="number" step="0.1" min="0" max="5" id="fRating" value="0"></div>
+        <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="fSave">Сохранить</button></div>
+      </div>
+      <button class="btn secondary" id="fClear">Очистить</button>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <select id="fCatFilter" style="padding:9px;border:1px solid var(--border);border-radius:9px;"><option value="">Все категории</option><option value="металл">Металл</option><option value="инструмент">Инструмент</option><option value="комплектующие">Комплектующие</option><option value="услуги">Услуги</option><option value="прочее">Прочее</option></select>
+        <input type="search" class="search" id="q" placeholder="Поиск по названию/ИНН/контакту…">
+      </div>
+      <h2>Поставщики <span class="note" id="cnt"></span></h2>
+      <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
+      <div class="msg" id="mMsg"></div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · поставщики</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=25"></script>
+  <script src="suppliers.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
