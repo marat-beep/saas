@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Конструктор приложений — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=6">
+<style>
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .cols{display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start}
+  table.mini{width:100%;border-collapse:collapse;font-size:.82rem}
+  table.mini th,table.mini td{border-bottom:1px solid #eef2f7;padding:6px 8px;text-align:left}
+  table.mini th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase}
+  @media(max-width:860px){.cols{grid-template-columns:1fr}.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🧩</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>Конструктор приложений (P2 App Builder)</h1><p>Создавайте свои сущности (справочники, журналы) с полями и ведите записи — без разработки.</p></div>
+
+    <div class="cols">
+      <div class="card">
+        <h2>Сущности</h2>
+        <div class="msg" id="eMsg"></div>
+        <div class="field"><input type="text" id="eName" placeholder="Название (напр. Журнал обходов)"></div>
+        <div class="field"><input type="text" id="eCode" placeholder="Код (OBHOD)"></div>
+        <div class="toolbar"><input type="search" class="search" id="q" placeholder="Поиск…"></div>
+        <div class="olist mt" id="eList"><span class="note">Загрузка…</span></div>
+        <div class="btn-row mt"><button class="btn" id="eSave">Создать сущность</button><button class="btn secondary" id="eClear">Очистить</button></div>
+      </div>
+
+      <div>
+        <div class="card" id="detailCard" style="display:none">
+          <h2 id="eTitle">Сущность</h2>
+          <p class="note" id="eDesc"></p>
+          <h3 class="mt">Поля</h3>
+          <div id="fields"></div>
+          <div class="grid3 mt">
+            <div class="field"><label>Название поля</label><input type="text" id="fName"></div>
+            <div class="field"><label>Код</label><input type="text" id="fCode"></div>
+            <div class="field"><label>Тип</label><select id="fType"><option value="text">Текст</option><option value="number">Число</option><option value="date">Дата</option><option value="select">Список</option><option value="bool">Флаг</option><option value="textarea">Многострочный</option></select></div>
+            <div class="field"><label>Варианты (через запятую, для списка)</label><input type="text" id="fOptions"></div>
+            <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="fAdd">Добавить поле</button></div>
+          </div>
+          <div class="msg" id="fMsg"></div>
+
+          <h3 class="mt">Записи <span class="note" id="rCnt"></span></h3>
+          <div id="recForm" class="grid3"></div>
+          <div class="btn-row"><button class="btn" id="rSave">Добавить запись</button><button class="btn secondary" id="rReset">Сбросить</button></div>
+          <div class="msg" id="rMsg"></div>
+          <div id="records" class="mt"></div>
+        </div>
+        <div class="card" id="emptyCard"><span class="note">Выберите сущность слева или создайте новую.</span></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · конструктор приложений</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=26"></script>
+  <script src="builder.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
