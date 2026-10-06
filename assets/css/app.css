@@ -280,3 +280,10 @@ body.sh-collapsed .sh-tx,body.sh-collapsed .sh-grp,body.sh-collapsed .sh-brand s
 [data-theme="dark"] body{background:var(--bg);color:var(--text)}
 [data-theme="dark"] .card,[data-theme="dark"] input,[data-theme="dark"] select,[data-theme="dark"] textarea{background:var(--surface);color:var(--text)}
 [data-theme="dark"] .topbar{filter:brightness(.95)}
+/* ===== Пилот: сворачиваемые группы панели + единые компоненты (этап 4, базово) ===== */
+.sec-tog{background:none;border:0;cursor:pointer;font-size:.9rem;color:var(--muted);transition:transform .15s;padding:0 4px}
+.panel-sec.collapsed .sec-tog{transform:rotate(-90deg)}
+.panel-sec.collapsed .sec-body{display:none}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+table.mini{width:100%;border-collapse:collapse}
+.badge{border-radius:999px}
