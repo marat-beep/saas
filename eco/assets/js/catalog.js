@@ -12,7 +12,7 @@ window.AppCatalog = {
      По умолчанию — done; ниже перечислены незакрытые. */
   statuses: {
     A1: 'progress', A2: 'progress', A4: 'progress', A5: 'progress',
-    A6: 'todo', A8: 'todo',  B12: 'todo', 
+    A6: 'todo', A8: 'todo',   
     B2: 'progress', B5: 'progress', B13: 'progress', B18: 'progress',
     B30: 'progress', B32: 'progress', B36: 'progress',
     P1: 'progress', P8: 'progress', P12: 'progress'

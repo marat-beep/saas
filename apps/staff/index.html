@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM сотрудников — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=9">
+<style>
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:760px){.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">👥</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>CRM сотрудников (B12)</h1><p>Кадровые карточки, статусы, рейтинг и история взаимодействий.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="card mt">
+      <h2>Новая/редактируемая карточка</h2>
+      <div class="msg" id="fMsg"></div>
+      <div class="grid3">
+        <div class="field"><label>ФИО *</label><input type="text" id="fName"></div>
+        <div class="field"><label>Должность</label><input type="text" id="fPos"></div>
+        <div class="field"><label>Подразделение</label><input type="text" id="fDept"></div>
+        <div class="field"><label>Руководитель</label><input type="text" id="fMgr"></div>
+        <div class="field"><label>Статус</label><select id="fStatus"><option value="active">Работает</option><option value="leave">Отпуск</option><option value="fired">Уволен</option></select></div>
+        <div class="field"><label>Дата приёма</label><input type="date" id="fHired"></div>
+        <div class="field"><label>Рейтинг (0–5)</label><input type="number" step="0.1" id="fRating" value="0"></div>
+        <div class="field" style="display:flex;align-items:flex-end;gap:8px;"><button class="btn" id="fSave">Сохранить</button><button class="btn secondary" id="fClear">Очистить</button></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar"><input type="search" class="search" id="q" placeholder="Поиск по ФИО/должности…"></div>
+      <h2>Сотрудники <span class="note" id="cnt"></span></h2>
+      <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
+      <div class="msg" id="mMsg"></div>
+    </div>
+
+    <div class="card" id="evCard" style="display:none">
+      <h2>История <span class="note" id="evTitle"></span></h2>
+      <div class="grid3">
+        <div class="field"><label>Тип</label><select id="evKind"><option value="note">Заметка</option><option value="one_on_one">1-на-1</option><option value="review">Аттестация</option><option value="promotion">Повышение</option><option value="warning">Замечание</option></select></div>
+        <div class="field" style="grid-column:span 2;"><label>Текст</label><input type="text" id="evNote"></div>
+      </div>
+      <button class="btn mt" id="evAdd">Добавить запись</button>
+      <div class="msg" id="evMsg"></div>
+      <div id="events" class="mt"></div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · CRM сотрудников</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=37"></script>
+  <script src="staff.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
