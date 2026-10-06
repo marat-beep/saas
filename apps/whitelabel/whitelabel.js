@@ -44,6 +44,36 @@
       .then(function (r) { var x = r && r[0]; msg('#fMsg', x ? x.message : 'Ошибка', x && x.ok ? 'ok' : 'err'); if (x && x.ok) window.Auth.log('Бренд сохранён', $('#fSub').value); })
       .catch(function (e) { msg('#fMsg', 'Ошибка: ' + e.message, 'err'); });
   });
+  /* ---------- Снимки страниц (/shot) ---------- */
+  function shState() {
+    if (!window.Screenshot) { $('#shState').textContent = 'Модуль Screenshot не подключён.'; return; }
+    $('#shUrl').value = window.Screenshot.endpoint() || '';
+    $('#shToken').value = window.Screenshot.token() || '';
+    $('#shState').textContent = window.Screenshot.available()
+      ? ('Настроено: ' + window.Screenshot.endpoint())
+      : 'Бэкенд /shot не задан — «Замечания к странице» работают в демо/same-origin режиме.';
+  }
+  $('#shSave').addEventListener('click', function () {
+    if (!window.Screenshot) { msg('#shMsg', 'Screenshot недоступен', 'err'); return; }
+    window.Screenshot.setEndpoint($('#shUrl').value);
+    window.Screenshot.setToken($('#shToken').value);
+    msg('#shMsg', 'Сохранено в браузере', 'ok');
+    shState();
+  });
+  $('#shClear').addEventListener('click', function () {
+    if (!window.Screenshot) return;
+    window.Screenshot.clear();
+    msg('#shMsg', 'Настройки /shot очищены', 'ok');
+    shState();
+  });
+  $('#shPing').addEventListener('click', function () {
+    if (!window.Screenshot || !window.Screenshot.available()) { msg('#shMsg', 'Сначала укажите endpoint /shot', 'err'); return; }
+    var u = $('#shTest').value || location.href;
+    msg('#shMsg', 'Проверка снимка…', 'info');
+    window.Screenshot.capture(u, { timeout: 25000 })
+      .then(function () { msg('#shMsg', 'Снимок получен — бэкенд работает.', 'ok'); })
+      .catch(function (e) { msg('#shMsg', 'Ошибка: ' + e.message, 'err'); });
+  });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
   window.Auth.guard('../auth/index.html').then(function (s) {
@@ -53,5 +83,6 @@
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#fMsg', 'Supabase не подключён.', 'err'); return; }
     load();
+    shState();
   });
 })();

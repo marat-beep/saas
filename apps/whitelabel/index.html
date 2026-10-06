@@ -49,6 +49,23 @@
         <p class="note mt" id="host"></p>
       </div>
     </div>
+
+    <div class="card mt">
+      <h2>Снимки страниц (/shot)</h2>
+      <div class="note">Backend скриншотов для модуля «Замечания к странице» (см. backend-example/). Настройки сохраняются в браузере (localStorage).</div>
+      <div class="msg" id="shMsg"></div>
+      <div class="form-grid">
+        <div class="field"><label>Endpoint (URL бэкенда /shot)</label><input type="text" id="shUrl" placeholder="https://shot.example.com/shot"></div>
+        <div class="field"><label>Токен (Bearer)</label><input type="text" id="shToken" placeholder="секрет"></div>
+        <div class="field"><label>Тестовый URL</label><input type="text" id="shTest" placeholder="https://sapfir.eu/saas/"></div>
+      </div>
+      <div class="btn-row mt">
+        <button class="btn" id="shSave">Сохранить</button>
+        <button class="btn secondary" id="shClear">Очистить</button>
+        <button class="btn secondary" id="shPing">Проверить снимок</button>
+      </div>
+      <div id="shState" class="note mt"></div>
+    </div>
   </main>
 
   <footer class="foot">3DMP Service · брендирование</footer>
@@ -60,8 +77,9 @@
   <script src="../../assets/js/auth.js?v=5"></script>
   <script src="../../assets/js/notify.js?v=1"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=55"></script>
-  <script src="whitelabel.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=56"></script>
+  <script src="../../assets/js/screenshot.client.js?v=1"></script>
+  <script src="whitelabel.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
 </body>
 </html>
