@@ -96,7 +96,13 @@ code { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px;
 /* формы */
 .field { margin-bottom: 12px; }
 .field label { display: block; font-size: .78rem; font-weight: 600; margin-bottom: 5px; color: #334155; }
-input[type="text"], input[type="email"], input[type="password"] {
+input[type="text"], input[type="email"], input[type="password"],
+input[type="number"], input[type="date"], input[type="search"],
+input[type="tel"], input[type="url"], input[type="time"], textarea {
+  width: 100%; padding: 11px 12px; border: 2px solid var(--border); border-radius: 10px;
+  font-size: .9rem; background: #fff; color: var(--text);
+}
+.field select {
   width: 100%; padding: 11px 12px; border: 2px solid var(--border); border-radius: 10px;
   font-size: .9rem; background: #fff; color: var(--text);
 }
