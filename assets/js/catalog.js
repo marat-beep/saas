@@ -8,7 +8,7 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '7.0',
+  version: '7.1',
   updated: '06.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
@@ -30,6 +30,29 @@ window.AppCatalog = {
   },
   implOrderOf: function (id) { return (this.implOrder && this.implOrder[id]) || 999; },
   priorityOf: function (id) { var n = this.implOrderOf(id); return n <= 9 ? 1 : (n <= 21 ? 2 : (n <= 33 ? 3 : 4)); },
+
+  /* Зоны панели управления (порядок = порядок вывода). Группировка — zoneOf(id). */
+  zones: [
+    { id: 'frontend', icon: '🎨', title: 'Фронтенд-разработка', about: 'UI, дизайн-система, шаблоны, витрина/портал, прототипы, брендирование.', roles: ['admin'] },
+    { id: 'backend', icon: '🧩', title: 'Бэкенд-разработка', about: 'API и интеграции, схема данных, файлы/хранилище, безопасность, реестры.', roles: ['admin'] },
+    { id: 'debug', icon: '🧪', title: 'Отладка и диагностика', about: 'Self-test, смоук, журналы, баг-репорты, служебные проверки.', roles: ['admin'] },
+    { id: 'org_admin', icon: '🏢', title: 'Администраторы организаций', about: 'Пользователи/роли, персонал, тариф и бренд, финансы, документы, аналитика и рабочие модули.', roles: ['admin', 'owner', 'manager', 'director', 'technologist', 'chief', 'master', 'operator', 'supply', 'qc', 'economist', 'support'] },
+    { id: 'saas_admin', icon: '🏗', title: 'Администратор SaaS', about: 'Организации платформы, тарифы, аудит, отраслевые настройки, отчёты.', roles: ['admin'] }
+  ],
+  zoneMap: {
+    /* frontend */
+    auth: 'frontend', panel: 'frontend', dashboard: 'frontend', guide: 'frontend', modules: 'frontend',
+    adoption: 'frontend', eco: 'frontend', builder: 'frontend', whitelabel: 'frontend', labels: 'frontend',
+    dicts: 'frontend', client: 'frontend', product: 'frontend',
+    /* backend */
+    api: 'backend', files: 'backend', registry: 'backend', usage: 'backend',
+    /* debug */
+    diagnostics: 'debug', scale: 'debug', bugbox: 'debug', remarks: 'debug',
+    /* saas_admin */
+    platform: 'saas_admin', admin: 'saas_admin', industry: 'saas_admin', reports: 'saas_admin'
+    /* остальные (бизнес и орг-админ) — по умолчанию org_admin через zoneOf */
+  },
+  zoneOf: function (id) { return (this.zoneMap && this.zoneMap[id]) || 'org_admin'; },
   groups: [
     { id: 'core',       icon: '🧭', title: 'Ядро' },
     { id: 'sales',      icon: '📥', title: 'Продажи и заказы' },

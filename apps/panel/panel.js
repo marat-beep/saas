@@ -1,67 +1,58 @@
 /* ============================================================
    3DMP Service · apps/panel — Пульт управления (единая точка входа)
-   Разделы по ролям: разработчик / SaaS-админ / админ клиента / пользователь.
-   Состав разделов — из assets/js/catalog.js (по id модулей).
+   5 зон аудиторий из assets/js/catalog.js (catalog.zones + zoneOf).
+   Состав модулей — ТОЛЬКО из каталога, без хардкода.
    ============================================================ */
 (function () {
   'use strict';
-  var ui = window.AppUI, $ = ui.qs, SB = window.SB;
-  var C = window.AppCatalog;
+  var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa, C = window.AppCatalog;
 
   function esc(v) { return ui.esc(v); }
-  function byId(id) { return (C.apps || []).filter(function (a) { return a.id === id; })[0]; }
-
-  var SECTIONS = [
-    {
-      id: 'dev', badge: 'Разработчик', cls: 'dev', roles: ['admin'],
-      title: '🧰 Раздел разработчика',
-      about: 'Технические инструменты и документация системы.',
-      apps: ['diagnostics', 'bugbox', 'usage', 'scale', 'api', 'guide', 'modules', 'eco']
-    },
-    {
-      id: 'saas', badge: 'SaaS-администратор', cls: 'saas', roles: ['admin'],
-      title: '🏗 Раздел SaaS-администратора',
-      about: 'Организации, тарифы, пользователи и аудит всей платформы.',
-      apps: ['platform', 'admin', 'org', 'industry', 'reports']
-    },
-    {
-      id: 'client', badge: 'Администратор клиента', cls: 'client', roles: ['admin', 'owner'],
-      title: '🏢 Раздел администратора клиента',
-      about: 'Сотрудники и роли организации, доступные модули, тариф и бренд.',
-      apps: ['org', 'roles', 'builder', 'whitelabel', 'hr', 'departments', 'staff', 'finance', 'escrow', 'docs', 'bi']
-    },
-    {
-      id: 'user', badge: 'Пользователь', cls: 'user', roles: ['admin', 'owner', 'manager', 'supplier'],
-      title: '👤 Рабочее место пользователя',
-      about: 'Ежедневные модули: заявки, производство, качество, экономика.',
-      apps: ['dashboard', 'crm', 'orders', 'tkp', 'partners', 'equipment', 'procurement', 'suppliers', 'supplier', 'production', 'mes', 'planning', 'slots', 'forecast', 'setup', 'lean', 'iiot', 'dicts',
-             'warehouse', 'maintenance', 'tooling', 'oee', 'terminal', 'issues', 'service', 'calendar', 'registry', 'bom', 'assistant', 'nc', 'calc', 'norms', 'config', 'reverse', 'marketplace', 'qc', 'passport', 'quality',
-             'economics', 'teo', 'finance', 'bi', 'files', 'reports', 'industry', 'hr', 'docs', 'templates', 'engraving', 'labels']
-    }
-  ];
-
   function card(a) {
     return '<a class="app-card" href="../../' + a.href + '">' +
       '<span class="ic">' + a.icon + '</span><h3>' + esc(a.title) + '</h3><p>' + esc(a.desc) + '</p></a>';
   }
+  var role = null, query = '';
+  function zonesForRole() { return (C.zones || []).filter(function (z) { return (z.roles || []).indexOf(role) >= 0; }); }
+  function appsOfZone(zid) { return (C.apps || []).filter(function (a) { return (C.zoneOf ? C.zoneOf(a.id) : 'org_admin') === zid; }); }
 
-  function render(role) {
-    var html = SECTIONS.filter(function (s) { return s.roles.indexOf(role) >= 0; }).map(function (s) {
-      var items = s.apps.map(byId).filter(Boolean);
-      return '<section class="card panel-sec">' +
-        '<h2>' + s.title + ' <span class="sec-badge ' + s.cls + '">' + s.badge + '</span></h2>' +
-        '<p class="note">' + s.about + '</p>' +
+  function render() {
+    var zs = zonesForRole();
+    if (!zs.length) { $('#zoneNav').innerHTML = ''; $('#sections').innerHTML = '<div class="card"><span class="note">Для вашей роли разделы не найдены.</span></div>'; return; }
+    var s = query.toLowerCase();
+    var matches = function (a) { return !s || (a.title + ' ' + a.desc).toLowerCase().indexOf(s) >= 0; };
+    var nav = '', sec = '';
+    zs.forEach(function (z) {
+      var items = appsOfZone(z.id).filter(matches);
+      if (!items.length) return;
+      nav += '<a class="zone-link" href="#zone-' + z.id + '" data-z="' + z.id + '"><span>' + z.icon + ' ' + esc(z.title) + '</span><span class="zone-cnt">' + items.length + '</span></a>';
+      sec += '<section class="card panel-sec" id="zone-' + z.id + '">' +
+        '<h2>' + z.icon + ' ' + esc(z.title) + ' <span class="sec-badge">' + items.length + '</span></h2>' +
+        '<p class="note">' + esc(z.about) + '</p>' +
         '<div class="apps-grid">' + items.map(card).join('') + '</div></section>';
-    }).join('');
-    $('#sections').innerHTML = html || '<div class="card"><span class="note">Для вашей роли разделы не найдены.</span></div>';
+    });
+    $('#zoneNav').innerHTML = nav;
+    $('#sections').innerHTML = sec || '<div class="card"><span class="note">Ничего не найдено.</span></div>';
+    $$('#zoneNav .zone-link').forEach(function (l) {
+      l.addEventListener('click', function (e) { e.preventDefault(); var el = document.getElementById('zone-' + l.dataset.z); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    });
+    if ('IntersectionObserver' in window) {
+      var obs = new IntersectionObserver(function (es) {
+        es.forEach(function (en) { if (en.isIntersecting) { var id = en.target.id.replace('zone-', ''); $$('#zoneNav .zone-link').forEach(function (l) { l.classList.toggle('on', l.dataset.z === id); }); } });
+      }, { rootMargin: '-40% 0px -55% 0px' });
+      $$('.panel-sec').forEach(function (x) { obs.observe(x); });
+    }
   }
 
+  var sEl = $('#search'); if (sEl) sEl.addEventListener('input', function () { query = this.value.trim(); render(); });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
-  window.AppStatus.render('#conn').catch(function () {});
+  if (window.AppStatus) window.AppStatus.render('#conn').catch(function () {});
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
-    $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + (s.role ? ' · ' + s.role : '');
-    render(s.role);
+    role = s.role;
+    var rl = (window.Auth.roleLabel ? window.Auth.roleLabel(s.role) : '') || s.role;
+    $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + rl;
+    render();
   });
 })();
