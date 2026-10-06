@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IIoT и DNC — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=9">
+<style>
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  table.mini{width:100%;border-collapse:collapse;font-size:.84rem}
+  table.mini th,table.mini td{border-bottom:1px solid #eef2f7;padding:7px 9px;text-align:left}
+  table.mini th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase}
+  @media(max-width:760px){.grid4{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">📡</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap">
+    <div class="hero"><h1>IIoT и DNC (B13/B18)</h1><p>Телеметрия станков и очередь передачи УП (DNC).</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="card mt">
+      <h2>Принять показание</h2>
+      <div class="msg" id="iMsg"></div>
+      <div class="grid4">
+        <div class="field"><label>Станок</label><input type="text" id="iMachine"></div>
+        <div class="field"><label>Метрика</label><select id="iMetric"><option value="state">Состояние</option><option value="count">Счётчик</option><option value="speed">Обороты</option><option value="power">Мощность</option><option value="temp">Температура</option><option value="vibration">Вибрация</option><option value="other">Прочее</option></select></div>
+        <div class="field"><label>Значение</label><input type="number" step="any" id="iValue" value="0"></div>
+        <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="iSave">Отправить</button></div>
+      </div>
+      <h3 class="mt">Последние показания</h3>
+      <div class="toolbar"><input type="search" class="search" id="q" placeholder="Фильтр по станку…"></div>
+      <div id="readings" class="mt"><span class="note">Загрузка…</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Очередь DNC <span class="note" id="dCnt"></span></h2>
+      <div class="msg" id="dMsg"></div>
+      <div class="grid4">
+        <div class="field"><label>Станок</label><input type="text" id="dMachine"></div>
+        <div class="field"><label>Программа</label><input type="text" id="dProgram"></div>
+        <div class="field" style="grid-column:span 2;display:flex;align-items:flex-end;"><button class="btn" id="dSave">Поставить в очередь</button></div>
+      </div>
+      <div class="olist mt" id="dnc"><span class="note">Загрузка…</span></div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · IIoT и DNC</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=1"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=2"></script>
+  <script src="../../assets/js/auth.js?v=4"></script>
+  <script src="../../assets/js/notify.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=40"></script>
+  <script src="iiot.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+</body>
+</html>
