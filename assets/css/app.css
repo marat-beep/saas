@@ -292,3 +292,28 @@ table.mini{width:100%;border-collapse:collapse}
 .grp-tog{background:none;border:0;cursor:pointer;font-size:.95rem;color:var(--muted);transition:transform .15s;padding:0 4px}
 .grp.collapsed .grp-tog{transform:rotate(-90deg)}
 .grp.collapsed .apps-grid{display:none}
+
+/* ===== Этап 4 (расширенно): формы, таблицы, модалки, тулбар ===== */
+/* формы: подсказки и состояния */
+.field .hint{display:block;margin-top:4px;font-size:var(--fs-1);color:var(--muted)}
+.field.invalid input,.field.invalid select,.field.invalid textarea{border-color:var(--danger,#ef4444)}
+.field .err-txt{display:block;margin-top:4px;font-size:var(--fs-1);color:var(--danger,#b91c1c);font-weight:600}
+.field .req{color:var(--danger,#b91c1c)}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--space-3)}
+/* единая таблица */
+.tbl-wrap{width:100%;overflow:auto;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)}
+.tbl{width:100%;border-collapse:collapse;font-size:var(--fs-2)}
+.tbl th,.tbl td{padding:9px 11px;text-align:left;border-bottom:1px solid var(--border)}
+.tbl thead th{position:sticky;top:0;z-index:1;background:var(--surface);color:var(--muted);font-weight:700;font-size:var(--fs-1);text-transform:uppercase;letter-spacing:.02em}
+.tbl tbody tr:hover{background:var(--bg)}
+.tbl tbody tr:last-child td{border-bottom:0}
+.tbl .num,.tbl td.num,.tbl th.num{text-align:right;font-variant-numeric:tabular-nums}
+.tbl tbody tr[data-open]{cursor:pointer}
+.tbl .muted{color:var(--muted)}
+[data-theme="dark"] .tbl thead th{background:var(--surface)}
+/* модалка: размер и прокрутка формы */
+.modal.lg{max-width:720px}
+.modal .modal-body .form-grid{margin-top:var(--space-1)}
+/* единый тулбар с переносом */
+.toolbar.wrap{flex-wrap:wrap}
+.toolbar .grow{flex:1;min-width:180px}

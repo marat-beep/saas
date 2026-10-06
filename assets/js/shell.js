@@ -84,6 +84,51 @@
       wrap.innerHTML = out;
     }
 
+    /* ---------- White-label: бренд по поддомену/своему домену (P6) ---------- */
+    function shade(hex, f) {
+      try {
+        var n = String(hex).replace('#', '');
+        if (n.length === 3) n = n[0] + n[0] + n[1] + n[1] + n[2] + n[2];
+        var h = function (x) { x = Math.max(0, Math.min(255, Math.round(x))).toString(16); return x.length < 2 ? '0' + x : x; };
+        return '#' + h(parseInt(n.slice(0, 2), 16) * f) + h(parseInt(n.slice(2, 4), 16) * f) + h(parseInt(n.slice(4, 6), 16) * f);
+      } catch (e) { return hex; }
+    }
+    function applyBrand(row) {
+      if (!row) return;
+      var brand = row.brand || {}, theme = row.theme || {};
+      var accent = theme.accent || brand.color || brand.accent;
+      if (accent) {
+        document.documentElement.style.setProperty('--accent', accent);
+        document.documentElement.style.setProperty('--accent-700', shade(accent, 0.8));
+      }
+      var logo = brand.logo || theme.logo, name = brand.name || theme.name || row.name;
+      if (logo || name) {
+        var sb = wrap.querySelector('.sh-brand');
+        if (sb) sb.innerHTML = '<span>' + esc(logo || '🏭') + '</span> <b>' + esc(name || '') + '</b>';
+      }
+      if (name) { var tb = document.querySelector('.topbar .brand a'); if (tb) tb.textContent = name; }
+      if (theme.slogan) document.documentElement.setAttribute('data-brand-slogan', theme.slogan);
+    }
+    function resolveBrand() {
+      if (!g.SB || !g.SB.rpc) return;
+      var host = (location.hostname || '').toLowerCase();
+      if (!host || host === 'localhost' || /^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return;
+      var cands = [host];
+      if (host.split('.').length > 2) cands.push(host.split('.')[0]);
+      var ck = '3dmp:brand:' + host, cached = '';
+      try { cached = sessionStorage.getItem(ck) || ''; } catch (e) {}
+      if (cached) { try { applyBrand(JSON.parse(cached)); } catch (e) {} return; }
+      (function next(i) {
+        if (i >= cands.length) return;
+        g.SB.rpc('app_whitelabel_resolve', { p_subdomain: cands[i] }).then(function (r) {
+          if (r.error) return;
+          var row = r.data && r.data[0];
+          if (row) { try { sessionStorage.setItem(ck, JSON.stringify(row)); } catch (e) {} applyBrand(row); }
+          else next(i + 1);
+        }).catch(function () {});
+      })(0);
+    }
+
     document.body.classList.add('sh-has');
     applyCollapsed();
 
@@ -91,6 +136,7 @@
 
     if (g.AppCatalog && g.AppCatalog.apps) build(g.AppCatalog);
     else { var s = document.createElement('script'); s.src = ROOT + 'assets/js/catalog.js?v=' + CATALOG_V; s.onload = function () { build(g.AppCatalog); }; document.head.appendChild(s); }
+    resolveBrand();
 
     document.addEventListener('click', function (e) { if (window.innerWidth <= 768 && e.target.closest && e.target.closest('.sh-item')) document.body.classList.remove('sh-open'); });
   }

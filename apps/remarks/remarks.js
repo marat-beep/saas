@@ -23,9 +23,13 @@
     token = s.token;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
 
+    var so = (window.Screenshot && window.Screenshot.available()) ? window.Screenshot.shotOptions() : {};
+    var cfg = window.APP_CONFIG || {};
     var widget = window.PageRemarks.init({
       mount: $('#remarksMount'),
-      shotEndpoint: (window.AppConfig && window.AppConfig.shotEndpoint) || '', // пусто → mock
+      shotEndpoint: cfg.shotEndpoint || so.shotEndpoint || '', // пусто → демо/same-origin
+      shotHeaders: so.shotHeaders || {},
+      shotParams: so.shotParams || { width: 1280, fullPage: true },
       module: 'remarks',
       user: { id: s.id || s.login, name: s.full_name || s.login, role: (s.role === 'client' ? 'client' : 'employee') },
       storage: storageFor(),
