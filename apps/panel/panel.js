@@ -35,7 +35,7 @@
       title: '👤 Рабочее место пользователя',
       about: 'Ежедневные модули: заявки, производство, качество, экономика.',
       apps: ['dashboard', 'crm', 'orders', 'tkp', 'procurement', 'suppliers', 'supplier', 'production', 'mes', 'planning',
-             'warehouse', 'maintenance', 'tooling', 'oee', 'terminal', 'issues', 'service', 'calendar', 'registry', 'bom', 'assistant', 'nc', 'calc', 'qc', 'passport', 'quality',
+             'warehouse', 'maintenance', 'tooling', 'oee', 'terminal', 'issues', 'service', 'calendar', 'registry', 'bom', 'assistant', 'nc', 'calc', 'marketplace', 'qc', 'passport', 'quality',
              'economics', 'teo', 'finance', 'bi', 'reports', 'industry', 'hr', 'docs', 'templates', 'engraving', 'labels']
     }
   ];
