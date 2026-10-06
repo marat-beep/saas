@@ -35,6 +35,16 @@
       <p>Единое рабочее пространство предприятия: заявки и КП, подготовка производства (КТПП), производство и MES, качество, экономика, персонал и администрирование. Данные, вход и права — в облаке Supabase. Публикация — на <b>sapfir.eu/saas</b>.</p>
     </section>
 
+    <div class="card cab-head" id="hubCab" style="display:none;margin-bottom:16px;">
+      <div class="cab-ava" id="hubAva">…</div>
+      <div class="cab-info">
+        <h1 id="hubName">…</h1>
+        <div class="note" id="hubSub">…</div>
+        <div class="cab-badges mt" id="hubBadges"></div>
+      </div>
+      <a class="btn secondary" href="apps/dashboard/index.html" style="width:auto;padding:10px 16px;margin-left:auto;">Открыть кабинет</a>
+    </div>
+
     <div class="kpi-row" id="hubStats" style="margin-bottom:16px;"></div>
 
     <section class="card">
@@ -125,6 +135,7 @@
 
       function renderAccount(s) {
         var el = document.getElementById('account');
+        var cab = document.getElementById('hubCab');
         if (s) {
           el.innerHTML = '<span class="who">' + ui.esc(s.login || '') +
             (s.role ? ' · ' + ui.esc(s.role) : '') + '</span> ' +
@@ -132,8 +143,18 @@
           document.getElementById('logout').addEventListener('click', function () {
             window.Auth.logout(); location.reload();
           });
+          if (cab) {
+            var name = s.full_name || s.login || '';
+            var ini = (name.trim().split(/\s+/).map(function (w) { return w[0] || ''; }).slice(0, 2).join('') || (s.login || '?').slice(0, 1)).toUpperCase();
+            document.getElementById('hubAva').textContent = ini;
+            document.getElementById('hubName').textContent = name;
+            document.getElementById('hubSub').textContent = (s.tenant_name ? s.tenant_name + ' · ' : '') + (window.Auth.roleLabel(s.role) || s.role || '');
+            document.getElementById('hubBadges').innerHTML = '<span class="badge">' + ui.esc(window.Auth.roleLabel(s.role) || s.role || '') + '</span>' + (s.tenant_name ? '<span class="badge">' + ui.esc(s.tenant_name) + '</span>' : '');
+            cab.style.display = '';
+          }
         } else {
           el.innerHTML = '<a class="tbtn" href="apps/auth/index.html">Войти</a>';
+          if (cab) cab.style.display = 'none';
         }
       }
 
