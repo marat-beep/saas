@@ -54,6 +54,43 @@
       bar.appendChild(tb);
     }
 
+    /* Кнопки топбара: Сервер · Вход · Пользователь (как на главной) */
+    if (bar) {
+      function mk(tag, cls, html) { var e = document.createElement(tag); e.className = cls; if (html != null) e.innerHTML = html; return e; }
+      function bindPair(btn, drop) {
+        btn.addEventListener('click', function (e) { e.stopPropagation(); drop.style.display = (drop.style.display === 'none' || !drop.style.display) ? 'block' : 'none'; });
+        document.addEventListener('click', function (e) { if (!(e.target.closest && (e.target.closest('#' + drop.id) || e.target.closest('#' + btn.id)))) drop.style.display = 'none'; });
+      }
+      var srv = mk('button', 'srvbtn', '🟢 <span>Сервер</span>'); srv.type = 'button'; srv.id = 'shSrvBtn'; srv.title = 'Статус сервера';
+      var srvD = mk('div', 'srvdrop', '<div class="status" id="conn"><span class="dot wait"></span><span class="status-text">Проверка…</span></div><ul class="checklist" data-checklist></ul>'); srvD.id = 'shSrvDrop'; srvD.style.display = 'none';
+      var ent = mk('button', 'srvbtn', '🎛 <span>Вход</span>'); ent.type = 'button'; ent.id = 'shEntBtn'; ent.title = 'Единая точка входа';
+      var entD = mk('div', 'srvdrop', '<div class="btn-row">' +
+        '<a class="btn" href="' + ROOT + 'apps/panel/index.html" style="width:auto;padding:10px 14px;">🎛 Пульт</a>' +
+        '<a class="btn secondary" href="' + ROOT + 'apps/product/index.html" style="width:auto;padding:10px 14px;">💳 Продукт и цены</a>' +
+        '<a class="btn secondary" href="' + ROOT + 'apps/guide/index.html" style="width:auto;padding:10px 14px;">📖 Гид</a></div>'); entD.id = 'shEntDrop'; entD.style.display = 'none';
+      var usr = mk('button', 'userbtn', '<span class="uava" id="shAva">?</span> <span id="shLogin">…</span>'); usr.type = 'button'; usr.id = 'shUserBtn'; usr.title = 'Аккаунт';
+      var usrD = mk('div', 'userdrop', '<div class="cab-info"><h1 id="shName">…</h1><div class="note" id="shSub"></div><div class="cab-badges mt" id="shBadges"></div></div>' +
+        '<div class="btn-row mt"><a class="btn secondary" href="' + ROOT + 'apps/dashboard/index.html" style="width:auto;padding:9px 14px;">Открыть кабинет</a>' +
+        '<button class="btn secondary" id="shOut" type="button" style="width:auto;padding:9px 14px;">Выйти</button></div>'); usrD.id = 'shUserDrop'; usrD.style.display = 'none';
+      bar.appendChild(srv); bar.appendChild(srvD); bar.appendChild(ent); bar.appendChild(entD); bar.appendChild(usr); bar.appendChild(usrD);
+      bindPair(srv, srvD); bindPair(ent, entD); bindPair(usr, usrD);
+      var s = (g.Auth && g.Auth.session) ? g.Auth.session() : null;
+      if (s) {
+        var nm = s.full_name || s.login || '';
+        var ini = (nm.trim().split(/\s+/).map(function (w) { return w[0] || ''; }).slice(0, 2).join('') || (s.login || '?').slice(0, 1)).toUpperCase();
+        var ava = document.getElementById('shAva'); if (ava) ava.textContent = ini;
+        var lg = document.getElementById('shLogin'); if (lg) lg.textContent = s.login || '';
+        var nEl = document.getElementById('shName'); if (nEl) nEl.textContent = nm;
+        var sEl = document.getElementById('shSub'); if (sEl) sEl.textContent = (s.tenant_name ? s.tenant_name + ' · ' : '') + ((g.Auth.roleLabel && g.Auth.roleLabel(s.role)) || s.role || '');
+        var bEl = document.getElementById('shBadges'); if (bEl) bEl.innerHTML = '<span class="badge">' + esc((g.Auth.roleLabel && g.Auth.roleLabel(s.role)) || s.role || '') + '</span>' + (s.tenant_name ? '<span class="badge">' + esc(s.tenant_name) + '</span>' : '');
+      }
+      var out = document.getElementById('shOut'); if (out) out.addEventListener('click', function () { g.Auth.logout(); location.href = ROOT + 'index.html'; });
+      if (g.AppStatus && g.AppStatus.render) g.AppStatus.render('#conn');
+      else { var cn = document.getElementById('conn'); if (cn) cn.innerHTML = '<span class="dot done"></span><span class="status-text">OK</span>'; }
+      var who = document.getElementById('who'); if (who) who.style.display = 'none';
+      var lo = document.getElementById('logout'); if (lo) lo.style.display = 'none';
+    }
+
     function applyCollapsed() {
       document.body.classList.toggle('sh-collapsed', collapsed);
       try { localStorage.setItem('sh:collapsed', collapsed ? '1' : '0'); } catch (e) {}

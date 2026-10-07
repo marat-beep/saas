@@ -194,6 +194,11 @@ input, select, textarea, button { font-family: inherit; }
 .topbar .userbtn { padding: 5px 12px 5px 5px; }
 .topbar .tbtn:hover, .topbar .srvbtn:hover, .topbar .userbtn:hover { background: rgba(255,255,255,.28); color: #fff; }
 .topbar #themeBtn, .topbar #ntfBtn { padding: 7px 11px; font-size: .95rem; }
+.topbar { position: relative; }
+.srvdrop, .userdrop { position: absolute; right: 12px; top: 56px; width: 320px; max-width: 92vw; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 14px 34px rgba(15,23,42,.2); padding: 12px 14px; z-index: 1000; color: var(--text); }
+.userbtn .uava { width: 26px; height: 26px; border-radius: 50%; background: #fff; color: var(--accent-700); display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: .72rem; }
+.userdrop .cab-info h1 { font-size: 1.1rem; }
+.stat-div { border-top: 1px solid var(--border); margin: 10px 0 8px; }
 
 /* Поиск в верхней панели (хаб) */
 .topsearch { flex: 1 1 240px; max-width: 380px; margin: 0 12px; padding: 9px 14px; border: 0; border-radius: 999px; background: rgba(255,255,255,.92); color: #0f172a; font-size: .85rem; outline: none; }
