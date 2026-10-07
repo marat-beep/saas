@@ -33,6 +33,13 @@
     <div class="hero"><h1>Кадры</h1><p>Сотрудники и их связь с пользователями (роли), смены/табель, обучение.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
+    <div class="sv-actions" style="margin-top:10px;">
+      <button class="btn secondary" data-cap="reports" id="repBtn">📄 Отчёт PDF</button>
+      <a class="btn secondary" href="../staff/index.html">👔 Сотрудники (реестр) ↗</a>
+      <a class="btn secondary" href="../departments/index.html">🏢 Подразделения ↗</a>
+      <a class="btn secondary" href="../roles/index.html">🔐 Роли ↗</a>
+    </div>
+
     <div class="tabs2" id="tabs">
       <button class="active" data-t="emp">Сотрудники</button>
       <button data-t="shift">Смены</button>
@@ -56,7 +63,7 @@
           <div class="field"><label>Дата приёма</label><input type="date" id="eHired"></div>
         </div>
         <div class="field"><label>Логин пользователя системы (роль подтянется)</label><input type="text" id="eLogin" placeholder="master / operator / otk…"><span class="hint">Связь сотрудника с учётной записью — роль и доступ подтянутся из системы.</span></div>
-        <button class="btn" id="eAdd">Добавить сотрудника</button>
+        <button class="btn" data-cap="edit" id="eAdd">Добавить сотрудника</button>
       </div>
       <div class="card">
         <div class="toolbar"><input type="search" class="search" id="eq" placeholder="Поиск: ФИО, должность, отдел, логин…"></div>
@@ -77,7 +84,7 @@
           <div class="field"><label>Тип</label><select id="shKind"><option value="day">Дневная</option><option value="night">Ночная</option><option value="off">Выходной</option><option value="vacation">Отпуск</option><option value="sick">Больничный</option></select></div>
           <div class="field"><label>Часы</label><input type="text" id="shHours" inputmode="decimal" placeholder="8"><span class="hint">Отработанные часы в смене (для табеля).</span></div>
         </div>
-        <button class="btn" id="shAdd">Добавить смену</button>
+        <button class="btn" data-cap="edit" id="shAdd">Добавить смену</button>
       </div>
       <div class="card"><h2>Смены</h2><div id="shifts"><span class="note">—</span></div></div>
     </section>
@@ -94,7 +101,7 @@
           <div class="field"><label>Статус</label><select id="trStatus"><option value="planned">Запланировано</option><option value="passed">Пройдено</option></select></div>
           <div class="field"><label>Дата</label><input type="date" id="trDate"></div>
         </div>
-        <button class="btn" id="trAdd">Добавить</button>
+        <button class="btn" data-cap="edit" id="trAdd">Добавить</button>
       </div>
       <div class="card"><h2>Обучение</h2><div id="trains"><span class="note">—</span></div></div>
     </section>
@@ -109,9 +116,10 @@
   <script src="../../assets/js/auth.js?v=6"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=75"></script>
-  <script src="../../assets/js/shell.js?v=36"></script>
-  <script src="hr.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=76"></script>
+  <script src="../../assets/js/shell.js?v=37"></script>
+  <script src="../../assets/js/export.js?v=1"></script>
+  <script src="hr.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>

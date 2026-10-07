@@ -8,7 +8,7 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '9.6',
+  version: '9.7',
   updated: '07.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
@@ -509,8 +509,8 @@ window.AppCatalog = {
       id: 'hr', icon: '👥', title: 'Кадры', href: 'apps/hr/index.html', guest: false, group: 'staff', audience: 'user',
       desc: 'Сотрудники, смены (табель), обучение.',
       purpose: 'Персонал: карточки сотрудников, табель смен, обучение и допуски.',
-      features: ['Сотрудники и подразделения', 'Смены/табель', 'Обучение (план/пройдено)', 'KPI кадров'],
-      connects: ['production', 'org'], out: 'Ресурсы/смены'
+      features: ['Сотрудники и подразделения', 'Смены/табель', 'Обучение (план/пройдено)', 'Отчёт по персоналу (PDF)', 'Роли (data-cap)', 'KPI кадров'],
+      connects: ['production', 'org', 'staff', 'departments', 'roles'], out: 'Ресурсы/смены'
     },
     {
       id: 'departments', icon: '🏢', title: 'Подразделения', href: 'apps/departments/index.html', guest: false, group: 'staff', audience: 'user',

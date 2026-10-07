@@ -8,6 +8,12 @@
   var token = null, me = null, emps = [], shifts = [], trains = [], eq = '';
 
   var KINDS = { day: 'Дневная', night: 'Ночная', off: 'Выходной', vacation: 'Отпуск', sick: 'Больничный' };
+
+  /* ---------- Роли (data-cap) ---------- */
+  var ALL = { edit: 1, reports: 1 };
+  var CAPS = { admin: ALL, owner: ALL, director: ALL, manager: ALL, chief: { edit: 1, reports: 1 }, hr: ALL, support: { reports: 1 }, default: {} };
+  function can(c) { return !!(me && (CAPS[me.role] || CAPS['default'])[c]); }
+  function applyCaps() { $$('[data-cap]').forEach(function (el) { var n = (el.dataset.cap || '').split('|'); if (!n.some(can)) el.style.display = 'none'; }); }
   function esc(v) { return ui.esc(v); }
   function num(v) { return Number(v) || 0; }
   function fmt(d) { if (!d) return '—'; var x = new Date(d); return isNaN(x.getTime()) ? '—' : x.toLocaleDateString('ru-RU'); }
@@ -62,6 +68,26 @@
     $$('#trains [data-pass]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_training_set_status', { p_token: token, p_id: b.dataset.pass, p_status: 'passed' }).then(function () { load(); }); }); });
   }
 
+  /* ---------- Отчёт (кадры) ---------- */
+  function reportPdf() {
+    if (!window.AppExport) { ui.toast('Экспорт недоступен'); return; }
+    var cols = [
+      { key: 'full_name', label: 'ФИО' }, { key: 'job', label: 'Должность' }, { key: 'dept', label: 'Подразделение' },
+      { key: 'user_login', label: 'Логин' }, { key: 'role', label: 'Роль', value: function (e) { return e.role ? role(e.role) : ''; } },
+      { key: 'shifts_month', label: 'Смен/мес', num: true, value: function (e) { return num(e.shifts_month); } },
+      { key: 'trainings_open', label: 'Обуч. откр.', num: true, value: function (e) { return num(e.trainings_open); } },
+      { key: 'active', label: 'Статус', value: function (e) { return e.active ? 'активен' : 'неактивен'; } }
+    ];
+    var passed = trains.filter(function (t) { return t.status === 'passed'; }).length;
+    AppExport.exportPdf('Кадры — отчёт', AppExport.reportDocument({
+      brand: '3DMP Service', title: 'Отчёт по персоналу (кадры)', subtitle: new Date().toLocaleDateString('ru-RU'),
+      kpis: [{ label: 'Сотрудников', value: emps.length }, { label: 'Смен (всего)', value: shifts.length }, { label: 'Обучение пройдено', value: passed }],
+      sections: [{ title: 'Сотрудники', columns: cols, rows: emps }],
+      sign: ['Руководитель', 'Отдел кадров'], footer: '3DMP Service · кадры'
+    }));
+  }
+  $('#repBtn').addEventListener('click', reportPdf);
+
   $('#tabs').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     $$('#tabs button').forEach(function (x) { x.classList.toggle('active', x === b); });
@@ -94,7 +120,7 @@
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
-    me = s; token = s.token;
+    me = s; token = s.token; applyCaps();
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#eMsg', 'Supabase не подключён.', 'err'); return; }
     load();

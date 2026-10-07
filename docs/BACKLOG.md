@@ -5,8 +5,8 @@
 > **Конец сессии:** обнови статусы пунктов (и краткий журнал в §5), затем `PLAN.md`/`PROMPTS.md` при необходимости.
 
 ## 1. Состояние (кратко)
-- Миграции `0001…0139`, `apply_all.sql` идемпотентен; смоук `app_smoke_test` 10/10, `app_smoke_test_ext` 14/14.
-- Приложений 78 (`apps/`), прототипов 72 (`eco/apps`); каталог `catalog.js` v9.6 — единый источник модулей.
+- Миграции `0001…0140`, `apply_all.sql` идемпотентен; смоук `app_smoke_test` 10/10, `app_smoke_test_ext` 14/14.
+- Приложений 78 (`apps/`), прототипов 72 (`eco/apps`); каталог `catalog.js` v9.7 — единый источник модулей.
 - Методика типового апгрейда модуля — `docs/MODULE_BLUEPRINT.md`.
 - **Релиз:** `tools/build-release.ps1` → `dist/saas-YYYYMMDD-HHmm.zip` (деплой-артефакты для FTP; `dist/` в .gitignore).
 - **Типовой инструментарий:** `.sv-actions`, `.tabs2`, `.act` в `app.css`; `shell.js` (сайдбар + системный поиск) подключён во всех модулях `apps/`.
@@ -39,6 +39,8 @@
 | M2 | высокий | Апгрейд модуля: Заказы (`orders`) | по `MODULE_BLUEPRINT`: отчёт (`app_order_report`/`kpi_ext`, PDF), роли `data-cap`, `shell.js`+`export.js`, переходы к клиенту/сервису; обновлён каталог | ядро на уровне эталона | ☑ (v186) |
 | M3 | средний | Апгрейд модуля: Качество (`qc`/`claims`) | по `MODULE_BLUEPRINT`: отчёты (`app_qc_report`, `app_claims_report`; PDF/CSV), роли `data-cap`, `shell.js`+`export.js` | — | ☑ (v187) |
 | M4 | средний | Апгрейд модуля: Экономика (`economics`) | по `MODULE_BLUEPRINT`: отчёт по экономике (PDF/CSV, клиентский), роли `data-cap`, `shell.js`+`export.js`, переходы Заказы/Финансы/Справочники; KB | — | ☑ (v188) |
+| M5 | средний | Апгрейд модуля: Кадры (`hr`) | по `MODULE_BLUEPRINT`: отчёт по персоналу (PDF), роли `data-cap`, `export.js`, переходы staff/departments/roles; KB | — | ☑ (v189) |
+| M6 | средний | Апгрейд модулей: производство/закупки/склад/документы/финансы | по `MODULE_BLUEPRINT` (далее по очереди §7) | — | ☐ |
 | S1 | высокий | Малые доработки UI | — | см. §4 | ☐ |
 
 ## 4. Мелкие пункты (быстрые)
@@ -60,6 +62,7 @@
 - v168 — правило «ТЗ → аудит → дополнение» и накопленные приёмы внесены в `MODULE_STANDARD.md` §6–7 и `AGENTS.md`; разобран ТЗ «Сервис и ремонт ЧПУ» (в корне), задача дополнения `apps/service` поставлена в очередь (P8, шаги S1–S3).
 - v169 — **W-S (S1, 0122)**: Сервис ЧПУ по ТЗ — SR v2 (`app_service_history`, `app_service_visits`, SLA-план по приоритету, `app_service_assign`, KPI SLA/MTTR/FTFR/CSAT, `app_service_iiot_auto`); UI `apps/service` (KPI, фильтры, карточка, таймлайн, выезды); каталог v8.6, nav v65/shell v25.
 - v170 — **W-S (S2, 0123)**: Сервис ЧПУ — гарантии (`app_warranties`) и сервисные контракты (`app_service_contracts`, SLA); резерв запчастей под заявку (`app_service_parts` ⟂ `app_spare_parts`); авто-гарантия и SLA из контракта при создании заявки; мобильные выезды (`app_service_my_visits`) с офлайн-очередью; UI: деталь (гарантия/контракт/запчасти), экраны «Гарантии/контракты» и «Мои выезды»; каталог v8.7, nav v66/shell v26.
+- v189 — **M5 Кадры (0140)**: отчёт по персоналу (PDF), роли `data-cap`, `export.js`, переходы Сотрудники(реестр)/Подразделения/Роли; каталог v9.7, nav v76/shell v37.
 - v188 — **M4 Экономика + инструментарий + релиз (0139)**: экономика — отчёт по себестоимости/марже (PDF/CSV), роли `data-cap`, `export.js`, переходы Заказы/Финансы/Справочники, KB; **типовой инструментарий** (`.sv-actions`/`.tabs2` в `app.css`, `shell.js` во всех модулях); **релиз-сборка** `tools/build-release.ps1` → `dist/saas-<date>.zip`; каталог v9.6, nav v75/shell v36, app.css v35.
 - v187 — **M3 Качество (0138)**: отчёты ОТК (`app_qc_report`) и претензий/CAPA (`app_claims_report`) за период (PDF/CSV), роли `data-cap`, подключены `shell.js` (ОТК) и `export.js` (ОТК+Претензии); каталог v9.5, nav v74/shell v35.
 - v186 — **M2 Заказы (0137)**: отчёт за период (`app_order_report`, `app_order_kpi_ext`; PDF/CSV через `export.js`), роли `data-cap`, подключены `shell.js` (системный поиск/сайдбар) и `export.js`, переходы к клиенту/сервису; каталог-карточка заказов актуализирована. Каталог v9.4, nav v73/shell v34.
