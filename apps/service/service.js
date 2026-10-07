@@ -397,6 +397,93 @@
   $('#refBtn').addEventListener('click', function () { loadRefs(); loadRules(); loadEngineerLoad(); screens.go('s-refs'); });
   $('#ruleAdd').addEventListener('click', function () { ruleForm(null); });
   $('#actBtn').addEventListener('click', openAct);
+
+  /* ---------- Отчёт PDF ---------- */
+  function reportPdf() {
+    if (!window.AppExport) { msg('#listMsg', 'Экспорт недоступен', 'err'); return; }
+    rpc('app_service_report', { p_token: token, p_from: null, p_to: null }).then(function (rows) {
+      rows = rows || [];
+      var total = rows.length, open = rows.filter(function (r) { return r.status !== 'done' && r.status !== 'cancelled'; }).length;
+      var done = rows.filter(function (r) { return r.status === 'done'; }).length;
+      var sum = rows.reduce(function (s, r) { return s + num(r.total); }, 0);
+      var cols = [
+        { key: 'number', label: 'Номер' }, { key: 'reported_at', label: 'Создана', value: function (r) { return fmtTs(r.reported_at); } },
+        { key: 'customer', label: 'Заказчик' }, { key: 'equipment', label: 'Оборудование' }, { key: 'title', label: 'Тема' },
+        { key: 'priority', label: 'Приоритет', value: function (r) { return PRIO[r.priority] || r.priority; } },
+        { key: 'status', label: 'Статус', value: function (r) { return ST[r.status] || r.status; } },
+        { key: 'resolved_at', label: 'Выполнена', value: function (r) { return fmtTs(r.resolved_at); } },
+        { key: 'total', label: 'Сумма, ₽', num: true, value: function (r) { return money(r.total); } }
+      ];
+      var html = AppExport.reportDocument({
+        brand: '3DMP Service', title: 'Отчёт по сервису и ремонту', subtitle: 'за последние 90 дней',
+        meta: [{ k: 'Сформирован', v: new Date().toLocaleString('ru-RU') }],
+        kpis: [{ label: 'Заявок', value: total }, { label: 'Открытых', value: open }, { label: 'Выполнено', value: done }, { label: 'Сумма', value: money(sum) }],
+        sections: [{ title: 'Заявки', columns: cols, rows: rows }],
+        sign: ['Руководитель сервиса', 'Главный инженер'], footer: '3DMP Service · сервис и ремонт'
+      });
+      AppExport.exportPdf('Сервис — отчёт', html);
+    }).catch(function (e) { msg('#listMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
+
+  /* ---------- Заявка на снабжение ---------- */
+  function supplyForm() {
+    if (!cur) return;
+    ui.formDialog({ title: 'Заявка на снабжение (ремонт)', okText: 'Создать', fields: [
+      { name: 'material', label: 'Материал/запчасть', type: 'text', required: true, placeholder: 'Подшипник 6205' },
+      { name: 'qty', label: 'Количество', type: 'text', value: '1' },
+      { name: 'note', label: 'Примечание', type: 'text' }
+    ] }).then(function (v) { if (!v) return; var q = parseFloat(String(v.qty).replace(',', '.'));
+      rpc('app_service_supply_request', { p_token: token, p_id: cur.id, p_material: v.material, p_qty: isNaN(q) ? 1 : q, p_note: v.note || null })
+        .then(function (d) { var r = d && d[0]; msg('#iMsg', r ? r.message : '', r && r.ok ? 'ok' : 'err'); if (r && r.ok) { window.Auth.log('Снабжение', v.material); loadDetail(cur.id); } });
+    });
+  }
+
+  /* ---------- Цифровой паспорт станка ---------- */
+  var passportData = null;
+  function openPassport() {
+    if (!cur || !cur.equipment_id) { msg('#iMsg', 'У заявки не указано оборудование', 'err'); return; }
+    rpc('app_equipment_passport', { p_token: token, p_equipment_id: cur.equipment_id }).then(function (r) {
+      var p = (r || [])[0]; if (!p) { msg('#iMsg', 'Паспорт не найден', 'err'); return; }
+      passportData = p;
+      $('#passport').innerHTML =
+        '<div style="display:flex;gap:8px;align-items:center;"><span class="badge">' + esc(p.kind) + '</span>' +
+        '<span class="badge ' + (p.status === 'active' ? 'done' : 'cancelled') + '">' + esc(p.status) + '</span>' +
+        '<b style="margin-left:auto;">' + esc(p.code || '') + '</b></div>' +
+        '<h1 style="font-size:1.15rem;margin:10px 0;">🪪 ' + esc(p.name) + '</h1>' + kv('Модель', p.model) + kv('Подразделение', p.dept) + kv('Стоимость часа', p.cost_hour != null ? money(p.cost_hour) : null) +
+        '<div class="stat-div"></div>' +
+        '<div class="kpi-row">' + cell('Заявок', num(p.requests_total)) + cell('Открытых', num(p.requests_open), num(p.requests_open) ? '#b45309' : '') + cell('Выполнено', num(p.requests_done)) + cell('MTBF, ч', p.mtbf_hours != null ? num(p.mtbf_hours) : '—') + cell('MTTR, ч', p.mttr_hours != null ? num(p.mttr_hours) : '—') + '</div>' +
+        kv('Гарантия', p.warranty_number ? p.warranty_number + ' до ' + (p.warranty_end || '—') : null) +
+        kv('Последний ремонт', fmtTs(p.last_repair)) +
+        kv('Планов ТОиР', p.plans != null ? String(p.plans) : null) + kv('Последнее ТО', p.last_plan_kind ? (p.last_plan_kind + ' · ' + (p.last_plan_date || '')) : null) +
+        kv('Телеметрия', p.iiot_last_metric ? (p.iiot_last_metric + ' = ' + num(p.iiot_last_value) + ' · ' + fmtTs(p.iiot_last_ts)) : 'нет данных');
+      screens.go('s-eq');
+    }).catch(function (e) { msg('#iMsg', 'Ошибка: ' + e.message, 'err'); });
+    function cell(l, v, c) { return '<div class="kpi"><small>' + l + '</small><b' + (c ? ' style="color:' + c + '"' : '') + '>' + v + '</b></div>'; }
+  }
+  function passportPdf() {
+    if (!passportData || !window.AppExport) { msg('#iMsg', 'Нет данных', 'err'); return; }
+    var p = passportData;
+    var html = AppExport.reportDocument({
+      brand: '3DMP Service', title: 'Цифровой паспорт станка', subtitle: p.name,
+      meta: [{ k: 'Код', v: p.code || '—' }, { k: 'Модель', v: p.model || '—' }, { k: 'Подразделение', v: p.dept || '—' }, { k: 'Сформирован', v: new Date().toLocaleString('ru-RU') }],
+      kpis: [{ label: 'Заявок', value: num(p.requests_total) }, { label: 'Открытых', value: num(p.requests_open) }, { label: 'Выполнено', value: num(p.requests_done) }, { label: 'MTBF, ч', value: p.mtbf_hours != null ? num(p.mtbf_hours) : '—' }, { label: 'MTTR, ч', value: p.mttr_hours != null ? num(p.mttr_hours) : '—' }],
+      sections: [{ title: 'Сведения', columns: [{ key: 'k', label: 'Параметр' }, { key: 'v', label: 'Значение' }], rows: [
+        { k: 'Гарантия', v: p.warranty_number ? p.warranty_number + ' до ' + (p.warranty_end || '—') : '—' },
+        { k: 'Последний ремонт', v: fmtTs(p.last_repair) },
+        { k: 'Планов ТОиР', v: p.plans != null ? String(p.plans) : '—' },
+        { k: 'Последнее ТО', v: p.last_plan_kind ? (p.last_plan_kind + ' · ' + (p.last_plan_date || '')) : '—' },
+        { k: 'Телеметрия', v: p.iiot_last_metric ? (p.iiot_last_metric + ' = ' + num(p.iiot_last_value) + ' · ' + fmtTs(p.iiot_last_ts)) : 'нет данных' }
+      ] }],
+      sign: ['Главный инженер', 'Начальник цеха'], footer: '3DMP Service · цифровой паспорт станка'
+    });
+    AppExport.exportPdf('Паспорт станка', html);
+  }
+
+  $('#reportBtn').addEventListener('click', reportPdf);
+  $('#supplyBtn').addEventListener('click', supplyForm);
+  $('#passportBtn').addEventListener('click', openPassport);
+  $('#passportPdf').addEventListener('click', passportPdf);
+  $('#backE').addEventListener('click', function () { if (cur) screens.go('s-item'); else screens.go('s-list'); });
   $('#backM').addEventListener('click', function () { screens.go('s-list'); });
   $('#backR').addEventListener('click', function () { screens.go('s-list'); });
   $('#warrAdd').addEventListener('click', function () { warrForm(null); });

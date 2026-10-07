@@ -43,6 +43,7 @@
             <span class="chip" data-f="warranty">Гарантия</span>
             <span class="chip" data-f="overdue">Просрочен SLA</span>
           </div>
+          <button class="btn secondary" id="reportBtn" style="width:auto;padding:10px 14px;">📄 Отчёт PDF</button>
           <button class="btn secondary" id="myBtn" style="width:auto;padding:10px 14px;">🚚 Мои выезды</button>
           <button class="btn secondary" id="refBtn" style="width:auto;padding:10px 14px;">🛡 Гарантии/контракты</button>
           <button class="btn secondary" id="iiotBtn" style="width:auto;padding:10px 14px;" title="Создать заявки из ошибок ЧПУ (IIoT)">⚙ IIoT → заявки</button>
@@ -69,7 +70,9 @@
             <button class="btn" id="stBtn">Сменить статус</button>
             <button class="btn secondary" id="assignBtn">Назначить выезд</button>
             <button class="btn secondary" id="commentBtn">Комментарий</button>
+            <button class="btn secondary" id="supplyBtn">📦 Снабжение</button>
             <button class="btn secondary" id="actBtn">🖨 Акт</button>
+            <button class="btn secondary" id="passportBtn">🪪 Паспорт станка</button>
           </div>
         </div>
       </div>
@@ -118,6 +121,14 @@
         <div id="loadList" style="overflow:auto;"><span class="note">Загрузка…</span></div>
       </div>
     </section>
+
+    <section class="screen" id="s-eq">
+      <button class="back" id="backE">← Назад</button>
+      <div class="card" id="passport"><span class="note">Загрузка…</span></div>
+      <div class="card">
+        <button class="btn secondary" id="passportPdf" style="width:auto;padding:9px 16px;">📄 Паспорт в PDF</button>
+      </div>
+    </section>
   </main>
 
   <footer class="foot">3DMP Service · сервис и ремонт</footer>
@@ -130,10 +141,11 @@
   <script src="../../assets/js/router.js?v=1"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=67"></script>
-  <script src="../../assets/js/shell.js?v=27"></script>
+  <script src="../../assets/js/nav.js?v=68"></script>
+  <script src="../../assets/js/shell.js?v=28"></script>
   <script src="../../assets/js/offline-queue.js?v=1"></script>
-  <script src="service.js?v=3"></script>
+  <script src="../../assets/js/export.js?v=1"></script>
+  <script src="service.js?v=4"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>
