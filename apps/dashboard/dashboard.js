@@ -59,27 +59,34 @@
     }).join('');
   }
 
+  var GD = {
+    core: 'Ядро: вход, кабинеты, пульт и гиды.',
+    sales: 'Заявки, КП, документы, продажи и маркетинг.',
+    ktpp: 'Спецификации, маршруты, нормы, УП, КТПП.',
+    production: 'Наряды, MES, планирование, терминал, IIoT.',
+    quality: 'ОТК, дефекты, паспорта, метрология, СМК.',
+    economics: 'Себестоимость, финансы, КП и аналитика.',
+    staff: 'Кадры, компетенции, оргструктура.',
+    platform: 'Организации, пользователи, роли, аудит, API.',
+    refs: 'Библиотека прототипов экосистемы.'
+  };
+  function urow(a) {
+    return '<a class="urow" href="../' + a.id + '/index.html">' +
+      '<span class="uic">' + a.icon + '</span><span class="lbl">' + esc(a.title) + '</span><span class="chev">›</span></a>';
+  }
   function renderModules(session, list) {
     var groups = (window.AppCatalog && window.AppCatalog.groups) || [];
     var html = '';
     groups.forEach(function (g) {
       var items = list.filter(function (a) { return a.group === g.id; });
       if (!items.length) return;
-      html += '<div class="grp"><div class="grp-t">' + (g.icon || '') + ' ' + esc(g.title) + '</div>' +
-        '<div class="apps-grid">' + items.map(function (a) {
-          return '<a class="app-card" href="../' + a.id + '/index.html">' +
-            '<div class="ic">' + a.icon + '</div><h3>' + esc(a.title) + '</h3>' +
-            '<p>' + esc(a.desc || '') + '</p><span class="tag">Открыть</span></a>';
-        }).join('') + '</div></div>';
+      html += '<div class="ucard"><h3>' + (g.icon || '') + ' ' + esc(g.title) + '</h3>' +
+        '<div class="udesc">' + esc(GD[g.id] || '') + '</div>' +
+        '<div class="ulist">' + items.map(urow).join('') + '</div></div>';
     });
-    // модули без контура
     var rest = list.filter(function (a) { return !a.group || !groups.some(function (g) { return g.id === a.group; }); });
-    if (rest.length) {
-      html += '<div class="grp"><div class="grp-t">Прочее</div><div class="apps-grid">' + rest.map(function (a) {
-        return '<a class="app-card" href="../' + a.id + '/index.html"><div class="ic">' + a.icon + '</div><h3>' + esc(a.title) + '</h3><p>' + esc(a.desc || '') + '</p></a>';
-      }).join('') + '</div></div>';
-    }
-    $('#modules').innerHTML = html || '<span class="note">Модулей пока нет.</span>';
+    if (rest.length) html += '<div class="ucard"><h3>Прочее</h3><div class="ulist">' + rest.map(urow).join('') + '</div></div>';
+    $('#modules').innerHTML = html ? '<div class="ugrid">' + html + '</div>' : '<span class="note">Модулей пока нет.</span>';
   }
 
   function renderKpiLive(session) {

@@ -9,8 +9,8 @@
 
   function esc(v) { return ui.esc(v); }
   function card(a) {
-    return '<a class="app-card" href="../../' + a.href + '">' +
-      '<span class="ic">' + a.icon + '</span><h3>' + esc(a.title) + '</h3><p>' + esc(a.desc) + '</p></a>';
+    return '<a class="urow" href="../../' + a.href + '"><span class="uic">' + a.icon + '</span>' +
+      '<span class="lbl">' + esc(a.title) + '</span><span class="chev">›</span></a>';
   }
   var role = null, query = '';
   function zonesForRole() { return (C.zones || []).filter(function (z) { return (z.roles || []).indexOf(role) >= 0; }); }
@@ -30,7 +30,7 @@
         '<h2><button class="sec-tog" type="button" data-tog="' + z.id + '" aria-label="Свернуть/развернуть">▾</button> ' +
         z.icon + ' ' + esc(z.title) + ' <span class="sec-badge">' + items.length + '</span></h2>' +
         '<div class="sec-body"><p class="note">' + esc(z.about) + '</p>' +
-        '<div class="apps-grid">' + items.map(card).join('') + '</div></div></section>';
+        '<div class="ulist">' + items.map(card).join('') + '</div></div></section>';
     });
     $('#zoneNav').innerHTML = nav;
     $('#sections').innerHTML = sec || '<div class="card"><span class="note">Ничего не найдено.</span></div>';

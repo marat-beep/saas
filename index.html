@@ -16,7 +16,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#2563eb">
 <link rel="icon" href="assets/icons/app.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/app.css?v=18">
+<link rel="stylesheet" href="assets/css/app.css?v=19">
 <style>
   .grp { margin-bottom: 18px; }
   .grp-t { font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 10px; }
@@ -32,7 +32,7 @@
     <span class="who" id="account">…</span>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <section class="hub-hero">
       <h1>Рабочий сервис 3DMP</h1>
       <p>Единое рабочее пространство предприятия: заявки и КП, подготовка производства (КТПП), производство и MES, качество, экономика, персонал и администрирование. Данные, вход и права — в облаке Supabase. Публикация — на <b>sapfir.eu/saas</b>.</p>
@@ -98,20 +98,25 @@
           '<div class="kpi"><small>Обновлено</small><b style="font-size:1rem;">' + ui.esc(C.updated || '') + '</b></div>';
       })();
 
-      function card(a, logged) {
+      var GD = {
+        core: 'Ядро: вход, кабинеты, пульт и гиды.',
+        sales: 'Заявки, КП, документы, продажи и маркетинг.',
+        ktpp: 'Спецификации, маршруты, нормы, УП, КТПП.',
+        production: 'Наряды, MES, планирование, терминал, IIoT.',
+        quality: 'ОТК, дефекты, паспорта, метрология, СМК.',
+        economics: 'Себестоимость, финансы, КП и аналитика.',
+        staff: 'Кадры, компетенции, оргструктура.',
+        platform: 'Организации, пользователи, роли, аудит, API.',
+        refs: 'Библиотека прототипов экосистемы.'
+      };
+      function urow(a, logged) {
         var needAuth = !a.guest && !logged;
         var href = needAuth ? 'apps/auth/index.html' : a.href;
-        var tag = a.guest ? 'открыто' : (logged ? 'личный' : 'нужен вход');
-        var st = (C.statusOf) ? C.statusOf(a.id) : 'done';
-        var stTitle = st === 'done' ? 'готово' : (st === 'progress' ? 'в работе' : 'не начато');
-        var n = (C.implOrderOf) ? C.implOrderOf(a.id) : '';
-        var imp = (n && n < 900) ? '<span class="impn" title="Порядок внедрения">№' + n + '</span> ' : '';
-        return '<a class="app-card" href="' + href + '">' +
-          '<span class="mdot ' + st + '" title="' + stTitle + '"></span>' +
-          '<span class="ic">' + a.icon + '</span>' +
-          '<h3>' + imp + ui.esc(a.title) + '</h3>' +
-          '<p>' + ui.esc(a.desc) + '</p>' +
-          '<span class="tag">' + tag + '</span></a>';
+        return '<a class="urow" href="' + href + '">' +
+          '<span class="uic">' + a.icon + '</span>' +
+          '<span class="lbl">' + ui.esc(a.title) + '</span>' +
+          (needAuth ? '<span class="note">вход</span>' : '') +
+          '<span class="chev">›</span></a>';
       }
 
       function renderApps(user) {
@@ -125,16 +130,13 @@
         (C.groups || []).forEach(function (g) {
           var items = list.filter(function (a) { return a.group === g.id; });
           if (!items.length) return;
-          out += '<div class="grp"><h3 class="grp-t"><button class="grp-tog" type="button" data-tog="' + g.id + '" aria-label="Свернуть/развернуть">▾</button> ' + g.icon + ' ' + ui.esc(g.title) +
-            '<a class="gbtn" href="apps/guide/index.html?c=' + g.id + '">🧭 Гид контура</a></h3>' +
-            '<div class="apps-grid">' + items.map(function (a) { return card(a, logged); }).join('') + '</div></div>';
+          out += '<div class="ucard"><h3>' + g.icon + ' ' + ui.esc(g.title) + '</h3>' +
+            '<div class="udesc">' + ui.esc(GD[g.id] || '') + '</div>' +
+            '<div class="ulist">' + items.map(function (a) { return urow(a, logged); }).join('') + '</div></div>';
         });
         var rest = list.filter(function (a) { return !a.group; });
-        if (rest.length) out += '<div class="grp"><div class="apps-grid">' + rest.map(function (a) { return card(a, logged); }).join('') + '</div></div>';
-        document.getElementById('apps').innerHTML = out;
-        Array.prototype.forEach.call(document.querySelectorAll('#apps .grp-tog'), function (b) {
-          b.addEventListener('click', function () { var g = b.closest('.grp'); if (g) g.classList.toggle('collapsed'); });
-        });
+        if (rest.length) out += '<div class="ucard"><h3>Прочее</h3><div class="ulist">' + rest.map(function (a) { return urow(a, logged); }).join('') + '</div></div>';
+        document.getElementById('apps').innerHTML = '<div class="ugrid">' + out + '</div>';
       }
 
       function renderAccount(s) {
