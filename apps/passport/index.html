@@ -18,7 +18,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <section class="screen active" id="s-list">
       <div class="hero"><h1>Паспорта изделий</h1><p>Цифровой паспорт: изделие, серийный номер, связи с заявкой/нарядом/ОТК, QR-метка и трассируемость.</p></div>
       <div class="kpi-row" id="kpis"></div>
@@ -37,9 +37,9 @@
       <div class="card">
         <h2>Новый паспорт</h2>
         <div class="msg" id="nMsg"></div>
-        <div class="field"><label>Изделие *</label><input type="text" id="pProduct" placeholder="Кронштейн"></div>
+        <div class="field"><label>Изделие *</label><input type="text" id="pProduct" placeholder="Кронштейн"><span class="hint">Название изделия, на которое оформляется паспорт.</span></div>
         <div class="grid2c">
-          <div class="field"><label>Серийный номер</label><input type="text" id="pSerial" placeholder="SN-0001"></div>
+          <div class="field"><label>Серийный номер</label><input type="text" id="pSerial" placeholder="SN-0001"><span class="hint">Уникальный номер изделия — для QR и прослеживаемости.</span></div>
           <div class="field"><label>Количество</label><input type="text" id="pQty" inputmode="decimal" placeholder="1"></div>
         </div>
         <div class="grid2c">
@@ -48,7 +48,7 @@
         </div>
         <div class="field"><label>Чек-лист ОТК</label><select id="pQc"><option value="">— нет —</option></select></div>
         <div class="grid2c">
-          <div class="field"><label>Материал</label><input type="text" id="pMaterial" placeholder="Сталь 40Х"></div>
+          <div class="field"><label>Материал</label><input type="text" id="pMaterial" placeholder="Сталь 40Х"><span class="hint">Материал/партия — для трассируемости.</span></div>
           <div class="field"><label>Примечание</label><input type="text" id="pNote" placeholder="партия, особенности"></div>
         </div>
         <button class="btn" id="createBtn">Создать паспорт</button>

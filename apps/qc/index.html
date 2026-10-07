@@ -19,7 +19,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <section class="screen active" id="s-list">
       <div class="hero"><h1>ОТК и качество</h1><p>Чек-листы контроля, количество годных/брак, дефекты и трассируемость изделия.</p></div>
       <div class="kpi-row" id="kpis"></div>
@@ -43,16 +43,16 @@
       <div class="card">
         <h2>Новый чек-лист</h2>
         <div class="msg" id="nMsg"></div>
-        <div class="field"><label>Изделие</label><input type="text" id="cProduct" placeholder="Кронштейн"></div>
+        <div class="field"><label>Изделие</label><input type="text" id="cProduct" placeholder="Кронштейн"><span class="hint">Что проверяем (деталь/партия).</span></div>
         <div class="grid2c">
-          <div class="field"><label>Контролёр</label><input type="text" id="cInspector" placeholder="otk"></div>
+          <div class="field"><label>Контролёр</label><input type="text" id="cInspector" placeholder="otk"><span class="hint">Логин контролёра ОТК.</span></div>
           <div class="field"><label>Наряд</label><select id="cNaryad"><option value="">— нет —</option></select></div>
         </div>
         <div class="grid2c">
-          <div class="field"><label>Кол-во всего</label><input type="text" id="cQtyTotal" inputmode="decimal" placeholder="10"></div>
-          <div class="field"><label>Годных</label><input type="text" id="cQtyGood" inputmode="decimal" placeholder="10"></div>
+          <div class="field"><label>Кол-во всего</label><input type="text" id="cQtyTotal" inputmode="decimal" placeholder="10"><span class="hint">Сколько предъявлено к контролю.</span></div>
+          <div class="field"><label>Годных</label><input type="text" id="cQtyGood" inputmode="decimal" placeholder="10"><span class="hint">Прошло контроль (разница — брак).</span></div>
         </div>
-        <button class="btn" id="createBtn">Создать чек-лист</button>
+        <button class="btn" id="createBtn" title="Создать чек-лист контроля">Создать чек-лист</button>
       </div>
     </section>
 

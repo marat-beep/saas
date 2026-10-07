@@ -18,7 +18,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Проблемы и эскалация</h1><p>Проблемы с приоритетом, сроком и статусом; эскалация руководству. Прототип B24.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -26,9 +26,9 @@
       <h2>Новая проблема</h2>
       <div class="msg" id="fMsg"></div>
       <div class="grid3">
-        <div class="field"><label>Тема *</label><input type="text" id="fTitle" placeholder="Простой станка / задержка…"></div>
+        <div class="field"><label>Тема *</label><input type="text" id="fTitle" placeholder="Простой станка / задержка…"><span class="hint">Кратко: что за проблема.</span></div>
         <div class="field"><label>Приоритет</label><select id="fPriority"><option value="low">Низкий</option><option value="normal" selected>Обычный</option><option value="high">Высокий</option><option value="critical">Критический</option></select></div>
-        <div class="field"><label>Исполнитель</label><input type="text" id="fAsg" placeholder="master / supply"></div>
+        <div class="field"><label>Исполнитель</label><input type="text" id="fAsg" placeholder="master / supply"><span class="hint">Кому назначена проблема.</span></div>
       </div>
       <div class="grid3">
         <div class="field"><label>Срок</label><input type="date" id="fDue"></div>
@@ -36,7 +36,7 @@
         <div class="field"><label>Заявка</label><select id="fOrder"><option value="">— нет —</option></select></div>
       </div>
       <div class="field"><label>Описание</label><input type="text" id="fDescr" placeholder="детали проблемы"></div>
-      <button class="btn" id="fAdd">Добавить проблему</button>
+      <button class="btn" id="fAdd" title="Зарегистрировать проблему">Добавить проблему</button>
     </div>
 
     <div class="card">

@@ -21,7 +21,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Качество и СМК</h1><p>Средства измерений (поверка) и трассируемость изделий/партий.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -35,14 +35,14 @@
         <h2>Новое СИ</h2>
         <div class="msg" id="tMsg"></div>
         <div class="grid3">
-          <div class="field"><label>Наименование *</label><input type="text" id="gName" placeholder="Штангенциркуль ШЦ-125"></div>
+          <div class="field"><label>Наименование *</label><input type="text" id="gName" placeholder="Штангенциркуль ШЦ-125"><span class="hint">Средство измерений (СИ) для учёта поверки.</span></div>
           <div class="field"><label>Серийный №</label><input type="text" id="gSerial" placeholder="SN-001"></div>
           <div class="field"><label>Тип</label><input type="text" id="gType" placeholder="Штангенциркуль"></div>
         </div>
         <div class="grid3">
           <div class="field"><label>Расположение</label><input type="text" id="gLoc" placeholder="ОТК"></div>
           <div class="field"><label>Поверка (последняя)</label><input type="date" id="gLast"></div>
-          <div class="field"><label>Поверка (следующая)</label><input type="date" id="gNext"></div>
+          <div class="field"><label>Поверка (следующая)</label><input type="date" id="gNext"><span class="hint">Дата следующей поверки — контроль сроков метрологии.</span></div>
         </div>
         <button class="btn" id="gAdd">Добавить СИ</button>
       </div>
