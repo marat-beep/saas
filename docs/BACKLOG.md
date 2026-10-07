@@ -5,7 +5,7 @@
 > **Конец сессии:** обнови статусы пунктов (и краткий журнал в §5), затем `PLAN.md`/`PROMPTS.md` при необходимости.
 
 ## 1. Состояние (кратко)
-- Миграции `0001…0150`, `apply_all.sql` идемпотентен; смоук `app_smoke_test` 10/10, `app_smoke_test_ext` 14/14.
+- Миграции `0001…0151`, `apply_all.sql` идемпотентен; смоук `app_smoke_test` 10/10, `app_smoke_test_ext` 14/14.
 - Приложений 78 (`apps/`), прототипов 72 (`eco/apps`); каталог `catalog.js` v10.5 — единый источник модулей.
 - Методика типового апгрейда модуля — `docs/MODULE_BLUEPRINT.md`.
 - **Релиз:** `tools/build-release.ps1` → `dist/saas-YYYYMMDD-HHmm.zip` (деплой-артефакты для FTP; `dist/` в .gitignore).
@@ -63,6 +63,7 @@
 - v168 — правило «ТЗ → аудит → дополнение» и накопленные приёмы внесены в `MODULE_STANDARD.md` §6–7 и `AGENTS.md`; разобран ТЗ «Сервис и ремонт ЧПУ» (в корне), задача дополнения `apps/service` поставлена в очередь (P8, шаги S1–S3).
 - v169 — **W-S (S1, 0122)**: Сервис ЧПУ по ТЗ — SR v2 (`app_service_history`, `app_service_visits`, SLA-план по приоритету, `app_service_assign`, KPI SLA/MTTR/FTFR/CSAT, `app_service_iiot_auto`); UI `apps/service` (KPI, фильтры, карточка, таймлайн, выезды); каталог v8.6, nav v65/shell v25.
 - v170 — **W-S (S2, 0123)**: Сервис ЧПУ — гарантии (`app_warranties`) и сервисные контракты (`app_service_contracts`, SLA); резерв запчастей под заявку (`app_service_parts` ⟂ `app_spare_parts`); авто-гарантия и SLA из контракта при создании заявки; мобильные выезды (`app_service_my_visits`) с офлайн-очередью; UI: деталь (гарантия/контракт/запчасти), экраны «Гарантии/контракты» и «Мои выезды»; каталог v8.7, nav v66/shell v26.
+- v201 — **Отчёты: ветка users + 4 модуля (0151)**: `app_module_report` дополнен веткой `users`; кнопка «Отчёт PDF» подключена к `admin` (пользователи), `slots`, `planning` (MES), `quality`.
 - v200 — **Ролевой fallback + отчёт в оборудовании**: в `shell.js` добавлен базовый ролевой гейт (client/supplier/guest — скрываются `[data-cap="edit"]`), `shell.js?v=46`; кнопка «Отчёт PDF» (`data-report="equipment"`) подключена к модулю оборудования.
 - v199 — **Расширение универсального отчёта (0150)**: `app_module_report` дополнен ветками naryads/quality/routes/mes/nc/invoices/claims/tenders; кнопка «Отчёт PDF» подключена к `registry` и `mes`. Тест: наряды 3, качество 2, маршруты 1, MES 1, УП 2, счета 3, претензии 1, тендеры 7.
 - v198 — **Универсальный отчёт по модулю (0149) + пакет модулей**: `app_module_report(token,module)` (jsonb) + `assets/js/module-report.js` (кнопка `data-report` → PDF/CSV без отдельного RPC). Подключено к `iiot`, `client`, `crm`, `suppliers`, `departments`, `org`, `guide`; KB-пакет (IIoT/CRM/поставщики/подразделения/БЗ). Поддержаны modules: customers, suppliers, departments, equipment, materials, knowledge, iiot, service.
