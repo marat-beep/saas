@@ -21,7 +21,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Маркетплейс мощностей (M1)</h1><p>Свободные мощности предприятий и заявки на выполнение — кооперация и субподряд.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -38,7 +38,7 @@
           <div class="field"><label>Название *</label><input type="text" id="lTitle"></div>
           <div class="field"><label>Процесс</label><select id="lProcess"><option value="cnc">ЧПУ</option><option value="edm">ЭЭО</option><option value="grinding">Шлифование</option><option value="heat">Термообработка</option><option value="assembly">Сборка</option><option value="engraving">Гравирование</option><option value="other">Прочее</option></select></div>
           <div class="field"><label>Станок</label><input type="text" id="lMachine"></div>
-          <div class="field"><label>Часов/мес</label><input type="number" step="any" id="lCap" value="0"></div>
+          <div class="field"><label>Часов/мес</label><input type="number" step="any" id="lCap" value="0"><span class="hint">Свободная мощность в месяц для кооперации.</span></div>
           <div class="field"><label>Цена от, ₽</label><input type="number" step="any" id="lPrice" value="0"></div>
           <div class="field"><label>Регион</label><input type="text" id="lRegion"></div>
           <div class="field"><label>Срок, дней</label><input type="number" id="lLead" value="14"></div>

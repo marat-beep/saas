@@ -21,7 +21,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Платформа</h1><p>Управление организациями (только платформенный администратор).</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -31,10 +31,10 @@
       <div class="grid3">
         <div class="field"><label>Название *</label><input type="text" id="tName" placeholder="ООО «Новый Завод»"></div>
         <div class="field"><label>Тариф</label><select id="tPlan"></select></div>
-        <div class="field"><label>Логин владельца *</label><input type="text" id="tLogin" placeholder="owner2"></div>
+        <div class="field"><label>Логин владельца *</label><input type="text" id="tLogin" placeholder="owner2"><span class="hint">Логин первого пользователя организации (роль owner).</span></div>
       </div>
       <div class="grid3">
-        <div class="field"><label>Пароль владельца</label><input type="text" id="tPass" placeholder="мин. 4"></div>
+        <div class="field"><label>Пароль владельца</label><input type="text" id="tPass" placeholder="мин. 4"><span class="hint">Пароль = логин в вашей практике; минимум 4 символа.</span></div>
         <div class="field"><label>Имя владельца</label><input type="text" id="tOwner" placeholder="Иванов И.И."></div>
         <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="tCreate">Создать</button></div>
       </div>

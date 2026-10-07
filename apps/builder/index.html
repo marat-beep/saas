@@ -22,7 +22,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Конструктор приложений (P2 App Builder)</h1><p>Создавайте свои сущности (справочники, журналы) с полями и ведите записи — без разработки.</p></div>
 
     <div class="cols">
@@ -44,7 +44,7 @@
           <div id="fields"></div>
           <div class="grid3 mt">
             <div class="field"><label>Название поля</label><input type="text" id="fName"></div>
-            <div class="field"><label>Код</label><input type="text" id="fCode"></div>
+            <div class="field"><label>Код</label><input type="text" id="fCode"><span class="hint">Латиницей, без пробелов — ключ поля.</span></div>
             <div class="field"><label>Тип</label><select id="fType"><option value="text">Текст</option><option value="number">Число</option><option value="date">Дата</option><option value="select">Список</option><option value="bool">Флаг</option><option value="textarea">Многострочный</option></select></div>
             <div class="field"><label>Варианты (через запятую, для списка)</label><input type="text" id="fOptions"></div>
             <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="fAdd">Добавить поле</button></div>

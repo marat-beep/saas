@@ -22,7 +22,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Счётчики использования (P1)</h1><p>Метрики по организациям для тарифов и аналитики.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -30,7 +30,7 @@
       <h2>Инкремент метрики</h2>
       <div class="msg" id="fMsg"></div>
       <div class="grid3">
-        <div class="field"><label>Метрика</label><input type="text" id="fMetric" placeholder="orders / documents / logins"></div>
+        <div class="field"><label>Метрика</label><input type="text" id="fMetric" placeholder="orders / documents / logins"><span class="hint">Название счётчика использования (для тарификации).</span></div>
         <div class="field"><label>Приращение</label><input type="number" step="any" id="fDelta" value="1"></div>
         <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="fBump">Увеличить</button></div>
       </div>

@@ -23,14 +23,14 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>API и интеграции</h1><p>Ключи доступа к данным организации и вебхуки на события.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
     <div class="card">
       <h2>API-ключи</h2>
       <div class="grid2">
-        <div class="field"><label>Название ключа</label><input type="text" id="kName" placeholder="Интеграция 1С"></div>
+        <div class="field"><label>Название ключа</label><input type="text" id="kName" placeholder="Интеграция 1С"><span class="hint">Для чего ключ — чтобы потом отозвать нужный.</span></div>
         <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="kCreate">Создать ключ</button></div>
       </div>
       <div class="msg" id="kMsg"></div>
@@ -40,7 +40,7 @@
     <div class="card">
       <h2>Вебхуки</h2>
       <div class="grid2">
-        <div class="field"><label>URL</label><input type="text" id="wUrl" placeholder="https://example.com/hook"></div>
+        <div class="field"><label>URL</label><input type="text" id="wUrl" placeholder="https://example.com/hook"><span class="hint">Куда сервис шлёт событие (вебхук).</span></div>
         <div class="field"><label>Событие</label><select id="wEvent">
           <option value="*">Все события</option><option value="order.created">Заявка создана</option>
           <option value="bid.created">Новое КП</option><option value="naryad.closed">Наряд закрыт</option></select></div>

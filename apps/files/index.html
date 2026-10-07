@@ -23,7 +23,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Файлы и журнал (P14 · Сессия E)</h1><p>Вложения (чертежи, КД, фото, PDF) в Supabase Storage с привязкой к сущности и сводный журнал активности.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -32,7 +32,7 @@
       <div class="msg" id="uMsg"></div>
       <div class="grid3">
         <div class="field"><label>Тип сущности</label><select id="uType"><option value="order">Заявка</option><option value="naryad">Наряд</option><option value="client">Клиент</option><option value="invoice">Счёт</option><option value="spec">Спецификация</option><option value="norms">Нормирование</option><option value="other">Прочее</option></select></div>
-        <div class="field"><label>ID сущности (необязательно)</label><input type="text" id="uEid" placeholder="uuid"></div>
+        <div class="field"><label>ID сущности (необязательно)</label><input type="text" id="uEid" placeholder="uuid"><span class="hint">UUID сущности (заявки/наряда) для привязки файла.</span></div>
         <div class="field"><label>Примечание</label><input type="text" id="uNote"></div>
       </div>
       <div class="drop" id="drop"><span class="note">Перетащите файл сюда или нажмите для выбора (≤ 10 МБ)</span><input type="file" id="file" style="display:none"></div>
