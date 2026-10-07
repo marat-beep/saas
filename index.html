@@ -41,6 +41,7 @@
   .kpi b { font-size: 1.05rem; }
   .checklist li { padding: 4px 0; }
   #hubQuick, #hubTools { margin-bottom: 10px !important; }
+  .stat-div { border-top: 1px solid var(--border); margin: 10px 0 8px; }
   .conn-det { margin-top: 6px; }
   .conn-det > summary { cursor: pointer; font-size: .78rem; color: var(--muted); font-weight: 600; outline: none; }
   .conn-det > summary:hover { color: var(--accent-700); }
@@ -72,17 +73,13 @@
       <a class="btn secondary" href="apps/dashboard/index.html" style="width:auto;padding:10px 16px;margin-left:auto;">Открыть кабинет</a>
     </div>
 
-    <div class="hub-top">
-      <section class="card">
-        <h2>Обзор</h2>
-        <div class="kpi-row" id="hubStats"></div>
-      </section>
-      <section class="card">
-        <h2>Сервер · подключение</h2>
-        <div class="status" id="conn" title="Детали подключения — наведите/раскройте «Детали»."><span class="dot wait"></span><span class="status-text">Проверка…</span></div>
-        <details class="conn-det"><summary>Детали</summary><ul class="checklist" data-checklist></ul></details>
-      </section>
-    </div>
+    <section class="card" id="hubTop" style="margin-bottom:10px;">
+      <h2>Обзор</h2>
+      <div class="kpi-row" id="hubStats"></div>
+      <div class="stat-div"></div>
+      <div class="status" id="conn" title="Детали подключения — наведите/раскройте «Детали»."><span class="dot wait"></span><span class="status-text">Проверка…</span></div>
+      <details class="conn-det"><summary>Детали</summary><ul class="checklist" data-checklist></ul></details>
+    </section>
 
     <div class="card" id="hubQuick" style="margin-bottom:16px;"></div>
     <div class="card" id="hubTools" style="margin-bottom:16px;"></div>
