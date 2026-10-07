@@ -23,6 +23,8 @@
   .hub-hero { background: linear-gradient(135deg, var(--accent-100, #eef2ff), #fff 70%); border: 1px solid var(--border); border-radius: var(--r); padding: 24px; margin-bottom: 16px; }
   .hub-hero h1 { font-size: 1.85rem; margin: 0 0 8px; }
   .hub-hero p { margin: 0; max-width: 780px; }
+  .hub-top { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; margin-bottom: 16px; align-items: start; }
+  @media (max-width: 900px) { .hub-top { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -50,17 +52,21 @@
 
     <input type="search" id="hubSearch" class="search" placeholder="Поиск по модулям и функциям: напр. «КП», «нормы», «слоты», «фрезеровка»…" style="width:100%;margin-bottom:16px;padding:12px 14px;">
 
-    <div class="kpi-row" id="hubStats" style="margin-bottom:16px;"></div>
+    <div class="hub-top">
+      <section class="card">
+        <h2>Обзор</h2>
+        <div class="kpi-row" id="hubStats"></div>
+      </section>
+      <section class="card">
+        <h2>Подключение</h2>
+        <div class="status" id="conn"><span class="dot wait"></span><span class="status-text">Проверка…</span></div>
+        <ul class="checklist" data-checklist></ul>
+      </section>
+    </div>
 
     <div class="card" id="hubQuick" style="margin-bottom:16px;"></div>
     <div class="card" id="hubTools" style="margin-bottom:16px;"></div>
     <script>if ('serviceWorker' in navigator && location.protocol === 'https:') { navigator.serviceWorker.register('sw.js', { scope: './' }).catch(function () {}); }</script>
-
-    <section class="card">
-      <h2>Подключение</h2>
-      <div class="status" id="conn"><span class="dot wait"></span><span class="status-text">Проверка…</span></div>
-      <ul class="checklist" data-checklist></ul>
-    </section>
 
     <section class="card" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
       <div>
