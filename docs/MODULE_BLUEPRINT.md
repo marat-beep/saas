@@ -89,7 +89,7 @@ KPI (SLA/MTTR/MTBF/FTFR/CSAT/загрузка); правила IIoT; ППР-ав
 - **Общие стили** (`app.css`): `.sv-actions` (панель кнопок), `.tabs2` (вкладки), `.act`/`.act.danger` (малые кнопки), `.screen`/`.screen.active` (экраны роутера) — обязательны, иначе «кривые» кнопки/экраны по всем модулям.
 - **Оболочка**: `shell.js` (сайдбар + системный поиск + бренд + SW) подключается на всех страницах `apps/*` одним тегом после `nav.js`.
 - **Экспорт**: `export.js` (`AppExport.exportPdf/Doc/Csv`, `reportDocument`) — единый вид отчётов.
-- **Универсальный отчёт по модулю**: `app_module_report(token, module, from, to)` (jsonb) + `assets/js/module-report.js` — кнопка `<button data-report="<module>">` даёт PDF/CSV без отдельного RPC. Поддержаны: customers, suppliers, departments, equipment, materials, knowledge, iiot, service.
+- **Универсальный отчёт по модулю**: `app_module_report(token, module, from, to)` (jsonb) + `assets/js/module-report.js` — кнопка `<button data-report="<module>">` даёт PDF/CSV без отдельного RPC. Поддержаны: customers, suppliers, departments, equipment, materials, knowledge, iiot, service, naryads, quality, routes, mes, nc, invoices, claims, tenders.
 - **Роли**: `data-cap` + карта `CAPS` в JS модуля.
 - **Сборка релиза**: `powershell -File tools/build-release.ps1` → `dist/saas-<date>.zip` (только деплой-артефакты). Деплой по FTP в `sapfir.eu\saas` (строчными).
 - **Понятность для пользователя**: кнопки имеют заголовки, разделы названы, «где хранятся данные» указывается (источник/связи), формы — `formDialog` с подсказками.
