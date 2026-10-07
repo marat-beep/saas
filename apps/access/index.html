@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Права и согласования — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=35">
+<style>
+  .badge.on{background:#dcfce7;color:#166534}.badge.off{background:#fee2e2;color:#991b1b}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .step-chip{display:inline-block;font-size:.72rem;padding:2px 8px;border-radius:999px;background:#f1f5f9;border:1px solid var(--border);margin-right:4px}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🔐</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap fluid">
+    <div class="hero"><h1>Enterprise-права и аудит</h1><p>Наборы прав (роль/пользователь/подразделение), делегирование полномочий, маршруты согласований и расширенный аудит. Роли: admin, owner, manager.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="tabs2" id="tabs">
+      <button data-scr="sets" class="active">Наборы прав</button>
+      <button data-scr="deleg">Делегирование</button>
+      <button data-scr="approve">Согласования</button>
+      <button data-scr="audit">Аудит</button>
+    </div>
+
+    <section class="screen active" id="scr-sets">
+      <div class="card">
+        <div class="toolbar"><button class="btn" id="newSet" style="width:auto;padding:8px 14px;">＋ Новый набор</button>
+          <span class="note" style="margin-left:auto;">Права наборов дополняют матрицу ролей и действуют на роль/пользователя/подразделение.</span></div>
+        <div class="msg" id="sMsg"></div>
+        <div id="sets" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+      <div class="card">
+        <h2>Проверить эффективные права</h2>
+        <div class="note">Для текущего пользователя: источники (роль / набор / делегирование) и итог по модулям.</div>
+        <div id="eff" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-deleg">
+      <div class="card">
+        <div class="toolbar"><button class="btn" id="newDel" style="width:auto;padding:8px 14px;">＋ Делегировать полномочия</button>
+          <span class="note" style="margin-left:auto;">Пока делегирование активно, получатель обладает указанными правами (учитывается в app_can).</span></div>
+        <div class="msg" id="dMsg"></div>
+        <div id="dels" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-approve">
+      <div class="card">
+        <div class="toolbar"><button class="btn" id="newRoute" style="width:auto;padding:8px 14px;">＋ Маршрут</button>
+          <button class="btn secondary" id="newReq" style="width:auto;padding:8px 14px;">Отправить на согласование</button></div>
+        <div class="msg" id="aMsg"></div>
+        <h3>Мои согласования</h3>
+        <div id="myAppr" class="mt"><span class="note">Загрузка…</span></div>
+        <h3 class="mt">Маршруты</h3>
+        <div id="routes" class="mt"></div>
+        <h3 class="mt">Заявки на согласование</h3>
+        <div id="reqs" class="mt"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-audit">
+      <div class="card">
+        <div class="toolbar"><button class="btn" id="newPol" style="width:auto;padding:8px 14px;">＋ Политика аудита</button>
+          <span class="note" style="margin-left:auto;">Расширенный аудит: политики по подразделениям/модулям + журнал событий.</span></div>
+        <div class="msg" id="auMsg"></div>
+        <h3>Политики</h3>
+        <div id="pols" class="mt"></div>
+        <h3 class="mt">Журнал аудита</h3>
+        <div class="toolbar"><input type="search" class="search" id="auQ" placeholder="Фильтр по модулю…"></div>
+        <div id="auditLog" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">3DMP Service · права и согласования</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=4"></script>
+  <script src="../../assets/js/auth.js?v=6"></script>
+  <script src="../../assets/js/notify.js?v=3"></script>
+  <script src="../../assets/js/support-widget.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=88"></script>
+  <script src="../../assets/js/shell.js?v=50"></script>
+  <script src="access.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=2"></script>
+  <script src="../../assets/js/module-info.js?v=1"></script>
+</body>
+</html>
