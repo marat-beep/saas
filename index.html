@@ -63,7 +63,15 @@
     <input type="search" id="hubSearch" class="topsearch" placeholder="Поиск по модулям и функциям…" aria-label="Поиск">
     <div class="spacer"></div>
     <button class="srvbtn" id="srvBtn" type="button" title="Статус сервера">🟢 <span>Сервер</span></button>
+    <button class="srvbtn" id="entryBtn" type="button" title="Единая точка входа">🎛 <span>Вход</span></button>
     <button class="userbtn" id="userBtn" type="button" title="Аккаунт"><span class="uava" id="uava">?</span> <span id="ulogin">…</span></button>
+    <div class="srvdrop" id="entryDrop" style="display:none;">
+      <div class="btn-row">
+        <a class="btn" href="apps/panel/index.html" style="width:auto;padding:10px 14px;">🎛 Пульт</a>
+        <a class="btn secondary" href="apps/product/index.html" style="width:auto;padding:10px 14px;">💳 Продукт и цены</a>
+        <a class="btn secondary" href="apps/guide/index.html" style="width:auto;padding:10px 14px;">📖 Гид</a>
+      </div>
+    </div>
     <div class="userdrop" id="userDrop" style="display:none;">
       <div class="cab-info">
         <h1 id="uName">…</h1>
@@ -92,16 +100,6 @@
     <div class="card" id="hubQuick" style="margin-bottom:16px;"></div>
     <div class="card" id="hubTools" style="margin-bottom:16px;"></div>
     <script>if ('serviceWorker' in navigator && location.protocol === 'https:') { navigator.serviceWorker.register('sw.js', { scope: './' }).catch(function () {}); }</script>
-
-    <section class="card" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-      <div>
-        <h2 style="margin:0;">Единая точка входа</h2>
-        <p class="note" style="margin:4px 0 0;">Пульт управления: разделы по ролям — разработчик, SaaS-администратор, администратор клиента, пользователь.</p>
-      </div>
-      <a class="btn" href="apps/panel/index.html" style="width:auto;padding:11px 18px;margin-left:auto;">🎛 Открыть пульт</a>
-      <a class="btn secondary" href="apps/product/index.html" style="width:auto;padding:11px 18px;">💳 Продукт и цены</a>
-      <a class="btn secondary" href="apps/guide/index.html" style="width:auto;padding:11px 18px;">📖 Гид по системе</a>
-    </section>
 
     <section class="card">
       <h2>Модули по контурам</h2>
@@ -310,6 +308,7 @@
           document.addEventListener('click', function (e) { if (!(e.target.closest && (e.target.closest('#' + dropId) || e.target.closest('#' + btnId)))) d.style.display = 'none'; });
         }
         bind('srvBtn', 'srvDrop');
+        bind('entryBtn', 'entryDrop');
         bind('userBtn', 'userDrop');
         var out = document.getElementById('uOut');
         if (out) out.addEventListener('click', function () { window.Auth.logout(); location.reload(); });
