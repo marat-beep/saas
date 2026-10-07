@@ -50,7 +50,7 @@
           <div class="field"><label>Акцентный цвет</label><input type="text" id="brColor" placeholder="#2563eb"><span class="hint">HEX-цвет бренда (кнопки/акценты).</span></div>
         </div>
         <div class="field"><label>Ссылка на логотип</label><input type="text" id="brLogo" placeholder="https://…"></div>
-        <button class="btn" id="brSave">Сохранить бренд</button>
+        <button class="btn" id="brSave" data-cap="edit">Сохранить бренд</button>
       </div>
       <div class="card">
         <h2>Быстрые переходы</h2>
@@ -74,7 +74,7 @@
           <div class="field"><label>Имя</label><input type="text" id="uName" placeholder="Иванов И.И."></div>
           <div class="field"><label>Роль</label><select id="uRole"></select></div>
         </div>
-        <button class="btn" id="uCreate">Добавить пользователя</button>
+        <button class="btn" id="uCreate" data-cap="edit">Добавить пользователя</button>
       </div>
       <div class="card">
         <h2>Пользователи <span class="note" id="uCount"></span></h2>
@@ -89,7 +89,7 @@
         <p class="note">Выключенные модули скрываются у сотрудников организации (кроме платформенных).</p>
         <div id="flags" class="flag"></div>
         <div class="msg" id="fMsg"></div>
-        <button class="btn secondary mt" id="flagSave">Сохранить модули</button>
+        <button class="btn secondary mt" id="flagSave" data-cap="edit">Сохранить модули</button>
       </div>
     </section>
 
@@ -98,7 +98,7 @@
         <h2>Тариф</h2>
         <div class="grid2c">
           <div class="field"><label>Текущий тариф</label><select id="planSel"></select></div>
-          <div class="field" style="display:flex;align-items:flex-end;"><button class="btn secondary" id="planSave">Сменить тариф</button></div>
+          <div class="field" style="display:flex;align-items:flex-end;"><button class="btn secondary" id="planSave" data-cap="edit">Сменить тариф</button></div>
         </div>
         <div class="msg" id="pMsg"></div>
       </div>

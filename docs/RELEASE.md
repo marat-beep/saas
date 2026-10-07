@@ -35,6 +35,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 - [ ] Отметки в `BACKLOG.md`, `PLAN_WAVES.md`, `STATUS.md`, `NOTES.md`, `PROMPTS.md`.
 
 ## 6. Журнал релизов (последнее)
+- **v210 (M7 остаток)** — апгрейд `iiot`/`crm`/`client`/`org`: отчёты, роли `data-cap`, переходы, KB. M7 закрыт.
 - **v209 (S1)** — малые доработки UI: автотесты `tools/audit.ps1` (+дубли id/версия notify) и `tools/db-smoke.ps1` (+проверка кодировки); проверка панели/drawer/версий.
 - **v208 (W12)** — продуктивность и эксплуатация: единый API-слой `assets/js/api.js`; автотесты `tools/audit.ps1` (audit ✅) и `tools/db-smoke.ps1` (10/10+14/14); ревизия доков (MODULE_STANDARD §8).
 - **v207 (миграция `0156`)** — W11 ИИ: авто-нормирование, CV-ОТК, цифровой двойник, помощник по БЗ, журнал задач; модуль `apps/ai`; каталог v10.10, nav v89/shell v51.

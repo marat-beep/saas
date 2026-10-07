@@ -41,7 +41,7 @@
           <div class="field"><label>Метрика</label><select id="iMetric"><option value="state">Состояние</option><option value="count">Счётчик</option><option value="speed">Обороты</option><option value="power">Мощность</option><option value="temp">Температура</option><option value="vibration">Вибрация</option><option value="runtime_min">Наработка, мин (→ износ инструмента)</option><option value="other">Прочее</option></select><span class="hint">Показание станка для мониторинга/OEE.</span></div>
           <div class="field"><label>Значение</label><input type="number" step="any" id="iValue" value="0"></div>
           <div class="field"><label>Источник</label><input type="text" id="iSource" placeholder="api / opcua / manual"></div>
-          <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="iSave">Отправить</button></div>
+          <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="iSave" data-cap="edit">Отправить</button></div>
         </div>
         <h3 class="mt">Последние показания</h3>
         <div class="toolbar"><input type="search" class="search" id="q" placeholder="Фильтр по станку…"></div>
@@ -53,7 +53,7 @@
         <div class="grid4">
           <div class="field"><label>Станок</label><input type="text" id="dMachine"></div>
           <div class="field"><label>Программа</label><input type="text" id="dProgram"></div>
-          <div class="field" style="grid-column:span 2;display:flex;align-items:flex-end;"><button class="btn" id="dSave">Поставить в очередь</button></div>
+          <div class="field" style="grid-column:span 2;display:flex;align-items:flex-end;"><button class="btn" id="dSave" data-cap="edit">Поставить в очередь</button></div>
         </div>
         <div class="olist mt" id="dnc"><span class="note">Загрузка…</span></div>
       </div>
@@ -61,7 +61,7 @@
 
     <section class="screen" id="scr-conn">
       <div class="card">
-        <div class="toolbar"><button class="btn" id="cNew" style="width:auto;padding:8px 14px;">＋ Новый коннектор</button>
+        <div class="toolbar"><button class="btn" id="cNew" data-cap="edit" style="width:auto;padding:8px 14px;">＋ Новый коннектор</button>
           <span class="note" style="margin-left:auto;">Реальный опрос выполняет внешний воркер (backend-example); приём — app_iiot_ingest.</span></div>
         <div class="msg" id="cMsg"></div>
         <div id="conns" class="mt"><span class="note">Загрузка…</span></div>
