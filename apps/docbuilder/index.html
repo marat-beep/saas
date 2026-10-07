@@ -26,9 +26,10 @@
       <h2>Новый документ</h2>
       <div class="msg" id="dMsg"></div>
       <div class="form-grid">
-        <div class="field"><label>Тип документа <span class="req">*</span></label><select id="dType"></select></div>
-        <div class="field"><label>Название</label><input type="text" id="dTitle" placeholder="напр. Счёт на оснастку"></div>
+        <div class="field"><label>Тип документа <span class="req">*</span></label><select id="dType"></select><span class="hint">Тип задаёт набор полей и префикс номера (KP/DOG/ACT/TC/SCH/NAK/TZ/PSP).</span></div>
+        <div class="field"><label>Название</label><input type="text" id="dTitle" placeholder="напр. Счёт на оснастку"><span class="hint">Заголовок документа; можно оставить — подставится имя типа.</span></div>
       </div>
+      <p class="note">Поля ниже строятся по выбранному типу. Заполните и нажмите «Создать документ» — номер присвоится автоматически.</p>
       <div id="dForm" class="form-grid mt"><span class="note">Выберите тип документа.</span></div>
       <div class="btn-row mt">
         <button class="btn" id="dCreate">Создать документ</button>
@@ -38,6 +39,7 @@
 
     <div class="card mt">
       <h2>Из источников</h2>
+      <p class="note">Быстрое создание документа из данных: КП/маршрут из спецификации, прайс из каталога оборудования, техкарта/УП из маршрута, протокол из ОТК, паспорт-документ.</p>
       <div class="msg" id="sMsg"></div>
       <div class="form-grid">
         <div class="field"><label>Спецификация (КП из BOM)</label><select id="srcBom"></select></div>

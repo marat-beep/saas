@@ -14,7 +14,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <section class="screen active" id="s-list">
       <div class="hero"><h1>Заявки и заказы</h1><p>Единый приём заявок: заказчик (CRM), срок, приоритет, исполнитель, связи с КП/договором/нарядом/счётом. Для смешанного производства: и единичные, и серийные.</p></div>
 
@@ -50,11 +50,11 @@
       <div class="card">
         <h2>Новая заявка</h2>
         <div class="msg" id="cMsg"></div>
-        <div class="field"><label>Тема *</label><input type="text" id="fTitle" placeholder="Например: Изготовление пресс-формы, партия 20 шт"></div>
-        <div class="field"><label>Описание</label><textarea id="fDesc" rows="3" placeholder="Детали, требования, материал, количество…" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;font:inherit;"></textarea></div>
+        <div class="field"><label>Тема *</label><input type="text" id="fTitle" placeholder="Например: Изготовление пресс-формы, партия 20 шт"><span class="hint">Кратко: что и сколько (изделие, партия). Это заголовок заявки.</span></div>
+        <div class="field"><label>Описание</label><textarea id="fDesc" rows="3" placeholder="Детали, требования, материал, количество…" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;font:inherit;"></textarea><span class="hint">Материал, допуски, режимы, требования заказчика. Можно добавить вложения ниже в карточке.</span></div>
         <div class="grid2c">
-          <div class="field"><label>Заказчик (CRM)</label><select id="fCustomerSel"><option value="">— не выбран —</option></select></div>
-          <div class="field"><label>Контактное лицо</label><input type="text" id="fContact" placeholder="Иванов И.И."></div>
+          <div class="field"><label>Заказчик (CRM)</label><select id="fCustomerSel"><option value="">— не выбран —</option></select><span class="hint">Выберите из CRM или добавьте нового ниже.</span></div>
+          <div class="field"><label>Контактное лицо</label><input type="text" id="fContact" placeholder="Иванов И.И."><span class="hint">Кто ведёт заказ со стороны клиента.</span></div>
         </div>
         <details class="mt" id="custBox">
           <summary class="note" style="cursor:pointer;">＋ Добавить нового заказчика</summary>
@@ -71,9 +71,10 @@
           <div class="msg" id="ncMsg"></div>
         </details>
         <div class="grid2c">
-          <div class="field"><label>Источник</label><input type="text" id="fSource" placeholder="модуль/сервис (напр. eco:A1, supplier)"></div>
+          <div class="field"><label>Источник</label><input type="text" id="fSource" placeholder="модуль/сервис (напр. eco:A1, supplier)"><span class="hint">Откуда пришла заявка: сайт, телефон, партнёр, модуль экосистемы.</span></div>
           <div class="field"><label>Приоритет</label>
             <select id="fPriority"><option value="normal">Обычный</option><option value="high">Высокий</option><option value="low">Низкий</option></select>
+            <span class="hint">Высокий — берём в работу в первую очередь.</span>
           </div>
         </div>
         <div class="field"><label>Тип заказа</label>
@@ -83,12 +84,13 @@
             <option value="tooling">Оснастка / штамп / пресс-форма</option>
             <option value="engineering">Инжиниринг / НИОКР</option>
           </select>
+          <span class="hint">Влияет на набор документов, план и маршрут.</span>
         </div>
         <div class="grid2c">
-          <div class="field"><label>Срок (план-дата)</label><input type="date" id="fDue"></div>
-          <div class="field"><label>Исполнитель (логин)</label><input type="text" id="fAssignee" placeholder="manager / master"></div>
+          <div class="field"><label>Срок (план-дата)</label><input type="date" id="fDue"><span class="hint">Плановая дата готовности; просрочка видна в фильтре «Просрочены».</span></div>
+          <div class="field"><label>Исполнитель (логин)</label><input type="text" id="fAssignee" placeholder="manager / master"><span class="hint">Кто отвечает за заявку (логин сотрудника).</span></div>
         </div>
-        <div class="field"><label>Сумма заказа, ₽</label><input type="text" id="fAmount" inputmode="decimal" placeholder="необязательно"></div>
+        <div class="field"><label>Сумма заказа, ₽</label><input type="text" id="fAmount" inputmode="decimal" placeholder="необязательно"><span class="hint">Ориентировочно; точная сумма — в КП/спецификации.</span></div>
         <button class="btn" id="createBtn">Создать заявку</button>
       </div>
     </section>
@@ -100,14 +102,16 @@
 
       <div class="card">
         <h2>Позиции заявки</h2>
+        <p class="note">Позиции формируют состав и сумму; их можно вынести в КП, спецификацию (BOM) и маршрут.</p>
         <div style="overflow:auto;"><table class="table" id="items"></table></div>
         <div class="toolbar mt">
           <input type="text" id="itName" placeholder="Наименование" style="flex:2;padding:9px;border:1px solid var(--border);border-radius:9px;">
           <input type="text" id="itQty" inputmode="decimal" placeholder="Кол-во" style="width:90px;padding:9px;border:1px solid var(--border);border-radius:9px;">
           <input type="text" id="itUnit" placeholder="Ед." style="width:70px;padding:9px;border:1px solid var(--border);border-radius:9px;">
           <input type="text" id="itPrice" inputmode="decimal" placeholder="Цена, ₽" style="width:110px;padding:9px;border:1px solid var(--border);border-radius:9px;">
-          <button class="btn secondary" id="itAdd" style="width:auto;padding:9px 14px;">＋ Добавить</button>
+          <button class="btn secondary" id="itAdd" style="width:auto;padding:9px 14px;" title="Добавить позицию в заявку">＋ Добавить</button>
         </div>
+        <span class="hint">Наименование, количество, единица и цена. Сумма по позициям уточняет стоимость заявки.</span>
         <div class="msg" id="itMsg"></div>
       </div>
 
@@ -128,8 +132,9 @@
               <option value="new">Новая</option><option value="in_progress">В работе</option>
               <option value="done">Выполнена</option><option value="cancelled">Отменена</option>
             </select>
+            <span class="hint">Смена статуса попадает в историю и рассылает уведомления ролям.</span>
           </div>
-          <div class="field"><label>Комментарий</label><input type="text" id="stComment" placeholder="необязательно"></div>
+          <div class="field"><label>Комментарий</label><input type="text" id="stComment" placeholder="необязательно"><span class="hint">Причина/комментарий к смене статуса.</span></div>
         </div>
         <button class="btn" id="stBtn">Сохранить статус</button>
         <div class="msg" id="stMsg"></div>
