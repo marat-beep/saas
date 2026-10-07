@@ -14,7 +14,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <section class="screen active" id="s-list">
       <div class="hero"><h1>Финансы</h1><p>Счета, частичные оплаты и дебиторская задолженность. Связь с заявкой, договором и заказчиком (CRM).</p></div>
       <div class="kpi-row" id="kpis"></div>
@@ -44,14 +44,14 @@
         </div>
         <div class="field"><label>Заказчик (если не из CRM)</label><input type="text" id="fCustomer" placeholder="ООО «Привод»"></div>
         <div class="grid2c">
-          <div class="field"><label>Сумма, ₽ *</label><input type="text" id="fAmount" inputmode="decimal" placeholder="184000"></div>
-          <div class="field"><label>Срок оплаты</label><input type="date" id="fDue"></div>
+          <div class="field"><label>Сумма, ₽ *</label><input type="text" id="fAmount" inputmode="decimal" placeholder="184000"><span class="hint">Сумма счёта (с НДС/без — по вашей практике).</span></div>
+          <div class="field"><label>Срок оплаты</label><input type="date" id="fDue"><span class="hint">До какой даты ожидается оплата (контроль просрочки).</span></div>
         </div>
         <div class="grid2c">
           <div class="field"><label>Исполнитель (логин)</label><input type="text" id="fAssignee" placeholder="economist"></div>
           <div class="field"><label>Примечание</label><input type="text" id="fNote" placeholder="условия оплаты"></div>
         </div>
-        <button class="btn" id="createBtn">Создать счёт</button>
+        <button class="btn" id="createBtn" title="Создать счёт">Создать счёт</button>
       </div>
     </section>
 
@@ -63,7 +63,7 @@
         <div class="msg" id="pMsg"></div>
         <div class="grid2c">
           <div class="field"><label>Сумма, ₽</label><input type="text" id="pAmount" inputmode="decimal" placeholder="50000"></div>
-          <div class="field"><label>Способ</label><select id="pMethod"><option value="bank">Безнал</option><option value="cash">Наличные</option><option value="card">Карта</option></select></div>
+          <div class="field"><label>Способ</label><select id="pMethod"><option value="bank">Безнал</option><option value="cash">Наличные</option><option value="card">Карта</option></select><span class="hint">Как поступила оплата.</span></div>
         </div>
         <div class="field"><label>Комментарий</label><input type="text" id="pNote" placeholder="№ платёжки"></div>
         <button class="btn" id="payBtn">Добавить платёж</button>

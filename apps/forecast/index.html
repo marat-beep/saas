@@ -24,12 +24,12 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Прогноз загрузки (B39 · Сессия F)</h1><p>Загрузка по дням, ETA по нарядам/заказам и риск просрочки — по данным нарядов и слотов.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
     <div class="card mt">
-      <div class="toolbar"><label class="note">Горизонт, дней:</label><input type="number" id="days" value="14" min="3" max="90" style="padding:9px;border:1px solid var(--border);border-radius:9px;width:100px;"><button class="btn secondary" id="refresh" style="width:auto;padding:8px 14px;">Обновить</button></div>
+      <div class="toolbar"><label class="note">Горизонт, дней:</label><input type="number" id="days" value="14" min="3" max="90" style="padding:9px;border:1px solid var(--border);border-radius:9px;width:100px;"><button class="btn secondary" id="refresh" style="width:auto;padding:8px 14px;">Обновить</button></div><p class="note">Прогноз загрузки по дням: плановые часы нарядов против мощности слотов (учёт перегрузки и свободного времени).</p>
       <h2>Загрузка по дням</h2>
       <div class="msg" id="lMsg"></div>
       <div id="load" class="mt"><span class="note">Загрузка…</span></div>

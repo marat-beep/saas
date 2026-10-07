@@ -30,13 +30,13 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Отчёты и экспорт</h1><p>Выгрузки PDF / DOC / CSV / JSON и сводные отчёты по данным сервиса.</p></div>
     <div class="card">
       <div class="toolbar2">
         <div class="field"><label>Набор данных</label><select id="ds"></select></div>
-        <div class="field"><label>Заголовок отчёта</label><input type="text" id="title" placeholder="Отчёт"></div>
-        <div class="field"><label>Период/примечание</label><input type="text" id="period" placeholder="октябрь 2026"></div>
+        <div class="field"><label>Заголовок отчёта</label><input type="text" id="title" placeholder="Отчёт"><span class="hint">Как назвать документ (попадёт в шапку/файл).</span></div>
+        <div class="field"><label>Период/примечание</label><input type="text" id="period" placeholder="октябрь 2026"><span class="hint">Период отчёта или примечание.</span></div>
       </div>
       <div class="fmt">
         <button class="fbtn" data-fmt="csv">📑 CSV</button>

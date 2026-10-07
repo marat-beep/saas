@@ -48,6 +48,8 @@
       <a class="btn secondary" href="apps/dashboard/index.html" style="width:auto;padding:10px 16px;margin-left:auto;">Открыть кабинет</a>
     </div>
 
+    <input type="search" id="hubSearch" class="search" placeholder="Поиск по модулям и функциям: напр. «КП», «нормы», «слоты», «фрезеровка»…" style="width:100%;margin-bottom:16px;padding:12px 14px;">
+
     <div class="kpi-row" id="hubStats" style="margin-bottom:16px;"></div>
     <script>if ('serviceWorker' in navigator && location.protocol === 'https:') { navigator.serviceWorker.register('sw.js', { scope: './' }).catch(function () {}); }</script>
 
@@ -109,14 +111,25 @@
         platform: 'Организации, пользователи, роли, аудит, API.',
         refs: 'Библиотека прототипов экосистемы.'
       };
-      function urow(a, logged) {
+      function urow(a, logged, sub) {
         var needAuth = !a.guest && !logged;
         var href = needAuth ? 'apps/auth/index.html' : a.href;
         return '<a class="urow" href="' + href + '">' +
           '<span class="uic">' + a.icon + '</span>' +
-          '<span class="lbl">' + ui.esc(a.title) + '</span>' +
+          '<span class="lbl">' + ui.esc(a.title) + (sub ? ' <span class="note">— ' + ui.esc(sub) + '</span>' : '') + '</span>' +
           (needAuth ? '<span class="note">вход</span>' : '') +
           '<span class="chev">›</span></a>';
+      }
+      function hubMatch(a, q) {
+        if (!q) return false;
+        var hay = (a.title + ' ' + (a.desc || '') + ' ' + (a.purpose || '') + ' ' + (a.features || []).join(' ') + ' ' + (a.connects || []).join(' ') + ' ' + (a.group || '')).toLowerCase();
+        return hay.indexOf(q) >= 0;
+      }
+      function hubSnippet(a, q) {
+        var f = (a.features || []).filter(function (x) { return x.toLowerCase().indexOf(q) >= 0; })[0];
+        if (f) return f;
+        if ((a.desc || '').toLowerCase().indexOf(q) >= 0) return a.desc;
+        return '';
       }
 
       var MAXROWS = 5;
@@ -135,6 +148,15 @@
           if (!a.roles) return true;
           return logged && a.roles.indexOf(user.role) >= 0;
         });
+        var qEl = document.getElementById('hubSearch');
+        var q = qEl ? (qEl.value || '').trim().toLowerCase() : '';
+        if (q) {
+          var res = list.filter(function (a) { return hubMatch(a, q); });
+          var html = '<div class="ucard"><h3>🔎 Найдено: ' + res.length + (res.length ? '' : ' — ничего по запросу «' + ui.esc(q) + '»') + '</h3>' +
+            '<div class="ulist">' + res.map(function (a) { return urow(a, logged, hubSnippet(a, q)); }).join('') + '</div></div>';
+          document.getElementById('apps').innerHTML = '<div class="ugrid">' + html + '</div>';
+          return;
+        }
         var out = '';
         (C.groups || []).forEach(function (g) {
           var items = list.filter(function (a) { return a.group === g.id; });
@@ -178,11 +200,17 @@
         }
       }
 
+      var currentUser = null;
       function refreshUI() {
-        var s = window.Auth.session();
-        renderAccount(s);
-        renderApps(s);
+        currentUser = window.Auth.session();
+        renderAccount(currentUser);
+        renderApps(currentUser);
       }
+
+      (function () {
+        var qEl = document.getElementById('hubSearch');
+        if (qEl) qEl.addEventListener('input', function () { renderApps(currentUser); });
+      })();
 
       window.AppStatus.render('#conn').then(function () {
         refreshUI();
