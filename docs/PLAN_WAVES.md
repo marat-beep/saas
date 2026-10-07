@@ -10,12 +10,13 @@
 - **Инварианты:** русский язык; светлая палитра, акцент `#10b981`, тёмная — опция; `?v=N`; UTF-8 для SQL; `apply_all.sql` пересобирать; смоук после миграций; доки в конце.
 
 ## 1. Текущее состояние (старт волн)
-- Миграции `0001…0120`, смоук 10/10 и 14/14; приложений 77; каталог v8.4.
+- Миграции `0001…0121`, смоук 10/10 и 14/14; приложений 78; каталог v8.5.
 - **W1 выполнена (v162):** объявления + плановые тех.работы (миграция `0116`, модуль `apps/announcements`, баннер на главной).
 - **W2 выполнена (v163):** SPC (контрольные карты x̄/Rs, Cp/Cpk) в `apps/qc` + претензии/CAPA (модуль `apps/claims`, миграция `0117`).
 - **W3 выполнена (v164):** WMS-адресность и партии (миграция `0118`, раздел в `apps/warehouse`).
 - **W4 выполнена (v165):** ТОиР — ППР по наработке и запчасти (миграция `0119`, `apps/maintenance`).
 - **W5 выполнена (v166):** Realtime и PWA-офлайн (миграция `0120`; `notify.js` v3, `offline-queue.js`, `sw.js` v2).
+- **W6 выполнена (v167):** Интеграции (миграция `0121`; модуль `apps/integrations`, очередь/журнал/ретраи).
 - Единая панель (Тема·Сервер·Вход·Пользователь) и меню-drawer — унифицированы.
 - Дизайн-система: `.card/.tbl/.ucard/.urow/.mod-info/.cab-*`; тёмная тема (кнопка).
 
@@ -55,9 +56,10 @@
 - PWA: `assets/js/offline-queue.js` (IndexedDB, фолбэк localStorage), `sw.js` v2 + terminal `sw.js` v2 (офлайн-оболочка); офлайн-очередь в `terminal`/`qc`; журнал `app_offline_sync` (`app_offline_log`/`app_offline_list`).
 **DoD:** уведомления мгновенные (с фолбэком); терминал работает офлайн с синхронизацией. ✅ (смоук 10/10; журнал синхронизации проверен).
 
-### W6. Интеграции (`0121+`, по коннектору за шаг)
-- `app_integrations`, `app_integration_log`; коннекторы: 1С/ERP (OData), e-mail (SMTP), Telegram/SMS, ЭДО (по образцу `backend-example/`, allow-list/токен).
-**DoD:** конфиг из UI, журнал обмена, ретраи.
+### W6. Интеграции (`0121`) — ☑ выполнено (v167)
+- `app_integrations` (kind: odata/smtp/telegram/sms/edo/webhook; endpoint, token, settings jsonb, active, max_retries) и `app_integration_log` (очередь/журнал, retry_count, next_retry_at).
+- RPC: `app_integrations_list/save/delete`, `app_integration_enqueue/process/retry`, `app_integration_log_list`, `app_integrations_kpi`; UI `apps/integrations`.
+**DoD:** конфиг из UI, журнал обмена, ретраи. ✅ (смоук 10/10; функц. тест: enqueue→process→ok; пустой endpoint→error+retry→ручной повтор; KPI). Реальная отправка — серверным воркером/Edge (по образцу `backend-example/`, allow-list/токен).
 
 ### W7. Биллинг/подписки и SLA платформы (`0122`)
 - `app_plans.limits`, использование по модулям, счета платформы; `app_health_checks` + статус-борд.

@@ -8,7 +8,7 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '8.4',
+  version: '8.5',
   updated: '07.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
@@ -26,7 +26,7 @@ window.AppCatalog = {
     hr:39, departments:40, staff:41, org:42, roles:43,
     dicts:44, config:45, reverse:46, partners:47, equipment:48, suppliers:49, procurement:50, supplier:51,
     marketplace:52, escrow:53, labels:54, engraving:55, files:56, builder:57, industry:58, usage:59, adoption:60,
-    guide:61, modules:62, platform:63, admin:64, diagnostics:65, scale:66, whitelabel:67, api:68, announcements:69, eco:99
+    guide:61, modules:62, platform:63, admin:64, diagnostics:65, scale:66, whitelabel:67, api:68, announcements:69, integrations:72, eco:99
   },
   implOrderOf: function (id) { return (this.implOrder && this.implOrder[id]) || 999; },
   priorityOf: function (id) { var n = this.implOrderOf(id); return n <= 9 ? 1 : (n <= 21 ? 2 : (n <= 33 ? 3 : 4)); },
@@ -590,6 +590,13 @@ window.AppCatalog = {
       purpose: 'Разграничение доступа: какие модули видит и где изменяет данные каждая роль предприятия (P8).',
       features: ['Роли предприятия: директор, начальник цеха, мастер, технолог, оператор ЧПУ, снабженец, ОТК, экономист', 'Матрица роль × модуль', 'Просмотр и правка', 'Сохранение изменений сразу', 'Счётчики пользователей по роли'],
       connects: ['org', 'admin', 'panel'], out: 'Права доступа'
+    },
+    {
+      id: 'integrations', icon: '🔌', title: 'Интеграции', href: 'apps/integrations/index.html', guest: false, roles: ['admin', 'owner', 'manager', 'director'], group: 'platform', audience: 'client_admin',
+      desc: 'W6: конфигуратор обмена — 1С/ERP (OData), e-mail (SMTP), Telegram/SMS, ЭДО; очередь и журнал с ретраями.',
+      purpose: 'Интеграции: настройка коннекторов (1С/ERP OData, e-mail SMTP, Telegram/SMS, ЭДО, webhook), постановка обмена в очередь, обработка с ретраями, журнал обмена и ручной повтор.',
+      features: ['Коннекторы: OData/1С, SMTP, Telegram, SMS, ЭДО, webhook', 'Endpoint, токен, настройки (jsonb)', 'Направление и максимальное число ретраев', 'Очередь обмена и обработка', 'Журнал обмена со статусами', 'Ручной повтор ошибок', 'KPI и уведомления'],
+      connects: ['api', 'platform', 'support', 'org'], in_: 'Конфиг обмена', out: 'Журнал обмена + ретраи'
     },
     {
       id: 'builder', icon: '🧩', title: 'Конструктор приложений', href: 'apps/builder/index.html', guest: false, group: 'platform', audience: 'user',

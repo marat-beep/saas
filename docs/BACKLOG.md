@@ -5,8 +5,8 @@
 > **Конец сессии:** обнови статусы пунктов (и краткий журнал в §5), затем `PLAN.md`/`PROMPTS.md` при необходимости.
 
 ## 1. Состояние (кратко)
-- Миграции `0001…0120`, `apply_all.sql` идемпотентен; смоук `app_smoke_test` 10/10, `app_smoke_test_ext` 14/14.
-- Приложений 77 (`apps/`), прототипов 72 (`eco/apps`); каталог `catalog.js` v8.4 — единый источник модулей.
+- Миграции `0001…0121`, `apply_all.sql` идемпотентен; смоук `app_smoke_test` 10/10, `app_smoke_test_ext` 14/14.
+- Приложений 78 (`apps/`), прототипов 72 (`eco/apps`); каталог `catalog.js` v8.5 — единый источник модулей.
 - Дизайн-система: светлая палитра, зелёный акцент `--accent #10b981`; тёмная — опционально (кнопка «Тема»).
 - Единая верхняя панель на всех страницах (`nav.js`): Тема · Сервер · Вход · Пользователь; боковое меню-drawer (`shell.js`) скрыто по умолчанию, открывается «☰».
 - Версии: `app.css` v32, `nav.js` v59, `shell.js` v19, `ui.js` v4, `auth.js` v6, `notify.js` v2, каталог v8.0.
@@ -28,7 +28,7 @@
 | P3 | средний | Склад: WMS-адресность | миграция `0118`: адреса (`app_wh_addresses`), `app_materials.location_id`, партии (`app_material_lots`), остатки по адресам (`app_wh_stock`); RPC размещения/перемещения/списания; UI `apps/warehouse` | адресное хранение и перемещения | ☑ (v164) |
 | P3b | высокий | ТОиР: ППР по наработке и запчасти | миграция `0119`: `app_mnt_plans.period_hours`, авто-наряд `app_mnt_auto_schedule`, склад запчастей `app_spare_parts`, расход `app_mnt_parts`, затраты `app_mnt_cost_by_equipment`; UI `apps/maintenance` | наряд ТО по наработке; учёт затрат/запчастей | ☑ (v165) |
 | P4 | средний | Realtime-уведомления + PWA-офлайн | миграция `0120`: `app_offline_sync` (+publication), `notify.js` v3 (Realtime+фолбэк), `assets/js/offline-queue.js`, `sw.js` v2 | новые уведомления без перезагрузки; терминал офлайн с синхронизацией | ☑ (v166) |
-| P5 | средний | Интеграции: 1С/e-mail/Telegram/ЭДО | `app_integrations`, `app_integration_log`; коннекторы (по образцу `backend-example/`) | конфиг из UI, журнал обмена | ☐ |
+| P5 | средний | Интеграции: 1С/e-mail/Telegram/ЭДО | миграция `0121`: `app_integrations`, `app_integration_log`; RPC save/delete/enqueue/process/retry/log_list/kpi; коннекторы (OData/SMTP/Telegram/SMS/ЭДО/webhook); UI `apps/integrations` | конфиг из UI, журнал обмена, ретраи | ☑ (v167) |
 | P6 | средний | Биллинг/подписки + SLA платформы | `app_plans.limits`, использование, `app_health_checks` | квоты тарифа, статус-борд | ☐ |
 | P7 | низкий | ИИ: авто-нормирование, CV-ОТК | сервисы + RPC + UI | пилот на данных | ☐ |
 | S1 | высокий | Малые доработки UI | — | см. §4 | ☐ |
@@ -48,6 +48,7 @@
 - v164 — **W3 (0118)**: WMS-адресность — адреса (`app_wh_addresses`), партии (`app_material_lots`), остатки по адресам (`app_wh_stock`), размещение/перемещение/списание; UI-раздел «Адреса и партии» в `apps/warehouse`; каталог v8.3, nav v62/shell v22.
 - v165 — **W4 (0119)**: ТОиР — норма наработки (`app_mnt_plans.period_hours`), авто-наряд по наработке (`app_mnt_auto_schedule`), склад запчастей (`app_spare_parts`), расход на работу (`app_mnt_parts`), затраты по оборудованию; UI `apps/maintenance`; каталог v8.4, nav v63/shell v23.
 - v166 — **W5 (0120)**: Realtime уведомления (`notify.js` v3 + подписка на `app_notifications` с фолбэком) и PWA-офлайн (`offline-queue.js` IndexedDB, `sw.js`/terminal `sw.js` v2, журнал `app_offline_sync`); офлайн-очередь в `terminal`/`qc`.
+- v167 — **W6 (0121)**: Интеграции — `app_integrations`/`app_integration_log`, коннекторы (OData/1С, SMTP, Telegram/SMS, ЭДО, webhook), очередь обмена с ретраями, журнал и ручной повтор; модуль `apps/integrations`; каталог v8.5, nav v64/shell v24.
 
 ## 6. Стартовый промт новой сессии (копируй как есть)
 ```
