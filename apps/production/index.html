@@ -21,7 +21,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <section class="screen active" id="s-list">
       <div class="hero"><h1>Производство</h1><p>Наряды и операции: план/факт, маршрут и заявка, приоритет и сроки. Основе цеха.</p></div>
       <div class="kpi-row" id="kpis"></div>
@@ -44,10 +44,10 @@
       <div class="card">
         <h2>Новый наряд</h2>
         <div class="msg" id="cMsg"></div>
-        <div class="field"><label>Название *</label><input type="text" id="fTitle" placeholder="Например: Фрезеровка кронштейна"></div>
+        <div class="field"><label>Название *</label><input type="text" id="fTitle" placeholder="Например: Фрезеровка кронштейна"><span class="hint">Кратко: изделие и операция.</span></div>
         <div class="grid2c">
-          <div class="field"><label>Рабочий центр</label><select id="fWc"></select></div>
-          <div class="field"><label>Исполнитель (логин)</label><input type="text" id="fAssignee" placeholder="master / operator"></div>
+          <div class="field"><label>Рабочий центр</label><select id="fWc"></select><span class="hint">Участок/станок, где выполняется наряд.</span></div>
+          <div class="field"><label>Исполнитель (логин)</label><input type="text" id="fAssignee" placeholder="master / operator"><span class="hint">Кто выполняет наряд.</span></div>
         </div>
         <div class="grid2c">
           <div class="field"><label>Заявка (источник)</label><select id="fOrder"><option value="">— без заявки —</option></select></div>
@@ -58,7 +58,7 @@
           <div class="field"><label>Срок</label><input type="date" id="fDue"></div>
         </div>
         <p class="note">Можно создать наряд из маршрута: «Справочники» → «Маршруты» → «Создать наряд из маршрута» (операции и нормо-часы добавятся автоматически).</p>
-        <button class="btn" id="createBtn">Создать наряд</button>
+        <button class="btn" id="createBtn" title="Создать наряд и передать в производство">Создать наряд</button>
       </div>
     </section>
 
@@ -73,7 +73,7 @@
           <div class="field"><label>Операция (из справочника)</label><select id="opSel"><option value="">— вручную —</option></select></div>
           <div class="field"><label>Или своё название</label><input type="text" id="opName" placeholder="Фрезеровка черновая"></div>
         </div>
-        <div class="field" style="max-width:200px;"><label>План, ч</label><input type="text" id="opPlan" inputmode="decimal" placeholder="4"></div>
+        <div class="field" style="max-width:200px;"><label>План, ч</label><input type="text" id="opPlan" inputmode="decimal" placeholder="4"><span class="hint">Плановое время операции.</span></div>
         <button class="btn secondary" id="addOp">＋ Добавить операцию</button>
         <div class="msg" id="opMsg"></div>
       </div>

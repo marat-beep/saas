@@ -25,7 +25,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Слоты и загрузка (P14 · Сессия D)</h1><p>Мощность рабочих центров по датам и сменам, бронирование часов, SLA и эскалация просрочек.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -36,7 +36,7 @@
         <div class="field"><label>Центр *</label><input type="text" id="fCenter" placeholder="Фрезерный участок"></div>
         <div class="field"><label>Дата *</label><input type="date" id="fDate"></div>
         <div class="field"><label>Смена</label><select id="fShift"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="night">Ночь</option></select></div>
-        <div class="field"><label>Мощность, ч</label><input type="number" step="any" id="fCap" value="8"></div>
+        <div class="field"><label>Мощность, ч</label><input type="number" step="any" id="fCap" value="8"><span class="hint">Доступные часы центра в смену — основа прогноза загрузки.</span></div>
       </div>
       <div class="btn-row mt"><button class="btn" id="fSave">Сохранить слот</button><button class="btn secondary" id="fClear">Очистить</button></div>
     </div>

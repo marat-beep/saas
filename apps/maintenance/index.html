@@ -19,7 +19,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Обслуживание и ремонт (ТОиР)</h1><p>Планы ТО/ППР по оборудованию, регистрация работ и история. Процессы ПР.17/ПР.19 — снижение простоев.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -40,7 +40,7 @@
         </div>
         <div class="grid2c">
           <div class="field"><label>Название</label><input type="text" id="pTitle" placeholder="ТО-1 фрезерного ЧПУ"></div>
-          <div class="field"><label>Периодичность, дней</label><input type="text" id="pPeriod" inputmode="numeric" placeholder="30"></div>
+          <div class="field"><label>Периодичность, дней</label><input type="text" id="pPeriod" inputmode="numeric" placeholder="30"><span class="hint">Через сколько дней повторять ТО.</span></div>
         </div>
         <div class="grid2c">
           <div class="field"><label>Последнее ТО</label><input type="date" id="pLast"></div>
@@ -71,7 +71,7 @@
           <div class="field"><label>Исполнитель</label><input type="text" id="rExec" placeholder="master / сервис"></div>
         </div>
         <div class="grid2c">
-          <div class="field"><label>Стоимость, ₽</label><input type="text" id="rCost" inputmode="decimal" placeholder="0"></div>
+          <div class="field"><label>Стоимость, ₽</label><input type="text" id="rCost" inputmode="decimal" placeholder="0"><span class="hint">Стоимость работы/запчастей — для учёта затрат на обслуживание.</span></div>
           <div class="field"><label>Что заменено</label><input type="text" id="rRepl" placeholder="подшипник, ремень…"></div>
         </div>
         <div class="field"><label>Что сделано</label><input type="text" id="rWorks" placeholder="замена смазки, чистка СОЖ…"></div>

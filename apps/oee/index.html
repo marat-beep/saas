@@ -23,7 +23,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>OEE-монитор</h1><p>Эффективность оборудования по сменам: доступность × качество, простои с причинами. Прототип B17.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -36,7 +36,7 @@
         <div class="field"><label>Смена</label><select id="fShift"><option value="1">1-я</option><option value="2">2-я</option><option value="night">Ночная</option></select></div>
       </div>
       <div class="grid3">
-        <div class="field"><label>Плановое время, мин *</label><input type="text" id="fPlan" inputmode="decimal" placeholder="480"></div>
+        <div class="field"><label>Плановое время, мин *</label><input type="text" id="fPlan" inputmode="decimal" placeholder="480"><span class="hint">Плановое время смены; OEE = доступность × производительность × качество.</span></div>
         <div class="field"><label>Работа, мин</label><input type="text" id="fRun" inputmode="decimal" placeholder="420"></div>
         <div class="field"><label>Простой, мин</label><input type="text" id="fDown" inputmode="decimal" placeholder="60"></div>
       </div>

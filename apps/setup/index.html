@@ -18,7 +18,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Наладка (B20 · Сессия G)</h1><p>Наладки/переналадки/пробные пуски: план и факт часов, исполнитель, привязка к наряду.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -29,7 +29,7 @@
         <div class="field"><label>Наряд</label><select id="fNaryad"><option value="">— не выбран —</option></select></div>
         <div class="field"><label>Оборудование *</label><input type="text" id="fEquip"></div>
         <div class="field"><label>Тип</label><select id="fType"><option value="setup">Наладка</option><option value="changeover">Переналадка</option><option value="trial">Пробный пуск</option><option value="adjust">Подналадка</option></select></div>
-        <div class="field"><label>План, ч</label><input type="number" step="any" id="fHours" value="1"></div>
+        <div class="field"><label>План, ч</label><input type="number" step="any" id="fHours" value="1"><span class="hint">Плановое время наладки (учитывается в загрузке).</span></div>
         <div class="field"><label>Исполнитель</label><input type="text" id="fAssignee"></div>
         <div class="field" style="display:flex;align-items:flex-end;gap:8px;"><button class="btn" id="fSave">Сохранить</button><button class="btn secondary" id="fClear">Очистить</button></div>
       </div>
