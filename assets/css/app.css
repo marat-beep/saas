@@ -189,6 +189,18 @@ input, select, textarea, button { font-family: inherit; }
   .topsearch { flex: 1 1 100%; order: 9; max-width: none; margin: 8px 0 0; }
 }
 
+/* Кнопка «Наверх» */
+.to-top { position: fixed; right: 18px; bottom: 18px; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--accent-700); font-size: 1.2rem; font-weight: 800; cursor: pointer; box-shadow: 0 6px 18px rgba(15,23,42,.16); display: none; z-index: 950; }
+.to-top.show { display: flex; align-items: center; justify-content: center; }
+.to-top:hover { background: var(--accent-100); }
+
+/* Компактнее сайдбар */
+.sh-side { padding: 8px 6px; }
+.sh-brand { padding: 6px 8px 10px; }
+.sh-item { padding: 6px 10px; font-size: .8rem; gap: 8px; border-radius: 8px; }
+.sh-group .sh-grp { padding: 6px 10px; margin-top: 4px; font-size: .66rem; }
+.sh-cnt { font-size: .68rem; }
+
 /* формы */
 .field { margin-bottom: 12px; }
 .field label { display: block; font-size: .78rem; font-weight: 600; margin-bottom: 5px; color: #334155; }

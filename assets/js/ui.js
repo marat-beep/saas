@@ -126,5 +126,18 @@
     return d.toLocaleDateString('ru-RU');
   }
 
+  /* Кнопка «Наверх» (на всех страницах) */
+  (function () {
+    function init() {
+      if (document.querySelector('.to-top')) return;
+      var b = document.createElement('button');
+      b.className = 'to-top'; b.type = 'button'; b.title = 'Наверх'; b.setAttribute('aria-label', 'Наверх'); b.textContent = '↑';
+      b.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+      document.body.appendChild(b);
+      window.addEventListener('scroll', function () { b.classList.toggle('show', window.scrollY > 300); }, { passive: true });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+  })();
+
   g.AppUI = { qs: qs, qsa: qsa, esc: esc, toast: toast, fmtDate: fmtDate, dialog: dialog, formDialog: formDialog, confirmDialog: confirmDialog };
 })(window);
