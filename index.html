@@ -51,7 +51,7 @@
   .kpi small { font-size: .62rem; }
   .kpi b { font-size: 1.05rem; }
   .checklist li { padding: 4px 0; }
-  #hubQuick, #hubTools { margin-bottom: 10px !important; }
+  #hubQuick { margin-bottom: 10px !important; }
   .stat-div { border-top: 1px solid var(--border); margin: 10px 0 8px; }
   .conn-det { margin-top: 6px; }
   .conn-det > summary { cursor: pointer; font-size: .78rem; color: var(--muted); font-weight: 600; outline: none; }
@@ -115,7 +115,6 @@
     </section>
 
     <div class="card" id="hubQuick" style="margin-bottom:16px;"></div>
-    <div class="card" id="hubTools" style="margin-bottom:16px;"></div>
     <script>if ('serviceWorker' in navigator && location.protocol === 'https:') { navigator.serviceWorker.register('sw.js', { scope: './' }).catch(function () {}); }</script>
 
     <section class="card">
@@ -197,7 +196,6 @@
           (editing ? '<span class="qx" data-del="' + a.id + '" title="Убрать">✕</span>' : '') + '</a>';
       }
 
-      var TOOLS = ['norms', 'calc', 'docbuilder', 'bom', 'forecast', 'labels', 'assistant', 'reports'];
       function bindCollapse(btnId, bodyId, onOpen) {
         var b = document.getElementById(btnId), body = document.getElementById(bodyId);
         if (!b || !body) return;
@@ -208,17 +206,6 @@
           b.textContent = open ? '▾' : '▸'; b.title = open ? 'Свернуть' : 'Развернуть';
           if (open && onOpen) onOpen();
         });
-      }
-
-      function renderTools(user, list) {
-        var el = document.getElementById('hubTools'); if (!el) return;
-        var byId = {}; list.forEach(function (a) { byId[a.id] = a; });
-        var tools = TOOLS.map(function (id) { return byId[id]; }).filter(Boolean);
-        if (!tools.length) { el.innerHTML = ''; return; }
-        el.innerHTML = '<div class="cardhead"><h2>🧰 Быстрые инструменты</h2><button class="cardx" id="toolsX" type="button"></button></div>' +
-          '<div class="cardbody" id="toolsBody"><p class="note">Простые калькуляторы и генераторы — в один клик. Ссылки ведут в функциональные модули.</p>' +
-          '<div class="qa">' + tools.map(function (a) { return chip(a, !!user); }).join('') + '</div></div>';
-        bindCollapse('toolsX', 'toolsBody');
       }
 
       function renderQuick(user, list) {
@@ -327,7 +314,6 @@
           return a.roles.indexOf(currentUser.role) >= 0;
         });
         renderQuick(currentUser, vis);
-        renderTools(currentUser, vis);
         renderApps(currentUser);
       }
 
