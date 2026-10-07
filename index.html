@@ -34,6 +34,13 @@
   .ann-zone { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
   .ann-tag { display: inline-block; font-size: .66rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--accent-700); background: #fff; border: 1px solid var(--border); border-radius: 999px; padding: 3px 10px; margin-bottom: 6px; }
   .ann-body { font-size: .84rem; }
+  .cardhead { display: flex; align-items: center; gap: 10px; }
+  .cardhead h2 { margin: 0; flex: 1; font-size: 1rem; }
+  .cardx { width: 32px; height: 32px; border: 1px solid var(--border); background: #fff; border-radius: 9px; color: var(--muted); font-size: 1rem; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .cardx:hover { border-color: var(--accent); color: var(--accent-700); background: var(--accent-100); }
+  .cardbtn { border: 1px solid var(--border); background: #fff; border-radius: 999px; padding: 6px 14px; font-size: .78rem; font-weight: 600; color: var(--text); cursor: pointer; }
+  .cardbtn:hover { border-color: var(--accent); color: var(--accent-700); background: var(--accent-100); }
+  .cardbody { margin-top: 10px; }
   .hub-hero h1 { font-size: 1.3rem; margin: 0 0 3px; }
   .hub-hero p { font-size: .82rem; line-height: 1.4; }
   .cab-ava { width: 42px; height: 42px; border-radius: 12px; font-size: 1.1rem; }
@@ -191,14 +198,27 @@
       }
 
       var TOOLS = ['norms', 'calc', 'docbuilder', 'bom', 'forecast', 'labels', 'assistant', 'reports'];
+      function bindCollapse(btnId, bodyId, onOpen) {
+        var b = document.getElementById(btnId), body = document.getElementById(bodyId);
+        if (!b || !body) return;
+        body.style.display = 'none'; b.textContent = '▸'; b.title = 'Развернуть';
+        b.addEventListener('click', function () {
+          var open = body.style.display === 'none';
+          body.style.display = open ? '' : 'none';
+          b.textContent = open ? '▾' : '▸'; b.title = open ? 'Свернуть' : 'Развернуть';
+          if (open && onOpen) onOpen();
+        });
+      }
+
       function renderTools(user, list) {
         var el = document.getElementById('hubTools'); if (!el) return;
         var byId = {}; list.forEach(function (a) { byId[a.id] = a; });
         var tools = TOOLS.map(function (id) { return byId[id]; }).filter(Boolean);
         if (!tools.length) { el.innerHTML = ''; return; }
-        el.innerHTML = '<h2>🧰 Быстрые инструменты</h2>' +
-          '<p class="note">Простые калькуляторы и генераторы — в один клик. Ссылки ведут в функциональные модули.</p>' +
-          '<div class="qa">' + tools.map(function (a) { return chip(a, !!user); }).join('') + '</div>';
+        el.innerHTML = '<div class="cardhead"><h2>🧰 Быстрые инструменты</h2><button class="cardx" id="toolsX" type="button"></button></div>' +
+          '<div class="cardbody" id="toolsBody"><p class="note">Простые калькуляторы и генераторы — в один клик. Ссылки ведут в функциональные модули.</p>' +
+          '<div class="qa">' + tools.map(function (a) { return chip(a, !!user); }).join('') + '</div></div>';
+        bindCollapse('toolsX', 'toolsBody');
       }
 
       function renderQuick(user, list) {
@@ -212,29 +232,37 @@
         ids = ids.filter(function (id) { return byId[id]; });
         var editing = false;
 
+        el.innerHTML = '<div class="cardhead"><h2>⭐ Мои быстрые кнопки</h2>' +
+          '<button class="cardbtn" id="qEdit" type="button">Изменить</button>' +
+          '<button class="cardx" id="quickX" type="button"></button></div>' +
+          '<div class="cardbody" id="quickBody"><p class="note">Ваши закреплённые модули и сервисы — под рукой. Добавляйте и убирайте сами.</p>' +
+          '<div class="qa" id="quickChips"></div><div id="qAddWrap"></div></div>';
+
         function save() { try { localStorage.setItem(key, JSON.stringify(ids)); } catch (e) {} }
         function render() {
-          var chips = ids.map(function (id) { return chip(byId[id], !!user, editing); }).join('');
-          var rest = list.filter(function (a) { return ids.indexOf(a.id) < 0; })
-            .map(function (a) { return '<option value="' + a.id + '">' + ui.esc(a.title) + '</option>'; }).join('');
-          el.innerHTML = '<h2 style="display:flex;align-items:center;gap:10px;">⭐ Мои быстрые кнопки' +
-            '<button class="tbtn" id="qEdit" type="button" style="margin-left:auto">' + (editing ? 'Готово' : 'Изменить') + '</button></h2>' +
-            '<p class="note">Ваши закреплённые модули и сервисы — под рукой. Добавляйте и убирайте сами.</p>' +
-            '<div class="qa">' + (chips || '<span class="note">Пока пусто — нажмите «Изменить».</span>') + '</div>' +
-            (editing ? '<div class="qa-add"><select id="qAddSel"><option value="">— добавить модуль —</option>' + rest + '</select>' +
-              '<button class="btn secondary" id="qAdd" type="button" style="width:auto;padding:8px 14px;">＋ Добавить</button></div>' : '');
-          var e = document.getElementById('qEdit');
-          if (e) e.addEventListener('click', function () { editing = !editing; render(); });
-          ui.qsa('#hubQuick [data-del]').forEach(function (x) {
-            x.addEventListener('click', function (ev) {
-              ev.preventDefault(); ev.stopPropagation();
-              ids = ids.filter(function (i) { return i !== x.getAttribute('data-del'); }); save(); render();
-            });
+          document.getElementById('quickChips').innerHTML = ids.map(function (id) { return chip(byId[id], !!user, editing); }).join('') ||
+            '<span class="note">Пока пусто — нажмите «Изменить».</span>';
+          var e = document.getElementById('qEdit'); if (e) e.textContent = editing ? 'Готово' : 'Изменить';
+          if (editing) {
+            var rest = list.filter(function (a) { return ids.indexOf(a.id) < 0; })
+              .map(function (a) { return '<option value="' + a.id + '">' + ui.esc(a.title) + '</option>'; }).join('');
+            document.getElementById('qAddWrap').innerHTML = '<div class="qa-add"><select id="qAddSel"><option value="">— добавить модуль —</option>' + rest + '</select>' +
+              '<button class="btn secondary" id="qAdd" type="button" style="width:auto;padding:8px 14px;">＋ Добавить</button></div>';
+            var add = document.getElementById('qAdd');
+            if (add) add.addEventListener('click', function () { var s = document.getElementById('qAddSel'); if (s && s.value) { ids.push(s.value); save(); render(); } });
+          } else { document.getElementById('qAddWrap').innerHTML = ''; }
+          ui.qsa('#quickChips [data-del]').forEach(function (x) {
+            x.addEventListener('click', function (ev) { ev.preventDefault(); ev.stopPropagation(); ids = ids.filter(function (i) { return i !== x.getAttribute('data-del'); }); save(); render(); });
           });
-          var add = document.getElementById('qAdd');
-          if (add) add.addEventListener('click', function () { var s = document.getElementById('qAddSel'); if (s && s.value) { ids.push(s.value); save(); render(); } });
         }
+        document.getElementById('qEdit').addEventListener('click', function () {
+          editing = !editing;
+          var body = document.getElementById('quickBody'), qx = document.getElementById('quickX');
+          if (editing && body.style.display === 'none') { body.style.display = ''; qx.textContent = '▾'; qx.title = 'Свернуть'; }
+          render();
+        });
         render();
+        bindCollapse('quickX', 'quickBody');
       }
 
       function renderApps(user) {
