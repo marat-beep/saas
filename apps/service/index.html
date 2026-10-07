@@ -43,6 +43,7 @@
       <button data-go="s-visits" data-cap="visits">🚚 Выезды</button>
       <button data-go="s-refs" data-cap="refs">🛡 Гарантии и контракты</button>
       <button data-go="s-reports" data-cap="reports">📈 KPI и отчёты</button>
+      <button data-go="s-access" data-cap="access">👥 Доступ по ролям</button>
     </div>
 
     <!-- ДАШБОРД -->
@@ -82,7 +83,7 @@
         </div>
         <div class="sv-actions" style="margin:10px 0;">
           <button class="btn secondary" data-cap="reports" id="reportBtn">📄 Отчёт PDF</button>
-          <button class="btn secondary" data-cap="visits" id="myBtn">🚚 Мои выезды</button>
+          <button class="btn secondary" data-cap="visits" id="myBtn">🚚 Выезды</button>
           <button class="btn secondary" data-cap="refs" id="refBtn">🛡 Гарантии/контракты</button>
           <button class="btn secondary" data-cap="iiot" id="iiotBtn" title="Создать заявки из ошибок ЧПУ (IIoT)">⚙ IIoT → заявки</button>
           <button class="btn" data-cap="new" id="newBtn">＋ Заявка</button>
@@ -110,6 +111,8 @@
           <button class="btn" data-cap="edit" id="stBtn">Сменить статус</button>
           <button class="btn secondary" data-cap="assign" id="assignBtn">Назначить выезд</button>
           <button class="btn secondary" data-cap="edit" id="commentBtn">Комментарий</button>
+          <button class="btn" data-cap="edit" id="completeBtn">✅ Завершить с отчётом</button>
+          <button class="btn secondary" data-cap="edit" id="issueBtn">⚠ Проблема</button>
           <button class="btn secondary" data-cap="supply" id="supplyBtn">📦 Снабжение</button>
           <button class="btn secondary" data-cap="act" id="actBtn">🖨 Акт</button>
           <button class="btn secondary" data-cap="passport" id="passportBtn">🪪 Паспорт станка</button>
@@ -132,8 +135,9 @@
     <!-- ВЫЕЗДЫ -->
     <section class="screen" id="s-visits" data-cap="visits">
       <div class="card">
-        <h2>Мои выезды</h2>
-        <p class="note">Незакрытые выезды, назначенные на вас. Статусы можно менять офлайн — синхронизируется автоматически.</p>
+        <h2>Выезды службы</h2>
+        <p class="note">Выезды организации (обезличенно): заявка, оборудование, место, приоритет и SLA. Нажмите на выезд, чтобы открыть заявку с полной информацией и функциями. Статусы меняются офлайн — синхронизируется автоматически.</p>
+        <div class="toolbar"><input type="search" class="search" id="vq" placeholder="Поиск: заявка, станок, инженер, место…"></div>
         <div class="msg" id="mMsg"></div>
         <div id="myList"><span class="note">Загрузка…</span></div>
       </div>
@@ -176,6 +180,15 @@
         </div>
         <div class="msg" id="repMsg"></div>
         <div id="repTable" style="overflow:auto;"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <!-- ДОСТУП ПО РОЛЯМ -->
+    <section class="screen" id="s-access" data-cap="access">
+      <div class="card">
+        <h2>Матрица доступа: роли и разделы сервиса</h2>
+        <p class="note">Какие дашборды и разделы видит каждая роль службы (по оргструктуре предприятия).</p>
+        <div id="accessMatrix" style="overflow:auto;"><span class="note">Загрузка…</span></div>
       </div>
     </section>
 

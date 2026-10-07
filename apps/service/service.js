@@ -27,11 +27,11 @@
   var screens = AppRouter.create({ onShow: function () { window.scrollTo(0, 0); }, onBackEmpty: function () { location.href = '../../index.html'; } });
 
   /* ---------- Роли: доступные функции (оргструктура службы) ---------- */
-  var ALL = { dash:1, list:1, visits:1, refs:1, reports:1, new:1, edit:1, assign:1, supply:1, act:1, passport:1, parts:1, rules:1, iiot:1 };
+  var ALL = { dash:1, list:1, visits:1, refs:1, reports:1, access:1, new:1, edit:1, assign:1, supply:1, act:1, passport:1, parts:1, rules:1, iiot:1 };
   var CAPS = {
     admin: ALL, owner: ALL, director: ALL,
-    manager: { dash:1, list:1, visits:1, refs:1, reports:1, new:1, edit:1, assign:1, supply:1, act:1, passport:1, parts:1, iiot:1, rules:1 },
-    chief:   { dash:1, list:1, visits:1, refs:1, reports:1, new:1, edit:1, assign:1, supply:1, act:1, passport:1, parts:1, iiot:1, rules:1 },
+    manager: { dash:1, list:1, visits:1, refs:1, reports:1, access:1, new:1, edit:1, assign:1, supply:1, act:1, passport:1, parts:1, iiot:1, rules:1 },
+    chief:   { dash:1, list:1, visits:1, refs:1, reports:1, access:1, new:1, edit:1, assign:1, supply:1, act:1, passport:1, parts:1, iiot:1, rules:1 },
     support: { list:1, new:1, edit:1, assign:1, act:1, visits:1, passport:1 },
     master:  { list:1, visits:1, edit:1, act:1, passport:1, parts:1 },
     qc:      { list:1, visits:1, edit:1, act:1, passport:1 },
@@ -49,7 +49,7 @@
   function setActiveTab(id) {
     $$('#tabs button').forEach(function (b) { b.classList.toggle('active', b.dataset.go === id); });
   }
-  function go(id) { setActiveTab(id); screens.go(id); if (id === 's-visits') loadMyVisits(); if (id === 's-refs') { loadRefs(); loadRules(); loadEngineerLoad(); } if (id === 's-reports') loadReports(); if (id === 's-dash') renderDash(); }
+  function go(id) { setActiveTab(id); screens.go(id); if (id === 's-visits') loadMyVisits(); if (id === 's-refs') { loadRefs(); loadRules(); loadEngineerLoad(); } if (id === 's-reports') loadReports(); if (id === 's-dash') renderDash(); if (id === 's-access') renderAccess(); }
 
   function load() {
     return Promise.all([
@@ -269,27 +269,40 @@
     rpc('app_spare_parts_list', { p_token: token }).then(function (r) { spareParts = r || []; if (!spareParts.length) { msg('#iMsg', 'Нет запчастей на складе', 'err'); return; } go(); });
   }
 
-  /* ---------- Мои выезды (мобильный режим) ---------- */
+  /* ---------- Выезды службы (обезличенно) ---------- */
+  var visitBoard = [], vq = '';
   function loadMyVisits() {
-    rpc('app_service_my_visits', { p_token: token, p_engineer: null }).then(function (r) {
-      r = r || [];
-      $('#myList').innerHTML = r.length ? r.map(function (v) {
-        return '<div class="ocard"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><b>' + esc(v.number) + '</b>' +
-          (v.sla_state === 'overdue' ? '<span class="badge sla-overdue">SLA просрочен</span>' : v.sla_state === 'warn' ? '<span class="badge sla-warn">SLA истекает</span>' : '') +
-          '<span class="badge">' + (VST[v.status] || v.status) + '</span></div>' +
-          '<div style="font-size:.82rem;margin-top:4px;">' + esc(v.title || '') + '</div>' +
-          '<div class="note">' + (v.equipment ? '🏭 ' + esc(v.equipment) + ' · ' : '') + (v.place ? '📍 ' + esc(v.place) + ' · ' : '') + 'план ' + fmtTs(v.planned_at) + '</div>' +
-          '<div class="toolbar mt"><button class="act" data-mv="in_work" data-vid="' + v.visit_id + '">В работе</button>' +
-          '<button class="act" data-mv="done" data-vid="' + v.visit_id + '">Завершить</button></div></div>';
-      }).join('') : '<span class="note">Активных выездов нет.</span>';
-      $$('#myList [data-mv]').forEach(function (b) {
-        b.addEventListener('click', function () {
-          callOffline('app_service_visit_status', { p_token: token, p_visit_id: b.dataset.vid, p_status: b.dataset.mv, p_report: null }, 'выезд ' + b.dataset.mv, function () {
-            window.Auth.log('Сервис выезд', b.dataset.mv); loadMyVisits();
-          });
+    rpc('app_service_visit_board', { p_token: token, p_days: 30 }).then(function (r) {
+      visitBoard = r || []; renderVisits();
+    }).catch(function () { $('#myList').innerHTML = '<span class="note">Недоступно.</span>'; });
+  }
+  function renderVisits() {
+    var s = vq.toLowerCase();
+    var rows = visitBoard.filter(function (v) { return !s || [v.number, v.title, v.equipment, v.engineer, v.place].join(' ').toLowerCase().indexOf(s) >= 0; });
+    $('#myList').innerHTML = rows.length ? rows.map(function (v) {
+      return '<div class="ocard" data-open="' + v.request_id + '" style="cursor:pointer;">' +
+        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">' + prioBadge(v.priority) +
+        (v.sla_state === 'overdue' ? '<span class="badge sla-overdue">SLA просрочен</span>' : v.sla_state === 'warn' ? '<span class="badge sla-warn">SLA истекает</span>' : '') +
+        '<span class="badge">' + (VST[v.status] || v.status) + '</span>' +
+        '<b style="margin-left:auto;">' + esc(v.number) + '</b></div>' +
+        '<div style="font-size:.84rem;margin-top:4px;">' + esc(v.title || '') + '</div>' +
+        '<div class="note">' + (v.equipment ? '🏭 ' + esc(v.equipment) + ' · ' : '') + (v.place ? '📍 ' + esc(v.place) + ' · ' : '') +
+        (v.fault_code ? '⚠ ' + esc(v.fault_code) + ' · ' : '') + 'инженер: ' + esc(v.engineer || '—') + ' · план ' + fmtTs(v.planned_at) + '</div>' +
+        '<div class="toolbar mt"><button class="act" data-mv="on_way" data-vid="' + v.visit_id + '">В пути</button>' +
+        '<button class="act" data-mv="in_work" data-vid="' + v.visit_id + '">В работе</button>' +
+        '<button class="act" data-mv="done" data-vid="' + v.visit_id + '">Завершить выезд</button></div></div>';
+    }).join('') : '<span class="note">Выездов нет.</span>';
+    $$('#myList [data-open]').forEach(function (c) {
+      c.addEventListener('click', function (e) { if (e.target.closest('[data-mv]')) return; openItem(c.dataset.open); });
+    });
+    $$('#myList [data-mv]').forEach(function (b) {
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        callOffline('app_service_visit_status', { p_token: token, p_visit_id: b.dataset.vid, p_status: b.dataset.mv, p_report: null }, 'выезд ' + b.dataset.mv, function () {
+          window.Auth.log('Сервис выезд', b.dataset.mv); loadMyVisits();
         });
       });
-    }).catch(function () { $('#myList').innerHTML = '<span class="note">Недоступно.</span>'; });
+    });
   }
 
   /* ---------- Гарантии и контракты ---------- */
@@ -467,6 +480,40 @@
     });
   }
 
+  /* ---------- Завершение работы и проблемы (инженер) ---------- */
+  function pnum(v) { var n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isNaN(n) ? null : n; }
+  function completeForm() {
+    if (!cur) return;
+    ui.formDialog({ title: 'Завершить работу', okText: 'Завершить и закрыть', size: 'lg', fields: [
+      { name: 'works', label: 'Работы', type: 'text', value: cur.works || '' },
+      { name: 'solution', label: 'Решение / результат *', type: 'textarea', rows: 3, required: true },
+      { name: 'labor_hours', label: 'Трудозатраты, ч', type: 'text' },
+      { name: 'downtime_hours', label: 'Простой, ч', type: 'text' },
+      { name: 'cost', label: 'Стоимость работ, ₽', type: 'text', value: cur.cost != null ? String(cur.cost) : '' }
+    ] }).then(function (v) { if (!v) return;
+      rpc('app_service_complete', { p_token: token, p_id: cur.id, p_works: v.works, p_solution: v.solution, p_labor_hours: pnum(v.labor_hours), p_downtime_hours: pnum(v.downtime_hours), p_cost: pnum(v.cost) })
+        .then(function (d) { var r = d && d[0]; msg('#iMsg', r ? r.message : '', r && r.ok ? 'ok' : 'err'); if (r && r.ok) { window.Auth.log('Сервис завершение', cur.number); if (window.AppNotify) window.AppNotify.refresh(true); load().then(function () { openItem(cur.id); }); } });
+    });
+  }
+  function escalateForm() {
+    if (!cur) return;
+    ui.formDialog({ title: 'Эскалация в проблему', okText: 'Создать проблему', fields: [{ name: 'note', label: 'Описание проблемы', type: 'textarea', rows: 3, required: true }] })
+      .then(function (v) { if (!v) return;
+        rpc('app_service_escalate', { p_token: token, p_id: cur.id, p_note: v.note })
+          .then(function (d) { var r = d && d[0]; msg('#iMsg', r ? r.message : '', r && r.ok ? 'ok' : 'err'); if (r && r.ok) { window.Auth.log('Сервис проблема', cur.number); loadDetail(cur.id); } });
+      });
+  }
+  function renderAccess() {
+    var roles = [['admin', 'Администратор'], ['owner', 'Владелец'], ['director', 'Руководитель предприятия'], ['chief', 'Главный инженер'], ['manager', 'Диспетчер (manager)'], ['support', 'Поддержка'], ['master', 'Сервисный инженер'], ['qc', 'ОТК (qc)']];
+    var cols = [['dash', 'Дашборд'], ['list', 'Заявки'], ['visits', 'Выезды'], ['refs', 'Гарантии/контракты'], ['reports', 'KPI и отчёты'], ['access', 'Матрица'], ['new', 'Создать заявку'], ['edit', 'Статус/отчёт'], ['assign', 'Назначить выезд'], ['supply', 'Снабжение'], ['rules', 'Правила IIoT'], ['act', 'Акт'], ['passport', 'Паспорт станка']];
+    var h = '<table class="tbl"><thead><tr><th>Роль</th>' + cols.map(function (c) { return '<th>' + c[1] + '</th>'; }).join('') + '</tr></thead><tbody>';
+    roles.forEach(function (rw) {
+      var caps = capsFor(rw[0]);
+      h += '<tr><td><b>' + rw[1] + '</b><br><span class="note">' + rw[0] + '</span></td>' + cols.map(function (c) { return '<td style="text-align:center;">' + (caps[c[0]] ? '✅' : '—') + '</td>'; }).join('') + '</tr>';
+    });
+    $('#accessMatrix').innerHTML = h + '</tbody></table>';
+  }
+
   /* ---------- Цифровой паспорт станка ---------- */
   var passportData = null;
   function openPassport() {
@@ -510,6 +557,9 @@
 
   $('#reportBtn').addEventListener('click', reportPdf);
   $('#supplyBtn').addEventListener('click', supplyForm);
+  $('#completeBtn').addEventListener('click', completeForm);
+  $('#issueBtn').addEventListener('click', escalateForm);
+  $('#vq').addEventListener('input', function () { vq = this.value; renderVisits(); });
   $('#passportBtn').addEventListener('click', openPassport);
   $('#passportPdf').addEventListener('click', passportPdf);
   $('#backE').addEventListener('click', function () { if (cur) screens.go('s-item'); else go('s-list'); });
