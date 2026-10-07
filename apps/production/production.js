@@ -10,6 +10,12 @@
 
   var ST = { open: 'Открыт', in_progress: 'В работе', closed: 'Закрыт' };
   var PR = { high: 'Высокий', normal: 'Обычный', low: 'Низкий' };
+
+  /* ---------- Роли (data-cap) ---------- */
+  var ALL = { edit: 1, reports: 1 };
+  var CAPS = { admin: ALL, owner: ALL, director: ALL, manager: ALL, chief: ALL, master: { edit: 1 }, technologist: { edit: 1 }, operator: { edit: 1 }, default: { reports: 1 } };
+  function can(c) { return !!(me && (CAPS[me.role] || CAPS['default'])[c]); }
+  function applyCaps() { $$('[data-cap]').forEach(function (el) { var n = (el.dataset.cap || '').split('|'); if (!n.some(can)) el.style.display = 'none'; }); }
   function stBadge(s) { return '<span class="badge ' + (s === 'closed' ? 'done' : s) + '">' + (ST[s] || s) + '</span>'; }
   function esc(v) { return ui.esc(v); }
   function fmt(ts) { if (!ts) return ''; var d = new Date(ts); return isNaN(d.getTime()) ? String(ts) : d.toLocaleDateString('ru-RU'); }
@@ -113,6 +119,29 @@
     });
   }
 
+  /* ---------- Отчёт (производство) ---------- */
+  function reportPdf() {
+    if (!window.AppExport) { ui.toast('Экспорт недоступен'); return; }
+    var plan = naryads.reduce(function (s, n) { return s + num(n.plan_hours); }, 0);
+    var fact = naryads.reduce(function (s, n) { return s + num(n.fact_hours); }, 0);
+    var cols = [
+      { key: 'number', label: 'Наряд' }, { key: 'title', label: 'Название' },
+      { key: 'status', label: 'Статус', value: function (n) { return ST[n.status] || n.status; } },
+      { key: 'priority', label: 'Приоритет', value: function (n) { return PR[n.priority] || n.priority; } },
+      { key: 'wc_name', label: 'Центр' }, { key: 'assignee', label: 'Исполнитель' },
+      { key: 'plan_hours', label: 'План,ч', num: true }, { key: 'fact_hours', label: 'Факт,ч', num: true },
+      { key: 'ops_done', label: 'Опер. вып./всего', num: true, value: function (n) { return num(n.ops_done) + '/' + num(n.ops_total); } },
+      { key: 'due_date', label: 'Срок', value: function (n) { return n.due_date ? String(n.due_date).slice(0, 10) : ''; } }
+    ];
+    AppExport.exportPdf('Производство — отчёт', AppExport.reportDocument({
+      brand: '3DMP Service', title: 'Отчёт по производству (наряды)', subtitle: new Date().toLocaleDateString('ru-RU'),
+      kpis: [{ label: 'Нарядов', value: naryads.length }, { label: 'План, ч', value: Math.round(plan * 10) / 10 }, { label: 'Факт, ч', value: Math.round(fact * 10) / 10 }],
+      sections: [{ title: 'Наряды', columns: cols, rows: naryads }],
+      sign: ['Начальник производства', 'Главный инженер'], footer: '3DMP Service · производство'
+    }));
+  }
+  $('#repBtn').addEventListener('click', reportPdf);
+
   $('#toCreate').addEventListener('click', function () { clearMsg('#cMsg'); screens.go('s-create'); });
   $('#back1').addEventListener('click', function () { screens.go('s-list'); });
   $('#back2').addEventListener('click', function () { loadAll(); screens.go('s-list'); });
@@ -173,7 +202,7 @@
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
-    me = s; token = s.token;
+    me = s; token = s.token; applyCaps();
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#listMsg', 'Supabase не подключён.', 'err'); return; }
     loadAll();

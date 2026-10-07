@@ -25,6 +25,13 @@
     <section class="screen active" id="s-list">
       <div class="hero"><h1>Производство</h1><p>Наряды и операции: план/факт, маршрут и заявка, приоритет и сроки. Основе цеха.</p></div>
       <div class="kpi-row" id="kpis"></div>
+    <div class="sv-actions" style="margin-top:10px;">
+      <button class="btn secondary" data-cap="reports" id="repBtn">📄 Отчёт PDF</button>
+      <a class="btn secondary" href="../orders/index.html">📥 Заказы ↗</a>
+      <a class="btn secondary" href="../registry/index.html">🧭 Маршруты ↗</a>
+      <a class="btn secondary" href="../mes/index.html">🌀 MES ↗</a>
+      <a class="btn secondary" href="../oee/index.html">📊 OEE ↗</a>
+    </div>
       <div class="card mt">
         <div class="toolbar">
           <input type="search" class="search" id="q" placeholder="Поиск: номер, наряд, центр, исполнитель, заявка…">
@@ -32,7 +39,7 @@
             <span class="chip active" data-f="">Все</span><span class="chip" data-f="open">Открытые</span>
             <span class="chip" data-f="in_progress">В работе</span><span class="chip" data-f="closed">Закрытые</span>
           </div>
-          <button class="btn" id="toCreate" style="width:auto;padding:11px 18px;">＋ Новый наряд</button>
+          <button class="btn" data-cap="edit" id="toCreate" style="width:auto;padding:11px 18px;">＋ Новый наряд</button>
         </div>
         <div id="listMsg"></div>
         <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
@@ -58,7 +65,7 @@
           <div class="field"><label>Срок</label><input type="date" id="fDue"></div>
         </div>
         <p class="note">Можно создать наряд из маршрута: «Справочники» → «Маршруты» → «Создать наряд из маршрута» (операции и нормо-часы добавятся автоматически).</p>
-        <button class="btn" id="createBtn" title="Создать наряд и передать в производство">Создать наряд</button>
+        <button class="btn" data-cap="edit" id="createBtn" title="Создать наряд и передать в производство">Создать наряд</button>
       </div>
     </section>
 
@@ -74,7 +81,7 @@
           <div class="field"><label>Или своё название</label><input type="text" id="opName" placeholder="Фрезеровка черновая"></div>
         </div>
         <div class="field" style="max-width:200px;"><label>План, ч</label><input type="text" id="opPlan" inputmode="decimal" placeholder="4"><span class="hint">Плановое время операции.</span></div>
-        <button class="btn secondary" id="addOp">＋ Добавить операцию</button>
+        <button class="btn secondary" data-cap="edit" id="addOp">＋ Добавить операцию</button>
         <div class="msg" id="opMsg"></div>
       </div>
       <div class="card">
@@ -92,8 +99,8 @@
           <div class="field"><label>План-старт</label><input type="date" id="uStart"></div>
           <div class="field"><label>Примечание</label><input type="text" id="uNote"></div>
         </div>
-        <button class="btn secondary" id="saveBtn">Сохранить параметры</button>
-        <button class="btn mt" id="closeBtn">Закрыть наряд</button>
+        <button class="btn secondary" data-cap="edit" id="saveBtn">Сохранить параметры</button>
+        <button class="btn mt" data-cap="edit" id="closeBtn">Закрыть наряд</button>
       </div>
     </section>
   </main>
@@ -108,9 +115,10 @@
   <script src="../../assets/js/router.js?v=1"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=76"></script>
-  <script src="../../assets/js/shell.js?v=37"></script>
-  <script src="production.js?v=3"></script>
+  <script src="../../assets/js/nav.js?v=77"></script>
+  <script src="../../assets/js/shell.js?v=38"></script>
+  <script src="../../assets/js/export.js?v=1"></script>
+  <script src="production.js?v=4"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>
