@@ -10,7 +10,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 **Не льётся:** `supabase/`, `docs/`, `tools/`, `dist/`, `.git`, `README.md`, `AGENTS.md`.
 
 ## 2. База данных
-- Миграции `supabase/migrations/0001…0155` + пересобранный `supabase/apply_all.sql`.
+- Миграции `supabase/migrations/0001…0156` + пересобранный `supabase/apply_all.sql`.
 - Применение — Supabase → SQL Editor → вставить `apply_all.sql` → Run (либо Management API, UTF-8).
 - Смоук: `select * from app_smoke_test(:token);` (10/10) и `app_smoke_test_ext(:token)` (14/14).
 
@@ -34,6 +34,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 - [ ] Отметки в `BACKLOG.md`, `PLAN_WAVES.md`, `STATUS.md`, `NOTES.md`, `PROMPTS.md`.
 
 ## 6. Журнал релизов (последнее)
+- **v207 (миграция `0156`)** — W11 ИИ: авто-нормирование, CV-ОТК, цифровой двойник, помощник по БЗ, журнал задач; модуль `apps/ai`; каталог v10.10, nav v89/shell v51.
 - **v206 (миграция `0155`)** — W10 enterprise-права и аудит: наборы прав, делегирование, согласования, расширенный аудит; модуль `apps/access`; каталог v10.9, nav v88/shell v50.
 - **v205 (миграция `0154`)** — W9 MES/APS/IIoT: APS-автоплан, коннекторы OPC UA/MTConnect, приём телеметрии, OEE онлайн, износ инструмента; `apps/planning`+`apps/iiot`; каталог v10.8, nav v87/shell v49.
 - **v204 (миграция `0153`)** — W8 аналитика L4: конструктор отчётов, прогноз спроса/рисков, предиктив ТОиР; `apps/reports`+`apps/forecast`; каталог v10.7, nav v86/shell v48.

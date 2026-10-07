@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ИИ-помощник — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=35">
+<style>
+  .ai-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+  .ai-card{border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:#fff}
+  .ai-card h4{margin:0 0 4px;font-size:.92rem}
+  .ai-card small{color:var(--muted);display:block}
+  .bar{height:9px;border-radius:6px;background:#eef2f7;overflow:hidden;min-width:70px}
+  .bar i{display:block;height:100%;background:var(--accent)}
+  .badge.ok2{background:#dcfce7;color:#166534}.badge.warn2{background:#fef3c7;color:#92400e}.badge.bad2{background:#fee2e2;color:#991b1b}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .ai-answer{white-space:pre-wrap;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:12px}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🤖</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap fluid">
+    <div class="hero"><h1>ИИ-помощник (W11)</h1><p>Авто-нормирование по нормам и факту, CV-ОТК по фото (эвристика + задел под внешнюю модель), цифровой двойник — рекомендации по срокам/запасам/инструменту/загрузке, помощник по базе знаний.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="tabs2" id="tabs">
+      <button data-scr="norm" class="active">Авто-нормирование</button>
+      <button data-scr="cv">CV-ОТК</button>
+      <button data-scr="twin">Цифровой двойник</button>
+      <button data-scr="ask">Помощник</button>
+      <button data-scr="jobs">Журнал ИИ-задач</button>
+    </div>
+
+    <section class="screen active" id="scr-norm">
+      <div class="card">
+        <div class="toolbar"><button class="btn secondary" id="normBtn" style="width:auto;padding:8px 14px;">Рассчитать</button>
+          <button class="btn" id="normApply" style="width:auto;padding:8px 14px;">Применить выбранные</button>
+          <span class="note" style="margin-left:auto;">Предложение по нормам: из действующих норм и среднего факта; confidence растёт с числом наблюдений.</span></div>
+        <div class="msg" id="nMsg"></div>
+        <div id="norm" class="mt"><span class="note">Нажмите «Рассчитать».</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-cv">
+      <div class="card">
+        <div class="toolbar"><label class="note">Проверка ОТК:</label><select id="cvSel" style="padding:9px;border:1px solid var(--border);border-radius:9px;min-width:260px;"></select>
+          <button class="btn" id="cvBtn" style="width:auto;padding:8px 14px;">Оценить</button>
+          <span class="note" style="margin-left:auto;">Пилот CV-ОТК: доля брака по чек-листу и фото; реальная CV-модель подключается через интеграции.</span></div>
+        <div class="msg" id="cMsg"></div>
+        <div id="cvRes" class="mt"><span class="note">Выберите проверку и нажмите «Оценить».</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-twin">
+      <div class="card">
+        <div class="toolbar"><button class="btn secondary" id="twinBtn" style="width:auto;padding:8px 14px;">Обновить</button>
+          <span class="note" style="margin-left:auto;">Цифровой двойник: узкие места по срокам, запасам, инструменту и загрузке.</span></div>
+        <div class="msg" id="tMsg"></div>
+        <div class="ai-grid mt" id="twin"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-ask">
+      <div class="card">
+        <div class="toolbar"><input type="text" class="search" id="askQ" placeholder="Вопрос по работе сервиса…" style="flex:1;min-width:220px;">
+          <button class="btn" id="askBtn" style="width:auto;padding:9px 16px;">Спросить</button></div>
+        <div class="msg" id="aMsg"></div>
+        <div id="askRes" class="mt"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-jobs">
+      <div class="card">
+        <div class="toolbar"><label class="note">Тип:</label><select id="jKind" style="padding:9px;border:1px solid var(--border);border-radius:9px;">
+          <option value="">Все</option><option value="norming">Нормирование</option><option value="cv_qc">CV-ОТК</option><option value="twin">Двойник</option><option value="llm">Помощник</option>
+        </select><button class="btn secondary" id="jobsBtn" style="width:auto;padding:8px 14px;">Обновить</button></div>
+        <div id="jobs" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">3DMP Service · ИИ-помощник</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=4"></script>
+  <script src="../../assets/js/auth.js?v=6"></script>
+  <script src="../../assets/js/notify.js?v=3"></script>
+  <script src="../../assets/js/support-widget.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=89"></script>
+  <script src="../../assets/js/shell.js?v=51"></script>
+  <script src="ai.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=2"></script>
+  <script src="../../assets/js/module-info.js?v=1"></script>
+</body>
+</html>

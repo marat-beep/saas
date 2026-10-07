@@ -8,7 +8,7 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '10.9',
+  version: '10.10',
   updated: '07.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
@@ -26,7 +26,7 @@ window.AppCatalog = {
     hr:39, departments:40, staff:41, org:42, roles:43,
     dicts:44, config:45, reverse:46, partners:47, equipment:48, suppliers:49, procurement:50, supplier:51,
     marketplace:52, escrow:53, labels:54, engraving:55, files:56, builder:57, industry:58, usage:59, adoption:60,
-    guide:61, modules:62, platform:63, admin:64, diagnostics:65, scale:66, whitelabel:67, api:68, announcements:69, integrations:72, billing:73, access:74, eco:99
+    guide:61, modules:62, platform:63, admin:64, diagnostics:65, scale:66, whitelabel:67, api:68, announcements:69, integrations:72, billing:73, access:74, ai:75, eco:99
   },
   implOrderOf: function (id) { return (this.implOrder && this.implOrder[id]) || 999; },
   priorityOf: function (id) { var n = this.implOrderOf(id); return n <= 9 ? 1 : (n <= 21 ? 2 : (n <= 33 ? 3 : 4)); },
@@ -495,6 +495,13 @@ window.AppCatalog = {
       purpose: 'Выгрузки и отчётность: наборы данных в PDF/DOC/CSV/JSON, сводный отчёт KPI и конструктор отчётов L4 — сохранённые определения (набор, колонки, фильтры, группировка/агрегация, график) с запуском и выгрузкой.',
       features: ['Наборы: заявки/наряды/закупки/склад/паспорта/счета/экономика/ОТК/маршруты', 'Экспорт PDF/DOC/CSV/JSON', 'Сводный отчёт KPI', 'Конструктор отчётов (app_report_defs): колонки/фильтры/группировка/агрегация', 'График (столбцы/линия)', 'Сохранение и повторный запуск'],
       connects: ['economics', 'bi', 'orders', 'forecast'], out: 'Файлы/печать/сохранённые отчёты'
+    },
+    {
+      id: 'ai', icon: '🤖', title: 'ИИ-помощник', href: 'apps/ai/index.html', guest: false, group: 'production', audience: 'user',
+      desc: 'W11: авто-нормирование, CV-ОТК по фото, цифровой двойник, помощник по базе знаний.',
+      purpose: 'ИИ-пилоты на реальных данных: авто-нормирование (app_ai_norming_suggest — эвристики по нормам и факту с достоверностью; app_ai_norming_apply — запись в app_norms); CV-ОТК по фото (app_ai_cv_qc — доля брака и вердикт; задел под внешнюю CV-модель через интеграции); цифровой двойник (app_ai_twin — узкие места: сроки, запасы, инструмент, загрузка); помощник по базе знаний (app_ai_ask); журнал ИИ-задач (app_ai_jobs).',
+      features: ['Авто-нормирование (нормы + факт, confidence)', 'Применение норм в app_norms', 'CV-ОТК по фото (доля брака, вердикт)', 'Цифровой двойник: рекомендации по узким местам', 'Помощник по базе знаний', 'Журнал ИИ-задач и KPI'],
+      connects: ['norms', 'production', 'qc', 'warehouse', 'maintenance', 'tooling', 'assistant', 'forecast'], in_: 'Нормы, факт, ОТК, запасы, ТОиР', out: 'Рекомендации и нормы'
     },
     {
       id: 'industry', icon: '📊', title: 'Отраслевая аналитика', href: 'apps/industry/index.html', guest: false, group: 'platform', audience: 'user',
