@@ -14,7 +14,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <section class="screen active" id="s-list">
       <div class="hero"><h1>Документы</h1><p>КП, договоры, техкарты и акты с версиями. Сквозная цепочка: заявка → КП → договор → акт, далее счёт и наряд.</p></div>
       <div class="kpi-row" id="kpi"></div>
@@ -38,23 +38,23 @@
         <h2>Новый документ</h2>
         <div class="msg" id="nMsg"></div>
         <div class="grid2c">
-          <div class="field"><label>Тип</label><select id="fType"><option value="kp">КП</option><option value="contract">Договор</option><option value="techcard">Техкарта</option><option value="act">Акт</option><option value="other">Другое</option></select></div>
-          <div class="field"><label>Название *</label><input type="text" id="fTitle" placeholder="КП на оснастку"></div>
+          <div class="field"><label>Тип</label><select id="fType"><option value="kp">КП</option><option value="contract">Договор</option><option value="techcard">Техкарта</option><option value="act">Акт</option><option value="other">Другое</option></select><span class="hint">Тип влияет на поля (напр. срок действия — для КП) и префикс номера.</span></div>
+          <div class="field"><label>Название *</label><input type="text" id="fTitle" placeholder="КП на оснастку"><span class="hint">Краткое название документа.</span></div>
         </div>
         <div class="grid2c">
-          <div class="field"><label>Заявка (заказ)</label><select id="fOrder"><option value="">— нет —</option></select></div>
+          <div class="field"><label>Заявка (заказ)</label><select id="fOrder"><option value="">— нет —</option></select><span class="hint">Привязка к заявке — документ попадёт в её «Связи».</span></div>
           <div class="field"><label>Заказчик (CRM)</label><select id="fCustomerSel"><option value="">— не выбран —</option></select></div>
         </div>
         <div class="grid2c">
           <div class="field"><label>Контрагент (если не из CRM)</label><input type="text" id="fCounter" placeholder="ООО «Привод»"></div>
-          <div class="field"><label>Сумма, ₽</label><input type="text" id="fAmount" inputmode="decimal" placeholder="184000"></div>
+          <div class="field"><label>Сумма, ₽</label><input type="text" id="fAmount" inputmode="decimal" placeholder="184000"><span class="hint">Итоговая сумма (для КП/договора/счёта).</span></div>
         </div>
         <div class="grid2c">
-          <div class="field"><label>Срок действия (для КП)</label><input type="date" id="fValid"></div>
+          <div class="field"><label>Срок действия (для КП)</label><input type="date" id="fValid"><span class="hint">До какой даты действительно КП.</span></div>
           <div class="field"><label>Исполнитель (логин)</label><input type="text" id="fAssignee" placeholder="manager"></div>
         </div>
         <div class="field"><label>Содержание</label><textarea id="fContent" rows="5" placeholder="Текст документа…" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;font:inherit;"></textarea></div>
-        <button class="btn" id="createBtn">Создать документ</button>
+        <button class="btn" id="createBtn" title="Создать документ (версия 1)">Создать документ</button>
       </div>
     </section>
 

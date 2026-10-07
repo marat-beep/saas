@@ -21,7 +21,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Реестр ТКП</h1><p>Технико-коммерческие предложения: срок действия, цена, статусы. Связь с заявкой и КП.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -29,14 +29,14 @@
       <h2>Новое ТКП</h2>
       <div class="msg" id="fMsg"></div>
       <div class="grid3">
-        <div class="field"><label>Заказчик</label><select id="fCust"><option value="">— выберите —</option></select></div>
-        <div class="field"><label>Предмет *</label><input type="text" id="fSubject" placeholder="Изготовление штампа Ш-001"></div>
-        <div class="field"><label>Контрагент (если нет CRM)</label><input type="text" id="fCounter" placeholder="ООО «…»"></div>
+        <div class="field"><label>Заказчик</label><select id="fCust"><option value="">— выберите —</option></select><span class="hint">Из CRM; если его нет — заполните контрагента вручную.</span></div>
+        <div class="field"><label>Предмет *</label><input type="text" id="fSubject" placeholder="Изготовление штампа Ш-001"><span class="hint">Что предлагаем (изделие/работа).</span></div>
+        <div class="field"><label>Контрагент (если нет CRM)</label><input type="text" id="fCounter" placeholder="ООО «…»"><span class="hint">Наименование заказчика, если нет в CRM.</span></div>
       </div>
       <div class="grid3">
-        <div class="field"><label>Срок действия</label><input type="date" id="fValid"></div>
-        <div class="field"><label>Цена, ₽</label><input type="text" id="fPrice" inputmode="decimal" placeholder="1000000"></div>
-        <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="fAdd">Добавить ТКП</button></div>
+        <div class="field"><label>Срок действия</label><input type="date" id="fValid"><span class="hint">До какой даты актуально предложение (влияет на фильтр «Истёк срок»).</span></div>
+        <div class="field"><label>Цена, ₽</label><input type="text" id="fPrice" inputmode="decimal" placeholder="1000000"><span class="hint">Итоговая цена предложения.</span></div>
+        <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="fAdd" title="Создать ТКП">Добавить ТКП</button></div>
       </div>
     </div>
 
