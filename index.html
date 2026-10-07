@@ -15,8 +15,9 @@
 </script>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#2563eb">
+<script>try{var t=localStorage.getItem('3dmp:theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
 <link rel="icon" href="assets/icons/app.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/app.css?v=29">
+<link rel="stylesheet" href="assets/css/app.css?v=30">
 <style>
   .grp { margin-bottom: 18px; }
   .grp-t { font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 10px; }
@@ -74,6 +75,7 @@
     <div class="brand"><span class="logo">⚙️</span> <a href="index.html">3DMP Service</a></div>
     <input type="search" id="hubSearch" class="topsearch" placeholder="Поиск по модулям и функциям…" aria-label="Поиск">
     <div class="spacer"></div>
+    <button class="srvbtn" id="themeBtn" type="button" title="Тема">🌙</button>
     <button class="srvbtn" id="srvBtn" type="button" title="Статус сервера">🟢 <span>Сервер</span></button>
     <button class="srvbtn" id="entryBtn" type="button" title="Единая точка входа">🎛 <span>Вход</span></button>
     <button class="userbtn" id="userBtn" type="button" title="Аккаунт"><span class="uava" id="uava">?</span> <span id="ulogin">…</span></button>
@@ -335,6 +337,17 @@
           var h = document.getElementById('hero'), x = document.getElementById('heroX'); if (!h || !x) return;
           // закрытие — только на текущий просмотр; при обновлении страницы баннер возвращается
           x.addEventListener('click', function () { h.style.display = 'none'; });
+        })();
+        (function () {
+          var tb = document.getElementById('themeBtn'); if (!tb) return;
+          var isDark = function () { return document.documentElement.getAttribute('data-theme') === 'dark'; };
+          tb.textContent = isDark() ? '☀' : '🌙';
+          tb.addEventListener('click', function () {
+            var next = isDark() ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            try { localStorage.setItem('3dmp:theme', next); } catch (e) {}
+            tb.textContent = next === 'dark' ? '☀' : '🌙';
+          });
         })();
         bind('srvBtn', 'srvDrop');
         bind('entryBtn', 'entryDrop');

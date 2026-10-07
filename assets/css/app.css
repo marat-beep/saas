@@ -185,6 +185,16 @@ input, select, textarea, button { font-family: inherit; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 
+/* Единый стиль кнопок верхней панели */
+.topbar .tbtn, .topbar .srvbtn, .topbar .userbtn {
+  display: inline-flex; align-items: center; gap: 8px; height: auto;
+  background: rgba(255,255,255,.16); color: #fff; border: 1px solid rgba(255,255,255,.4);
+  border-radius: 999px; padding: 7px 12px; font-size: .8rem; font-weight: 600; cursor: pointer; line-height: 1.1;
+}
+.topbar .userbtn { padding: 5px 12px 5px 5px; }
+.topbar .tbtn:hover, .topbar .srvbtn:hover, .topbar .userbtn:hover { background: rgba(255,255,255,.28); color: #fff; }
+.topbar #themeBtn, .topbar #ntfBtn { padding: 7px 11px; font-size: .95rem; }
+
 /* Поиск в верхней панели (хаб) */
 .topsearch { flex: 1 1 240px; max-width: 380px; margin: 0 12px; padding: 9px 14px; border: 0; border-radius: 999px; background: rgba(255,255,255,.92); color: #0f172a; font-size: .85rem; outline: none; }
 .topsearch::placeholder { color: #64748b; }
