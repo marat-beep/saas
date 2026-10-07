@@ -85,6 +85,14 @@ KPI (SLA/MTTR/MTBF/FTFR/CSAT/загрузка); правила IIoT; ППР-ав
 4. `economics` — Экономика (затраты сервиса/ТОиР).
 5. `hr`, `production`/`mes`, `procurement`, `warehouse`, `docs`, `finance`, `tooling`, `nc`, `oee`, `iiot`, `crm`/`client`, `org` — по мере необходимости.
 
+## 8. Инструментарий и релиз
+- **Общие стили** (`app.css`): `.sv-actions` (панель кнопок), `.tabs2` (вкладки), `.act`/`.act.danger` (малые кнопки), `.screen`/`.screen.active` (экраны роутера) — обязательны, иначе «кривые» кнопки/экраны по всем модулям.
+- **Оболочка**: `shell.js` (сайдбар + системный поиск + бренд + SW) подключается на всех страницах `apps/*` одним тегом после `nav.js`.
+- **Экспорт**: `export.js` (`AppExport.exportPdf/Doc/Csv`, `reportDocument`) — единый вид отчётов.
+- **Роли**: `data-cap` + карта `CAPS` в JS модуля.
+- **Сборка релиза**: `powershell -File tools/build-release.ps1` → `dist/saas-<date>.zip` (только деплой-артефакты). Деплой по FTP в `sapfir.eu\saas` (строчными).
+- **Понятность для пользователя**: кнопки имеют заголовки, разделы названы, «где хранятся данные» указывается (источник/связи), формы — `formDialog` с подсказками.
+
 ## 5. Карта связей сервиса
 `orders` (источник), `client`/`crm` (заказчик), `equipment`/`passport` (станок, паспорт),
 `maintenance` (ТОиР/ППР), `iiot` (телеметрия/авто-тикеты), `warehouse`+`procurement`

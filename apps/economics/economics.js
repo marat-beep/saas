@@ -9,6 +9,12 @@
 
   var ST = { new: 'Новая', in_progress: 'В работе', done: 'Выполнена', cancelled: 'Отменена' };
   var KIND = { machine: 'Станок', labor: 'Труд', overhead: 'Накладные' };
+
+  /* ---------- Роли (data-cap) ---------- */
+  var ALL = { reports: 1 };
+  var CAPS = { admin: ALL, owner: ALL, director: ALL, manager: ALL, chief: ALL, economist: ALL, default: {} };
+  function can(c) { return !!(me && (CAPS[me.role] || CAPS['default'])[c]); }
+  function applyCaps() { $$('[data-cap]').forEach(function (el) { var n = (el.dataset.cap || '').split('|'); if (!n.some(can)) el.style.display = 'none'; }); }
   function esc(v) { return ui.esc(v); }
   function num(v) { return Number(v) || 0; }
   function money(v) { return v == null ? '—' : (Number(v) || 0).toLocaleString('ru-RU', { maximumFractionDigits: 2 }) + ' ₽'; }
@@ -81,6 +87,29 @@
       }).join('') + '</tbody>';
   }
 
+  /* ---------- Отчёт (себестоимость/маржа) ---------- */
+  function reportPdf() {
+    if (!window.AppExport) { ui.toast('Экспорт недоступен'); return; }
+    var sumAmount = orders.reduce(function (s, o) { return s + num(o.amount); }, 0);
+    var sumCost = orders.reduce(function (s, o) { return s + num(o.total); }, 0);
+    var sumMargin = orders.reduce(function (s, o) { return s + num(o.margin); }, 0);
+    var cols = [
+      { key: 'number', label: 'Заявка' }, { key: 'title', label: 'Тема' },
+      { key: 'status', label: 'Статус', value: function (o) { return ST[o.status] || o.status; } },
+      { key: 'amount', label: 'Сумма', num: true, value: function (o) { return money(o.amount); } },
+      { key: 'total', label: 'Себестоимость', num: true, value: function (o) { return money(o.total); } },
+      { key: 'margin', label: 'Маржа', num: true, value: function (o) { return money(o.margin); } },
+      { key: 'margin_pct', label: 'Маржа %', num: true, value: function (o) { return o.margin_pct != null ? o.margin_pct + '%' : '—'; } }
+    ];
+    AppExport.exportPdf('Экономика — отчёт', AppExport.reportDocument({
+      brand: '3DMP Service', title: 'Отчёт по экономике заявок', subtitle: new Date().toLocaleDateString('ru-RU'),
+      kpis: [{ label: 'Заявок', value: orders.length }, { label: 'Сумма', value: money(sumAmount) }, { label: 'Себестоимость', value: money(sumCost) }, { label: 'Маржа', value: money(sumMargin) }],
+      sections: [{ title: 'Себестоимость и маржа', columns: cols, rows: orders }],
+      sign: ['Экономист', 'Руководитель'], footer: '3DMP Service · экономика'
+    }));
+  }
+  $('#repBtn').addEventListener('click', reportPdf);
+
   $('#tabs').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     $$('#tabs button').forEach(function (x) { x.classList.toggle('active', x === b); });
@@ -91,7 +120,7 @@
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
-    me = s; token = s.token;
+    me = s; token = s.token; applyCaps();
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#ordersMsg', 'Supabase не подключён.', 'err'); return; }
     load();

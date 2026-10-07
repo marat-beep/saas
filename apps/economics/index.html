@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Экономика — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=34">
+<link rel="stylesheet" href="../../assets/css/app.css?v=35">
 <style>
   .tabs2{display:flex;gap:4px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:4px;margin:14px 0;width:fit-content}
   .tabs2 button{padding:8px 16px;border:none;background:transparent;border-radius:8px;font-weight:600;font-size:.82rem;color:var(--muted);cursor:pointer}
@@ -28,6 +28,13 @@
   <main class="wrap fluid">
     <div class="hero"><h1>Экономика</h1><p>Себестоимость заявок по факту (работы + материалы + накладные), маржа, нормочас и загрузка центров.</p></div>
     <div class="kpi-row" id="kpis"></div>
+
+    <div class="sv-actions" style="margin-top:10px;">
+      <button class="btn secondary" data-cap="reports" id="repBtn">📄 Отчёт PDF</button>
+      <a class="btn secondary" href="../orders/index.html">📥 Заказы ↗</a>
+      <a class="btn secondary" href="../finance/index.html">🏦 Финансы ↗</a>
+      <a class="btn secondary" href="../dicts/index.html">📚 Справочники ↗</a>
+    </div>
 
     <div class="tabs2" id="tabs">
       <button class="active" data-t="ord">Себестоимость заявок</button>
@@ -60,8 +67,10 @@
   <script src="../../assets/js/auth.js?v=6"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=74"></script>
-  <script src="economics.js?v=3"></script>
+  <script src="../../assets/js/nav.js?v=75"></script>
+  <script src="../../assets/js/shell.js?v=36"></script>
+  <script src="../../assets/js/export.js?v=1"></script>
+  <script src="economics.js?v=4"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>

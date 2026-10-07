@@ -23256,3 +23256,23 @@ grant execute on function public.app_qc_report(uuid,date,date)       to anon, au
 grant execute on function public.app_claims_report(uuid,date,date)   to anon, authenticated;
 
 -- <<<<<<<<<< 0138_quality_reports.sql <<<<<<<<<<
+
+-- >>>>>>>>>> 0139_economics_kb.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0139_economics_kb.sql  (M4 — Экономика: БЗ и связи)
+-- Документирование отчёта/связей модуля экономики. Идемпотентно. Зависит от 0001..0138.
+-- ============================================================
+
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+  ('Экономика','Себестоимость, маржа и отчёт',
+   'Себестоимость заявки = работы (по нормочасу центров) + материалы (склад/BOM) + накладные %. План/факт по труду — app_order_cost_plan_fact. Модуль экономики: KPI (сумма/себестоимость/маржа/нормочас/факт-часы), вкладки «Себестоимость заявок», «Центры» (нормочас и загрузка), «Ставки» (нормочасы и накладные). Отчёт по экономике заявок — кнопка «📄 Отчёт PDF» (сводка себестоимости и маржи). Связи: Заказы (источник), Финансы (счета), Справочники (ставки/центры).',
+   'экономика себестоимость маржа нормочас накладные отчёт заказы финансы справочники')
+) as v(category,question,answer,tags)
+where not exists (
+  select 1 from public.app_knowledge
+   where tenant_id = 'aaaaaaaa-0000-0000-0000-000000000001' and question = 'Себестоимость, маржа и отчёт'
+);
+
+-- <<<<<<<<<< 0139_economics_kb.sql <<<<<<<<<<

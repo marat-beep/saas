@@ -483,3 +483,10 @@ table.mini tbody tr:hover{background:var(--bg)}
 .act:hover{border-color:var(--accent);color:var(--accent-700)}
 .act.danger{color:#b91c1c;border-color:#fecaca}
 .act.danger:hover{background:#fef2f2;border-color:#fca5a5}
+
+/* ---------- Типовой инструментарий модулей ---------- */
+.sv-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sv-actions .btn{width:auto;padding:9px 14px}
+.tabs2{display:flex;gap:4px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:4px;margin:14px 0;width:fit-content;flex-wrap:wrap}
+.tabs2 button{padding:8px 16px;border:none;background:transparent;border-radius:8px;font-weight:600;font-size:.82rem;color:var(--muted);cursor:pointer}
+.tabs2 button.active{background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(15,23,42,.08)}
