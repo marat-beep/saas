@@ -116,15 +116,9 @@ code { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px;
 /* Сайдбар: сворачиваемые группы */
 .sh-group .sh-grp { margin: 6px 0 0; padding: 8px 10px; border-radius: 9px; font-size: .7rem; letter-spacing: .03em; text-transform: uppercase; color: var(--muted); font-weight: 800; }
 .sh-group .sh-grp:hover { background: var(--bg); color: var(--text); }
-.sh-group { position: relative; }
-.sh-group-body { position: absolute; left: 100%; top: 0; margin-left: 6px; min-width: 240px; max-width: 320px; max-height: 72vh; overflow: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 14px 34px rgba(15,23,42,.18); padding: 6px; display: none; z-index: 960; }
-.sh-group:hover .sh-group-body, .sh-group.open .sh-group-body { display: block; }
+.sh-group-body { display: none; padding: 2px 0 6px; }
+.sh-group.open .sh-group-body { display: block; }
 .sh-group.active > .sh-grp { color: var(--accent-700); }
-@media (max-width: 900px) {
-  .sh-group-body { position: static; left: auto; margin-left: 0; box-shadow: none; border: 0; border-radius: 0; padding: 2px 0 6px; min-width: 0; max-width: none; }
-  .sh-group:hover .sh-group-body { display: none; }
-  .sh-group.open .sh-group-body { display: block; }
-}
 .sh-group .sh-cnt { display: inline-flex; gap: 4px; align-items: center; font-weight: 700; }
 .sh-cv { font-style: normal; display: inline-block; transition: transform .15s; }
 .sh-group.open .sh-cv { transform: rotate(180deg); }
@@ -376,7 +370,7 @@ h1,h2,h3{line-height:1.25}
 /* ===== uCoz-каркас: глобальный левый сайдбар (.sh-*). Только layout, палитра та же. ===== */
 body.sh-has{padding-left:224px}
 body.sh-has.sh-collapsed{padding-left:60px}
-.sh-side{position:fixed;top:0;left:0;bottom:0;width:224px;background:var(--surface);border-right:1px solid var(--border);overflow:visible;padding:8px 6px;z-index:900}
+.sh-side{position:fixed;top:0;left:0;bottom:0;width:224px;background:var(--surface);border-right:1px solid var(--border);overflow:auto;padding:8px 6px;z-index:900}
 body.sh-collapsed .sh-side{width:60px;padding:8px 6px}
 .sh-brand{display:flex;gap:6px;align-items:baseline;padding:8px 10px 12px;font-weight:800;color:var(--accent-700)}
 .sh-brand b{color:var(--text)}
