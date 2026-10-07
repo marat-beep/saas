@@ -8,7 +8,7 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '9.1',
+  version: '9.2',
   updated: '07.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
@@ -582,7 +582,7 @@ window.AppCatalog = {
       desc: 'API-ключи и вебхуки для внешних систем.',
       purpose: 'Интеграции разработчика: ключи организации и вебхуки, публичное чтение данных по ключу.',
       features: ['API-ключи организации', 'Вебхуки (регистрация)', 'Публичное чтение (api_orders/api_tenders/api_stock)', 'Документация эндпоинтов'],
-      connects: ['platform', 'orders', 'tenders'], out: 'Интеграция'
+      connects: ['platform', 'orders', 'procurement'], out: 'Интеграция'
     },
     {
       id: 'roles', icon: '🔑', title: 'Роли и права', href: 'apps/roles/index.html', guest: false, roles: ['admin', 'owner'], group: 'platform', audience: 'client_admin',

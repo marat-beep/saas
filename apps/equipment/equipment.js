@@ -15,7 +15,7 @@
 
   function load() {
     return Promise.all([
-      rpc('app_equipment_list', { p_token: token, p_category: cat || null, p_q: null }),
+      rpc('app_equipment_catalog_list', { p_token: token, p_category: cat || null, p_q: null }),
       rpc('app_equipment_kpi', { p_token: token })
     ]).then(function (r) {
       list = r[0] || [];
@@ -53,7 +53,7 @@
   $('#qCat').addEventListener('change', function () { cat = this.value; load(); });
   $('#fClear').addEventListener('click', function () { cur = null; ['fName', 'fBrand', 'fAcc', 'fDescr'].forEach(function (i) { $('#' + i).value = ''; }); msg('#fMsg', ''); });
   $('#fSave').addEventListener('click', function () {
-    rpc('app_equipment_save', { p_token: token, p_id: cur ? cur.id : null, p_name: $('#fName').value, p_brand: $('#fBrand').value,
+    rpc('app_equipment_catalog_save', { p_token: token, p_id: cur ? cur.id : null, p_name: $('#fName').value, p_brand: $('#fBrand').value,
       p_category: $('#fCat').value, p_axes: parseInt($('#fAxes').value, 10) || null, p_accuracy: $('#fAcc').value,
       p_price: parseFloat($('#fPrice').value) || 0, p_description: $('#fDescr').value, p_active: true })
       .then(function (r) { var x = r && r[0]; msg('#fMsg', x ? x.message : 'Ошибка', x ? 'ok' : 'err'); if (x) window.Auth.log('Оборудование', $('#fName').value); cur = null; load(); })
