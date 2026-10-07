@@ -27,6 +27,7 @@
       <button class="active" data-t="plans">Планы ТО/ППР</button>
       <button data-t="log">История работ</button>
       <button data-t="parts">Запчасти ТОиР</button>
+      <button data-t="reports">📈 Отчёты</button>
     </div>
 
     <section id="t-plans">
@@ -49,7 +50,7 @@
           <div class="field"><label>Ответственный (логин)</label><input type="text" id="pResp" placeholder="master"></div>
         </div>
         <div class="field"><label>Примечание</label><input type="text" id="pNote" placeholder="что проверять"></div>
-        <button class="btn" id="pAdd">Добавить план</button>
+        <button class="btn" data-cap="edit" id="pAdd">Добавить план</button>
       </div>
       <div class="card">
         <div class="toolbar"><input type="search" class="search" id="pq" placeholder="Поиск: оборудование, название, ответственный…"></div>
@@ -77,7 +78,7 @@
           <div class="field"><label>Что заменено</label><input type="text" id="rRepl" placeholder="подшипник, ремень…"></div>
         </div>
         <div class="field"><label>Что сделано</label><input type="text" id="rWorks" placeholder="замена смазки, чистка СОЖ…"></div>
-        <button class="btn" id="rAdd">Зарегистрировать</button>
+        <button class="btn" data-cap="edit" id="rAdd">Зарегистрировать</button>
       </div>
       <div class="card">
         <div class="toolbar"><input type="search" class="search" id="rQ" placeholder="Поиск: оборудование, работы, исполнитель…"></div>
@@ -101,7 +102,7 @@
           <div class="field"><label>Остаток</label><input type="text" id="spQty" inputmode="decimal" placeholder="20"></div>
           <div class="field"><label>Мин. остаток</label><input type="text" id="spMin" inputmode="decimal" placeholder="5"></div>
         </div>
-        <button class="btn" id="spAdd">Добавить запчасть</button>
+        <button class="btn" data-cap="edit" id="spAdd">Добавить запчасть</button>
       </div>
       <div class="card">
         <div class="toolbar"><input type="search" class="search" id="spq" placeholder="Поиск: название, код…"></div>
@@ -110,8 +111,24 @@
       </div>
     </section>
 
+    <section id="t-reports" style="display:none;">
+      <div class="card">
+        <div class="toolbar"><h2 style="margin:0;flex:1;">Отчёты ТОиР</h2>
+          <button class="btn secondary" id="mrepCsv" style="width:auto;padding:9px 14px;">CSV</button>
+          <button class="btn" id="mrepPdf" style="width:auto;padding:9px 14px;">📄 PDF</button>
+        </div>
+        <div class="form-grid">
+          <div class="field"><label>С даты</label><input type="date" id="mrepFrom"></div>
+          <div class="field"><label>По дату</label><input type="date" id="mrepTo"></div>
+        </div>
+        <div class="msg" id="mrepMsg"></div>
+        <div class="kpi-row" id="mrepKinds"></div>
+        <div id="mrepTable" style="overflow:auto;"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
     <div class="card">
-      <div class="toolbar"><h2 style="margin:0;flex:1;">ТОиР по наработке</h2><button class="btn secondary" id="autoBtn" style="width:auto;padding:8px 14px;">⚙ Сформировать наряды по наработке</button></div>
+      <div class="toolbar"><h2 style="margin:0;flex:1;">ТОиР по наработке</h2><button class="btn secondary" data-cap="edit" id="autoBtn" style="width:auto;padding:8px 14px;">⚙ Сформировать наряды по наработке</button></div>
       <p class="note">Наработка с последнего ТО (из журнала OEE) против нормы (period_hours или период×8 ч); статус: в норме / скоро / просрочено.</p>
       <div class="msg" id="autoMsg"></div>
       <div id="runtime" style="overflow:auto;"><span class="note">Загрузка…</span></div>
@@ -133,8 +150,10 @@
   <script src="../../assets/js/auth.js?v=6"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=71"></script>
-  <script src="maintenance.js?v=4"></script>
+  <script src="../../assets/js/nav.js?v=72"></script>
+  <script src="../../assets/js/shell.js?v=33"></script>
+  <script src="../../assets/js/export.js?v=1"></script>
+  <script src="maintenance.js?v=5"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>

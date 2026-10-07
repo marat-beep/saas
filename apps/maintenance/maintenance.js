@@ -48,7 +48,7 @@
         '<span class="note" style="margin-left:auto;">' + (p.title ? esc(p.title) + ' · ' : '') + 'след.: ' + fmt(p.next_due) + (hint ? ' (' + hint + ')' : '') + '</span></div>' +
         '<div style="font-size:.78rem;color:var(--muted);margin-top:5px;">' +
         (p.period_days ? 'период ' + p.period_days + ' дн. · ' : '') + (p.responsible ? '👤 ' + esc(p.responsible) + ' · ' : '') + 'последнее: ' + fmt(p.last_done) + '</div>' +
-        '<div class="toolbar wrap mt"><button class="btn secondary" data-reg="' + p.id + '" data-eq="' + (p.equipment_id || '') + '" data-kind="' + (p.kind || '') + '" style="width:auto;padding:8px 14px;">Зарегистрировать работу</button>' +
+        '<div class="toolbar wrap mt" data-cap="edit"><button class="btn secondary" data-reg="' + p.id + '" data-eq="' + (p.equipment_id || '') + '" data-kind="' + (p.kind || '') + '" style="width:auto;padding:8px 14px;">Зарегистрировать работу</button>' +
         '<button class="btn secondary" data-srv="' + p.id + '" style="width:auto;padding:8px 14px;" title="Создать заявку сервиса по этому плану">→ Сервис</button>' +
         '<a class="btn secondary" href="../service/index.html" style="width:auto;padding:8px 14px;">Сервис ↗</a></div></div>';
     }).join('') : '<span class="note">Планов нет.</span>';
@@ -153,7 +153,56 @@
     $('#t-plans').style.display = (b.dataset.t === 'plans') ? '' : 'none';
     $('#t-log').style.display = (b.dataset.t === 'log') ? '' : 'none';
     $('#t-parts').style.display = (b.dataset.t === 'parts') ? '' : 'none';
+    $('#t-reports').style.display = (b.dataset.t === 'reports') ? '' : 'none';
+    if (b.dataset.t === 'reports') loadReports();
   });
+
+  /* ---------- Роли (data-cap) ---------- */
+  var ALL = { edit: 1 };
+  var CAPS = { admin: ALL, owner: ALL, director: ALL, manager: ALL, chief: ALL, master: ALL, technologist: { edit: 1 }, qc: { edit: 1 }, default: {} };
+  function can(c) { return !!(me && (CAPS[me.role] || CAPS['default'])[c]); }
+  function applyCaps() { $$('[data-cap]').forEach(function (el) { var n = (el.dataset.cap || '').split('|'); if (!n.some(can)) el.style.display = 'none'; }); }
+
+  /* ---------- Отчёты ---------- */
+  var mrepRows = [];
+  function mrepCols() {
+    return [
+      { key: 'work_date', label: 'Дата' }, { key: 'equipment', label: 'Оборудование' }, { key: 'kind', label: 'Вид', value: function (r) { return (KINDS[r.kind] || r.kind || ''); } },
+      { key: 'works', label: 'Работы' }, { key: 'replaced', label: 'Заменено' }, { key: 'executor', label: 'Исполнитель' },
+      { key: 'cost', label: 'Стоимость', num: true, value: function (r) { return money(r.cost); } },
+      { key: 'part_cost', label: 'Запчасти', num: true, value: function (r) { return money(r.part_cost); } }
+    ];
+  }
+  function loadReports() {
+    if (!$('#mrepFrom').value) $('#mrepFrom').value = new Date(Date.now() - 90 * 864e5).toISOString().slice(0, 10);
+    if (!$('#mrepTo').value) $('#mrepTo').value = new Date().toISOString().slice(0, 10);
+    rpc('app_mnt_report', { p_token: token, p_from: $('#mrepFrom').value || null, p_to: $('#mrepTo').value || null }).then(function (rows) {
+      mrepRows = rows || [];
+      var sum = mrepRows.reduce(function (s, r) { return s + num(r.cost) + num(r.part_cost); }, 0);
+      $('#mrepKinds').innerHTML = cell('Работ', mrepRows.length) + cell('Затраты', money(sum));
+      $('#mrepTable').innerHTML = mrepRows.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Дата</th><th>Оборудование</th><th>Вид</th><th>Работы</th><th>Заменено</th><th>Исполнитель</th><th class="num">Стоимость</th><th class="num">Запчасти</th></tr></thead><tbody>' +
+        mrepRows.map(function (r) { return '<tr><td class="muted">' + fmt(r.work_date) + '</td><td>' + esc(r.equipment || '') + '</td><td>' + (KINDS[r.kind] || r.kind || '') + '</td><td>' + esc(r.works || '') + '</td><td>' + esc(r.replaced || '') + '</td><td>' + esc(r.executor || '') + '</td><td class="num">' + money(r.cost) + '</td><td class="num">' + money(r.part_cost) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<span class="note">За период работ нет.</span>';
+      rpc('app_mnt_kpi_kinds', { p_token: token }).then(function (ks) {
+        ks = ks || [];
+        if (!ks.length) return;
+        $('#mrepKinds').innerHTML += ks.map(function (k) { return cell((KINDS[k.kind] || k.kind) + '', num(k.cnt)); }).join('');
+      }).catch(function () {});
+    }).catch(function (e) { msg('#mrepMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
+  function mrepHtml() {
+    var sum = mrepRows.reduce(function (s, r) { return s + num(r.cost) + num(r.part_cost); }, 0);
+    return AppExport.reportDocument({
+      brand: '3DMP Service', title: 'Отчёт по ТОиР', subtitle: ($('#mrepFrom').value || '—') + ' — ' + ($('#mrepTo').value || '—'),
+      meta: [{ k: 'Сформирован', v: new Date().toLocaleString('ru-RU') }],
+      kpis: [{ label: 'Работ', value: mrepRows.length }, { label: 'Затраты', value: money(sum) }],
+      sections: [{ title: 'Работы', columns: mrepCols(), rows: mrepRows }],
+      sign: ['Главный инженер', 'Начальник цеха'], footer: '3DMP Service · ТОиР'
+    });
+  }
+  $('#mrepPdf').addEventListener('click', function () { if (window.AppExport) AppExport.exportPdf('ТОиР — отчёт', mrepHtml()); });
+  $('#mrepCsv').addEventListener('click', function () { if (window.AppExport) AppExport.exportCsv('toir-report', mrepCols(), mrepRows); });
+  $('#mrepFrom').addEventListener('change', loadReports);
+  $('#mrepTo').addEventListener('change', loadReports);
   $('#spq').addEventListener('input', function () { spq = this.value; renderSpare(); });
   $('#spAdd').addEventListener('click', function () {
     var name = $('#spName').value.trim(); if (!name) { msg('#spMsg', 'Укажите название.', 'err'); return; }
@@ -193,6 +242,7 @@
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
     me = s; token = s.token;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
+    applyCaps();
     if (!SB) { msg('#pMsg', 'Supabase не подключён.', 'err'); return; }
     load(); renderRuntime(); loadSpare(); loadCost();
   });
