@@ -58,6 +58,15 @@
       <div class="cols mt" id="board"></div>
     </div>
 
+    <div class="card">
+      <div class="toolbar"><h2 style="margin:0;">Напоминания по сделкам <span class="note" id="remCnt"></span></h2>
+        <button class="btn secondary" id="remScan" style="width:auto;padding:8px 14px;margin-left:auto;">🔔 Разослать по срокам</button>
+        <button class="btn" id="remAdd" data-cap="edit" style="width:auto;padding:8px 14px;">＋ Напоминание</button></div>
+      <p class="note">R1: напоминания по сделкам (звонок/встреча/e-mail/Telegram/SMS) с уведомлением ответственного при наступлении срока.</p>
+      <div class="msg" id="remMsg"></div>
+      <div id="remList" class="mt"><span class="note">Загрузка…</span></div>
+    </div>
+
     <div class="card"><h2>Заказчики (CRM)</h2><div style="overflow:auto;" id="customers"><span class="note">—</span></div></div>
   </main>
 
@@ -70,10 +79,10 @@
   <script src="../../assets/js/auth.js?v=6"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=89"></script>
-  <script src="../../assets/js/shell.js?v=51"></script>
+  <script src="../../assets/js/nav.js?v=90"></script>
+  <script src="../../assets/js/shell.js?v=52"></script>
   <script src="../../assets/js/module-report.js?v=1"></script>
-  <script src="crm.js?v=1"></script>
+  <script src="crm.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>

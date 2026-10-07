@@ -10,7 +10,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 **Не льётся:** `supabase/`, `docs/`, `tools/`, `dist/`, `.git`, `README.md`, `AGENTS.md`.
 
 ## 2. База данных
-- Миграции `supabase/migrations/0001…0156` + пересобранный `supabase/apply_all.sql`.
+- Миграции `supabase/migrations/0001…0157` + пересобранный `supabase/apply_all.sql`.
 - Инструменты: `tools/build-release.ps1` (сборка dist), `tools/audit.ps1` (локальный автотест), `tools/db-smoke.ps1` (смоук БД через Management API).
 - Применение — Supabase → SQL Editor → вставить `apply_all.sql` → Run (либо Management API, UTF-8).
 - Смоук: `select * from app_smoke_test(:token);` (10/10) и `app_smoke_test_ext(:token)` (14/14).
@@ -35,6 +35,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 - [ ] Отметки в `BACKLOG.md`, `PLAN_WAVES.md`, `STATUS.md`, `NOTES.md`, `PROMPTS.md`.
 
 ## 6. Журнал релизов (последнее)
+- **v212 (миграция `0157`)** — R1+R3+R4: CRM-напоминания, генеалогия партий, гейтинг по подразделению; каталог v10.11, nav v90/shell v52. (R2 онлайн-оплата — пропущено.)
 - **v211 (ревизия контуров)** — сверка `AUDIT_BACKLOG §3` с волнами (закрыто W2–W12), остаток R1–R4 (CRM-напоминания, онлайн-оплата клиента, генеалогия партий, гейтинг по подразделению).
 - **v210 (M7 остаток)** — апгрейд `iiot`/`crm`/`client`/`org`: отчёты, роли `data-cap`, переходы, KB. M7 закрыт.
 - **v209 (S1)** — малые доработки UI: автотесты `tools/audit.ps1` (+дубли id/версия notify) и `tools/db-smoke.ps1` (+проверка кодировки); проверка панели/drawer/версий.

@@ -112,6 +112,17 @@
         <div id="lotList" class="mt"><span class="note">—</span></div>
       </div>
     </section>
+    <div class="card">
+      <h2>Генеалогия партий материалов</h2>
+      <div class="note">R3: прослеживаемость «партия → движение → наряд → паспорт».</div>
+      <div class="toolbar" style="margin-top:8px;"><label class="note">Партия:</label>
+        <select id="genLot" style="padding:9px;border:1px solid var(--border);border-radius:9px;min-width:240px;"></select>
+        <button class="btn secondary" id="genBtn" style="width:auto;padding:8px 14px;">Показать</button></div>
+      <div class="msg" id="genMsg"></div>
+      <div id="genChain" class="mt"></div>
+      <h3 class="mt">Связи партии (наряд/паспорт)</h3>
+      <div id="genTrace" class="mt"></div>
+    </div>
   </main>
 
   <footer class="foot">3DMP Service · склад</footer>
@@ -124,10 +135,11 @@
   <script src="../../assets/js/router.js?v=1"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=89"></script>
-  <script src="../../assets/js/shell.js?v=51"></script>
+  <script src="../../assets/js/nav.js?v=90"></script>
+  <script src="../../assets/js/shell.js?v=52"></script>
   <script src="../../assets/js/export.js?v=1"></script>
   <script src="warehouse.js?v=4"></script>
+  <script src="genealogy.js?v=1"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>
