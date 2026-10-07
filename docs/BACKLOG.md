@@ -98,10 +98,14 @@
 
 ## 6. Стартовый промт новой сессии (копируй как есть)
 ```
-Проект 3DMP Service (vanilla HTML/CSS/JS + Supabase, без сборки). Рабочая папка: SAAS/.
-Сначала прочитай: SAAS/docs/BACKLOG.md (единый план), AGENTS.md, README.md, STATUS.md, PLAN.md, SAAS/docs/MODULE_STANDARD.md, SAAS/docs/MODULE_BLUEPRINT.md (типовой апгрейд модуля), SAAS/assets/js/catalog.js.
-Продолжи работу с верхнего незакрытого пункта §3 BACKLOG (или с указанного мной).
-Правила: русский язык; светлая палитра (акцент зелёный #10b981), тёмная — опционально; миграции идемпотентны, SQL через Management API только с UTF-8 телом; после миграций пересобирать apply_all.sql; проверять баланс скобок JS/пути/версии ?v=N; обновлять BACKLOG (статусы) + STATUS/NOTES/PROMPTS; коммит/пуш в main по завершении.
-Демо: admin/admin, manager/manager, otk/otk, supply/supply, support/support.
-Задача: [ВСТАВИТЬ при необходимости]
+Проект 3DMP Service — рабочий веб-сервис (vanilla HTML/CSS/JS + Supabase, без сборки).
+Папка SAAS/ → деплой по FTP в sapfir.eu\saas (строчными) → https://sapfir.eu/saas/. Репозиторий: github.com/marat-beep/saas (main).
+Supabase: проект zfkbzzmtbrueaksfaqbf; вход собственный (логин/пароль bcrypt, сессии-токены), данные через RPC (НЕ Supabase Auth). SQL применять только UTF-8 (Management API, токен sbp_… вводится вручную; после работы отозвать).
+СНАЧАЛА прочитать: AGENTS.md, README.md, STATUS.md, SAAS/docs/BACKLOG.md (единый план), SAAS/docs/MODULE_STANDARD.md (§6–7), SAAS/docs/MODULE_BLUEPRINT.md (§1–8), SAAS/docs/PLAN_WAVES.md, SAAS/docs/RELEASE.md, SAAS/assets/js/catalog.js.
+Состояние: миграции 0001…0151 (apply_all.sql собран), каталог v10.5, nav v84, shell v46, app.css v35; смоук app_smoke_test 10/10 и app_smoke_test_ext 14/14; перегрузок функций нет; ссылки каталога валидны.
+Инструментарий (применять в новых модулях): общий CSS .sv-actions/.tabs2/.act/.screen; shell.js (сайдбар+системный поиск+роли-fallback); export.js (PDF/DOC/CSV); module-report.js + app_module_report(token, module) — универсальный отчёт (кнопка data-report="<module>"); роли data-cap + CAPS.
+Работать волнами по PLAN_WAVES.md, начиная с верхнего незакрытого: W7 биллинг/подписки (0152), W8 аналитика L4 (0153), W9 MES/APS/IIoT (0154), W10 enterprise-права/аудит (0155), W11 ИИ (0156+), W12 экосистема/деплой. (Сервис ЧПУ W-S и волны M1–M7 уже закрыты.)
+Правила: русский; светлая палитра, акцент зелёного #10b981; миграции идемпотентны; после миграций пересобирать apply_all.sql (маркеры -- >>>>>>>>>> NNNN / <<<<<<<<<<); поднимать ?v=N у изменённых ассетов и CATALOG_V; shell.js на всех страницах apps/; связи catalog.connects — только валидные id; перед работой фиксировать задачу в BACKLOG (§3, DoD); после — смоук + функц. тест RPC с очисткой тестовых данных; отметить BACKLOG/PLAN_WAVES/STATUS/NOTES/PROMPTS; коммит/пуш main; релиз — tools/build-release.ps1 (dist/, не в git).
+Демо: admin/admin, owner/owner, manager/manager, master/master, qc/otk, supply/supply, support/support, client2/client2.
+Задача: [ВПИСАТЬ]
 ```
