@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Сервис и ремонт — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=33">
+<link rel="stylesheet" href="../../assets/css/app.css?v=34">
 <style>
   .badge.p-critical { background:#fef2f2; color:#b91c1c; border-color:#fca5a5; }
   .badge.p-high { background:#fffbeb; color:#b45309; border-color:#fcd34d; }
@@ -83,7 +83,7 @@
       <div class="kpi-row" id="kpis"></div>
       <div class="card mt">
         <div class="toolbar">
-          <input type="search" class="search" id="q" placeholder="Поиск: номер, тема, заказчик, инженер…">
+          <input type="search" class="search" id="q" placeholder="Поиск: номер, тема, заказчик, станок/код, инженер, гарантия/лицензия…">
           <div class="chips" id="filters">
             <span class="chip active" data-f="">Все</span>
             <span class="chip" data-f="open">Открытые</span>
@@ -96,6 +96,7 @@
           <button class="btn secondary" data-cap="reports" id="reportBtn">📄 Отчёт PDF</button>
           <button class="btn secondary" data-cap="visits" id="myBtn">🚚 Выезды</button>
           <button class="btn secondary" data-cap="refs" id="refBtn">🛡 Гарантии/контракты</button>
+          <button class="btn secondary" data-cap="list" id="eqFindBtn" title="Поиск станков по названию/коду/гарантии">🔎 Станки</button>
           <button class="btn secondary" data-cap="iiot" id="iiotBtn" title="Создать заявки из ошибок ЧПУ (IIoT)">⚙ IIoT → заявки</button>
           <button class="btn secondary" data-cap="edit" id="pprBtn2" title="Создать заявки из планов ТОиР (ППР)">🛠 ППР → заявки</button>
           <button class="btn" data-cap="new" id="newBtn">＋ Заявка</button>
@@ -225,6 +226,17 @@
       </div>
     </section>
 
+    <!-- ПОИСК СТАНКОВ -->
+    <section class="screen" id="s-eqfind" data-cap="list">
+      <div class="card">
+        <h2>Поиск станков и гарантий</h2>
+        <p class="note">Поиск по названию, инвентарному коду, номеру гарантии или лицензии (WR-…). Из результата — переход в паспорт станка.</p>
+        <div class="toolbar"><input class="search" id="eqQ" placeholder="Станок, код, WR-…, гарантия…"><button class="btn" id="eqFindGo" style="width:auto;padding:10px 16px;">Найти</button></div>
+        <div class="msg" id="eqMsg"></div>
+        <div id="eqRes" style="overflow:auto;"><span class="note">Введите запрос и нажмите «Найти».</span></div>
+      </div>
+    </section>
+
     <!-- ПАСПОРТ СТАНКА -->
     <section class="screen" id="s-eq" data-cap="passport">
       <button class="back" id="backE">← Назад</button>
@@ -245,11 +257,11 @@
   <script src="../../assets/js/router.js?v=1"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=69"></script>
-  <script src="../../assets/js/shell.js?v=29"></script>
+  <script src="../../assets/js/nav.js?v=70"></script>
+  <script src="../../assets/js/shell.js?v=30"></script>
   <script src="../../assets/js/offline-queue.js?v=1"></script>
   <script src="../../assets/js/export.js?v=1"></script>
-  <script src="service.js?v=10"></script>
+  <script src="service.js?v=11"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>

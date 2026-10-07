@@ -477,3 +477,9 @@ table.mini tbody tr:hover{background:var(--bg)}
 /* ---------- Экраны модулей (router: .screen) ---------- */
 .screen{display:none}
 .screen.active{display:block}
+
+/* ---------- Малые кнопки действий (.act) ---------- */
+.act{display:inline-flex;align-items:center;gap:4px;margin:2px 4px 2px 0;padding:6px 11px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text);font:600 .78rem/1.1 inherit;cursor:pointer}
+.act:hover{border-color:var(--accent);color:var(--accent-700)}
+.act.danger{color:#b91c1c;border-color:#fecaca}
+.act.danger:hover{background:#fef2f2;border-color:#fca5a5}

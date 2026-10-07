@@ -121,6 +121,7 @@
         '<span class="badge">' + (KIND[d.kind] || d.kind) + '</span>' + (d.is_warranty ? '<span class="badge">гарантия</span>' : '') +
         slaBadge(d.sla_state) + '<b style="margin-left:auto;">' + esc(d.number) + '</b></div>' +
         '<h1 style="font-size:1.1rem;margin:10px 0;">' + esc(d.title || '') + '</h1>' +
+        '<div id="navLinks" class="sv-actions" style="margin:0 0 8px;"></div>' +
         kv('Заказчик', d.customer) + kv('Оборудование', d.equipment) + kv('Канал', CHAN[d.channel] || d.channel) +
         kv('Контакт', d.contact) + kv('Место', d.location) + kv('Код ошибки', d.fault_code) +
         kv('Инженер', d.assigned_login || d.engineer) +
@@ -130,6 +131,7 @@
         kv('Затраты (работы)', money(d.cost)) + kv('Стоимость запчастей', d.parts_cost ? money(d.parts_cost) : null) +
         kv('Работы', d.works) + kv('Примечание', d.note);
       $('#stSel').value = d.status;
+      renderNavLinks(d);
       $('#visits').innerHTML = visits.length ? visits.map(function (v) {
         return '<div class="kvr"><span class="badge">' + (VST[v.status] || v.status) + '</span><b>' + esc(v.engineer || '—') + '</b>' +
           (v.place ? '<span class="note">📍 ' + esc(v.place) + '</span>' : '') +
@@ -144,6 +146,19 @@
       }).join('') : '<span class="note">История пуста.</span>';
       bindVisits(); loadParts(id);
     }).catch(function (e) { msg('#iMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
+  function renderNavLinks(d) {
+    var el = $('#navLinks'); if (!el) return;
+    var L = [];
+    if (d.customer_id) L.push('<a class="btn secondary" style="width:auto;padding:7px 12px;" href="../client/index.html" target="_blank">🏢 Заказчик</a>');
+    if (d.equipment_id) L.push('<a class="btn secondary" style="width:auto;padding:7px 12px;" href="../equipment/index.html" target="_blank">🏭 Станок</a>');
+    L.push('<button class="btn secondary" style="width:auto;padding:7px 12px;" data-nav="passport">🪪 Паспорт станка</button>');
+    L.push('<a class="btn secondary" style="width:auto;padding:7px 12px;" href="../org/index.html" target="_blank">🏛 Организация</a>');
+    L.push('<a class="btn secondary" style="width:auto;padding:7px 12px;" href="../claims/index.html" target="_blank">📋 Претензии</a>');
+    L.push('<a class="btn secondary" style="width:auto;padding:7px 12px;" href="../issues/index.html" target="_blank">🚨 Проблемы</a>');
+    el.innerHTML = L.join('');
+    var pb = el.querySelector('[data-nav="passport"]');
+    if (pb) pb.addEventListener('click', function () { openPassport(); });
   }
   function bindVisits() {
     $$('#visits [data-vst]').forEach(function (b) {
@@ -318,8 +333,8 @@
   }
   var WST = { active: 'активна', expired: 'истекла', planned: 'запланирована', off: 'выключена' };
   function renderWarr() {
-    $('#warrList').innerHTML = warranties.length ? '<table class="tbl"><thead><tr><th>Оборудование</th><th>Заказчик</th><th>№</th><th>Поставщик</th><th>Период</th><th>Статус</th><th></th></tr></thead><tbody>' +
-      warranties.map(function (w) { return '<tr><td><b>' + esc(w.equipment || '—') + '</b></td><td class="muted">' + esc(w.customer || '') + '</td><td>' + esc(w.number || '') + '</td>' +
+    $('#warrList').innerHTML = warranties.length ? '<table class="tbl"><thead><tr><th>Оборудование</th><th>Заказчик</th><th>Лицензия</th><th>№</th><th>Поставщик</th><th>Период</th><th>Статус</th><th></th></tr></thead><tbody>' +
+      warranties.map(function (w) { return '<tr><td><b>' + esc(w.equipment || '—') + '</b></td><td class="muted">' + esc(w.customer || '') + '</td><td><b>' + esc(w.license_no || '—') + '</b></td><td>' + esc(w.number || '') + '</td>' +
         '<td>' + esc(w.provider) + '</td><td class="muted">' + (w.start_date || '') + ' — ' + (w.end_date || '∞') + (w.days_left != null ? ' (' + w.days_left + ' дн)' : '') + '</td>' +
         '<td><span class="badge ' + (w.status === 'active' ? 'done' : 'cancelled') + '">' + (WST[w.status] || w.status) + '</span></td>' +
         '<td style="white-space:nowrap;"><button class="act" data-wedit="' + w.id + '">Изменить</button><button class="act danger" data-wdel="' + w.id + '">Удалить</button></td></tr>'; }).join('') + '</tbody></table>' : '<span class="note">Гарантий нет.</span>';
@@ -665,6 +680,19 @@
     if (templates.length) go2(); else rpc('app_service_templates_list', { p_token: token }).then(function (r) { templates = r || []; go2(); });
   }
 
+  /* ---------- Поиск станков/гарантий ---------- */
+  function loadEqFind() {
+    var qv = ($('#eqQ').value || '').trim();
+    rpc('app_service_find_equipment', { p_token: token, p_q: qv, p_limit: 50 }).then(function (rows) {
+      rows = rows || [];
+      $('#eqRes').innerHTML = rows.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Станок</th><th>Код</th><th>Лицензия</th><th>Гарантия</th><th class="num">Заявок</th><th>Последний ремонт</th><th></th></tr></thead><tbody>' +
+        rows.map(function (e) { return '<tr><td><b>' + esc(e.name) + '</b></td><td class="muted">' + esc(e.code || '') + '</td><td><b>' + esc(e.warranty_license || '—') + '</b></td><td class="muted">' + esc(e.warranty_number || '') + (e.warranty_end ? ' до ' + e.warranty_end : '') + '</td>' +
+          '<td class="num">' + num(e.requests) + '</td><td class="muted">' + fmtTs(e.last_repair) + '</td>' +
+          '<td><button class="btn secondary" style="width:auto;padding:6px 12px;font-size:.78rem;" data-pass="' + e.equipment_id + '">Паспорт</button></td></tr>'; }).join('') + '</tbody></table></div>' : '<span class="note">Ничего не найдено.</span>';
+      $$('#eqRes [data-pass]').forEach(function (b) { b.addEventListener('click', function () { openPassport(b.dataset.pass); }); });
+    }).catch(function (e) { msg('#eqMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
+
   function renderAccess() {
     var roles = [['admin', 'Администратор'], ['owner', 'Владелец'], ['director', 'Руководитель предприятия'], ['chief', 'Главный инженер'], ['manager', 'Диспетчер (manager)'], ['support', 'Поддержка'], ['master', 'Сервисный инженер'], ['qc', 'ОТК (qc)']];
     var cols = [['dash', 'Дашборд'], ['list', 'Заявки'], ['visits', 'Выезды'], ['refs', 'Гарантии/контракты'], ['reports', 'KPI и отчёты'], ['access', 'Матрица'], ['new', 'Создать заявку'], ['edit', 'Статус/отчёт'], ['assign', 'Назначить выезд'], ['supply', 'Снабжение'], ['rules', 'Правила IIoT'], ['act', 'Акт'], ['passport', 'Паспорт станка']];
@@ -678,12 +706,13 @@
 
   /* ---------- Цифровой паспорт станка ---------- */
   var passportData = null, passportHist = [];
-  function openPassport() {
-    if (!cur || !cur.equipment_id) { msg('#iMsg', 'У заявки не указано оборудование', 'err'); return; }
-    rpc('app_equipment_passport', { p_token: token, p_equipment_id: cur.equipment_id }).then(function (r) {
+  function openPassport(eqId) {
+    var eid = eqId || (cur && cur.equipment_id);
+    if (!eid) { msg('#iMsg', 'Не указано оборудование', 'err'); return; }
+    rpc('app_equipment_passport', { p_token: token, p_equipment_id: eid }).then(function (r) {
       var p = (r || [])[0]; if (!p) { msg('#iMsg', 'Паспорт не найден', 'err'); return; }
       passportData = p;
-      rpc('app_service_equipment_history', { p_token: token, p_equipment_id: cur.equipment_id })
+      rpc('app_service_equipment_history', { p_token: token, p_equipment_id: eid })
         .then(function (hs) { passportHist = hs || []; renderPassport(); })
         .catch(function () { passportHist = []; renderPassport(); });
     }).catch(function (e) { msg('#iMsg', 'Ошибка: ' + e.message, 'err'); });
@@ -742,6 +771,9 @@
   $('#tplBtn').addEventListener('click', templateApply);
   $('#tplAdd').addEventListener('click', tplForm);
   $('#instrBtn').addEventListener('click', instructForm);
+  $('#eqFindBtn').addEventListener('click', function () { go('s-eqfind'); $('#eqQ').focus(); });
+  $('#eqFindGo').addEventListener('click', loadEqFind);
+  $('#eqQ').addEventListener('keydown', function (e) { if (e.key === 'Enter') loadEqFind(); });
   function runScan(sel, name) {
     rpc(name, { p_token: token }).then(function (d) {
       var r = d && d[0];
