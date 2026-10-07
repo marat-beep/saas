@@ -45,15 +45,22 @@
     $$('#orders [data-cost]').forEach(function (b) { b.addEventListener('click', function () { showCost(b.dataset.cost); }); });
   }
   function showCost(oid) {
-    rpc('app_order_cost', { p_token: token, p_order_id: oid }).then(function (r) {
-      var c = r && r[0]; if (!c) return;
+    Promise.all([
+      rpc('app_order_cost', { p_token: token, p_order_id: oid }),
+      rpc('app_order_cost_plan_fact', { p_token: token, p_order_id: oid }).catch(function () { return null; })
+    ]).then(function (res) {
+      var c = res[0] && res[0][0]; if (!c) return;
+      var pf = res[1] && res[1][0];
       var row = $('#orders tr[data-oid="' + oid + '"]'); var old = row.next();
       if (old && old.classList.contains('costrow')) old.remove();
+      var dev = pf ? num(pf.labor_dev) : 0;
       var html = '<tr class="costrow"><td colspan="8">Работы: <b>' + money(c.work_cost) + '</b> · Материалы: <b>' + money(c.material_cost) +
         '</b>' + (c.materials_from_moves ? ' <span class="note">(по складу)</span>' : ' <span class="note">(по BOM)</span>') +
         ' · Накладные 15%: <b>' + money(c.overhead) + '</b> · <b>Итого: ' + money(c.total) + '</b>' +
         (c.margin != null ? ' · Маржа: <b>' + money(c.margin) + '</b>' + (c.margin_pct != null ? ' (' + c.margin_pct + '%)' : '') : '') +
-        ' <span class="note">(план ' + num(c.plan_hours) + ' ч / факт ' + num(c.fact_hours) + ' ч)</span></td></tr>';
+        ' <span class="note">(план ' + num(c.plan_hours) + ' ч / факт ' + num(c.fact_hours) + ' ч)</span>' +
+        (pf ? '<div class="note" style="margin-top:4px;">План/факт по труду: часы ' + num(pf.plan_hours) + ' → <b>' + num(pf.fact_hours) + '</b> (откл. ' + num(pf.hours_dev) + '); ставка ' + money(pf.rate_avg) + '/ч; труд план ' + money(pf.plan_labor) + ' → факт <b>' + money(pf.fact_labor) + '</b> (откл. <b' + (dev > 0 ? ' style="color:#b91c1c"' : '') + '>' + money(pf.labor_dev) + '</b>)</div>' : '') +
+        '</td></tr>';
       row.after(html);
     }).catch(function (e) { msg('#ordersMsg', 'Ошибка расчёта: ' + e.message, 'err'); });
   }
