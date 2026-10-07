@@ -190,16 +190,17 @@ input, select, textarea, button { font-family: inherit; }
 }
 
 /* Кнопка «Наверх» */
-.to-top { position: fixed; right: 18px; bottom: 18px; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--accent-700); font-size: 1.2rem; font-weight: 800; cursor: pointer; box-shadow: 0 6px 18px rgba(15,23,42,.16); display: none; z-index: 950; }
+.to-top { position: fixed; right: 20px; bottom: 20px; width: 58px; height: 58px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--accent-700); font-size: 1.7rem; font-weight: 800; cursor: pointer; box-shadow: 0 8px 22px rgba(15,23,42,.2); display: none; z-index: 950; }
 .to-top.show { display: flex; align-items: center; justify-content: center; }
 .to-top:hover { background: var(--accent-100); }
 
 /* Компактнее сайдбар */
-.sh-side { padding: 8px 6px; }
-.sh-brand { padding: 6px 8px 10px; }
+.sh-side { padding: 8px 6px; width: 224px; }
+.sh-brand { padding: 6px 8px 8px; }
 .sh-item { padding: 6px 10px; font-size: .8rem; gap: 8px; border-radius: 8px; }
-.sh-group .sh-grp { padding: 6px 10px; margin-top: 4px; font-size: .66rem; }
+.sh-group .sh-grp { padding: 7px 10px; margin-top: 3px; font-size: .68rem; }
 .sh-cnt { font-size: .68rem; }
+body.sh-collapsed .sh-side { width: 60px; }
 
 /* формы */
 .field { margin-bottom: 12px; }
@@ -366,10 +367,10 @@ h1,h2,h3{line-height:1.25}
 .hero h1{font-size:var(--fs-6)}
 .hero p{font-size:var(--fs-3)}
 /* ===== uCoz-каркас: глобальный левый сайдбар (.sh-*). Только layout, палитра та же. ===== */
-body.sh-has{padding-left:250px}
-body.sh-has.sh-collapsed{padding-left:64px}
-.sh-side{position:fixed;top:0;left:0;bottom:0;width:250px;background:var(--surface);border-right:1px solid var(--border);overflow:auto;padding:10px 8px;z-index:900}
-body.sh-collapsed .sh-side{width:64px;padding:10px 6px}
+body.sh-has{padding-left:224px}
+body.sh-has.sh-collapsed{padding-left:60px}
+.sh-side{position:fixed;top:0;left:0;bottom:0;width:224px;background:var(--surface);border-right:1px solid var(--border);overflow:auto;padding:8px 6px;z-index:900}
+body.sh-collapsed .sh-side{width:60px;padding:8px 6px}
 .sh-brand{display:flex;gap:6px;align-items:baseline;padding:8px 10px 12px;font-weight:800;color:var(--accent-700)}
 .sh-brand b{color:var(--text)}
 .sh-grp{margin:10px 10px 4px;font-size:.68rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}

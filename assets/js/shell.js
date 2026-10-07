@@ -84,8 +84,14 @@
       var rest = list.filter(function (a) { return !a.group; });
       if (rest.length) out += '<div class="sh-group"><button class="sh-grp" type="button"><span>🗂 Прочее</span><span class="sh-cnt">' + rest.length + ' <i class="sh-cv">▾</i></span></button><div class="sh-group-body">' + rest.map(function (a) { return link(a.href, a.icon, a.title, here.indexOf(a.href) === 0); }).join('') + '</div></div>';
       wrap.innerHTML = out;
+      // Аккордеон: открыта максимум одна группа
       Array.prototype.forEach.call(wrap.querySelectorAll('.sh-grp'), function (b) {
-        b.addEventListener('click', function () { var g = b.closest('.sh-group'); if (g) g.classList.toggle('open'); });
+        b.addEventListener('click', function () {
+          var g = b.closest('.sh-group'); if (!g) return;
+          var wasOpen = g.classList.contains('open');
+          Array.prototype.forEach.call(wrap.querySelectorAll('.sh-group.open'), function (x) { x.classList.remove('open'); });
+          if (!wasOpen) g.classList.add('open');
+        });
       });
     }
 
