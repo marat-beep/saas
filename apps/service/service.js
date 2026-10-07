@@ -136,8 +136,8 @@
           '<span class="note">план ' + fmtTs(v.planned_at) + (v.finished_at ? ' · факт ' + fmtTs(v.finished_at) : '') + '</span>' +
           (v.work_report ? '<span class="note">' + esc(v.work_report) + '</span>' : '') +
           '<span style="margin-left:auto;white-space:nowrap;">' +
-          (v.status !== 'in_work' && v.status !== 'done' ? '<button class="act" data-vst="in_work" data-vid="' + v.id + '">В работе</button>' : '') +
-          (v.status !== 'done' ? '<button class="act" data-vst="done" data-vid="' + v.id + '">Завершить</button>' : '') + '</span></div>';
+          (v.status !== 'in_work' && v.status !== 'done' ? '<button class="btn secondary" style="width:auto;padding:6px 12px;font-size:.78rem;" data-vst="in_work" data-vid="' + v.id + '">В работе</button>' : '') +
+          (v.status !== 'done' ? '<button class="btn" style="width:auto;padding:6px 12px;font-size:.78rem;" data-vst="done" data-vid="' + v.id + '">Завершить</button>' : '') + '</span></div>';
       }).join('') : '<span class="note">Выездов нет.</span>';
       $('#history').innerHTML = hist.length ? hist.map(function (h) {
         return '<div class="tl-item"><div class="note">' + fmtTs(h.created_at) + ' · ' + esc(h.by_login || '') + '</div><div>' + esc(h.text || h.kind) + '</div></div>';
@@ -289,9 +289,9 @@
         '<div style="font-size:.84rem;margin-top:4px;">' + esc(v.title || '') + '</div>' +
         '<div class="note">' + (v.equipment ? '🏭 ' + esc(v.equipment) + ' · ' : '') + (v.place ? '📍 ' + esc(v.place) + ' · ' : '') +
         (v.fault_code ? '⚠ ' + esc(v.fault_code) + ' · ' : '') + 'инженер: ' + esc(v.engineer || '—') + ' · план ' + fmtTs(v.planned_at) + '</div>' +
-        '<div class="toolbar mt"><button class="act" data-mv="on_way" data-vid="' + v.visit_id + '">В пути</button>' +
-        '<button class="act" data-mv="in_work" data-vid="' + v.visit_id + '">В работе</button>' +
-        '<button class="act" data-mv="done" data-vid="' + v.visit_id + '">Завершить выезд</button></div></div>';
+        '<div class="sv-actions" style="margin-top:8px;"><button class="btn secondary" data-mv="on_way" data-vid="' + v.visit_id + '">В пути</button>' +
+        '<button class="btn secondary" data-mv="in_work" data-vid="' + v.visit_id + '">В работе</button>' +
+        '<button class="btn" data-mv="done" data-vid="' + v.visit_id + '">Завершить выезд</button></div></div>';
     }).join('') : '<span class="note">Выездов нет.</span>';
     $$('#myList [data-open]').forEach(function (c) {
       c.addEventListener('click', function (e) { if (e.target.closest('[data-mv]')) return; openItem(c.dataset.open); });
@@ -649,6 +649,22 @@
     if (templates.length) go2(); else rpc('app_service_templates_list', { p_token: token }).then(function (r) { templates = r || []; go2(); });
   }
 
+  /* ---------- Инструкция оператору ---------- */
+  function instructForm() {
+    if (!cur) return;
+    var go2 = function () {
+      ui.formDialog({ title: 'Инструкция оператору', okText: 'Отправить', size: 'lg', fields: [
+        { name: 'tpl', label: 'Из шаблона (необязательно)', type: 'select', options: [{ value: '', label: '— ввести вручную —' }].concat(templates.filter(function (t) { return t.kind === 'checklist' || t.kind === 'note'; }).map(function (t) { return { value: t.id, label: t.title }; })) },
+        { name: 'text', label: 'Текст инструкции *', type: 'textarea', rows: 4, required: true, placeholder: 'Что должен сделать оператор: проверки, действия, запреты…' }
+      ] }).then(function (v) { if (!v) return;
+        var text = v.text; if (v.tpl) { var t = templates.filter(function (x) { return x.id === v.tpl; })[0]; if (t) text = t.title + '\n' + (t.body || '') + '\n' + (v.text || ''); }
+        rpc('app_service_instruct', { p_token: token, p_id: cur.id, p_text: text, p_kind: 'instruction' })
+          .then(function (d) { var r = d && d[0]; msg('#iMsg', r ? r.message : '', r && r.ok ? 'ok' : 'err'); if (r && r.ok) { window.Auth.log('Инструкция оператору', cur.number); if (window.AppNotify) window.AppNotify.refresh(true); loadDetail(cur.id); } });
+      });
+    };
+    if (templates.length) go2(); else rpc('app_service_templates_list', { p_token: token }).then(function (r) { templates = r || []; go2(); });
+  }
+
   function renderAccess() {
     var roles = [['admin', 'Администратор'], ['owner', 'Владелец'], ['director', 'Руководитель предприятия'], ['chief', 'Главный инженер'], ['manager', 'Диспетчер (manager)'], ['support', 'Поддержка'], ['master', 'Сервисный инженер'], ['qc', 'ОТК (qc)']];
     var cols = [['dash', 'Дашборд'], ['list', 'Заявки'], ['visits', 'Выезды'], ['refs', 'Гарантии/контракты'], ['reports', 'KPI и отчёты'], ['access', 'Матрица'], ['new', 'Создать заявку'], ['edit', 'Статус/отчёт'], ['assign', 'Назначить выезд'], ['supply', 'Снабжение'], ['rules', 'Правила IIoT'], ['act', 'Акт'], ['passport', 'Паспорт станка']];
@@ -661,26 +677,35 @@
   }
 
   /* ---------- Цифровой паспорт станка ---------- */
-  var passportData = null;
+  var passportData = null, passportHist = [];
   function openPassport() {
     if (!cur || !cur.equipment_id) { msg('#iMsg', 'У заявки не указано оборудование', 'err'); return; }
     rpc('app_equipment_passport', { p_token: token, p_equipment_id: cur.equipment_id }).then(function (r) {
       var p = (r || [])[0]; if (!p) { msg('#iMsg', 'Паспорт не найден', 'err'); return; }
       passportData = p;
-      $('#passport').innerHTML =
-        '<div style="display:flex;gap:8px;align-items:center;"><span class="badge">' + esc(p.kind) + '</span>' +
-        '<span class="badge ' + (p.status === 'active' ? 'done' : 'cancelled') + '">' + esc(p.status) + '</span>' +
-        '<b style="margin-left:auto;">' + esc(p.code || '') + '</b></div>' +
-        '<h1 style="font-size:1.15rem;margin:10px 0;">🪪 ' + esc(p.name) + '</h1>' + kv('Модель', p.model) + kv('Подразделение', p.dept) + kv('Стоимость часа', p.cost_hour != null ? money(p.cost_hour) : null) +
-        '<div class="stat-div"></div>' +
-        '<div class="kpi-row">' + cell('Заявок', num(p.requests_total)) + cell('Открытых', num(p.requests_open), num(p.requests_open) ? '#b45309' : '') + cell('Выполнено', num(p.requests_done)) + cell('MTBF, ч', p.mtbf_hours != null ? num(p.mtbf_hours) : '—') + cell('MTTR, ч', p.mttr_hours != null ? num(p.mttr_hours) : '—') + '</div>' +
-        kv('Гарантия', p.warranty_number ? p.warranty_number + ' до ' + (p.warranty_end || '—') : null) +
-        kv('Последний ремонт', fmtTs(p.last_repair)) +
-        kv('Планов ТОиР', p.plans != null ? String(p.plans) : null) + kv('Последнее ТО', p.last_plan_kind ? (p.last_plan_kind + ' · ' + (p.last_plan_date || '')) : null) +
-        kv('Телеметрия', p.iiot_last_metric ? (p.iiot_last_metric + ' = ' + num(p.iiot_last_value) + ' · ' + fmtTs(p.iiot_last_ts)) : 'нет данных');
-      screens.go('s-eq');
+      rpc('app_service_equipment_history', { p_token: token, p_equipment_id: cur.equipment_id })
+        .then(function (hs) { passportHist = hs || []; renderPassport(); })
+        .catch(function () { passportHist = []; renderPassport(); });
     }).catch(function (e) { msg('#iMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
+  function renderPassport() {
+    var p = passportData; if (!p) return;
     function cell(l, v, c) { return '<div class="kpi"><small>' + l + '</small><b' + (c ? ' style="color:' + c + '"' : '') + '>' + v + '</b></div>'; }
+    $('#passport').innerHTML =
+      '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><span class="badge">' + esc(p.kind) + '</span>' +
+      '<span class="badge ' + (p.status === 'active' ? 'done' : 'cancelled') + '">' + esc(p.status) + '</span>' +
+      '<a class="note" style="margin-left:auto;" href="../equipment/index.html" target="_blank">изменить в реестре оборудования ↗</a></div>' +
+      '<h1 style="font-size:1.15rem;margin:10px 0;">🪪 ' + esc(p.name) + '</h1>' + kv('Модель', p.model) + kv('Подразделение', p.dept) + kv('Стоимость часа', p.cost_hour != null ? money(p.cost_hour) : null) +
+      '<div class="stat-div"></div>' +
+      '<div class="kpi-row">' + cell('Заявок', num(p.requests_total)) + cell('Открытых', num(p.requests_open), num(p.requests_open) ? '#b45309' : '') + cell('Выполнено', num(p.requests_done)) + cell('MTBF, ч', p.mtbf_hours != null ? num(p.mtbf_hours) : '—') + cell('MTTR, ч', p.mttr_hours != null ? num(p.mttr_hours) : '—') + '</div>' +
+      kv('Гарантия', p.warranty_number ? p.warranty_number + ' до ' + (p.warranty_end || '—') : null) +
+      kv('Последний ремонт', fmtTs(p.last_repair)) +
+      kv('Планов ТОиР', p.plans != null ? String(p.plans) : null) + kv('Последнее ТО', p.last_plan_kind ? (p.last_plan_kind + ' · ' + (p.last_plan_date || '')) : null) +
+      kv('Телеметрия', p.iiot_last_metric ? (p.iiot_last_metric + ' = ' + num(p.iiot_last_value) + ' · ' + fmtTs(p.iiot_last_ts)) : 'нет данных') +
+      '<h2 style="margin-top:14px;">История ремонта <span class="note">(' + passportHist.length + ')</span></h2>' +
+      (passportHist.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>№</th><th>Дата</th><th>Тема</th><th>Вид</th><th>Статус</th><th class="num">Сумма</th></tr></thead><tbody>' +
+        passportHist.map(function (h) { return '<tr><td><b>' + esc(h.number) + '</b></td><td class="muted">' + fmtTs(h.reported_at) + '</td><td>' + esc(h.title || '') + '</td><td>' + esc(KIND[h.kind] || h.kind || '') + '</td><td>' + (ST[h.status] || h.status) + '</td><td class="num">' + money(num(h.cost) + num(h.parts_cost)) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<span class="note">Записей нет.</span>');
+    screens.go('s-eq');
   }
   function passportPdf() {
     if (!passportData || !window.AppExport) { msg('#iMsg', 'Нет данных', 'err'); return; }
@@ -695,7 +720,12 @@
         { k: 'Планов ТОиР', v: p.plans != null ? String(p.plans) : '—' },
         { k: 'Последнее ТО', v: p.last_plan_kind ? (p.last_plan_kind + ' · ' + (p.last_plan_date || '')) : '—' },
         { k: 'Телеметрия', v: p.iiot_last_metric ? (p.iiot_last_metric + ' = ' + num(p.iiot_last_value) + ' · ' + fmtTs(p.iiot_last_ts)) : 'нет данных' }
-      ] }],
+      ] },
+      { title: 'История ремонта', columns: [
+        { key: 'number', label: '№' }, { key: 'reported_at', label: 'Дата', value: function (h) { return fmtTs(h.reported_at); } },
+        { key: 'title', label: 'Тема' }, { key: 'status', label: 'Статус', value: function (h) { return ST[h.status] || h.status; } },
+        { key: 'cost', label: 'Сумма', num: true, value: function (h) { return money(num(h.cost) + num(h.parts_cost)); } }
+      ], rows: passportHist }],
       sign: ['Главный инженер', 'Начальник цеха'], footer: '3DMP Service · цифровой паспорт станка'
     });
     AppExport.exportPdf('Паспорт станка', html);
@@ -711,6 +741,7 @@
   $('#newEqBtn').addEventListener('click', newEqForm);
   $('#tplBtn').addEventListener('click', templateApply);
   $('#tplAdd').addEventListener('click', tplForm);
+  $('#instrBtn').addEventListener('click', instructForm);
   function runScan(sel, name) {
     rpc(name, { p_token: token }).then(function (d) {
       var r = d && d[0];
