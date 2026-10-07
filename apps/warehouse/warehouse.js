@@ -110,6 +110,106 @@
     }).catch(function (e) { msg('#listMsg', 'Ошибка: ' + e.message, 'err'); });
   }
 
+  /* ---------- WMS: адреса, партии, остатки по адресам ---------- */
+  var addrs = [], stock = [];
+  function loadWms() {
+    return Promise.all([
+      rpc('app_wh_address_list', { p_token: token }),
+      rpc('app_wh_stock_list', { p_token: token, p_material_id: $('#stMat').value || null, p_location_id: $('#stAddr').value || null }),
+      rpc('app_wh_kpi', { p_token: token })
+    ]).then(function (r) {
+      addrs = r[0] || []; stock = r[1] || []; var k = (r[2] || [])[0] || {};
+      var matOpts = '<option value="">— все —</option>' + mats.map(function (m) { return '<option value="' + m.id + '">' + esc(m.name) + '</option>'; }).join('');
+      var lv = $('#stMat').value; $('#stMat').innerHTML = matOpts; $('#stMat').value = lv;
+      $('#lotMat').innerHTML = '<option value="">— выберите материал —</option>' + mats.map(function (m) { return '<option value="' + m.id + '">' + esc(m.name) + '</option>'; }).join('');
+      var addrOpts = '<option value="">— все —</option>' + addrs.map(function (a) { return '<option value="' + a.id + '">' + esc(a.code) + '</option>'; }).join('');
+      var av = $('#stAddr').value; $('#stAddr').innerHTML = addrOpts; $('#stAddr').value = av;
+      $('#wmsKpis').innerHTML = cell('Адресов', k.addresses || 0) + cell('Партий', k.lots || 0) + cell('Позиций', k.positions || 0) +
+        cell('Кол-во', num(k.total_qty)) + cell('Стоимость', money(k.total_value));
+      renderAddr(); renderStock();
+    }).catch(function (e) { msg('#wmsMsg', 'Ошибка: ' + e.message, 'err'); });
+    function cell(l, v, c) { return '<div class="kpi"><small>' + l + '</small><b' + (c ? ' style="color:' + c + '"' : '') + '>' + v + '</b></div>'; }
+  }
+  function addrLabel(a) { return a.code + (a.zone || a.rack || a.cell ? ' (' + [a.zone, a.rack, a.cell].filter(Boolean).join('/') + ')' : ''); }
+  function renderAddr() {
+    $('#addrList').innerHTML = addrs.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Код</th><th>Зона/стеллаж/ячейка</th><th class="num">Позиций</th><th class="num">Кол-во</th><th></th></tr></thead><tbody>' +
+      addrs.map(function (a) { return '<tr><td><b>' + esc(a.code) + '</b></td><td class="muted">' + esc([a.zone, a.rack, a.cell].filter(Boolean).join(' / ')) + '</td>' +
+        '<td class="num">' + a.positions + '</td><td class="num">' + num(a.qty) + '</td>' +
+        '<td><button class="act danger" data-adel="' + a.id + '">Удалить</button></td></tr>'; }).join('') + '</tbody></table></div>' : '<span class="note">Адресов нет.</span>';
+    $$('#addrList [data-adel]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (!window.confirm('Удалить адрес?')) return;
+        rpc('app_wh_address_delete', { p_token: token, p_id: b.dataset.adel }).then(function (r) { var x = r && r[0]; msg('#wmsMsg', x ? x.message : '', x && x.ok ? 'ok' : 'err'); loadWms(); }).catch(function (e) { msg('#wmsMsg', 'Ошибка: ' + e.message, 'err'); });
+      });
+    });
+  }
+  function renderStock() {
+    $('#stockList').innerHTML = stock.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Адрес</th><th>Материал</th><th>Партия</th><th class="num">Кол-во</th><th class="num">Стоимость</th><th></th></tr></thead><tbody>' +
+      stock.map(function (s) { return '<tr><td>' + esc(s.address) + '</td><td>' + esc(s.material) + '</td><td class="muted">' + esc(s.lot || '—') + '</td>' +
+        '<td class="num">' + num(s.qty) + ' ' + esc(s.unit || '') + '</td><td class="num">' + money(s.value) + '</td>' +
+        '<td style="white-space:nowrap;"><button class="act" data-mv="' + s.id + '">Переместить</button><button class="act danger" data-out="' + s.id + '">Списать</button></td></tr>'; }).join('') + '</tbody></table></div>' : '<span class="note">Остатков на адресах нет.</span>';
+    $$('#stockList [data-mv]').forEach(function (b) {
+      b.addEventListener('click', function () { moveForm(stock.filter(function (s) { return s.id === b.dataset.mv; })[0]); });
+    });
+    $$('#stockList [data-out]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var s = stock.filter(function (x) { return x.id === b.dataset.out; })[0]; if (!s) return;
+        ui.formDialog({ title: 'Списание', okText: 'Списать', fields: [{ name: 'qty', label: 'Количество (до ' + num(s.qty) + ')', type: 'text', required: true, value: String(num(s.qty)) }] })
+          .then(function (v) { if (!v) return; var q = parseFloat(String(v.qty).replace(',', '.')); if (isNaN(q) || q <= 0) { msg('#wmsMsg', 'Некорректное количество', 'err'); return; }
+            rpc('app_wh_stock_out', { p_token: token, p_stock_id: s.id, p_qty: q }).then(function (r) { var x = r && r[0]; msg('#wmsMsg', x ? x.message : '', x && x.ok ? 'ok' : 'err'); if (x && x.ok) window.Auth.log('Списание с адреса', s.material + ' ' + q); loadWms(); }); });
+      });
+    });
+  }
+  function moveForm(s) {
+    if (!s) return;
+    var opts = addrs.filter(function (a) { return a.id !== s.location_id; }).map(function (a) { return { value: a.id, label: addrLabel(a) }; });
+    if (!opts.length) { msg('#wmsMsg', 'Нет других адресов', 'err'); return; }
+    ui.formDialog({
+      title: 'Перемещение', okText: 'Переместить',
+      fields: [{ name: 'to', label: 'Адрес назначения', type: 'select', options: opts }, { name: 'qty', label: 'Количество (до ' + num(s.qty) + ')', type: 'text', required: true, value: String(num(s.qty)) }]
+    }).then(function (v) { if (!v) return; var q = parseFloat(String(v.qty).replace(',', '.')); if (isNaN(q) || q <= 0) { msg('#wmsMsg', 'Некорректное количество', 'err'); return; }
+      rpc('app_wh_move', { p_token: token, p_stock_id: s.id, p_to_location_id: v.to, p_qty: q }).then(function (r) { var x = r && r[0]; msg('#wmsMsg', x ? x.message : '', x && x.ok ? 'ok' : 'err'); if (x && x.ok) window.Auth.log('Перемещение', s.material + ' ' + q); loadWms(); }); });
+  }
+  function loadLots() {
+    var mid = $('#lotMat').value; if (!mid) { $('#lotList').innerHTML = '<span class="note">Выберите материал.</span>'; return; }
+    rpc('app_material_lot_list', { p_token: token, p_material_id: mid }).then(function (ls) {
+      ls = ls || [];
+      $('#lotList').innerHTML = ls.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Партия</th><th>Поставщик</th><th class="num">Принято</th><th class="num">На адресах</th><th class="num">Цена</th><th>Дата</th></tr></thead><tbody>' +
+        ls.map(function (l) { return '<tr><td><b>' + esc(l.lot) + '</b></td><td class="muted">' + esc(l.supplier || '—') + '</td><td class="num">' + num(l.qty) + ' ' + esc(l.unit || '') + '</td><td class="num">' + num(l.stock_qty) + '</td><td class="num">' + money(l.price) + '</td><td class="muted">' + fmt(l.created_at) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<span class="note">Партий нет.</span>';
+    }).catch(function (e) { msg('#wmsMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
+
+  $('#toWms').addEventListener('click', function () { loadWms(); screens.go('s-wms'); });
+  $('#addrAdd').addEventListener('click', function () {
+    ui.formDialog({ title: 'Новый адрес', okText: 'Сохранить', fields: [
+      { name: 'code', label: 'Код', type: 'text', required: true, placeholder: 'A-01-01' },
+      { name: 'zone', label: 'Зона', type: 'text', placeholder: 'Зона A' },
+      { name: 'rack', label: 'Стеллаж', type: 'text', placeholder: 'Стеллаж 1' },
+      { name: 'cell', label: 'Ячейка', type: 'text', placeholder: 'Ячейка 1' }
+    ] }).then(function (v) { if (!v) return;
+      rpc('app_wh_address_save', { p_token: token, p_id: null, p_code: v.code, p_zone: v.zone, p_rack: v.rack, p_cell: v.cell, p_active: true })
+        .then(function (r) { var x = r && r[0]; msg('#wmsMsg', x ? x.message : '', x && x.ok ? 'ok' : 'err'); if (x && x.ok) { window.Auth.log('Адрес склада', v.code); loadWms(); } }); });
+  });
+  $('#placeBtn').addEventListener('click', function () {
+    if (!mats.length) { msg('#wmsMsg', 'Нет материалов', 'err'); return; }
+    if (!addrs.length) { msg('#wmsMsg', 'Сначала создайте адрес', 'err'); return; }
+    ui.formDialog({ title: 'Размещение на адрес', okText: 'Разместить', size: 'lg', fields: [
+      { name: 'material', label: 'Материал', type: 'select', options: mats.map(function (m) { return { value: m.id, label: m.name }; }) },
+      { name: 'address', label: 'Адрес', type: 'select', options: addrs.map(function (a) { return { value: a.id, label: addrLabel(a) }; }) },
+      { name: 'lot', label: 'Партия', type: 'text', placeholder: 'L-2601', hint: 'Новая или существующая партия.' },
+      { name: 'qty', label: 'Количество', type: 'text', required: true },
+      { name: 'price', label: 'Цена', type: 'text' },
+      { name: 'supplier', label: 'Поставщик', type: 'text' }
+    ] }).then(function (v) { if (!v) return; var q = parseFloat(String(v.qty).replace(',', '.')); var pr = parseFloat(String(v.price || '').replace(',', '.'));
+      if (isNaN(q) || q <= 0) { msg('#wmsMsg', 'Некорректное количество', 'err'); return; }
+      rpc('app_wh_place', { p_token: token, p_material_id: v.material, p_location_id: v.address, p_lot: v.lot, p_qty: q, p_price: isNaN(pr) ? 0 : pr, p_supplier: v.supplier })
+        .then(function (r) { var x = r && r[0]; msg('#wmsMsg', x ? x.message : '', x && x.ok ? 'ok' : 'err'); if (x && x.ok) { window.Auth.log('Размещение', v.lot || v.material); loadWms(); } }); });
+  });
+  $('#stMat').addEventListener('change', loadWms);
+  $('#stAddr').addEventListener('change', loadWms);
+  $('#lotMat').addEventListener('change', loadLots);
+  $('#back3').addEventListener('click', function () { load(); screens.go('s-list'); });
+
   $('#toForm').addEventListener('click', function () { editId = null; $('#formTitle').textContent = 'Новый материал'; ['#mName', '#mCode', '#mUnit', '#mPrice', '#mMin'].forEach(function (s) { $(s).value = ''; }); clearMsg('#fMsg'); screens.go('s-form'); });
   $('#back1').addEventListener('click', function () { screens.go('s-list'); });
   $('#back2').addEventListener('click', function () { load(); screens.go('s-list'); });

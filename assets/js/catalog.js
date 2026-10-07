@@ -8,7 +8,7 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '8.2',
+  version: '8.3',
   updated: '07.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
@@ -20,7 +20,7 @@ window.AppCatalog = {
   implOrder: {
     auth:1, panel:2, dashboard:3, orders:4, crm:5, tkp:6, docs:7, templates:8, docbuilder:9, competences:10, client:11,
     registry:10, bom:11, calc:12, norms:13, assistant:14,
-    production:15, mes:16, terminal:17, planning:18, slots:19, forecast:20, warehouse:21,
+    production:15, mes:16, terminal:17, planning:18, slots:19, forecast:20, warehouse:21, wms:71,
     qc:22, passport:23, quality:24, claims:70, maintenance:25, tooling:26, oee:27, iiot:28, setup:29, lean:30, issues:31, service:32, calendar:33,
     economics:34, teo:35, finance:36, bi:37, reports:38,
     hr:39, departments:40, staff:41, org:42, roles:43,
@@ -389,10 +389,10 @@ window.AppCatalog = {
     },
     {
       id: 'warehouse', icon: '📦', title: 'Склад', href: 'apps/warehouse/index.html', guest: false, group: 'production', audience: 'user',
-      desc: 'Материалы, приход/расход, контроль минимума.',
-      purpose: 'Учёт ТМЦ: остатки, движения, контроль минимума и своевременное пополнение.',
-      features: ['Остатки материалов', 'Приход/расход', 'История движений', 'Контроль минимума и уведомления'],
-      connects: ['registry', 'procurement', 'bom', 'economics'], out: 'Остатки → потребность'
+      desc: 'Материалы, приход/расход, минимум + WMS: адреса, партии, остатки по адресам.',
+      purpose: 'Учёт ТМЦ: остатки, движения, контроль минимума; WMS — адресное хранение (зона/стеллаж/ячейка), партии материалов, размещение/перемещение/списание и остатки по адресам.',
+      features: ['Остатки материалов', 'Приход/расход', 'История движений', 'Контроль минимума и уведомления', 'WMS: адреса хранения (зона/стеллаж/ячейка)', 'Партии материалов (номер, поставщик, цена)', 'Размещение/перемещение/списание по адресам', 'Остатки и стоимость по адресам/партиям'],
+      connects: ['registry', 'procurement', 'bom', 'economics'], out: 'Остатки → потребность; адреса/партии → учёт'
     },
     {
       id: 'maintenance', icon: '🧰', title: 'Обслуживание и ремонт', href: 'apps/maintenance/index.html', guest: false, group: 'production', audience: 'user',

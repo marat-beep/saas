@@ -34,6 +34,7 @@
             <span class="chip active" data-f="">Все</span>
             <span class="chip" data-f="low">Ниже минимума</span>
           </div>
+          <button class="btn secondary" id="toWms" style="width:auto;padding:11px 18px;">🏬 Адреса и партии</button>
           <button class="btn" id="toForm" style="width:auto;padding:11px 18px;">＋ Новый материал</button>
         </div>
         <div id="listMsg"></div>
@@ -80,6 +81,31 @@
         <div id="moves"><span class="note">—</span></div>
       </div>
     </section>
+
+    <section class="screen" id="s-wms">
+      <button class="back" id="back3">← К списку</button>
+      <div class="kpi-row" id="wmsKpis"></div>
+
+      <div class="card mt">
+        <div class="toolbar"><h2 style="margin:0;flex:1;">Адреса хранения</h2><button class="btn secondary" id="addrAdd" style="width:auto;padding:8px 14px;">＋ Адрес</button></div>
+        <div class="msg" id="wmsMsg"></div>
+        <div id="addrList" class="mt"><span class="note">—</span></div>
+      </div>
+
+      <div class="card">
+        <div class="toolbar"><h2 style="margin:0;flex:1;">Остатки по адресам</h2><button class="btn" id="placeBtn" style="width:auto;padding:8px 14px;">＋ Разместить</button></div>
+        <div class="form-grid">
+          <div class="field"><label>Материал</label><select id="stMat"><option value="">— все —</option></select></div>
+          <div class="field"><label>Адрес</label><select id="stAddr"><option value="">— все —</option></select></div>
+        </div>
+        <div id="stockList" class="mt"><span class="note">—</span></div>
+      </div>
+
+      <div class="card">
+        <div class="toolbar"><h2 style="margin:0;flex:1;">Партии материала</h2><select id="lotMat" style="max-width:300px;"><option value="">— выберите материал —</option></select></div>
+        <div id="lotList" class="mt"><span class="note">—</span></div>
+      </div>
+    </section>
   </main>
 
   <footer class="foot">3DMP Service · склад</footer>
@@ -92,8 +118,8 @@
   <script src="../../assets/js/router.js?v=1"></script>
   <script src="../../assets/js/notify.js?v=2"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=61"></script>
-  <script src="warehouse.js?v=2"></script>
+  <script src="../../assets/js/nav.js?v=62"></script>
+  <script src="warehouse.js?v=3"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>
