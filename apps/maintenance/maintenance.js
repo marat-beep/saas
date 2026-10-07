@@ -48,8 +48,18 @@
         '<span class="note" style="margin-left:auto;">' + (p.title ? esc(p.title) + ' · ' : '') + 'след.: ' + fmt(p.next_due) + (hint ? ' (' + hint + ')' : '') + '</span></div>' +
         '<div style="font-size:.78rem;color:var(--muted);margin-top:5px;">' +
         (p.period_days ? 'период ' + p.period_days + ' дн. · ' : '') + (p.responsible ? '👤 ' + esc(p.responsible) + ' · ' : '') + 'последнее: ' + fmt(p.last_done) + '</div>' +
-        '<div class="toolbar mt"><button class="btn secondary" data-reg="' + p.id + '" data-eq="' + (p.equipment_id || '') + '" data-kind="' + (p.kind || '') + '" style="width:auto;padding:8px 14px;">Зарегистрировать работу</button></div></div>';
+        '<div class="toolbar wrap mt"><button class="btn secondary" data-reg="' + p.id + '" data-eq="' + (p.equipment_id || '') + '" data-kind="' + (p.kind || '') + '" style="width:auto;padding:8px 14px;">Зарегистрировать работу</button>' +
+        '<button class="btn secondary" data-srv="' + p.id + '" style="width:auto;padding:8px 14px;" title="Создать заявку сервиса по этому плану">→ Сервис</button>' +
+        '<a class="btn secondary" href="../service/index.html" style="width:auto;padding:8px 14px;">Сервис ↗</a></div></div>';
     }).join('') : '<span class="note">Планов нет.</span>';
+    $$('#plans [data-srv]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        rpc('app_mnt_plan_service_request', { p_token: token, p_plan_id: b.dataset.srv }).then(function (d) {
+          var r = d && d[0]; msg('#pMsg', r ? r.message : '', r && r.ok ? 'ok' : 'err');
+          if (r && r.ok && window.AppNotify) window.AppNotify.refresh(true);
+        }).catch(function (e) { msg('#pMsg', 'Ошибка: ' + e.message, 'err'); });
+      });
+    });
     $$('#plans [data-reg]').forEach(function (b) {
       b.addEventListener('click', function () {
         $('#rEq').value = b.dataset.eq || ''; $('#rKind').value = b.dataset.kind || 'to1';

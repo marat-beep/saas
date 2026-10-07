@@ -65,6 +65,26 @@ KPI (SLA/MTTR/MTBF/FTFR/CSAT/загрузка); правила IIoT; ППР-ав
 - **Версии**: забытый `?v=N` → старый кэш; пропущенный `nav.js` на странице.
 - **Обработчики кнопок**: не передавать функцию с аргументом напрямую в `addEventListener('click', fn)` — браузер передаст `MouseEvent` как аргумент (ошибка вида `invalid input syntax for type uuid: "{isTrusted:true}"`). Оборачивать: `addEventListener('click', function(){ fn(); })`.
 
+## 6. Промт для апгрейда модуля (шаблон для нового чата)
+Скопировать и подставить `<id>`, `<Название>`, ссылку на ТЗ/макет (если есть).
+```
+Проект 3DMP Service. Рабочая папка: SAAS/. Прочитай: SAAS/docs/MODULE_BLUEPRINT.md, MODULE_STANDARD.md (§6–7), BACKLOG.md, catalog.js.
+Задача: довести модуль <id> («<Название>», apps/<id>/) по принципу эталона apps/service, не создавая дубль.
+1) Гап-анализ: сопоставь ТЗ/макет/features каталога с текущим модулем (таблицы/RPC/UI/связи/роли). Запиши план в BACKLOG (ID, артефакты, DoD).
+2) Дополни: поля/таблицы (if not exists), RPC (list/get/save/set_status + спец), UI (вкладки, дашборд, formDialog, экспорт PDF/CSV), роли (data-cap+CAPS+матрица), связи (переходы к client/equipment/org/issues/claims/guide, integrations, notify, офлайн).
+3) Проверь целостность: нет перегрузок функций; catalog.connects — валидные id; hrefs и id существуют; ?v=N и CATALOG_V; пересобрать apply_all (маркеры).
+4) Смоук app_smoke_test (10/10) и app_smoke_test_ext (14/14), функц. тест RPC с очисткой тестовых данных; SQL — UTF-8 (Management API).
+5) Отметки в BACKLOG/PLAN_WAVES/STATUS/NOTES/PROMPTS; коммит/пуш.
+Инварианты: русский, светлая палитра #10b981, не ломать чужие схемы, секреты не логировать.
+```
+
+## 7. Очередь модулей на апгрейд (приоритет)
+1. `maintenance` — ТОиР (начато: связка ППР→сервис).
+2. `orders` — Заказы (ядро: источник работ/денег/документов).
+3. `qc` / `claims` — Качество (доработка после SPC/CAPA).
+4. `economics` — Экономика (затраты сервиса/ТОиР).
+5. `hr`, `production`/`mes`, `procurement`, `warehouse`, `docs`, `finance`, `tooling`, `nc`, `oee`, `iiot`, `crm`/`client`, `org` — по мере необходимости.
+
 ## 5. Карта связей сервиса
 `orders` (источник), `client`/`crm` (заказчик), `equipment`/`passport` (станок, паспорт),
 `maintenance` (ТОиР/ППР), `iiot` (телеметрия/авто-тикеты), `warehouse`+`procurement`
