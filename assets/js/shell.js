@@ -137,6 +137,10 @@
     if (g.AppCatalog && g.AppCatalog.apps) build(g.AppCatalog);
     else { var s = document.createElement('script'); s.src = ROOT + 'assets/js/catalog.js?v=' + CATALOG_V; s.onload = function () { build(g.AppCatalog); }; document.head.appendChild(s); }
     resolveBrand();
+    try {
+      if (!document.querySelector('link[rel="manifest"]')) { var lk = document.createElement('link'); lk.rel = 'manifest'; lk.href = ROOT + 'manifest.webmanifest'; document.head.appendChild(lk); }
+      if ('serviceWorker' in navigator && location.protocol === 'https:') { navigator.serviceWorker.register(ROOT + 'sw.js', { scope: ROOT }).catch(function () {}); }
+    } catch (e) {}
 
     document.addEventListener('click', function (e) { if (window.innerWidth <= 768 && e.target.closest && e.target.closest('.sh-item')) document.body.classList.remove('sh-open'); });
   }

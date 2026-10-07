@@ -13,6 +13,9 @@
     }
   })();
 </script>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2563eb">
+<link rel="icon" href="assets/icons/app.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/app.css?v=18">
 <style>
   .grp { margin-bottom: 18px; }
@@ -46,6 +49,7 @@
     </div>
 
     <div class="kpi-row" id="hubStats" style="margin-bottom:16px;"></div>
+    <script>if ('serviceWorker' in navigator && location.protocol === 'https:') { navigator.serviceWorker.register('sw.js', { scope: './' }).catch(function () {}); }</script>
 
     <section class="card">
       <h2>Подключение</h2>
