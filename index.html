@@ -46,6 +46,10 @@
   .conn-det > summary { cursor: pointer; font-size: .78rem; color: var(--muted); font-weight: 600; outline: none; }
   .conn-det > summary:hover { color: var(--accent-700); }
   .status .status-text { font-weight: 700; }
+  .topbar { position: relative; }
+  .srvbtn { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.16); color: #fff; border: 1px solid rgba(255,255,255,.4); border-radius: 999px; padding: 7px 12px; font-size: .8rem; font-weight: 600; cursor: pointer; }
+  .srvbtn:hover { background: rgba(255,255,255,.28); }
+  .srvdrop { position: absolute; right: 12px; top: 54px; width: 320px; max-width: 92vw; background: #fff; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 14px 34px rgba(15,23,42,.2); padding: 12px 14px; z-index: 1000; color: var(--text); }
 
 </style>
 </head>
@@ -54,7 +58,12 @@
     <div class="brand"><span class="logo">⚙️</span> <a href="index.html">3DMP Service</a></div>
     <input type="search" id="hubSearch" class="topsearch" placeholder="Поиск по модулям и функциям…" aria-label="Поиск">
     <div class="spacer"></div>
+    <button class="srvbtn" id="srvBtn" type="button" title="Статус сервера">🟢 <span>Сервер</span></button>
     <span class="who" id="account">…</span>
+    <div class="srvdrop" id="srvDrop" style="display:none;">
+      <div class="status" id="conn"><span class="dot wait"></span><span class="status-text">Проверка…</span></div>
+      <details class="conn-det" open><summary>Детали</summary><ul class="checklist" data-checklist></ul></details>
+    </div>
   </header>
 
   <main class="wrap fluid">
@@ -76,9 +85,6 @@
     <section class="card" id="hubTop" style="margin-bottom:10px;">
       <h2>Обзор</h2>
       <div class="kpi-row" id="hubStats"></div>
-      <div class="stat-div"></div>
-      <div class="status" id="conn" title="Детали подключения — наведите/раскройте «Детали»."><span class="dot wait"></span><span class="status-text">Проверка…</span></div>
-      <details class="conn-det"><summary>Детали</summary><ul class="checklist" data-checklist></ul></details>
     </section>
 
     <div class="card" id="hubQuick" style="margin-bottom:16px;"></div>
@@ -301,6 +307,13 @@
       })();
 
 
+
+      (function () {
+        var b = document.getElementById('srvBtn'), d = document.getElementById('srvDrop');
+        if (!b || !d) return;
+        b.addEventListener('click', function (e) { e.stopPropagation(); d.style.display = (d.style.display === 'none' || !d.style.display) ? 'block' : 'none'; });
+        document.addEventListener('click', function (e) { if (!(e.target.closest && (e.target.closest('#srvDrop') || e.target.closest('#srvBtn')))) d.style.display = 'none'; });
+      })();
 
       window.AppStatus.render('#conn').then(function () {
         refreshUI();
