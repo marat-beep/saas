@@ -6,14 +6,12 @@
 <title>Прогноз загрузки — 3DMP Service</title>
 <link rel="stylesheet" href="../../assets/css/app.css?v=35">
 <style>
-  
-  
-  
   .num{text-align:right;font-variant-numeric:tabular-nums}
   .bar{height:10px;border-radius:6px;background:#eef2f7;overflow:hidden;min-width:80px}
   .bar i{display:block;height:100%;background:var(--accent)}
   .bar i.warn{background:#f59e0b}.bar i.over{background:#dc2626}
   .risk-просрочен{color:#b91c1c;font-weight:700}.risk-риск{color:#b45309;font-weight:700}.risk-норма{color:#047857}
+  .fc-chart{width:100%;max-width:760px;height:auto;border:1px solid var(--border);border-radius:12px;background:#fff}
 </style>
 </head>
 <body>
@@ -25,23 +23,65 @@
   </header>
 
   <main class="wrap fluid">
-    <div class="hero"><h1>Прогноз загрузки (B39 · Сессия F)</h1><p>Загрузка по дням, ETA по нарядам/заказам и риск просрочки — по данным нарядов и слотов.</p></div>
-    <div class="kpi-row" id="kpis"></div>
+    <div class="hero"><h1>Прогноз и аналитика L4</h1><p>Загрузка по дням, прогноз спроса (заявки/выручка) с проекцией, риски по срокам и предиктив ТОиР по наработке.</p></div>
 
-    <div class="card mt">
-      <div class="toolbar"><label class="note">Горизонт, дней:</label><input type="number" id="days" value="14" min="3" max="90" style="padding:9px;border:1px solid var(--border);border-radius:9px;width:100px;"><button class="btn secondary" id="refresh" style="width:auto;padding:8px 14px;">Обновить</button></div><p class="note">Прогноз загрузки по дням: плановые часы нарядов против мощности слотов (учёт перегрузки и свободного времени).</p>
-      <h2>Загрузка по дням</h2>
-      <div class="msg" id="lMsg"></div>
-      <div id="load" class="mt"><span class="note">Загрузка…</span></div>
+    <div class="tabs2" id="tabs">
+      <button data-scr="load" class="active">Загрузка</button>
+      <button data-scr="demand">Спрос (прогноз)</button>
+      <button data-scr="risks">Риски по срокам</button>
+      <button data-scr="mnt">Предиктив ТОиР</button>
     </div>
 
-    <div class="card">
-      <h2>Прогноз по нарядам <span class="note" id="cnt"></span></h2>
-      <div id="orders" class="mt"><span class="note">Загрузка…</span></div>
-    </div>
+    <section class="screen active" id="scr-load">
+      <div class="kpi-row" id="kpis"></div>
+      <div class="card mt">
+        <div class="toolbar"><label class="note">Горизонт, дней:</label><input type="number" id="days" value="14" min="3" max="90" style="padding:9px;border:1px solid var(--border);border-radius:9px;width:100px;"><button class="btn secondary" id="refresh" style="width:auto;padding:8px 14px;">Обновить</button></div><p class="note">Прогноз загрузки по дням: плановые часы нарядов против мощности слотов (учёт перегрузки и свободного времени).</p>
+        <h2>Загрузка по дням</h2>
+        <div class="msg" id="lMsg"></div>
+        <div id="load" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+      <div class="card">
+        <h2>Прогноз по нарядам <span class="note" id="cnt"></span></h2>
+        <div id="orders" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-demand">
+      <div class="card">
+        <div class="toolbar">
+          <label class="note">Месяцев назад:</label>
+          <select id="months" style="padding:9px;border:1px solid var(--border);border-radius:9px;">
+            <option value="6">6</option><option value="9">9</option><option value="12" selected>12</option>
+          </select>
+          <button class="btn secondary" id="demandBtn" style="width:auto;padding:8px 14px;">Построить</button>
+          <span class="note" style="margin-left:auto;">Пунктир — линейная проекция на 3 месяца вперёд.</span>
+        </div>
+        <div class="msg" id="dMsg"></div>
+        <div id="demandChart" class="mt"></div>
+        <div id="demandTable" class="mt"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-risks">
+      <div class="card">
+        <div class="toolbar"><button class="btn secondary" id="risksBtn" style="width:auto;padding:8px 14px;">Обновить</button>
+          <span class="note" style="margin-left:auto;">Заявки со сроком: просрочен / риск (≤3 дн.) / норма.</span></div>
+        <div class="msg" id="rMsg"></div>
+        <div id="risks" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-mnt">
+      <div class="card">
+        <div class="toolbar"><button class="btn secondary" id="mntBtn" style="width:auto;padding:8px 14px;">Обновить</button>
+          <span class="note" style="margin-left:auto;">Предиктив ТОиР: остаток наработки/срока до ТО (план ↔ факт).</span></div>
+        <div class="msg" id="mMsg"></div>
+        <div id="mnt" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
   </main>
 
-  <footer class="foot">3DMP Service · прогноз загрузки</footer>
+  <footer class="foot">3DMP Service · прогноз и аналитика</footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="../../assets/js/config.js?v=2"></script>
@@ -50,9 +90,10 @@
   <script src="../../assets/js/auth.js?v=6"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=85"></script>
-  <script src="../../assets/js/shell.js?v=47"></script>
-  <script src="forecast.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=86"></script>
+  <script src="../../assets/js/shell.js?v=48"></script>
+  <script src="../../assets/js/export.js?v=1"></script>
+  <script src="forecast.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>
