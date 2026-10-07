@@ -138,7 +138,7 @@
 
     bar.parentNode.insertBefore(wrap, bar.nextSibling);
 
-    setupPills(bar, ROOT);
+    setupPills(document.querySelector('.topbar') || bar, ROOT);
 
     var t = document.getElementById('navToggle');
     var d = document.getElementById('navDrop');
