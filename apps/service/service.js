@@ -94,7 +94,9 @@
         kv('Контакт', d.contact) + kv('Место', d.location) + kv('Код ошибки', d.fault_code) +
         kv('Инженер', d.assigned_login || d.engineer) +
         kv('Создана', fmtTs(d.reported_at || d.created_at)) + kv('Реакция до', fmtTs(d.response_due)) + kv('Решение до', fmtTs(d.resolve_due)) +
-        kv('Решена', fmtTs(d.resolved_at)) + kv('Затраты', money(d.cost)) + kv('Работы', d.works) + kv('Примечание', d.note);
+        kv('Решена', fmtTs(d.resolved_at)) + kv('Гарантия', d.warranty_number) + kv('Контракт', d.contract_number) +
+        kv('Затраты (работы)', money(d.cost)) + kv('Стоимость запчастей', d.parts_cost ? money(d.parts_cost) : null) +
+        kv('Работы', d.works) + kv('Примечание', d.note);
       $('#stSel').value = d.status;
       $('#visits').innerHTML = visits.length ? visits.map(function (v) {
         return '<div class="kvr"><span class="badge">' + (VST[v.status] || v.status) + '</span><b>' + esc(v.engineer || '—') + '</b>' +
@@ -108,15 +110,15 @@
       $('#history').innerHTML = hist.length ? hist.map(function (h) {
         return '<div class="tl-item"><div class="note">' + fmtTs(h.created_at) + ' · ' + esc(h.by_login || '') + '</div><div>' + esc(h.text || h.kind) + '</div></div>';
       }).join('') : '<span class="note">История пуста.</span>';
-      bindVisits();
+      bindVisits(); loadParts(id);
     }).catch(function (e) { msg('#iMsg', 'Ошибка: ' + e.message, 'err'); });
   }
   function bindVisits() {
     $$('#visits [data-vst]').forEach(function (b) {
       b.addEventListener('click', function () {
-        rpc('app_service_visit_status', { p_token: token, p_visit_id: b.dataset.vid, p_status: b.dataset.vst, p_report: null })
-          .then(function () { window.Auth.log('Сервис выезд', b.dataset.vst); if (window.AppNotify) window.AppNotify.refresh(true); load(); })
-          .catch(function (e) { msg('#iMsg', 'Ошибка: ' + e.message, 'err'); });
+        callOffline('app_service_visit_status', { p_token: token, p_visit_id: b.dataset.vid, p_status: b.dataset.vst, p_report: null }, 'выезд ' + b.dataset.vst, function () {
+          window.Auth.log('Сервис выезд', b.dataset.vst); if (window.AppNotify) window.AppNotify.refresh(true); load();
+        });
       });
     });
   }
@@ -170,9 +172,9 @@
   $('#q').addEventListener('input', function () { q = this.value; render(); });
   $('#stBtn').addEventListener('click', function () {
     if (!cur) return;
-    rpc('app_service_set_status', { p_token: token, p_id: cur.id, p_status: $('#stSel').value, p_note: $('#stNote').value.trim() })
-      .then(function (d) { var r = d && d[0]; msg('#iMsg', (r && r.message) || '', r && r.ok ? 'ok' : 'err'); if (r && r.ok) { window.Auth.log('Сервис статус', $('#stSel').value); if (window.AppNotify) window.AppNotify.refresh(true); load(); } })
-      .catch(function (e) { msg('#iMsg', 'Ошибка: ' + e.message, 'err'); });
+    callOffline('app_service_set_status', { p_token: token, p_id: cur.id, p_status: $('#stSel').value, p_note: $('#stNote').value.trim() }, 'статус ' + $('#stSel').value, function (d) {
+      var r = d && d[0]; msg('#iMsg', (r && r.message) || '', r && r.ok ? 'ok' : 'err'); if (r && r.ok) { window.Auth.log('Сервис статус', $('#stSel').value); if (window.AppNotify) window.AppNotify.refresh(true); load(); }
+    });
   });
   $('#assignBtn').addEventListener('click', function () {
     if (!cur) return;
@@ -194,6 +196,147 @@
         rpc('app_service_history_add', { p_token: token, p_id: cur.id, p_text: v.text, p_kind: 'comment' })
           .then(function () { loadDetail(cur.id); }).catch(function (e) { msg('#iMsg', 'Ошибка: ' + e.message, 'err'); }); });
   });
+  /* ---------- Офлайн-обёртка для действий ---------- */
+  function callOffline(name, args, label, onOk) {
+    if (!navigator.onLine || !SB) { queueOp(name, args, label); return; }
+    rpc(name, args).then(function (d) { if (onOk) onOk(d); }).catch(function () { queueOp(name, args, label); });
+  }
+  function queueOp(name, args, label) {
+    if (!window.AppOffline) { msg('#iMsg', 'Нет сети, очередь недоступна.', 'err'); return; }
+    window.AppOffline.add({ rpc: name, args: args, label: label }).then(function () { msg('#iMsg', 'Офлайн — сохранено, синхронизируется автоматически.', 'info'); });
+  }
+
+  /* ---------- Запчасти по заявке ---------- */
+  var spareParts = [];
+  function loadParts(id) {
+    rpc('app_service_parts_list', { p_token: token, p_id: id }).then(function (r) {
+      r = r || [];
+      $('#parts').innerHTML = r.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Запчасть</th><th class="num">Кол-во</th><th class="num">Цена</th><th class="num">Стоимость</th><th>Статус</th><th></th></tr></thead><tbody>' +
+        r.map(function (x) { return '<tr><td>' + esc(x.part || '') + '</td><td class="num">' + num(x.qty) + ' ' + esc(x.unit || '') + '</td><td class="num">' + money(x.price) + '</td><td class="num">' + money(x.cost) + '</td>' +
+          '<td><span class="badge">' + (x.status === 'reserved' ? 'резерв' : esc(x.status)) + '</span></td>' +
+          '<td><button class="act danger" data-prem="' + x.id + '">Вернуть</button></td></tr>'; }).join('') + '</tbody></table></div>' : '<span class="note">Запчастей нет.</span>';
+      $$('#parts [data-prem]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          rpc('app_service_part_remove', { p_token: token, p_id: b.dataset.prem }).then(function (d) { var r2 = d && d[0]; msg('#iMsg', r2 ? r2.message : '', r2 && r2.ok ? 'ok' : 'err'); loadParts(cur.id); load(); });
+        });
+      });
+    }).catch(function () { $('#parts').innerHTML = '<span class="note">Недоступно.</span>'; });
+  }
+  function partForm() {
+    if (!cur) return;
+    var go = function () {
+      ui.formDialog({ title: 'Запчасть по заявке', okText: 'Зарезервировать', fields: [
+        { name: 'part', label: 'Запчасть', type: 'select', options: spareParts.map(function (p) { return { value: p.id, label: p.name + ' (' + num(p.qty) + ' ' + (p.unit || '') + ')' }; }) },
+        { name: 'qty', label: 'Количество', type: 'text', required: true, value: '1' }
+      ] }).then(function (v) { if (!v) return; var q = parseFloat(String(v.qty).replace(',', '.'));
+        if (isNaN(q) || q <= 0) { msg('#iMsg', 'Некорректное количество', 'err'); return; }
+        rpc('app_service_part_add', { p_token: token, p_id: cur.id, p_part_id: v.part, p_qty: q })
+          .then(function (d) { var r = d && d[0]; msg('#iMsg', r ? r.message : '', r && r.ok ? 'ok' : 'err'); if (r && r.ok) { window.Auth.log('Сервис запчасть', ''); loadParts(cur.id); load(); } });
+      });
+    };
+    if (spareParts.length) { go(); return; }
+    rpc('app_spare_parts_list', { p_token: token }).then(function (r) { spareParts = r || []; if (!spareParts.length) { msg('#iMsg', 'Нет запчастей на складе', 'err'); return; } go(); });
+  }
+
+  /* ---------- Мои выезды (мобильный режим) ---------- */
+  function loadMyVisits() {
+    rpc('app_service_my_visits', { p_token: token, p_engineer: null }).then(function (r) {
+      r = r || [];
+      $('#myList').innerHTML = r.length ? r.map(function (v) {
+        return '<div class="ocard"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><b>' + esc(v.number) + '</b>' +
+          (v.sla_state === 'overdue' ? '<span class="badge sla-overdue">SLA просрочен</span>' : v.sla_state === 'warn' ? '<span class="badge sla-warn">SLA истекает</span>' : '') +
+          '<span class="badge">' + (VST[v.status] || v.status) + '</span></div>' +
+          '<div style="font-size:.82rem;margin-top:4px;">' + esc(v.title || '') + '</div>' +
+          '<div class="note">' + (v.equipment ? '🏭 ' + esc(v.equipment) + ' · ' : '') + (v.place ? '📍 ' + esc(v.place) + ' · ' : '') + 'план ' + fmtTs(v.planned_at) + '</div>' +
+          '<div class="toolbar mt"><button class="act" data-mv="in_work" data-vid="' + v.visit_id + '">В работе</button>' +
+          '<button class="act" data-mv="done" data-vid="' + v.visit_id + '">Завершить</button></div></div>';
+      }).join('') : '<span class="note">Активных выездов нет.</span>';
+      $$('#myList [data-mv]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          callOffline('app_service_visit_status', { p_token: token, p_visit_id: b.dataset.vid, p_status: b.dataset.mv, p_report: null }, 'выезд ' + b.dataset.mv, function () {
+            window.Auth.log('Сервис выезд', b.dataset.mv); loadMyVisits();
+          });
+        });
+      });
+    }).catch(function () { $('#myList').innerHTML = '<span class="note">Недоступно.</span>'; });
+  }
+
+  /* ---------- Гарантии и контракты ---------- */
+  var warranties = [], contracts = [];
+  function loadRefs() {
+    Promise.all([
+      rpc('app_warranty_list', { p_token: token }),
+      rpc('app_service_contract_list', { p_token: token })
+    ]).then(function (r) {
+      warranties = r[0] || []; contracts = r[1] || []; renderWarr(); renderCon();
+    }).catch(function (e) { msg('#refMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
+  var WST = { active: 'активна', expired: 'истекла', planned: 'запланирована', off: 'выключена' };
+  function renderWarr() {
+    $('#warrList').innerHTML = warranties.length ? '<table class="tbl"><thead><tr><th>Оборудование</th><th>Заказчик</th><th>№</th><th>Поставщик</th><th>Период</th><th>Статус</th><th></th></tr></thead><tbody>' +
+      warranties.map(function (w) { return '<tr><td><b>' + esc(w.equipment || '—') + '</b></td><td class="muted">' + esc(w.customer || '') + '</td><td>' + esc(w.number || '') + '</td>' +
+        '<td>' + esc(w.provider) + '</td><td class="muted">' + (w.start_date || '') + ' — ' + (w.end_date || '∞') + (w.days_left != null ? ' (' + w.days_left + ' дн)' : '') + '</td>' +
+        '<td><span class="badge ' + (w.status === 'active' ? 'done' : 'cancelled') + '">' + (WST[w.status] || w.status) + '</span></td>' +
+        '<td style="white-space:nowrap;"><button class="act" data-wedit="' + w.id + '">Изменить</button><button class="act danger" data-wdel="' + w.id + '">Удалить</button></td></tr>'; }).join('') + '</tbody></table>' : '<span class="note">Гарантий нет.</span>';
+    $$('#warrList [data-wedit]').forEach(function (b) { b.addEventListener('click', function () { warrForm(warranties.filter(function (x) { return x.id === b.dataset.wedit; })[0]); }); });
+    $$('#warrList [data-wdel]').forEach(function (b) { b.addEventListener('click', function () { if (!window.confirm('Удалить гарантию?')) return; rpc('app_warranty_delete', { p_token: token, p_id: b.dataset.wdel }).then(function (d) { var r = d && d[0]; msg('#refMsg', r ? r.message : '', r && r.ok ? 'ok' : 'err'); loadRefs(); }); }); });
+  }
+  function renderCon() {
+    $('#conList').innerHTML = contracts.length ? '<table class="tbl"><thead><tr><th>Заказчик</th><th>№</th><th>Тип</th><th>Период</th><th class="num">Реакция, мин</th><th class="num">Решение, мин</th><th>Статус</th><th></th></tr></thead><tbody>' +
+      contracts.map(function (k) { return '<tr><td><b>' + esc(k.customer || '—') + '</b></td><td>' + esc(k.number || '') + '</td><td>' + esc(k.kind) + '</td>' +
+        '<td class="muted">' + (k.start_date || '') + ' — ' + (k.end_date || '∞') + '</td><td class="num">' + (k.response_sla_min || '—') + '</td><td class="num">' + (k.resolve_sla_min || '—') + '</td>' +
+        '<td><span class="badge ' + (k.status === 'active' ? 'done' : 'cancelled') + '">' + (WST[k.status] || k.status) + '</span></td>' +
+        '<td style="white-space:nowrap;"><button class="act" data-kedit="' + k.id + '">Изменить</button><button class="act danger" data-kdel="' + k.id + '">Удалить</button></td></tr>'; }).join('') + '</tbody></table>' : '<span class="note">Контрактов нет.</span>';
+    $$('#conList [data-kedit]').forEach(function (b) { b.addEventListener('click', function () { conForm(contracts.filter(function (x) { return x.id === b.dataset.kedit; })[0]); }); });
+    $$('#conList [data-kdel]').forEach(function (b) { b.addEventListener('click', function () { if (!window.confirm('Удалить контракт?')) return; rpc('app_service_contract_delete', { p_token: token, p_id: b.dataset.kdel }).then(function (d) { var r = d && d[0]; msg('#refMsg', r ? r.message : '', r && r.ok ? 'ok' : 'err'); loadRefs(); }); }); });
+  }
+  function warrForm(w) {
+    w = w || {};
+    ui.formDialog({ title: w.id ? 'Гарантия' : 'Новая гарантия', okText: 'Сохранить', size: 'lg', fields: [
+      { name: 'equipment_id', label: 'Оборудование *', type: 'select', options: eq.map(function (e) { return { value: e.id, label: e.name }; }) },
+      { name: 'customer_id', label: 'Заказчик', type: 'select', options: [{ value: '', label: '— нет —' }].concat(customers.map(function (c) { return { value: c.id, label: c.name }; })) },
+      { name: 'number', label: 'Номер', type: 'text' },
+      { name: 'provider', label: 'Поставщик', type: 'select', options: [{ value: 'manufacturer', label: 'Производитель' }, { value: 'dealer', label: 'Дилер' }, { value: 'internal', label: 'Внутренняя' }] },
+      { name: 'start_date', label: 'Начало', type: 'date' },
+      { name: 'end_date', label: 'Окончание', type: 'date' },
+      { name: 'coverage', label: 'Покрытие', type: 'text' },
+      { name: 'terms', label: 'Условия', type: 'textarea', rows: 2 },
+      { name: 'active', label: 'Активна', type: 'checkbox' }
+    ], values: { equipment_id: w.equipment_id || '', customer_id: w.customer_id || '', number: w.number || '', provider: w.provider || 'manufacturer', start_date: w.start_date ? String(w.start_date).slice(0, 10) : new Date().toISOString().slice(0, 10), end_date: w.end_date ? String(w.end_date).slice(0, 10) : '', coverage: w.coverage || '', terms: w.terms || '', active: (w.id ? w.active : true) ? 'да' : '' } })
+      .then(function (v) { if (!v) return;
+        rpc('app_warranty_save', { p_token: token, p_id: w.id || null, p_equipment_id: v.equipment_id || null, p_customer_id: v.customer_id || null, p_number: v.number, p_provider: v.provider, p_start_date: v.start_date || null, p_end_date: v.end_date || null, p_coverage: v.coverage, p_terms: v.terms, p_active: !!v.active })
+          .then(function (d) { var r = d && d[0]; msg('#refMsg', r ? r.message : '', r && r.ok ? 'ok' : 'err'); if (r && r.ok) loadRefs(); });
+      });
+  }
+  function conForm(k) {
+    k = k || {};
+    ui.formDialog({ title: k.id ? 'Контракт' : 'Новый контракт', okText: 'Сохранить', size: 'lg', fields: [
+      { name: 'customer_id', label: 'Заказчик *', type: 'select', options: customers.map(function (c) { return { value: c.id, label: c.name }; }) },
+      { name: 'number', label: 'Номер', type: 'text' },
+      { name: 'kind', label: 'Тип', type: 'select', options: [{ value: 'sla', label: 'SLA' }, { value: 'service', label: 'Сервис' }, { value: 'extended_warranty', label: 'Расширенная гарантия' }] },
+      { name: 'start_date', label: 'Начало', type: 'date' },
+      { name: 'end_date', label: 'Окончание', type: 'date' },
+      { name: 'response_sla_min', label: 'Реакция, мин', type: 'text' },
+      { name: 'resolve_sla_min', label: 'Решение, мин', type: 'text' },
+      { name: 'cost', label: 'Стоимость, ₽', type: 'text' },
+      { name: 'terms', label: 'Условия', type: 'textarea', rows: 2 },
+      { name: 'active', label: 'Активен', type: 'checkbox' }
+    ], values: { customer_id: k.customer_id || '', number: k.number || '', kind: k.kind || 'sla', start_date: k.start_date ? String(k.start_date).slice(0, 10) : new Date().toISOString().slice(0, 10), end_date: k.end_date ? String(k.end_date).slice(0, 10) : '', response_sla_min: k.response_sla_min != null ? String(k.response_sla_min) : '', resolve_sla_min: k.resolve_sla_min != null ? String(k.resolve_sla_min) : '', cost: k.cost != null ? String(k.cost) : '', terms: k.terms || '', active: (k.id ? k.active : true) ? 'да' : '' } })
+      .then(function (v) { if (!v) return;
+        var rmin = parseInt(v.response_sla_min, 10), smin = parseInt(v.resolve_sla_min, 10), cst = parseFloat(String(v.cost || '').replace(',', '.'));
+        rpc('app_service_contract_save', { p_token: token, p_id: k.id || null, p_customer_id: v.customer_id || null, p_number: v.number, p_kind: v.kind, p_start_date: v.start_date || null, p_end_date: v.end_date || null, p_response_sla_min: isNaN(rmin) ? null : rmin, p_resolve_sla_min: isNaN(smin) ? null : smin, p_cost: isNaN(cst) ? null : cst, p_terms: v.terms, p_active: !!v.active })
+          .then(function (d) { var r = d && d[0]; msg('#refMsg', r ? r.message : '', r && r.ok ? 'ok' : 'err'); if (r && r.ok) loadRefs(); });
+      });
+  }
+
+  $('#myBtn').addEventListener('click', function () { loadMyVisits(); screens.go('s-visits'); });
+  $('#refBtn').addEventListener('click', function () { loadRefs(); screens.go('s-refs'); });
+  $('#backM').addEventListener('click', function () { screens.go('s-list'); });
+  $('#backR').addEventListener('click', function () { screens.go('s-list'); });
+  $('#warrAdd').addEventListener('click', function () { warrForm(null); });
+  $('#conAdd').addEventListener('click', function () { conForm(null); });
+  $('#partAdd').addEventListener('click', partForm);
+
   $('#backBtn').addEventListener('click', function () { cur = null; load(); screens.go('s-list'); });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
   window.addEventListener('online', function () { setTimeout(load, 1200); });

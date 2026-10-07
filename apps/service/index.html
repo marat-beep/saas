@@ -43,6 +43,8 @@
             <span class="chip" data-f="warranty">Гарантия</span>
             <span class="chip" data-f="overdue">Просрочен SLA</span>
           </div>
+          <button class="btn secondary" id="myBtn" style="width:auto;padding:10px 14px;">🚚 Мои выезды</button>
+          <button class="btn secondary" id="refBtn" style="width:auto;padding:10px 14px;">🛡 Гарантии/контракты</button>
           <button class="btn secondary" id="iiotBtn" style="width:auto;padding:10px 14px;" title="Создать заявки из ошибок ЧПУ (IIoT)">⚙ IIoT → заявки</button>
           <button class="btn" id="newBtn" style="width:auto;padding:10px 16px;">＋ Заявка</button>
         </div>
@@ -75,8 +77,35 @@
         <div id="visits"><span class="note">—</span></div>
       </div>
       <div class="card">
+        <div class="toolbar"><h2 style="margin:0;flex:1;">Запчасти по заявке</h2><button class="btn secondary" id="partAdd" style="width:auto;padding:8px 14px;">＋ Запчасть</button></div>
+        <div id="parts"><span class="note">—</span></div>
+      </div>
+      <div class="card">
         <h2>История</h2>
         <div class="tl" id="history"><span class="note">—</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="s-visits">
+      <button class="back" id="backM">← К списку</button>
+      <div class="card">
+        <h2>Мои выезды</h2>
+        <p class="note">Незакрытые выезды, назначенные на вас. Статусы можно менять офлайн — синхронизируется автоматически.</p>
+        <div class="msg" id="mMsg"></div>
+        <div id="myList"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="s-refs">
+      <button class="back" id="backR">← К списку</button>
+      <div class="card">
+        <div class="toolbar"><h2 style="margin:0;flex:1;">Гарантии</h2><button class="btn secondary" id="warrAdd" style="width:auto;padding:8px 14px;">＋ Гарантия</button></div>
+        <div class="msg" id="refMsg"></div>
+        <div id="warrList" style="overflow:auto;"><span class="note">Загрузка…</span></div>
+      </div>
+      <div class="card">
+        <div class="toolbar"><h2 style="margin:0;flex:1;">Сервисные контракты</h2><button class="btn secondary" id="conAdd" style="width:auto;padding:8px 14px;">＋ Контракт</button></div>
+        <div id="conList" style="overflow:auto;"><span class="note">Загрузка…</span></div>
       </div>
     </section>
   </main>
@@ -91,9 +120,10 @@
   <script src="../../assets/js/router.js?v=1"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=65"></script>
-  <script src="../../assets/js/shell.js?v=25"></script>
-  <script src="service.js?v=2"></script>
+  <script src="../../assets/js/nav.js?v=66"></script>
+  <script src="../../assets/js/shell.js?v=26"></script>
+  <script src="../../assets/js/offline-queue.js?v=1"></script>
+  <script src="service.js?v=3"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>
