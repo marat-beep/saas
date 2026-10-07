@@ -26,14 +26,14 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Калькуляторы и мини-сервисы</h1><p>8 инженерных калькуляторов: масса проката, режимы резания, ISO 286, нормочас ЧПУ, себестоимость детали, децимальные обозначения, конвертеры, подбор технологии. Прототипы B34/A1.</p></div>
 
     <div class="card">
       <div class="tabs" id="tabs"></div>
-      <div id="form" class="grid3"></div>
+      <p class="note">Заполните параметры детали и режимов — калькулятор посчитает норму времени и стоимость. Поля подстраиваются под вид расчёта.</p><div id="form" class="grid3"></div>
       <div class="btn-row mt">
-        <button class="btn" id="calcBtn">Рассчитать</button>
+        <button class="btn" id="calcBtn" title="Выполнить расчёт по введённым данным">Рассчитать</button>
         <button class="btn secondary" id="clearBtn">Очистить</button>
       </div>
       <div class="msg mt" id="fMsg"></div>
@@ -41,7 +41,7 @@
       <div id="saveRow" class="toolbar mt" style="display:none">
         <input type="text" id="sTitle" placeholder="Название расчёта" style="padding:9px;border:1px solid var(--border);border-radius:9px;">
         <select id="sOrder" style="padding:9px;border:1px solid var(--border);border-radius:9px;"><option value="">— привязать к заявке —</option></select>
-        <button class="btn" id="saveBtn">Сохранить расчёт</button>
+        <button class="btn" id="saveBtn" title="Сохранить расчёт в журнал">Сохранить расчёт</button>
       </div>
     </div>
 

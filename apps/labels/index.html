@@ -19,7 +19,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Упаковка и маркировка</h1><p>Грузовые места и этикетки: грузовая этикетка, бирка позиции, манипуляционные знаки. Печать форм. Прототип B37.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -30,13 +30,13 @@
         <div class="field"><label>Заявка</label><select id="pOrder"><option value="">— не выбрана —</option></select></div>
         <div class="field"><label>№ места</label><input type="number" id="pNo" value="1"></div>
         <div class="field"><label>Вид</label><select id="pKind"><option value="box">Коробка</option><option value="pallet">Паллета</option><option value="crate">Ящик</option><option value="bag">Мешок</option><option value="other">Прочее</option></select></div>
-        <div class="field"><label>Габариты, мм</label><input type="text" id="pDims" placeholder="1200×800×600"></div>
+        <div class="field"><label>Габариты, мм</label><input type="text" id="pDims" placeholder="1200×800×600"><span class="hint">Длина×Ширина×Высота места, мм.</span></div>
         <div class="field"><label>Брутто, кг</label><input type="number" step="any" id="pGross" value="0"></div>
         <div class="field"><label>Нетто, кг</label><input type="number" step="any" id="pNet" value="0"></div>
         <div class="field"><label>Позиций</label><input type="number" id="pPos" value="0"></div>
-        <div class="field"><label>Манипуляционные знаки</label><input type="text" id="pMarks" placeholder="Верх, хрупкое"></div>
+        <div class="field"><label>Манипуляционные знаки</label><input type="text" id="pMarks" placeholder="Верх, хрупкое"><span class="hint">Например: «Верх», «Хрупкое», «Не кантовать».</span></div>
       </div>
-      <div class="btn-row mt"><button class="btn" id="pSave">Сохранить место</button><button class="btn secondary" id="pClear">Очистить</button></div>
+      <div class="btn-row mt"><button class="btn" id="pSave" title="Сохранить грузовое место по заявке">Сохранить место</button><button class="btn secondary" id="pClear">Очистить</button></div>
     </div>
 
     <div class="card">
@@ -52,17 +52,17 @@
         <div class="field"><label>Тип</label><select id="lType"><option value="cargo">Грузовая этикетка</option><option value="position">Бирка позиции</option><option value="tag">Манипуляционный знак</option></select></div>
         <div class="field"><label>Заявка</label><select id="lOrder"><option value="">— не выбрана —</option></select></div>
         <div class="field"><label>Место</label><select id="lPackage"><option value="">— не выбрано —</option></select></div>
-        <div class="field"><label>Получатель</label><input type="text" id="lRecipient"></div>
+        <div class="field"><label>Получатель</label><input type="text" id="lRecipient"><span class="hint">Кому адресовано (заказчик/город).</span></div>
         <div class="field"><label>Отправитель</label><input type="text" id="lSender" value="ООО «3Д Металлообработка Пресс»"></div>
         <div class="field"><label>Товар/описание</label><input type="text" id="lItem"></div>
         <div class="field"><label>Кол-во</label><input type="number" step="any" id="lQty" value="0"></div>
         <div class="field"><label>Габариты</label><input type="text" id="lDims"></div>
         <div class="field"><label>Брутто/Нетто, кг</label><div style="display:flex;gap:6px"><input type="number" step="any" id="lGross" placeholder="брутто"><input type="number" step="any" id="lNet" placeholder="нетто"></div></div>
         <div class="field"><label>№ позиции</label><input type="number" id="lPos"></div>
-        <div class="field"><label>Идентификатор</label><input type="text" id="lIdent"></div>
+        <div class="field"><label>Идентификатор</label><input type="text" id="lIdent"><span class="hint">Внутренний код/штрихкод позиции.</span></div>
         <div class="field"><label>Место (№ из всего)</label><div style="display:flex;gap:6px"><input type="number" id="lCargoNo" placeholder="№"><input type="number" id="lCargoTotal" placeholder="всего"></div></div>
       </div>
-      <div class="btn-row mt"><button class="btn" id="lSave">Сохранить этикетку</button><button class="btn secondary" id="lClear">Очистить</button></div>
+      <div class="btn-row mt"><button class="btn" id="lSave" title="Сохранить этикетку">Сохранить этикетку</button><button class="btn secondary" id="lClear">Очистить</button></div>
     </div>
 
     <div class="card">

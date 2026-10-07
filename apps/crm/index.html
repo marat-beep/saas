@@ -22,7 +22,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>CRM — сделки и заказчики</h1><p>Воронка сделок по стадиям, суммы и вероятность, связь с заявкой. Прототипы B12/A14.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -30,24 +30,24 @@
       <h2>Новая сделка</h2>
       <div class="msg" id="fMsg"></div>
       <div class="grid3">
-        <div class="field"><label>Заказчик</label><select id="fCust"><option value="">— выберите —</option></select></div>
-        <div class="field"><label>Название *</label><input type="text" id="fTitle" placeholder="Изготовление штампа Ш-001"></div>
+        <div class="field"><label>Заказчик</label><select id="fCust"><option value="">— выберите —</option></select><span class="hint">Клиент сделки; можно завести нового в блоке «Заказчики» ниже.</span></div>
+        <div class="field"><label>Название *</label><input type="text" id="fTitle" placeholder="Изготовление штампа Ш-001"><span class="hint">Предмет сделки (что продаём).</span></div>
         <div class="field"><label>Стадия</label><select id="fStage">
           <option value="lead">Лид</option><option value="qualified">Квалифицирована</option>
           <option value="proposal">Предложение</option><option value="negotiation">Переговоры</option>
           <option value="won">Выиграна</option><option value="lost">Проиграна</option></select></div>
       </div>
       <div class="grid3">
-        <div class="field"><label>Сумма, ₽</label><input type="text" id="fAmount" inputmode="decimal" placeholder="850000"></div>
-        <div class="field"><label>Вероятность, %</label><input type="text" id="fProb" inputmode="numeric" placeholder="60"></div>
-        <div class="field"><label>Ответственный</label><input type="text" id="fOwner" placeholder="manager"></div>
+        <div class="field"><label>Сумма, ₽</label><input type="text" id="fAmount" inputmode="decimal" placeholder="850000"><span class="hint">Ожидаемая сумма сделки.</span></div>
+        <div class="field"><label>Вероятность, %</label><input type="text" id="fProb" inputmode="numeric" placeholder="60"><span class="hint">Оценка шанса закрытия (влияет на прогноз).</span></div>
+        <div class="field"><label>Ответственный</label><input type="text" id="fOwner" placeholder="manager"><span class="hint">Логин сотрудника, ведущего сделку.</span></div>
       </div>
       <div class="grid3">
-        <div class="field"><label>Источник</label><input type="text" id="fSource" placeholder="входящая / сайт / звонок"></div>
-        <div class="field"><label>Следующее действие</label><input type="text" id="fNext" placeholder="отправить КП"></div>
-        <div class="field"><label>Срок</label><input type="date" id="fDue"></div>
+        <div class="field"><label>Источник</label><input type="text" id="fSource" placeholder="входящая / сайт / звонок"><span class="hint">Откуда пришёл лид.</span></div>
+        <div class="field"><label>Следующее действие</label><input type="text" id="fNext" placeholder="отправить КП"><span class="hint">Следующий шаг по сделке (напоминание).</span></div>
+        <div class="field"><label>Срок</label><input type="date" id="fDue"><span class="hint">Дата следующего действия/закрытия.</span></div>
       </div>
-      <button class="btn" id="fAdd">Добавить сделку</button>
+      <button class="btn" id="fAdd" title="Создать сделку в воронке">Добавить сделку</button>
     </div>
 
     <div class="card">

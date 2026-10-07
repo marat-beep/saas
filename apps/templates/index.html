@@ -19,7 +19,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Шаблоны документов</h1><p>КП/договор/акт/техкарта с подстановками; создание документа из шаблона. Прототип B33.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -27,11 +27,11 @@
       <h2>Новый/редактируемый шаблон</h2>
       <div class="msg" id="fMsg"></div>
       <div class="grid3">
-        <div class="field"><label>Тип</label><select id="fType"><option value="kp">КП</option><option value="contract">Договор</option><option value="act">Акт</option><option value="techcard">Техкарта</option><option value="other">Другое</option></select></div>
-        <div class="field"><label>Название *</label><input type="text" id="fName" placeholder="Коммерческое предложение"></div>
-        <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="fSave">Сохранить шаблон</button></div>
+        <div class="field"><label>Тип</label><select id="fType"><option value="kp">КП</option><option value="contract">Договор</option><option value="act">Акт</option><option value="techcard">Техкарта</option><option value="other">Другое</option></select><span class="hint">Тип шаблона — при создании документа подставляется соответствующий текст.</span></div>
+        <div class="field"><label>Название *</label><input type="text" id="fName" placeholder="Коммерческое предложение"><span class="hint">Понятное имя шаблона (видно в списке).</span></div>
+        <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="fSave" title="Создать или обновить шаблон">Сохранить шаблон</button></div>
       </div>
-      <div class="field"><label>Текст (подстановки: {customer}, {order}, {title}, {amount}, {date})</label><textarea id="fBody" rows="5"></textarea></div>
+      <div class="field"><label>Текст (подстановки: {customer}, {order}, {title}, {amount}, {date})</label><textarea id="fBody" rows="5"></textarea><span class="hint">{customer} — заказчик, {order} — № заявки, {title} — название, {amount} — сумма, {date} — дата. Остальной текст — как есть.</span></div>
       <button class="btn secondary mt" id="fClear">Очистить</button>
     </div>
 
