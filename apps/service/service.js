@@ -125,7 +125,8 @@
         kv('Контакт', d.contact) + kv('Место', d.location) + kv('Код ошибки', d.fault_code) +
         kv('Инженер', d.assigned_login || d.engineer) +
         kv('Создана', fmtTs(d.reported_at || d.created_at)) + kv('Реакция до', fmtTs(d.response_due)) + kv('Решение до', fmtTs(d.resolve_due)) +
-        kv('Решена', fmtTs(d.resolved_at)) + kv('Гарантия', d.warranty_number) + kv('Контракт', d.contract_number) +
+        kv('Решена', fmtTs(d.resolved_at)) + kv('Источник', d.source === 'iiot' ? 'IIoT' : d.source === 'ppr' ? 'ППР (ТОиР)' : (CHAN[d.channel] || 'вручную')) +
+        kv('Гарантия', d.warranty_number) + kv('Контракт', d.contract_number) + kv('План ТОиР', d.plan_id ? 'связан' : null) +
         kv('Затраты (работы)', money(d.cost)) + kv('Стоимость запчастей', d.parts_cost ? money(d.parts_cost) : null) +
         kv('Работы', d.works) + kv('Примечание', d.note);
       $('#stSel').value = d.status;
@@ -627,6 +628,16 @@
   $('#issueBtn').addEventListener('click', escalateForm);
   $('#printBtn').addEventListener('click', printRequest);
   $('#procPdf').addEventListener('click', processPdf);
+  function runScan(sel, name) {
+    rpc(name, { p_token: token }).then(function (d) {
+      var r = d && d[0];
+      msg(sel, r ? r.message : 'Готово', 'ok');
+      if (r && (num(r.created) > 0 || num(r.escalated) > 0)) { if (window.AppNotify) window.AppNotify.refresh(true); load(); }
+    }).catch(function (e) { msg(sel, 'Ошибка: ' + e.message, 'err'); });
+  }
+  $('#slaBtn').addEventListener('click', function () { runScan('#dashMsg', 'app_service_sla_scan'); });
+  $('#pprBtn').addEventListener('click', function () { runScan('#dashMsg', 'app_service_ppr_scan'); });
+  $('#pprBtn2').addEventListener('click', function () { runScan('#listMsg', 'app_service_ppr_scan'); });
   $('#vq').addEventListener('input', function () { vq = this.value; renderVisits(); });
   $('#passportBtn').addEventListener('click', openPassport);
   $('#passportPdf').addEventListener('click', passportPdf);

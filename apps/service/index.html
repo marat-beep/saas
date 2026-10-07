@@ -50,6 +50,11 @@
     <!-- ДАШБОРД -->
     <section class="screen active" id="s-dash" data-cap="dash">
       <div class="kpi-row" id="dashKpis"></div>
+      <div class="sv-actions" style="margin-top:10px;">
+        <button class="btn secondary" data-cap="edit" id="slaBtn">🔔 Проверить SLA и эскалировать</button>
+        <button class="btn secondary" data-cap="edit" id="pprBtn">🛠 ППР → заявки</button>
+        <span class="msg" id="dashMsg" style="margin:0;"></span>
+      </div>
       <div class="sv-grid mt">
         <div class="card">
           <h2>Активные заявки</h2>
@@ -87,6 +92,7 @@
           <button class="btn secondary" data-cap="visits" id="myBtn">🚚 Выезды</button>
           <button class="btn secondary" data-cap="refs" id="refBtn">🛡 Гарантии/контракты</button>
           <button class="btn secondary" data-cap="iiot" id="iiotBtn" title="Создать заявки из ошибок ЧПУ (IIoT)">⚙ IIoT → заявки</button>
+          <button class="btn secondary" data-cap="edit" id="pprBtn2" title="Создать заявки из планов ТОиР (ППР)">🛠 ППР → заявки</button>
           <button class="btn" data-cap="new" id="newBtn">＋ Заявка</button>
         </div>
         <div class="msg" id="listMsg"></div>
@@ -229,7 +235,7 @@
   <script src="../../assets/js/shell.js?v=28"></script>
   <script src="../../assets/js/offline-queue.js?v=1"></script>
   <script src="../../assets/js/export.js?v=1"></script>
-  <script src="service.js?v=6"></script>
+  <script src="service.js?v=7"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>
