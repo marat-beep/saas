@@ -16,11 +16,11 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#2563eb">
 <link rel="icon" href="assets/icons/app.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/app.css?v=23">
+<link rel="stylesheet" href="assets/css/app.css?v=24">
 <style>
   .grp { margin-bottom: 18px; }
   .grp-t { font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 10px; }
-  .hub-hero { background: linear-gradient(135deg, var(--accent-100, #eef2ff), #fff 70%); border: 1px solid var(--border); border-radius: var(--r); padding: 24px; margin-bottom: 16px; }
+  .hub-hero { background: linear-gradient(135deg, var(--accent-100, #eef2ff), #fff 70%); border: 1px solid var(--border); border-radius: var(--r); padding: 18px 20px; margin-bottom: 14px; }
   .hub-hero h1 { font-size: 1.85rem; margin: 0 0 8px; }
   .hub-hero p { margin: 0; max-width: 780px; }
   .hub-top { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; margin-bottom: 16px; align-items: start; }
@@ -30,6 +30,7 @@
 <body>
   <header class="topbar">
     <div class="brand"><span class="logo">⚙️</span> <a href="index.html">3DMP Service</a></div>
+    <input type="search" id="hubSearch" class="topsearch" placeholder="Поиск по модулям и функциям…" aria-label="Поиск">
     <div class="spacer"></div>
     <span class="who" id="account">…</span>
   </header>
@@ -49,8 +50,6 @@
       </div>
       <a class="btn secondary" href="apps/dashboard/index.html" style="width:auto;padding:10px 16px;margin-left:auto;">Открыть кабинет</a>
     </div>
-
-    <input type="search" id="hubSearch" class="search" placeholder="Поиск по модулям и функциям: напр. «КП», «нормы», «слоты», «фрезеровка»…" style="width:100%;margin-bottom:16px;padding:12px 14px;">
 
     <div class="hub-top">
       <section class="card">

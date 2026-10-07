@@ -180,6 +180,15 @@ input, select, textarea, button { font-family: inherit; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 
+/* Поиск в верхней панели (хаб) */
+.topsearch { flex: 1 1 240px; max-width: 380px; margin: 0 12px; padding: 9px 14px; border: 0; border-radius: 999px; background: rgba(255,255,255,.92); color: #0f172a; font-size: .85rem; outline: none; }
+.topsearch::placeholder { color: #64748b; }
+.topsearch:focus { background: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,.55); }
+@media (max-width: 640px) {
+  .topbar { flex-wrap: wrap; }
+  .topsearch { flex: 1 1 100%; order: 9; max-width: none; margin: 8px 0 0; }
+}
+
 /* формы */
 .field { margin-bottom: 12px; }
 .field label { display: block; font-size: .78rem; font-weight: 600; margin-bottom: 5px; color: #334155; }
