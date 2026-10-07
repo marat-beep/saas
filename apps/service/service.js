@@ -49,7 +49,7 @@
   function setActiveTab(id) {
     $$('#tabs button').forEach(function (b) { b.classList.toggle('active', b.dataset.go === id); });
   }
-  function go(id) { setActiveTab(id); screens.go(id); if (id === 's-visits') loadMyVisits(); if (id === 's-refs') { loadRefs(); loadRules(); loadEngineerLoad(); } if (id === 's-reports') loadReports(); if (id === 's-dash') renderDash(); if (id === 's-access') renderAccess(); if (id === 's-proc') renderProcess(); }
+  function go(id) { setActiveTab(id); screens.go(id); if (id === 's-visits') loadMyVisits(); if (id === 's-refs') { loadRefs(); loadRules(); loadEngineerLoad(); loadTemplates(); } if (id === 's-reports') loadReports(); if (id === 's-dash') renderDash(); if (id === 's-access') renderAccess(); if (id === 's-proc') renderProcess(); }
 
   function load() {
     return Promise.all([
@@ -572,6 +572,83 @@
     });
   }
 
+  /* ---------- Спецификация ---------- */
+  function specPdf() {
+    if (!cur || !window.AppExport) return;
+    rpc('app_service_spec', { p_token: token, p_id: cur.id }).then(function (rows) {
+      rows = rows || [];
+      var total = rows.reduce(function (s, r) { return s + num(r.cost); }, 0);
+      AppExport.exportPdf('Спецификация ' + (cur.number || ''), AppExport.reportDocument({
+        brand: '3DMP Service', title: 'Спецификация к заявке ' + (cur.number || ''), subtitle: cur.title || '',
+        kpis: [{ label: 'Позиций', value: rows.length }, { label: 'Итого', value: money(total) }],
+        sections: [{ title: 'Состав', columns: [
+          { key: 'kind', label: 'Тип', value: function (r) { return r.kind === 'part' ? 'Запчасть' : 'Работа'; } },
+          { key: 'name', label: 'Наименование' }, { key: 'qty', label: 'Кол-во', num: true },
+          { key: 'price', label: 'Цена', num: true, value: function (r) { return r.price != null ? money(r.price) : '—'; } },
+          { key: 'cost', label: 'Стоимость', num: true, value: function (r) { return money(r.cost); } }
+        ], rows: rows }],
+        sign: ['Исполнитель', 'Заказчик'], footer: '3DMP Service · спецификация'
+      }));
+    }).catch(function (e) { msg('#iMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
+
+  /* ---------- Паспорт нового станка с выезда ---------- */
+  function newEqForm() {
+    if (!cur) return;
+    ui.formDialog({ title: 'Новый станок — цифровой паспорт', okText: 'Создать и привязать', size: 'lg', fields: [
+      { name: 'name', label: 'Название станка *', type: 'text', required: true, placeholder: 'DMG MORI NHX 5000' },
+      { name: 'code', label: 'Инв. номер', type: 'text' },
+      { name: 'kind', label: 'Тип', type: 'select', options: [{ value: 'frezerny', label: 'Фрезерный' }, { value: 'tokarny', label: 'Токарный' }, { value: 'lazer', label: 'Лазерный' }, { value: 'sverlilny', label: 'Сверлильный' }, { value: 'shlifovalny', label: 'Шлифовальный' }, { value: 'edm', label: 'Электроэрозионный' }, { value: 'sborka', label: 'Сборка' }] },
+      { name: 'model', label: 'Модель', type: 'text' },
+      { name: 'dept', label: 'Подразделение/цех', type: 'text' },
+      { name: 'warranty_number', label: 'Гарантия №', type: 'text' },
+      { name: 'warranty_end', label: 'Гарантия до', type: 'date' }
+    ] }).then(function (v) { if (!v) return;
+      rpc('app_service_equipment_create', { p_token: token, p_name: v.name, p_code: v.code, p_kind: v.kind, p_model: v.model, p_dept: v.dept, p_customer_id: cur.customer_id || null, p_warranty_number: v.warranty_number, p_warranty_end: v.warranty_end || null })
+        .then(function (d) { var r = d && d[0]; if (!r || !r.ok) { msg('#iMsg', r ? r.message : 'Ошибка', 'err'); return; }
+          rpc('app_service_equipment_link', { p_token: token, p_id: cur.id, p_equipment_id: r.equipment_id })
+            .then(function () { window.Auth.log('Паспорт станка', v.name); msg('#iMsg', 'Паспорт станка создан и привязан', 'ok'); load().then(function () { openItem(cur.id); }); });
+        }).catch(function (e) { msg('#iMsg', 'Ошибка: ' + e.message, 'err'); });
+    });
+  }
+
+  /* ---------- Шаблоны ---------- */
+  var templates = [];
+  function loadTemplates() {
+    rpc('app_service_templates_list', { p_token: token }).then(function (r) { templates = r || []; renderTpl(); }).catch(function () { $('#tplList').innerHTML = '<span class="note">Недоступно.</span>'; });
+  }
+  var TKIND = { checklist: 'Чек-лист', works: 'Работы', act: 'Акт', note: 'Заметка' };
+  function renderTpl() {
+    $('#tplList').innerHTML = templates.length ? '<table class="tbl"><thead><tr><th>Тип</th><th>Название</th><th></th></tr></thead><tbody>' +
+      templates.map(function (t) { return '<tr><td><span class="badge">' + (TKIND[t.kind] || t.kind) + '</span></td><td><b>' + esc(t.title) + '</b><div class="note">' + esc(String(t.body || '').replace(/\n/g, ' · ').slice(0, 100)) + '</div></td>' +
+        '<td><button class="act danger" data-tdel="' + t.id + '">Удалить</button></td></tr>'; }).join('') + '</tbody></table>' : '<span class="note">Шаблонов нет.</span>';
+    $$('#tplList [data-tdel]').forEach(function (b) { b.addEventListener('click', function () { if (!window.confirm('Удалить шаблон?')) return; rpc('app_service_template_delete', { p_token: token, p_id: b.dataset.tdel }).then(function (d) { var r = d && d[0]; msg('#refMsg', r ? r.message : '', r && r.ok ? 'ok' : 'err'); loadTemplates(); }); }); });
+  }
+  function tplForm() {
+    ui.formDialog({ title: 'Новый шаблон', okText: 'Сохранить', size: 'lg', fields: [
+      { name: 'kind', label: 'Тип', type: 'select', options: [{ value: 'checklist', label: 'Чек-лист' }, { value: 'works', label: 'Работы' }, { value: 'act', label: 'Акт' }, { value: 'note', label: 'Заметка' }] },
+      { name: 'title', label: 'Название', type: 'text', required: true },
+      { name: 'body', label: 'Содержание (по строке на пункт)', type: 'textarea', rows: 5 }
+    ] }).then(function (v) { if (!v) return;
+      rpc('app_service_template_save', { p_token: token, p_id: null, p_kind: v.kind, p_title: v.title, p_body: v.body, p_active: true })
+        .then(function (d) { var r = d && d[0]; msg('#refMsg', r ? r.message : '', r && r.ok ? 'ok' : 'err'); if (r && r.ok) loadTemplates(); });
+    });
+  }
+  function templateApply() {
+    if (!cur) return;
+    var go2 = function () {
+      if (!templates.length) { msg('#iMsg', 'Нет шаблонов', 'err'); return; }
+      ui.formDialog({ title: 'Применить шаблон', okText: 'Добавить в историю', size: 'lg', fields: [
+        { name: 'tpl', label: 'Шаблон', type: 'select', options: templates.map(function (t) { return { value: t.id, label: '(' + (TKIND[t.kind] || t.kind) + ') ' + t.title }; }) }
+      ] }).then(function (v) { if (!v) return;
+        var t = templates.filter(function (x) { return x.id === v.tpl; })[0]; if (!t) return;
+        rpc('app_service_history_add', { p_token: token, p_id: cur.id, p_text: '[' + (TKIND[t.kind] || t.kind) + '] ' + t.title + '\n' + (t.body || ''), p_kind: 'comment' })
+          .then(function () { window.Auth.log('Шаблон', t.title); msg('#iMsg', 'Шаблон применён', 'ok'); loadDetail(cur.id); });
+      });
+    };
+    if (templates.length) go2(); else rpc('app_service_templates_list', { p_token: token }).then(function (r) { templates = r || []; go2(); });
+  }
+
   function renderAccess() {
     var roles = [['admin', 'Администратор'], ['owner', 'Владелец'], ['director', 'Руководитель предприятия'], ['chief', 'Главный инженер'], ['manager', 'Диспетчер (manager)'], ['support', 'Поддержка'], ['master', 'Сервисный инженер'], ['qc', 'ОТК (qc)']];
     var cols = [['dash', 'Дашборд'], ['list', 'Заявки'], ['visits', 'Выезды'], ['refs', 'Гарантии/контракты'], ['reports', 'KPI и отчёты'], ['access', 'Матрица'], ['new', 'Создать заявку'], ['edit', 'Статус/отчёт'], ['assign', 'Назначить выезд'], ['supply', 'Снабжение'], ['rules', 'Правила IIoT'], ['act', 'Акт'], ['passport', 'Паспорт станка']];
@@ -630,6 +707,10 @@
   $('#issueBtn').addEventListener('click', escalateForm);
   $('#printBtn').addEventListener('click', printRequest);
   $('#procPdf').addEventListener('click', processPdf);
+  $('#specBtn').addEventListener('click', specPdf);
+  $('#newEqBtn').addEventListener('click', newEqForm);
+  $('#tplBtn').addEventListener('click', templateApply);
+  $('#tplAdd').addEventListener('click', tplForm);
   function runScan(sel, name) {
     rpc(name, { p_token: token }).then(function (d) {
       var r = d && d[0];
