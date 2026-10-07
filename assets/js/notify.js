@@ -1,14 +1,14 @@
 /* ============================================================
-   3DMP Service · уведомления (window.AppNotify)
+   3DMP Service · уведомления (window.AppNotify) v3
    Колокольчик в шапке + всплывающие оповещения (toast).
-   Опрос app_notif_list/unread; новые показываются всплывашкой.
+   Realtime-подписка на app_notifications (мгновенно) с фолбэком на опрос 15 c.
    Требует auth.js (window.Auth) и supabase-client.js (window.SB).
    ============================================================ */
 (function (g) {
   'use strict';
 
   var seen = {}, first = true, timer = null, open = false;
-  var els = {};
+  var els = {}, watchOff = null;
 
   function ready(fn) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn); else fn(); }
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
@@ -125,6 +125,10 @@
     if (!document.querySelector('.topbar') || !g.Auth || !g.Auth.token()) return;
     buildUI();
     refresh(false);
+    // Realtime (best-effort): мгновенные уведомления; фолбэк — опрос ниже.
+    if (g.AppRealtime && g.AppRealtime.watch) {
+      try { watchOff = g.AppRealtime.watch('app_notifications', function () { refresh(true); }); } catch (e) {}
+    }
     if (timer) clearInterval(timer);
     timer = setInterval(function () { refresh(false); }, 15000);
     document.addEventListener('visibilitychange', function () { if (!document.hidden) refresh(false); });

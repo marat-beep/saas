@@ -51,26 +51,36 @@
       '<div class="acts">' + acts + '</div></div>';
   }
   function btn(st, id, label, cls) { return '<button data-st="' + st + '" data-id="' + id + '" class="' + cls + '">' + label + '</button>'; }
+  function runOps(list) {
+    return list.reduce(function (p, o) {
+      return p.then(function () { return SB.rpc(o.rpc, o.args).then(function (r) { if (r && r.error) throw new Error(r.error.message); }); });
+    }, Promise.resolve());
+  }
+  function queueAll(list) {
+    if (!window.AppOffline) { msg('Нет сети, офлайн-очередь недоступна.', 'err'); return; }
+    Promise.all(list.map(function (o) { return window.AppOffline.add(o); })).then(function () {
+      msg('Нет сети — сохранено локально, синхронизируется автоматически.', 'info');
+      window.Auth.log('Офлайн-очередь', list.length + ' действий');
+    });
+  }
   function setStatus(id, st) {
     var fact = null;
     if (st === 'done') {
       var m = window.prompt('Факт часов по операции (необязательно):', '');
       if (m != null && String(m).trim() !== '') fact = parseFloat(String(m).replace(',', '.'));
     }
-    rpc('app_mes_ops_set_status', { p_token: token, p_op_id: id, p_status: st })
-      .then(function (d) {
-        var r = d && d[0]; if (r && !r.ok) throw new Error(r.message || 'Ошибка');
-        if (st === 'done' && fact != null && !isNaN(fact)) {
-          return rpc('app_naryad_op_done', { p_token: token, p_op_id: id, p_fact_hours: fact, p_done: true });
-        }
-      })
+    var list = [{ rpc: 'app_mes_ops_set_status', args: { p_token: token, p_op_id: id, p_status: st }, label: 'операция → ' + st }];
+    if (st === 'done' && fact != null && !isNaN(fact)) list.push({ rpc: 'app_naryad_op_done', args: { p_token: token, p_op_id: id, p_fact_hours: fact, p_done: true }, label: 'факт ' + fact + ' ч' });
+    if (!navigator.onLine) { queueAll(list); return; }
+    runOps(list)
       .then(function () { window.Auth.log('Пульт', st); ui.toast((STATUS[st] || st)); if (window.AppNotify) window.AppNotify.refresh(true); load(); })
-      .catch(function (e) { msg('Ошибка: ' + e.message, 'err'); });
+      .catch(function () { queueAll(list); });
   }
 
   $('#wc').addEventListener('change', function () { wcFilter = this.value; load(); });
   $('#onlyMine').addEventListener('change', function () { onlyMine = this.checked; render(); });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
+  window.addEventListener('online', function () { setTimeout(load, 1200); });
 
   if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(function () {}); }
 

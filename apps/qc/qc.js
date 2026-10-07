@@ -183,16 +183,23 @@
       .catch(function (e) { msg('#spcMsg', 'Ошибка: ' + e.message, 'err'); });
   }
   $('#spcBuild').addEventListener('click', buildSpc);
+  function offlineAddMeasure(p, v) {
+    if (!window.AppOffline) { msg('#spcMsg', 'Нет сети, очередь недоступна.', 'err'); return; }
+    window.AppOffline.add({ rpc: 'app_qc_measure_add', args: { p_token: token, p_check_id: null, p_position_id: null, p_param: p, p_value: v }, label: 'SPC ' + p + '=' + v })
+      .then(function () { msg('#spcMsg', 'Нет сети — измерение сохранено локально.', 'info'); $('#spcNewValue').value = ''; });
+  }
   $('#spcAdd').addEventListener('click', function () {
     var p = $('#spcNewParam').value.trim(), v = numOrNull($('#spcNewValue').value);
     if (!p) { msg('#spcMsg', 'Укажите параметр.', 'err'); return; }
     if (v == null) { msg('#spcMsg', 'Укажите значение.', 'err'); return; }
+    if (!navigator.onLine || !SB) { offlineAddMeasure(p, v); return; }
     rpc('app_qc_measure_add', { p_token: token, p_check_id: null, p_position_id: null, p_param: p, p_value: v })
       .then(function (r) { var x = r && r[0]; if (!x || !x.ok) { msg('#spcMsg', x ? x.message : 'Ошибка', 'err'); return; }
         window.Auth.log('SPC измерение', p + ' = ' + v); msg('#spcMsg', x.message, 'ok'); $('#spcNewValue').value = '';
         spcParam = p; $('#spcNewParam').value = ''; loadSpcParams(); })
-      .catch(function (e) { msg('#spcMsg', 'Ошибка: ' + e.message, 'err'); });
+      .catch(function () { offlineAddMeasure(p, v); });
   });
+  window.addEventListener('online', function () { setTimeout(loadSpcParams, 1200); });
 
   $('#toNew').addEventListener('click', function () { clearMsg('#nMsg'); screens.go('s-new'); });
   $('#back1').addEventListener('click', function () { screens.go('s-list'); });

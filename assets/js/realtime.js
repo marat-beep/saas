@@ -54,10 +54,24 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 
+  /* Подписка на изменения таблицы (best-effort, с фолбэком у вызывающего).
+     Возвращает функцию отписки. RLS/анонимный доступ могут не пропускать
+     события — вызывающий должен иметь периодический фолбэк (напр. в notify.js). */
+  function watch(table, cb) {
+    if (!g.SB || !g.SB.channel) return function () {};
+    try {
+      var ch = g.SB.channel('3dmp-w-' + table + '-' + Math.random().toString(36).slice(2, 7));
+      ch.on('postgres_changes', { event: '*', schema: 'public', table: table }, function (payload) { try { cb(payload); } catch (e) {} });
+      ch.subscribe();
+      return function () { try { g.SB.removeChannel(ch); } catch (e) {} };
+    } catch (e) { return function () {}; }
+  }
+
   // Ручной перезапуск: AppRealtime.refresh()
   g.AppRealtime = {
     set: set,
     mount: mount,
+    watch: watch,
     refresh: function () { if (el && el.parentNode) el.parentNode.removeChild(el); el = null; init(); }
   };
 })(window);
