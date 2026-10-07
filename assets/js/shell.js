@@ -197,6 +197,16 @@
     } catch (e) {}
 
     document.addEventListener('click', function (e) { if (window.innerWidth <= 768 && e.target.closest && e.target.closest('.sh-item')) document.body.classList.remove('sh-open'); });
+
+    /* ---------- Базовый ролевой гейт (fallback для модулей без data-cap-логики) ---------- */
+    try {
+      var r = (g.Auth && g.Auth.role) ? g.Auth.role() : null;
+      var READONLY = ['client', 'supplier', 'guest'];
+      if (r && READONLY.indexOf(r) >= 0) {
+        var hideEdit = function () { Array.prototype.forEach.call(document.querySelectorAll('[data-cap="edit"]'), function (el) { el.style.display = 'none'; }); };
+        hideEdit(); document.addEventListener('DOMContentLoaded', hideEdit); setTimeout(hideEdit, 400);
+      }
+    } catch (e) {}
   }
 
   ready(init);
