@@ -38,7 +38,8 @@
             <option value="tooling">Оснастка/штамп</option>
             <option value="engineering">Инжиниринг/НИОКР</option>
           </select>
-          <button class="btn" id="toCreate" style="width:auto;padding:11px 18px;">＋ Новая заявка</button>
+          <button class="btn secondary" data-cap="reports" id="repBtn" style="width:auto;padding:11px 16px;">📄 Отчёт PDF</button>
+          <button class="btn" data-cap="edit" id="toCreate" style="width:auto;padding:11px 18px;">＋ Новая заявка</button>
         </div>
         <div id="listMsg"></div>
         <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
@@ -67,7 +68,7 @@
             <div class="field"><label>Телефон</label><input type="text" id="ncPhone" placeholder="+7 …"></div>
           </div>
           <div class="field"><label>E-mail</label><input type="text" id="ncEmail" placeholder="zakaz@…"></div>
-          <button class="btn secondary" id="ncSave" style="width:auto;padding:9px 16px;">Сохранить заказчика</button>
+          <button class="btn secondary" data-cap="edit" id="ncSave" style="width:auto;padding:9px 16px;">Сохранить заказчика</button>
           <div class="msg" id="ncMsg"></div>
         </details>
         <div class="grid2c">
@@ -91,7 +92,7 @@
           <div class="field"><label>Исполнитель (логин)</label><input type="text" id="fAssignee" placeholder="manager / master"><span class="hint">Кто отвечает за заявку (логин сотрудника).</span></div>
         </div>
         <div class="field"><label>Сумма заказа, ₽</label><input type="text" id="fAmount" inputmode="decimal" placeholder="необязательно"><span class="hint">Ориентировочно; точная сумма — в КП/спецификации.</span></div>
-        <button class="btn" id="createBtn">Создать заявку</button>
+        <button class="btn" data-cap="edit" id="createBtn">Создать заявку</button>
       </div>
     </section>
 
@@ -109,7 +110,7 @@
           <input type="text" id="itQty" inputmode="decimal" placeholder="Кол-во" style="width:90px;padding:9px;border:1px solid var(--border);border-radius:9px;">
           <input type="text" id="itUnit" placeholder="Ед." style="width:70px;padding:9px;border:1px solid var(--border);border-radius:9px;">
           <input type="text" id="itPrice" inputmode="decimal" placeholder="Цена, ₽" style="width:110px;padding:9px;border:1px solid var(--border);border-radius:9px;">
-          <button class="btn secondary" id="itAdd" style="width:auto;padding:9px 14px;" title="Добавить позицию в заявку">＋ Добавить</button>
+          <button class="btn secondary" data-cap="edit" id="itAdd" style="width:auto;padding:9px 14px;" title="Добавить позицию в заявку">＋ Добавить</button>
         </div>
         <span class="hint">Наименование, количество, единица и цена. Сумма по позициям уточняет стоимость заявки.</span>
         <div class="msg" id="itMsg"></div>
@@ -136,7 +137,7 @@
           </div>
           <div class="field"><label>Комментарий</label><input type="text" id="stComment" placeholder="необязательно"><span class="hint">Причина/комментарий к смене статуса.</span></div>
         </div>
-        <button class="btn" id="stBtn">Сохранить статус</button>
+        <button class="btn" data-cap="edit" id="stBtn">Сохранить статус</button>
         <div class="msg" id="stMsg"></div>
       </div>
     </section>
@@ -152,9 +153,11 @@
   <script src="../../assets/js/router.js?v=1"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=72"></script>
+  <script src="../../assets/js/nav.js?v=73"></script>
+  <script src="../../assets/js/shell.js?v=34"></script>
   <script src="../../assets/js/files.js?v=1"></script>
-  <script src="orders.js?v=5"></script>
+  <script src="../../assets/js/export.js?v=1"></script>
+  <script src="orders.js?v=6"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>

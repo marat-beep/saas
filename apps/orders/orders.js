@@ -15,6 +15,12 @@
   var typeF = '';
   var ROLE_SEE_ALL = ['admin', 'owner', 'manager'];
 
+  /* ---------- Роли (data-cap) ---------- */
+  var ALL = { edit: 1, reports: 1 };
+  var CAPS = { admin: ALL, owner: ALL, director: ALL, manager: ALL, chief: { edit: 1, reports: 1 }, master: { edit: 1 }, technologist: { edit: 1 }, qc: { reports: 1 }, economist: { reports: 1 }, default: {} };
+  function can(c) { return !!(me && (CAPS[me.role] || CAPS['default'])[c]); }
+  function applyCaps() { $$('[data-cap]').forEach(function (el) { var n = (el.dataset.cap || '').split('|'); if (!n.some(can)) el.style.display = 'none'; }); }
+
   function esc(v) { return ui.esc(v); }
   function b(cls, t) { return '<span class="badge ' + cls + '">' + t + '</span>'; }
   function fmt(ts) { var d = new Date(ts); return isNaN(d.getTime()) ? '' : d.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }); }
@@ -118,8 +124,10 @@
         kv('Заказчик', o.customer_name || o.customer) + kv('Контакт', o.contact) + kv('Тип заказа', TYP[o.order_type] || o.order_type) + kv('Источник', o.source) +
         kv('Срок', o.due_date) + kv('Исполнитель', o.assignee) + kv('Сумма', money(o.amount)) +
         kv('Автор', o.created_login) + kv('Создана', fmt(o.created_at)) + kv('Обновлена', fmt(o.updated_at)) +
-        '<div class="toolbar mt"><button class="btn secondary" id="mkQuote" style="width:auto;padding:9px 16px;">Создать КП</button>' +
-        '<button class="btn secondary" id="mkInv" style="width:auto;padding:9px 16px;">Создать счёт</button></div>';
+        '<div class="toolbar wrap mt"><button class="btn secondary" data-cap="edit" id="mkQuote" style="width:auto;padding:9px 16px;">Создать КП</button>' +
+        '<button class="btn secondary" data-cap="edit" id="mkInv" style="width:auto;padding:9px 16px;">Создать счёт</button>' +
+        '<a class="btn secondary" style="width:auto;padding:9px 16px;" href="../client/index.html" target="_blank">🏢 Клиент ↗</a>' +
+        '<a class="btn secondary" style="width:auto;padding:9px 16px;" href="../service/index.html" target="_blank">🧑‍🔧 Сервис ↗</a></div>';
       $('#stStatus').value = o.status;
       var qb = $('#mkQuote'), ib = $('#mkInv');
       if (qb) qb.addEventListener('click', function () { mkDoc('app_order_create_quote', 'КП'); });
@@ -255,11 +263,45 @@
   $('#q').addEventListener('input', function () { q = this.value; render(); });
   $('#fTypeF').addEventListener('change', function () { typeF = this.value; render(); });
 
+  /* ---------- Отчёт ---------- */
+  function orderCols() {
+    return [
+      { key: 'number', label: '№' }, { key: 'created_at', label: 'Создана', value: function (o) { return fmt(o.created_at); } },
+      { key: 'customer', label: 'Заказчик' }, { key: 'title', label: 'Тема' },
+      { key: 'status', label: 'Статус', value: function (o) { return ST[o.status] || o.status; } },
+      { key: 'priority', label: 'Приоритет', value: function (o) { return PR[o.priority] || o.priority; } },
+      { key: 'due_date', label: 'Срок' }, { key: 'assignee', label: 'Исполнитель' },
+      { key: 'amount', label: 'Сумма', num: true, value: function (o) { return money(o.amount); } }
+    ];
+  }
+  function reportPdf() {
+    if (!window.AppExport) { ui.toast('Экспорт недоступен'); return; }
+    ui.formDialog({ title: 'Отчёт по заказам', okText: 'Сформировать PDF', fields: [
+      { name: 'from', label: 'С даты', type: 'date', value: new Date(Date.now() - 90 * 864e5).toISOString().slice(0, 10) },
+      { name: 'to', label: 'По дату', type: 'date', value: today() }
+    ] }).then(function (v) { if (!v) return;
+      rpc('app_order_report', { p_token: token, p_from: v.from || null, p_to: v.to || null }).then(function (rows) {
+        rows = rows || [];
+        var sum = rows.reduce(function (s, o) { return s + (Number(o.amount) || 0); }, 0);
+        var html = AppExport.reportDocument({
+          brand: '3DMP Service', title: 'Отчёт по заявкам и заказам', subtitle: (v.from || '—') + ' — ' + (v.to || '—'),
+          meta: [{ k: 'Сформирован', v: new Date().toLocaleString('ru-RU') }],
+          kpis: [{ label: 'Заказов', value: rows.length }, { label: 'Сумма', value: money(sum) }],
+          sections: [{ title: 'Заказы', columns: orderCols(), rows: rows }],
+          sign: ['Руководитель', 'Менеджер'], footer: '3DMP Service · заказы'
+        });
+        AppExport.exportPdf('Заказы — отчёт', html);
+      }).catch(function (e) { ui.toast('Ошибка: ' + e.message); });
+    });
+  }
+  $('#repBtn').addEventListener('click', reportPdf);
+
   /* ---------- Старт ---------- */
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     me = s; token = s.token;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + (s.role ? ' · ' + s.role : '');
+    applyCaps();
     if (!SB) { msg('#listMsg', 'Supabase не подключён.', 'err'); return; }
     load();
   });
