@@ -49,7 +49,7 @@
   function setActiveTab(id) {
     $$('#tabs button').forEach(function (b) { b.classList.toggle('active', b.dataset.go === id); });
   }
-  function go(id) { setActiveTab(id); screens.go(id); if (id === 's-visits') loadMyVisits(); if (id === 's-refs') { loadRefs(); loadRules(); loadEngineerLoad(); } if (id === 's-reports') loadReports(); if (id === 's-dash') renderDash(); if (id === 's-access') renderAccess(); }
+  function go(id) { setActiveTab(id); screens.go(id); if (id === 's-visits') loadMyVisits(); if (id === 's-refs') { loadRefs(); loadRules(); loadEngineerLoad(); } if (id === 's-reports') loadReports(); if (id === 's-dash') renderDash(); if (id === 's-access') renderAccess(); if (id === 's-proc') renderProcess(); }
 
   function load() {
     return Promise.all([
@@ -503,6 +503,72 @@
           .then(function (d) { var r = d && d[0]; msg('#iMsg', r ? r.message : '', r && r.ok ? 'ok' : 'err'); if (r && r.ok) { window.Auth.log('Сервис проблема', cur.number); loadDetail(cur.id); } });
       });
   }
+  /* ---------- Процессный подход ---------- */
+  var PROCESS = [
+    { t: 'Обнаружение', role: 'Оператор / рабочий', text: 'Станок загудел (шпиндель), ошибка ALM 401. Оператор фиксирует останов.', where: 'apps/terminal · apps/iiot (показания, авто-тикет)' },
+    { t: 'Заявка', role: 'Оператор / Диспетчер', text: 'Создаётся заявка SRV- или авто-тикет IIoT по правилу порога (приоритет, SLA).', where: 'apps/service → «＋ Заявка» / «⚙ IIoT → заявки»' },
+    { t: 'Диспетчеризация', role: 'Диспетчер (manager)', text: 'Проверка гарантии (WR-) и контракта (SC-, SLA), назначение инженера и выезда.', where: 'apps/service → «Назначить выезд»' },
+    { t: 'Выезд и диагностика', role: 'Сервисный инженер (master)', text: 'Открывает карточку: заказчик, станок, место, контакт, код ошибки; диагностика.', where: 'apps/service → «Выезды» → карточка' },
+    { t: 'Запчасти', role: 'Инженер + Склад', text: 'Резерв запчастей под заявку; при нехватке — заявка на снабжение.', where: 'apps/service → «Запчасти», «📦 Снабжение» → apps/procurement' },
+    { t: 'Закупка', role: 'Снабжение (supply)', text: 'Тендер/закупка запчастей, контроль срока и поставки.', where: 'apps/procurement · apps/warehouse' },
+    { t: 'Ремонт', role: 'Сервисный инженер', text: 'Работы, замена, калибровка; фиксация трудозатрат и простоя.', where: 'apps/service → «✅ Завершить с отчётом»' },
+    { t: 'Отчёт и акт', role: 'Инженер / Руководитель сервиса', text: 'Решение, акт выполненных работ, паспорт станка, событие в ERP.', where: 'apps/service → «Акт», «Паспорт станка»; apps/integrations' },
+    { t: 'Гарантия и оплата', role: 'Гарантийный отдел / Финансы', text: 'Сопоставление с гарантией или контрактом; счёт/затраты.', where: 'apps/service → «Гарантии/контракты»; apps/economics' },
+    { t: 'Контроль KPI', role: 'Руководитель предприятия / Главный инженер', text: 'SLA, MTTR, MTBF, FTFR, CSAT, затраты; отчёты PDF.', where: 'apps/service → «KPI и отчёты»; apps/bi' }
+  ];
+  function renderProcess() {
+    $('#procFlow').innerHTML = PROCESS.map(function (s, i) {
+      return '<div class="card" style="margin:8px 0;border-left:4px solid var(--accent,#10b981);">' +
+        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><span class="badge">' + (i + 1) + '</span><b>' + esc(s.t) + '</b>' +
+        '<span class="badge" style="margin-left:auto;">' + esc(s.role) + '</span></div>' +
+        '<div style="font-size:.84rem;margin-top:6px;">' + esc(s.text) + '</div>' +
+        '<div class="note" style="margin-top:4px;">📍 ' + esc(s.where) + '</div></div>';
+    }).join('');
+  }
+  function processPdf() {
+    if (!window.AppExport) return;
+    var rows = PROCESS.map(function (s, i) { return { n: i + 1, t: s.t, role: s.role, what: s.text, where: s.where }; });
+    AppExport.exportPdf('Сервис — процесс', AppExport.reportDocument({
+      brand: '3DMP Service', title: 'Процессный подход: сервис и ремонт ЧПУ', subtitle: 'сквозной процесс от рабочего до директора',
+      sections: [{ title: 'Цепочка процесса', columns: [{ key: 'n', label: '№' }, { key: 't', label: 'Этап' }, { key: 'role', label: 'Роль' }, { key: 'what', label: 'Действие' }, { key: 'where', label: 'Где в системе' }], rows: rows }],
+      footer: '3DMP Service · процесс сервиса'
+    }));
+  }
+
+  /* ---------- Печать заявки ---------- */
+  function printRequest() {
+    if (!cur || !window.AppExport) return;
+    Promise.all([
+      rpc('app_service_get', { p_token: token, p_id: cur.id }),
+      rpc('app_service_history_list', { p_token: token, p_id: cur.id }).catch(function () { return []; }),
+      rpc('app_service_visit_list', { p_token: token, p_id: cur.id }).catch(function () { return []; }),
+      rpc('app_service_parts_list', { p_token: token, p_id: cur.id }).catch(function () { return []; })
+    ]).then(function (r) {
+      var d = (r[0] || [])[0]; if (!d) return;
+      var hist = r[1] || [], visits = r[2] || [], parts = r[3] || [];
+      var info = [
+        ['Номер', d.number], ['Статус', ST[d.status] || d.status], ['Приоритет', PRIO[d.priority] || d.priority],
+        ['Заказчик', d.customer || '—'], ['Оборудование', d.equipment || '—'], ['Место', d.location || '—'], ['Контакт', d.contact || '—'],
+        ['Код ошибки', d.fault_code || '—'], ['Гарантия', d.warranty_number || 'нет'], ['Контракт', d.contract_number || '—'],
+        ['Инженер', d.assigned_login || d.engineer || '—'], ['Создана', fmtTs(d.reported_at || d.created_at)],
+        ['Реакция до', fmtTs(d.response_due)], ['Решение до', fmtTs(d.resolve_due)], ['Решена', fmtTs(d.resolved_at)],
+        ['Работы', d.works || '—'], ['Решение', d.solution || '—'],
+        ['Стоимость работ', money(d.cost)], ['Стоимость запчастей', money(d.parts_cost)]
+      ].map(function (x) { return { k: x[0], v: x[1] == null || x[1] === '' ? '—' : String(x[1]) }; });
+      AppExport.exportPdf('Заявка ' + d.number, AppExport.reportDocument({
+        brand: '3DMP Service', title: 'Сервисная заявка ' + d.number, subtitle: d.title || '',
+        meta: [{ k: 'Сформирована', v: new Date().toLocaleString('ru-RU') }],
+        sections: [
+          { title: 'Сведения', columns: [{ key: 'k', label: 'Параметр' }, { key: 'v', label: 'Значение' }], rows: info },
+          { title: 'Выезды', columns: [{ key: 'e', label: 'Инженер' }, { key: 's', label: 'Статус', value: function (v) { return VST[v.status] || v.status; } }, { key: 'p', label: 'План', value: function (v) { return fmtTs(v.planned_at); } }, { key: 'r', label: 'Отчёт' }], rows: visits.map(function (v) { return { e: v.engineer || '—', s: v.status, p: v.planned_at, r: v.work_report || '' }; }) },
+          { title: 'Запчасти', columns: [{ key: 'part', label: 'Запчасть' }, { key: 'qty', label: 'Кол-во', num: true }, { key: 'price', label: 'Цена', num: true }], rows: parts },
+          { title: 'История', columns: [{ key: 'ts', label: 'Время', value: function (h) { return fmtTs(h.created_at); } }, { key: 'by', label: 'Кто' }, { key: 't', label: 'Событие' }], rows: hist.map(function (h) { return { ts: h.created_at, by: h.by_login || '', t: h.text || h.kind }; }) }
+        ],
+        sign: ['Исполнитель', 'Заказчик'], footer: '3DMP Service · сервисная заявка'
+      }));
+    });
+  }
+
   function renderAccess() {
     var roles = [['admin', 'Администратор'], ['owner', 'Владелец'], ['director', 'Руководитель предприятия'], ['chief', 'Главный инженер'], ['manager', 'Диспетчер (manager)'], ['support', 'Поддержка'], ['master', 'Сервисный инженер'], ['qc', 'ОТК (qc)']];
     var cols = [['dash', 'Дашборд'], ['list', 'Заявки'], ['visits', 'Выезды'], ['refs', 'Гарантии/контракты'], ['reports', 'KPI и отчёты'], ['access', 'Матрица'], ['new', 'Создать заявку'], ['edit', 'Статус/отчёт'], ['assign', 'Назначить выезд'], ['supply', 'Снабжение'], ['rules', 'Правила IIoT'], ['act', 'Акт'], ['passport', 'Паспорт станка']];
@@ -559,6 +625,8 @@
   $('#supplyBtn').addEventListener('click', supplyForm);
   $('#completeBtn').addEventListener('click', completeForm);
   $('#issueBtn').addEventListener('click', escalateForm);
+  $('#printBtn').addEventListener('click', printRequest);
+  $('#procPdf').addEventListener('click', processPdf);
   $('#vq').addEventListener('input', function () { vq = this.value; renderVisits(); });
   $('#passportBtn').addEventListener('click', openPassport);
   $('#passportPdf').addEventListener('click', passportPdf);

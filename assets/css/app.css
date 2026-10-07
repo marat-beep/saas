@@ -474,3 +474,6 @@ table.mini tbody tr:hover{background:var(--bg)}
 /* единый тулбар с переносом */
 .toolbar.wrap{flex-wrap:wrap}
 .toolbar .grow{flex:1;min-width:180px}
+/* ---------- Экраны модулей (router: .screen) ---------- */
+.screen{display:none}
+.screen.active{display:block}

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Сервис и ремонт — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=32">
+<link rel="stylesheet" href="../../assets/css/app.css?v=33">
 <style>
   .badge.p-critical { background:#fef2f2; color:#b91c1c; border-color:#fca5a5; }
   .badge.p-high { background:#fffbeb; color:#b45309; border-color:#fcd34d; }
@@ -43,6 +43,7 @@
       <button data-go="s-visits" data-cap="visits">🚚 Выезды</button>
       <button data-go="s-refs" data-cap="refs">🛡 Гарантии и контракты</button>
       <button data-go="s-reports" data-cap="reports">📈 KPI и отчёты</button>
+      <button data-go="s-proc" data-cap="list">🔀 Процесс</button>
       <button data-go="s-access" data-cap="access">👥 Доступ по ролям</button>
     </div>
 
@@ -115,6 +116,7 @@
           <button class="btn secondary" data-cap="edit" id="issueBtn">⚠ Проблема</button>
           <button class="btn secondary" data-cap="supply" id="supplyBtn">📦 Снабжение</button>
           <button class="btn secondary" data-cap="act" id="actBtn">🖨 Акт</button>
+          <button class="btn secondary" data-cap="list" id="printBtn">🖨 Печать заявки</button>
           <button class="btn secondary" data-cap="passport" id="passportBtn">🪪 Паспорт станка</button>
         </div>
       </div>
@@ -183,6 +185,17 @@
       </div>
     </section>
 
+    <!-- ПРОЦЕСС -->
+    <section class="screen" id="s-proc" data-cap="list">
+      <div class="card">
+        <div class="toolbar"><h2 style="margin:0;flex:1;">Процессный подход: от рабочего до директора</h2>
+          <button class="btn secondary" id="procPdf" style="width:auto;padding:9px 14px;">📄 Процесс в PDF</button>
+        </div>
+        <p class="note">Сквозной процесс сервиса: кто, что делает, где это в системе и где учитываются затраты, закупка, гарантия и KPI. Пример: на станке загудел шпиндель.</p>
+        <div id="procFlow"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
     <!-- ДОСТУП ПО РОЛЯМ -->
     <section class="screen" id="s-access" data-cap="access">
       <div class="card">
@@ -216,7 +229,7 @@
   <script src="../../assets/js/shell.js?v=28"></script>
   <script src="../../assets/js/offline-queue.js?v=1"></script>
   <script src="../../assets/js/export.js?v=1"></script>
-  <script src="service.js?v=5"></script>
+  <script src="service.js?v=6"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>
