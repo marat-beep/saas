@@ -63,6 +63,7 @@ KPI (SLA/MTTR/MTBF/FTFR/CSAT/загрузка); правила IIoT; ППР-ав
 - **plpgsql**: record-присваивание (`select a,b into rec.a,rec.b`) недопустимо — скаляры; `setval` после фиксированных номеров; `left()` для больших текстов.
 - **Каталог**: `connects` ссылается на несуществующие id (исправлять на реальные).
 - **Версии**: забытый `?v=N` → старый кэш; пропущенный `nav.js` на странице.
+- **Обработчики кнопок**: не передавать функцию с аргументом напрямую в `addEventListener('click', fn)` — браузер передаст `MouseEvent` как аргумент (ошибка вида `invalid input syntax for type uuid: "{isTrusted:true}"`). Оборачивать: `addEventListener('click', function(){ fn(); })`.
 
 ## 5. Карта связей сервиса
 `orders` (источник), `client`/`crm` (заказчик), `equipment`/`passport` (станок, паспорт),
