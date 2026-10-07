@@ -44,6 +44,12 @@
 8. Платформа: platform, admin, api, files, usage, diagnostics, scale, whitelabel, builder, industry, market/partners/suppliers.
 9. Поддержка/инструменты: support, remarks, bugbox, assistant, guide.
 
+## 5a. Чистка искажённых текстов («?» / двойная кодировка) — отдельный поток
+Проблема: часть демо-данных и справочников засеяна с нарушением UTF-8 — кириллица заменена «?» (по символу) либо сохранена как двойная кодировка (cp1252, маркер «Ð…»). Источник текста необратим, требуется замена на корректные значения.
+Уже исправлено: `app_customers` (имена/контакты/адреса), `app_qc_checks.product`, `app_qc_lines.name`, `app_documents` (KP-00005), `app_naryads` (NAR-00002), `app_doc_templates` (имена и тела — приведены к русскому, устранена двойная кодировка).
+Остаётся (по результатам скана «??»): справочники `app_ref_*` (processes, material_grades, cutting, machines, tools, fasteners, heat, fits, fluids), `app_calendar`, `app_deals`, `app_tool_life`, `app_mnt_plans`, `app_oee_log`, `app_norms_serial`, `app_issues`, `app_tkp_registry`, `app_nc_programs`, `app_labels`, `app_stock_moves`, `app_service_requests`, `app_setups`, `app_routes`, `app_passports`, `app_orders.customer`, `app_notifications`, `app_events`.
+Работы: (1) пересобрать демо-данные/справочники корректным UTF-8 (миграция с `update`/`insert ... on conflict`); (2) чек-лист «нет '?'» в CI-смоуке; (3) правило: любые SQL через Management API — только с UTF-8 телом.
+
 ## 6. Сквозные работы
 - Наполнение подсказок (`title`/`.hint`) во всех формах; пустые состояния и загрузка на всех списках.
 - Чистка «?» в демо-данных (нужен доступ к БД).
