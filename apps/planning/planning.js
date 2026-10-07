@@ -97,12 +97,45 @@
     });
   }
 
+  /* ---------- APS-автоплан (0154) ---------- */
+  function loadAps() {
+    var args = { p_token: token, p_from: today(), p_days: 14 };
+    return Promise.all([
+      rpc('app_aps_plan', args),
+      rpc('app_aps_load', args)
+    ]).then(function (r) {
+      var plan = r[0] || [], load = r[1] || [];
+      $('#apsLoad').innerHTML = load.length ? '<table class="mini"><thead><tr><th>Дата</th><th class="num">Мощность, ч</th><th class="num">Загрузка, ч</th><th>Уровень</th></tr></thead><tbody>' +
+        load.map(function (x) {
+          var pct = Number(x.load_pct) || 0;
+          return '<tr><td>' + dd(x.day) + '</td><td class="num">' + num(x.capacity) + '</td><td class="num">' + num(x.load) + '</td>' +
+            '<td><div class="capwrap" style="min-width:120px;"><div class="capbar" style="width:' + Math.min(pct, 100) + '%;background:' + (pct > 100 ? '#dc2626' : pct > 85 ? '#f59e0b' : 'var(--accent)') + ';"></div></div><span class="note">' + pct + '%</span></td></tr>';
+        }).join('') + '</tbody></table>' : '<span class="note">Нет данных.</span>';
+      $('#apsPlan').innerHTML = plan.length ? '<table class="mini"><thead><tr><th>Наряд</th><th>Название</th><th>Приоритет</th><th class="num">Остаток, ч</th><th>Начало</th><th>Окончание</th><th class="num">Дн.</th><th>Срок</th><th>Риск</th></tr></thead><tbody>' +
+        plan.map(function (n) {
+          return '<tr><td>' + esc(n.number) + '</td><td>' + esc(n.title || '') + '</td><td>' + esc(n.priority || '') + '</td>' +
+            '<td class="num">' + num(n.remaining) + '</td><td>' + dd(n.plan_start) + '</td><td>' + dd(n.plan_end) + '</td><td class="num">' + (n.days != null ? n.days : '—') + '</td>' +
+            '<td>' + dd(n.due_date) + '</td><td style="' + (n.risk === 'риск' ? 'color:#b91c1c;font-weight:700;' : '') + '">' + esc(n.risk || '—') + '</td></tr>';
+        }).join('') + '</tbody></table>' : '<span class="note">Нет открытых нарядов для планирования.</span>';
+    }).catch(function (e) { msg('#aMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
+  function applyAps() {
+    rpc('app_aps_apply', { p_token: token, p_from: today(), p_days: 14 }).then(function (r) {
+      var x = r && r[0]; msg('#aMsg', x ? x.message : '', x && Number(x.updated) >= 0 ? 'ok' : 'err');
+      window.Auth.log('APS: применён план', x ? x.message : ''); ui.toast('План применён'); loadAps(); load();
+    }).catch(function (e) { msg('#aMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
+
   $('#tabs').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     $$('#tabs button').forEach(function (x) { x.classList.toggle('active', x === b); });
     $('#t-gantt').style.display = (b.dataset.t === 'gantt') ? '' : 'none';
     $('#t-cap').style.display = (b.dataset.t === 'cap') ? '' : 'none';
+    $('#t-aps').style.display = (b.dataset.t === 'aps') ? '' : 'none';
+    if (b.dataset.t === 'aps') loadAps();
   });
+  $('#apsBuild').addEventListener('click', loadAps);
+  $('#apsApply').addEventListener('click', applyAps);
   $('#fWc').addEventListener('change', function () { wcFilter = this.value; renderGantt(); renderSched(); });
   $('#filters').addEventListener('click', function (e) {
     var c = e.target.closest('.chip'); if (!c) return;

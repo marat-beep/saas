@@ -10,7 +10,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 **Не льётся:** `supabase/`, `docs/`, `tools/`, `dist/`, `.git`, `README.md`, `AGENTS.md`.
 
 ## 2. База данных
-- Миграции `supabase/migrations/0001…0153` + пересобранный `supabase/apply_all.sql`.
+- Миграции `supabase/migrations/0001…0154` + пересобранный `supabase/apply_all.sql`.
 - Применение — Supabase → SQL Editor → вставить `apply_all.sql` → Run (либо Management API, UTF-8).
 - Смоук: `select * from app_smoke_test(:token);` (10/10) и `app_smoke_test_ext(:token)` (14/14).
 
@@ -34,6 +34,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 - [ ] Отметки в `BACKLOG.md`, `PLAN_WAVES.md`, `STATUS.md`, `NOTES.md`, `PROMPTS.md`.
 
 ## 6. Журнал релизов (последнее)
+- **v205 (миграция `0154`)** — W9 MES/APS/IIoT: APS-автоплан, коннекторы OPC UA/MTConnect, приём телеметрии, OEE онлайн, износ инструмента; `apps/planning`+`apps/iiot`; каталог v10.8, nav v87/shell v49.
 - **v204 (миграция `0153`)** — W8 аналитика L4: конструктор отчётов, прогноз спроса/рисков, предиктив ТОиР; `apps/reports`+`apps/forecast`; каталог v10.7, nav v86/shell v48.
 - **v203 (миграция `0152`)** — W7 биллинг/подписки и SLA платформы: тарифы+лимиты, подписки, счета платформы, статус-борд доступности, контроль квот; модуль `apps/billing`; каталог v10.6, nav v85/shell v47.
 - **v201 (миграция `0151`)** — отчёты: ветка `users` + подключение к admin/slots/planning/quality.

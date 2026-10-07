@@ -55,6 +55,7 @@
     <div class="tabs2" id="tabs">
       <button class="active" data-t="gantt">Диаграмма Ганта</button>
       <button data-t="cap">Загрузка центров</button>
+      <button data-t="aps">APS-автоплан</button>
     </div>
 
     <section class="tab" id="t-gantt">
@@ -75,6 +76,21 @@
         <div id="cap"><span class="note">Загрузка…</span></div>
       </div>
     </section>
+
+    <section class="tab" id="t-aps" style="display:none;">
+      <div class="card">
+        <div class="toolbar">
+          <button class="btn secondary" id="apsBuild" style="width:auto;padding:8px 14px;">Построить план</button>
+          <button class="btn" id="apsApply" style="width:auto;padding:8px 14px;">Применить план</button>
+          <span class="note" style="margin-left:auto;">Распределение нарядов по слотам с учётом мощности и сроков; при риске просрочки — отметка «риск».</span>
+        </div>
+        <div class="msg" id="aMsg"></div>
+        <h3>Загрузка по дням</h3>
+        <div id="apsLoad" class="mt"><span class="note">Нажмите «Построить план».</span></div>
+        <h3 class="mt">План по нарядам</h3>
+        <div id="apsPlan" class="mt"></div>
+      </div>
+    </section>
   </main>
 
   <footer class="foot">3DMP Service · планирование</footer>
@@ -86,10 +102,10 @@
   <script src="../../assets/js/auth.js?v=6"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=86"></script>
-  <script src="../../assets/js/shell.js?v=48"></script>
+  <script src="../../assets/js/nav.js?v=87"></script>
+  <script src="../../assets/js/shell.js?v=49"></script>
   <script src="../../assets/js/module-report.js?v=1"></script>
-  <script src="planning.js?v=2"></script>
+  <script src="planning.js?v=3"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>
