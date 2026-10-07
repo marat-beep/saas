@@ -33,6 +33,53 @@
     document.head.appendChild(st);
   }
 
+  // Единая правая группа кнопок топбара: Тема · Сервер · Вход · Пользователь
+  function setupPills(bar, ROOT) {
+    if (!bar || document.getElementById('srvBtn') || document.getElementById('npSrvBtn')) return; // на хабе кнопки уже есть
+    try { var t0 = localStorage.getItem('3dmp:theme'); if (t0) document.documentElement.setAttribute('data-theme', t0); } catch (e) {}
+    function mk(tag, cls, html) { var e = document.createElement(tag); e.className = cls; if (html != null) e.innerHTML = html; return e; }
+    function bind(btn, drop) {
+      btn.addEventListener('click', function (e) { e.stopPropagation(); drop.style.display = (drop.style.display === 'none' || !drop.style.display) ? 'block' : 'none'; });
+      document.addEventListener('click', function (e) { if (!(e.target.closest && (e.target.closest('#' + drop.id) || e.target.closest('#' + btn.id)))) drop.style.display = 'none'; });
+    }
+    var theme = mk('button', 'srvbtn', (document.documentElement.getAttribute('data-theme') === 'dark') ? '☀' : '🌙'); theme.type = 'button'; theme.id = 'npThemeBtn'; theme.title = 'Тема';
+    theme.addEventListener('click', function () {
+      var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next); try { localStorage.setItem('3dmp:theme', next); } catch (e) {}
+      theme.textContent = next === 'dark' ? '☀' : '🌙';
+    });
+    var srv = mk('button', 'srvbtn', '🟢 <span>Сервер</span>'); srv.type = 'button'; srv.id = 'npSrvBtn'; srv.title = 'Статус сервера';
+    var srvD = mk('div', 'srvdrop', '<div class="status" id="conn"><span class="dot wait"></span><span class="status-text">Проверка…</span></div><ul class="checklist" data-checklist></ul>'); srvD.id = 'npSrvDrop'; srvD.style.display = 'none';
+    var ent = mk('button', 'srvbtn', '🎛 <span>Вход</span>'); ent.type = 'button'; ent.id = 'npEntBtn'; ent.title = 'Единая точка входа';
+    var entD = mk('div', 'srvdrop', '<div class="btn-row">' +
+      '<a class="btn" href="' + ROOT + 'apps/panel/index.html" style="width:auto;padding:10px 14px;">🎛 Пульт</a>' +
+      '<a class="btn secondary" href="' + ROOT + 'apps/product/index.html" style="width:auto;padding:10px 14px;">💳 Продукт и цены</a>' +
+      '<a class="btn secondary" href="' + ROOT + 'apps/guide/index.html" style="width:auto;padding:10px 14px;">📖 Гид</a></div>'); entD.id = 'npEntDrop'; entD.style.display = 'none';
+    var usr = mk('button', 'userbtn', '<span class="uava" id="npAva">?</span> <span id="npLogin">…</span>'); usr.type = 'button'; usr.id = 'npUserBtn'; usr.title = 'Аккаунт';
+    var usrD = mk('div', 'userdrop', '<div class="cab-info"><h1 id="npName">…</h1><div class="note" id="npSub"></div><div class="cab-badges mt" id="npBadges"></div></div>' +
+      '<div class="btn-row mt"><a class="btn secondary" href="' + ROOT + 'apps/dashboard/index.html" style="width:auto;padding:9px 14px;">Открыть кабинет</a>' +
+      '<button class="btn secondary" id="npOut" type="button" style="width:auto;padding:9px 14px;">Выйти</button></div>'); usrD.id = 'npUserDrop'; usrD.style.display = 'none';
+    bar.appendChild(theme); bar.appendChild(srv); bar.appendChild(srvD); bar.appendChild(ent); bar.appendChild(entD); bar.appendChild(usr); bar.appendChild(usrD);
+    bind(srv, srvD); bind(ent, entD); bind(usr, usrD);
+    function fill() {
+      var s = (g.Auth && g.Auth.session) ? g.Auth.session() : null; if (!s) return;
+      var nm = s.full_name || s.login || '';
+      var ini = (nm.trim().split(/\s+/).map(function (w) { return w[0] || ''; }).slice(0, 2).join('') || (s.login || '?').slice(0, 1)).toUpperCase();
+      var ava = document.getElementById('npAva'); if (ava) ava.textContent = ini;
+      var lg = document.getElementById('npLogin'); if (lg) lg.textContent = s.login || '';
+      var nEl = document.getElementById('npName'); if (nEl) nEl.textContent = nm;
+      var sEl = document.getElementById('npSub'); if (sEl) sEl.textContent = (s.tenant_name ? s.tenant_name + ' · ' : '') + ((g.Auth.roleLabel && g.Auth.roleLabel(s.role)) || s.role || '');
+      var bEl = document.getElementById('npBadges'); if (bEl) bEl.innerHTML = '<span class="badge">' + esc((g.Auth.roleLabel && g.Auth.roleLabel(s.role)) || s.role || '') + '</span>' + (s.tenant_name ? '<span class="badge">' + esc(s.tenant_name) + '</span>' : '');
+    }
+    fill();
+    if (g.Auth && g.Auth.refresh) { g.Auth.refresh().then(fill).catch(function () {}); }
+    var out = document.getElementById('npOut'); if (out) out.addEventListener('click', function () { g.Auth.logout(); location.href = ROOT + 'index.html'; });
+    if (g.AppStatus && g.AppStatus.render) { try { g.AppStatus.render('#conn'); } catch (e) {} }
+    else { var cn = document.getElementById('conn'); if (cn) cn.innerHTML = '<span class="dot done"></span><span class="status-text">OK</span>'; }
+    var who = document.getElementById('who'); if (who) who.style.display = 'none';
+    var lo = document.getElementById('logout'); if (lo) lo.style.display = 'none';
+  }
+
   function init() {
     var src = (SELF && SELF.src) || '';
     var idx = src.indexOf('assets/js/nav.js');
@@ -90,6 +137,8 @@
       '<div class="navdrop" id="navDrop">' + FALLBACK + '</div></div>';
 
     bar.parentNode.insertBefore(wrap, bar.nextSibling);
+
+    setupPills(bar, ROOT);
 
     var t = document.getElementById('navToggle');
     var d = document.getElementById('navDrop');
