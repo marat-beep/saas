@@ -29,7 +29,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Нормирование PRO (P14)</h1><p>Операции и ставки по сложности, K-коэффициенты, серийность, база аналогов и расчёт нормы. Ядро перенесено из «Нормирования PRO».</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -40,10 +40,10 @@
         <h2>Калькулятор нормы</h2>
         <div class="msg" id="cMsg"></div>
         <div class="grid4">
-          <div class="field"><label>Операция</label><select id="cOp"></select></div>
+          <div class="field"><label>Операция</label><select id="cOp"></select><span class="hint">Операция из справочника (со своей ставкой н·ч).</span></div>
           <div class="field"><label>Сложность</label><select id="cCx"><option value="simple">Простая</option><option value="mid" selected>Средняя</option><option value="hard">Сложная</option></select></div>
-          <div class="field"><label>Количество, шт</label><input type="number" step="any" id="cQty" value="1"></div>
-          <div class="field"><label>База (override, ₽/н·ч)</label><input type="number" step="any" id="cBase" placeholder="авто"></div>
+          <div class="field"><label>Количество, шт</label><input type="number" step="any" id="cQty" value="1"><span class="hint">Партия — учитывается коэффициент серийности.</span></div>
+          <div class="field"><label>База (override, ₽/н·ч)</label><input type="number" step="any" id="cBase" placeholder="авто"><span class="hint">Пусто — берётся ставка операции; иначе — своё значение.</span></div>
           <div class="field"><label>K материала</label><select id="cKm"></select></div>
           <div class="field"><label>K точности</label><select id="cKa"></select></div>
           <div class="field"><label>K геометрии</label><select id="cKg"></select></div>
@@ -71,7 +71,7 @@
       </section>
 
       <section id="sec-k" style="display:none">
-        <h2>K-коэффициенты</h2>
+        <h2>K-коэффициенты</h2><p class="note">Поправочные коэффициенты нормирования: материал, точность, геометрия, оснастка — умножаются на базу.</p>
         <div class="msg" id="kMsg"></div>
         <div class="grid3">
           <div class="field"><label>Категория</label><select id="kCat"><option value="material">Материал</option><option value="accuracy">Точность</option><option value="geometry">Геометрия</option><option value="fixture">Оснастка</option></select></div>

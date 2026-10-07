@@ -18,7 +18,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Каталог оборудования (A11)</h1><p>Станки и оборудование к поставке: производитель, тип, оси, точность, цена.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -26,12 +26,12 @@
       <h2>Новая/редактируемая позиция</h2>
       <div class="msg" id="fMsg"></div>
       <div class="grid3">
-        <div class="field"><label>Модель/название *</label><input type="text" id="fName"></div>
+        <div class="field"><label>Модель/название *</label><input type="text" id="fName"><span class="hint">Модель станка/средства для каталога оборудования.</span></div>
         <div class="field"><label>Производитель</label><input type="text" id="fBrand"></div>
         <div class="field"><label>Тип</label><select id="fCat"><option value="cnc">ЧПУ</option><option value="lathe">Токарные</option><option value="edm">ЭЭО</option><option value="grinding">Шлифование</option><option value="press">Прессы</option><option value="measuring">Измерения</option><option value="other">Прочее</option></select></div>
-        <div class="field"><label>Число осей</label><input type="number" id="fAxes" value="0"></div>
+        <div class="field"><label>Число осей</label><input type="number" id="fAxes" value="0"><span class="hint">Напр. 3, 4, 5 осей — для подбора под деталь.</span></div>
         <div class="field"><label>Точность</label><input type="text" id="fAcc" placeholder="±0.005 мм"></div>
-        <div class="field"><label>Цена, ₽</label><input type="number" step="any" id="fPrice" value="0"></div>
+        <div class="field"><label>Цена, ₽</label><input type="number" step="any" id="fPrice" value="0"><span class="hint">Цена для прайса/КП (используется в «Конструкторе документов»).</span></div>
       </div>
       <div class="field"><label>Описание</label><input type="text" id="fDescr"></div>
       <div class="btn-row"><button class="btn" id="fSave">Сохранить</button><button class="btn secondary" id="fClear">Очистить</button></div>

@@ -21,7 +21,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <section class="screen active" id="s-list">
       <div class="hero"><h1>Спецификации (BOM)</h1><p>Состав изделия: материалы и операции. Создание из техпроцесса и расчёт себестоимости.</p></div>
       <div class="kpi-row" id="kpis"></div>
@@ -41,23 +41,23 @@
         <h2 id="formTitle">Новая спецификация</h2>
         <div class="msg" id="fMsg"></div>
         <div class="toolbar" style="align-items:flex-end;">
-          <div class="field" style="flex:1;"><label>Техпроцесс (для автозаполнения)</label><select id="bTemplate"><option value="">— выбрать шаблон —</option></select></div>
+          <div class="field" style="flex:1;"><label>Техпроцесс (для автозаполнения)</label><select id="bTemplate"><option value="">— выбрать шаблон —</option></select><span class="hint">Выберите шаблон или оставьте пусто — заполните позиции вручную.</span></div>
           <button class="btn secondary" id="fromTplBtn" style="width:auto;padding:10px 16px;">Создать из техпроцесса</button>
         </div>
         <div class="grid2c">
-          <div class="field"><label>Изделие *</label><input type="text" id="bProduct" placeholder="Кронштейн"></div>
+          <div class="field"><label>Изделие *</label><input type="text" id="bProduct" placeholder="Кронштейн"><span class="hint">Название изделия/узла, для которого считаем состав.</span></div>
           <div class="field"><label>Код</label><input type="text" id="bCode" placeholder="КР-01"></div>
         </div>
         <div class="grid2c">
           <div class="field"><label>Версия</label><input type="text" id="bVersion" placeholder="1"></div>
-          <div class="field"><label>Количество изделий</label><input type="text" id="bQty" inputmode="decimal" placeholder="1"></div>
+          <div class="field"><label>Количество изделий</label><input type="text" id="bQty" inputmode="decimal" placeholder="1"><span class="hint">Сколько изделий в партии — влияет на себестоимость.</span></div>
         </div>
-        <div class="field"><label>Заявка (необязательно)</label><select id="bOrder"><option value="">— без заявки —</option></select></div>
+        <div class="field"><label>Заявка (необязательно)</label><select id="bOrder"><option value="">— без заявки —</option></select><span class="hint">Привязка к заявке — для КП/маршрута и связей.</span></div>
         <div class="doc-h">Позиции <span class="note" id="lineCount"></span></div>
         <div class="line" style="font-size:.72rem;color:var(--muted);"><span>Тип</span><span>Наименование</span><span>Кол-во</span><span>Ед.</span><span>Нормо-ч</span><span></span></div>
         <div id="lines"></div>
         <button class="btn secondary mt" id="addLine">＋ Добавить позицию</button>
-        <button class="btn mt" id="saveBom">Сохранить спецификацию</button>
+        <button class="btn mt" id="saveBom" title="Сохранить спецификацию (состав + операции)">Сохранить спецификацию</button>
       </div>
     </section>
 

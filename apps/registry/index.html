@@ -35,7 +35,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Справочники</h1><p>Связная модель: оборудование, материалы, операции, шаблоны техпроцессов.</p></div>
 
     <div class="tabs2" id="tabs">
@@ -54,11 +54,11 @@
         <div class="msg" id="eqMsg"></div>
         <div class="grid4">
           <div class="field"><label>Код</label><input type="text" id="eqCode" placeholder="EQ-10"></div>
-          <div class="field"><label>Название *</label><input type="text" id="eqName" placeholder="Фрезерный ЧПУ"></div>
+          <div class="field"><label>Название *</label><input type="text" id="eqName" placeholder="Фрезерный ЧПУ"><span class="hint">Название станка/средства, как в цехе.</span></div>
           <div class="field"><label>Тип</label><select id="eqKind">
             <option value="frezerny">Фрезерный</option><option value="tokarny">Токарный</option><option value="lazer">Лазер</option>
             <option value="sverlilny">Сверлильный</option><option value="shlifovalny">Шлифовальный</option><option value="edm">Электроэрозия</option><option value="sborka">Сборка</option></select></div>
-          <div class="field"><label>Нормочас, ₽/ч</label><input type="text" id="eqCost" inputmode="decimal" placeholder="3000"></div>
+          <div class="field"><label>Нормочас, ₽/ч</label><input type="text" id="eqCost" inputmode="decimal" placeholder="3000"><span class="hint">Стоимость часа работы — основа себестоимости.</span></div>
         </div>
         <button class="btn" id="eqAdd">Добавить</button>
       </div>
@@ -75,7 +75,7 @@
         <div class="msg" id="opMsg"></div>
         <div class="grid4">
           <div class="field"><label>Код</label><input type="text" id="opCode" placeholder="OP-20"></div>
-          <div class="field"><label>Название *</label><input type="text" id="opName" placeholder="Фрезеровка"></div>
+          <div class="field"><label>Название *</label><input type="text" id="opName" placeholder="Фрезеровка"><span class="hint">Технологическая операция (токарная, фрезерная, слесарная…).</span></div>
           <div class="field"><label>Тип оборудования</label><select id="opKind">
             <option value="frezerny">Фрезерный</option><option value="tokarny">Токарный</option><option value="lazer">Лазер</option>
             <option value="sverlilny">Сверлильный</option><option value="shlifovalny">Шлифовальный</option><option value="edm">Электроэрозия</option><option value="sborka">Сборка</option></select></div>
@@ -92,7 +92,7 @@
         <div class="msg" id="tpMsg"></div>
         <div class="grid3">
           <div class="field"><label>Код</label><input type="text" id="tpCode" placeholder="TP-10"></div>
-          <div class="field"><label>Название *</label><input type="text" id="tpName" placeholder="Корпус"></div>
+          <div class="field"><label>Название *</label><input type="text" id="tpName" placeholder="Корпус"><span class="hint">Типовой техпроцесс — шаблон маршрута по детали.</span></div>
           <div class="field"><label>Материал</label><select id="tpMat"><option value="">— нет —</option></select></div>
         </div>
         <button class="btn" id="tpAdd">Создать шаблон</button>
@@ -104,7 +104,7 @@
         <div class="grid3 mt">
           <div class="field"><label>Операция</label><select id="stOp"></select></div>
           <div class="field"><label>Оборудование</label><select id="stEq"></select></div>
-          <div class="field"><label>План, мин</label><input type="text" id="stMin" inputmode="decimal" placeholder="30"></div>
+          <div class="field"><label>План, мин</label><input type="text" id="stMin" inputmode="decimal" placeholder="30"><span class="hint">Плановое время шага (нормо-минуты).</span></div>
         </div>
         <button class="btn secondary" id="stAdd">＋ Добавить шаг</button>
         <div class="msg" id="stMsg"></div>

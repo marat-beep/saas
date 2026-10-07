@@ -18,7 +18,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Управляющие программы (УП)</h1><p>Реестр УП: заказ, деталь, станок, номер, версия, время и файлы. Прототипы B18/B27.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -28,11 +28,11 @@
       <div class="grid3">
         <div class="field"><label>Заказ</label><select id="fOrder"><option value="">— нет —</option></select></div>
         <div class="field"><label>Станок</label><select id="fEq"><option value="">— нет —</option></select></div>
-        <div class="field"><label>Деталь *</label><input type="text" id="fDetail" placeholder="Пуансон, Ш-001.01.01"></div>
+        <div class="field"><label>Деталь *</label><input type="text" id="fDetail" placeholder="Пуансон, Ш-001.01.01"><span class="hint">Что обрабатывает программа (деталь/обозначение).</span></div>
       </div>
       <div class="grid3">
-        <div class="field"><label>Номер УП</label><input type="text" id="fNo" placeholder="УП010135"></div>
-        <div class="field"><label>Время обработки, мин</label><input type="text" id="fTime" inputmode="decimal" placeholder="480"></div>
+        <div class="field"><label>Номер УП</label><input type="text" id="fNo" placeholder="УП010135"><span class="hint">Номер управляющей программы (можно авто).</span></div>
+        <div class="field"><label>Время обработки, мин</label><input type="text" id="fTime" inputmode="decimal" placeholder="480"><span class="hint">Машинное время — для нормирования/планирования.</span></div>
         <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="fAdd">Добавить УП</button></div>
       </div>
     </div>

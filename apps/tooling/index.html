@@ -23,7 +23,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Инструмент и стойкость</h1><p>Учёт режущего инструмента: ресурс и наработка, заточки, износ; связь с оборудованием. Прототипы B13/B19.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -32,7 +32,7 @@
       <div class="msg" id="tMsg"></div>
       <div class="grid3">
         <div class="field"><label>Код</label><input type="text" id="gCode" placeholder="T-010"></div>
-        <div class="field"><label>Наименование *</label><input type="text" id="gName" placeholder="Фреза концевая Ø10"></div>
+        <div class="field"><label>Наименование *</label><input type="text" id="gName" placeholder="Фреза концевая Ø10"><span class="hint">Название инструмента/оснастки.</span></div>
         <div class="field"><label>Тип</label><input type="text" id="gType" placeholder="Концевая фреза"></div>
       </div>
       <div class="grid3">
@@ -42,8 +42,8 @@
       </div>
       <div class="grid3">
         <div class="field"><label>Оборудование</label><select id="gEq"><option value="">— не выбрано —</option></select></div>
-        <div class="field"><label>Ресурс, мин</label><input type="text" id="gRes" inputmode="decimal" placeholder="600"></div>
-        <div class="field"><label>Число заточек</label><input type="text" id="gWears" inputmode="numeric" placeholder="3"></div>
+        <div class="field"><label>Ресурс, мин</label><input type="text" id="gRes" inputmode="decimal" placeholder="600"><span class="hint">Стойкость до переточки, мин — для учёта износа.</span></div>
+        <div class="field"><label>Число заточек</label><input type="text" id="gWears" inputmode="numeric" placeholder="3"><span class="hint">Сколько переточек выдерживает.</span></div>
       </div>
       <div class="field"><label>Расположение</label><input type="text" id="gLoc" placeholder="инструментальная"></div>
       <button class="btn" id="gAdd">Добавить инструмент</button>
