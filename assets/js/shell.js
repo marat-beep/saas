@@ -77,14 +77,14 @@
         var items = list.filter(function (a) { return a.group === grp.id; });
         if (!items.length) return;
         var activeIn = items.some(function (a) { return here.indexOf(a.href) === 0; });
-        out += '<div class="sh-group' + (activeIn ? ' open' : '') + '">' +
-          '<button class="sh-grp" type="button"><span>' + grp.icon + ' ' + esc(grp.title) + '</span><span class="sh-cnt">' + items.length + ' <i class="sh-cv">▾</i></span></button>' +
+        out += '<div class="sh-group' + (activeIn ? ' active' : '') + '">' +
+          '<button class="sh-grp" type="button"><span>' + grp.icon + ' ' + esc(grp.title) + '</span><span class="sh-cnt">' + items.length + ' <i class="sh-cv">▸</i></span></button>' +
           '<div class="sh-group-body">' + items.map(function (a) { return link(a.href, a.icon, a.title, here.indexOf(a.href) === 0); }).join('') + '</div></div>';
       });
       var rest = list.filter(function (a) { return !a.group; });
       if (rest.length) out += '<div class="sh-group"><button class="sh-grp" type="button"><span>🗂 Прочее</span><span class="sh-cnt">' + rest.length + ' <i class="sh-cv">▾</i></span></button><div class="sh-group-body">' + rest.map(function (a) { return link(a.href, a.icon, a.title, here.indexOf(a.href) === 0); }).join('') + '</div></div>';
       wrap.innerHTML = out;
-      // Аккордеон: открыта максимум одна группа
+      // Выпадающее меню группы: открыта максимум одна
       Array.prototype.forEach.call(wrap.querySelectorAll('.sh-grp'), function (b) {
         b.addEventListener('click', function () {
           var g = b.closest('.sh-group'); if (!g) return;
@@ -92,6 +92,10 @@
           Array.prototype.forEach.call(wrap.querySelectorAll('.sh-group.open'), function (x) { x.classList.remove('open'); });
           if (!wasOpen) g.classList.add('open');
         });
+      });
+      document.addEventListener('click', function (e) {
+        if (e.target.closest && e.target.closest('.sh-side')) return;
+        Array.prototype.forEach.call(wrap.querySelectorAll('.sh-group.open'), function (x) { x.classList.remove('open'); });
       });
     }
 
