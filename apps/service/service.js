@@ -150,7 +150,7 @@
   function renderNavLinks(d) {
     var el = $('#navLinks'); if (!el) return;
     var L = [];
-    if (d.customer_id) L.push('<a class="btn secondary" style="width:auto;padding:7px 12px;" href="../client/index.html" target="_blank">🏢 Заказчик</a>');
+    if (d.customer_id) L.push('<button class="btn secondary" style="width:auto;padding:7px 12px;" data-nav="customer">🏢 Заказчик/завод</button>');
     if (d.equipment_id) L.push('<a class="btn secondary" style="width:auto;padding:7px 12px;" href="../equipment/index.html" target="_blank">🏭 Станок</a>');
     L.push('<button class="btn secondary" style="width:auto;padding:7px 12px;" data-nav="passport">🪪 Паспорт станка</button>');
     L.push('<a class="btn secondary" style="width:auto;padding:7px 12px;" href="../org/index.html" target="_blank">🏛 Организация</a>');
@@ -159,7 +159,36 @@
     el.innerHTML = L.join('');
     var pb = el.querySelector('[data-nav="passport"]');
     if (pb) pb.addEventListener('click', function () { openPassport(); });
+    var cb = el.querySelector('[data-nav="customer"]');
+    if (cb) cb.addEventListener('click', function () { openCustomer(d.customer_id); });
   }
+  function openCustomer(id) {
+    if (!id) { msg('#iMsg', 'У заявки не указан заказчик', 'err'); return; }
+    Promise.all([
+      rpc('app_customer_card', { p_token: token, p_customer_id: id }),
+      rpc('app_customer_requests', { p_token: token, p_customer_id: id }),
+      rpc('app_customer_equipment', { p_token: token, p_customer_id: id })
+    ]).then(function (r) {
+      var c = (r[0] || [])[0]; var reqs = r[1] || []; var eqs = r[2] || [];
+      if (!c) { msg('#iMsg', 'Заказчик не найден', 'err'); return; }
+      $('#custCard').innerHTML =
+        '<h1 style="font-size:1.15rem;margin:0 0 8px;">🏢 ' + esc(c.name) + '</h1>' +
+        kv('ИНН', c.inn) + kv('Контакт', c.contact_person) + kv('Телефон', c.phone) + kv('E-mail', c.email) + kv('Адрес', c.address) + kv('Примечание', c.note) +
+        '<div class="kpi-row" style="margin-top:10px;">' + kpi('Заявок', num(c.requests)) + kpi('Открытых', num(c.open_requests), num(c.open_requests) ? '#b45309' : '') + kpi('Выполнено', num(c.done_requests)) +
+        kpi('Затраты', money(c.cost_sum)) + kpi('Станков', num(c.equipment_count)) + kpi('Гарантий (акт.)', num(c.active_warranties) + '/' + num(c.warranties)) + '</div>' +
+        '<div class="sv-actions" style="margin-top:10px;"><a class="btn secondary" style="width:auto;padding:7px 12px;" href="../client/index.html" target="_blank">Открыть в клиентах ↗</a></div>';
+      $('#custReq').innerHTML = reqs.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>№</th><th>Дата</th><th>Тема</th><th>Станок</th><th>Приоритет</th><th>Статус</th><th>SLA</th><th class="num">Сумма</th></tr></thead><tbody>' +
+        reqs.map(function (x) { return '<tr data-req="' + x.id + '" style="cursor:pointer;"><td><b>' + esc(x.number) + '</b></td><td class="muted">' + fmtTs(x.reported_at) + '</td><td>' + esc(x.title || '') + '</td><td>' + esc(x.equipment || '') + '</td>' +
+          '<td>' + prioBadge(x.priority) + '</td><td>' + (ST[x.status] || x.status) + '</td><td>' + (x.sla_state === 'overdue' ? '<span class="badge sla-overdue">просрочен</span>' : x.sla_state === 'warn' ? '<span class="badge sla-warn">истекает</span>' : '') + '</td><td class="num">' + money(num(x.cost) + num(x.parts_cost)) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<span class="note">Заявок нет.</span>';
+      $('#custEq').innerHTML = eqs.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Станок</th><th>Код</th><th>Лицензия</th><th>Гарантия</th><th class="num">Заявок</th><th></th></tr></thead><tbody>' +
+        eqs.map(function (e) { return '<tr><td><b>' + esc(e.name) + '</b></td><td class="muted">' + esc(e.code || '') + '</td><td>' + esc(e.warranty_license || '—') + '</td><td class="muted">' + esc(e.warranty_number || '') + (e.warranty_end ? ' до ' + e.warranty_end : '') + '</td>' +
+          '<td class="num">' + num(e.requests) + '</td><td><button class="btn secondary" style="width:auto;padding:6px 12px;font-size:.78rem;" data-pass="' + e.equipment_id + '">Паспорт</button></td></tr>'; }).join('') + '</tbody></table></div>' : '<span class="note">Станков нет.</span>';
+      $$('#custReq [data-req]').forEach(function (tr) { tr.addEventListener('click', function () { openItem(tr.dataset.req); }); });
+      $$('#custEq [data-pass]').forEach(function (b) { b.addEventListener('click', function () { openPassport(b.dataset.pass); }); });
+      screens.go('s-cust');
+    }).catch(function (e) { msg('#iMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
+  $('#backC').addEventListener('click', function () { if (cur) screens.go('s-item'); else go('s-list'); });
   function bindVisits() {
     $$('#visits [data-vst]').forEach(function (b) {
       b.addEventListener('click', function () {
