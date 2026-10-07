@@ -21,6 +21,12 @@
     <section class="screen active" id="s-list">
       <div class="hero"><h1>Склад</h1><p>Остатки, приход/расход, контроль минимума. Нехватка → закупка, связи с заявкой и нарядом.</p></div>
       <div class="kpi-row" id="kpis"></div>
+    <div class="sv-actions" style="margin-top:10px;">
+      <button class="btn secondary" data-cap="reports" id="repBtn">📄 Отчёт PDF</button>
+      <a class="btn secondary" href="../procurement/index.html">🛒 Закупки ↗</a>
+      <a class="btn secondary" href="../service/index.html">🧑‍🔧 Сервис ↗</a>
+      <a class="btn secondary" href="../production/index.html">🏭 Производство ↗</a>
+    </div>
 
       <div class="card mt" id="lowCard" style="display:none;">
         <h2>Нехватка (ниже минимума)</h2>
@@ -34,8 +40,8 @@
             <span class="chip active" data-f="">Все</span>
             <span class="chip" data-f="low">Ниже минимума</span>
           </div>
-          <button class="btn secondary" id="toWms" style="width:auto;padding:11px 18px;">🏬 Адреса и партии</button>
-          <button class="btn" id="toForm" style="width:auto;padding:11px 18px;">＋ Новый материал</button>
+          <button class="btn secondary" data-cap="edit" id="toWms" style="width:auto;padding:11px 18px;">🏬 Адреса и партии</button>
+          <button class="btn" data-cap="edit" id="toForm" style="width:auto;padding:11px 18px;">＋ Новый материал</button>
         </div>
         <div id="listMsg"></div>
         <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
@@ -56,7 +62,7 @@
           <div class="field"><label>Цена, ₽</label><input type="text" id="mPrice" inputmode="decimal" placeholder="120"></div>
           <div class="field"><label>Мин. остаток</label><input type="text" id="mMin" inputmode="decimal" placeholder="100"></div>
         </div>
-        <button class="btn" id="saveMat">Сохранить</button>
+        <button class="btn" data-cap="edit" id="saveMat">Сохранить</button>
       </div>
     </section>
 
@@ -74,7 +80,7 @@
           <div class="field"><label>Заявка (необязательно)</label><select id="mvOrder"><option value="">— нет —</option></select></div>
           <div class="field"><label>Комментарий</label><input type="text" id="mvNote" placeholder="поставка / в производство"></div>
         </div>
-        <button class="btn" id="mvBtn">Провести движение</button>
+        <button class="btn" data-cap="edit" id="mvBtn">Провести движение</button>
       </div>
       <div class="card">
         <h2>История движений</h2>
@@ -87,13 +93,13 @@
       <div class="kpi-row" id="wmsKpis"></div>
 
       <div class="card mt">
-        <div class="toolbar"><h2 style="margin:0;flex:1;">Адреса хранения</h2><button class="btn secondary" id="addrAdd" style="width:auto;padding:8px 14px;">＋ Адрес</button></div>
+        <div class="toolbar"><h2 style="margin:0;flex:1;">Адреса хранения</h2><button class="btn secondary" data-cap="edit" id="addrAdd" style="width:auto;padding:8px 14px;">＋ Адрес</button></div>
         <div class="msg" id="wmsMsg"></div>
         <div id="addrList" class="mt"><span class="note">—</span></div>
       </div>
 
       <div class="card">
-        <div class="toolbar"><h2 style="margin:0;flex:1;">Остатки по адресам</h2><button class="btn" id="placeBtn" style="width:auto;padding:8px 14px;">＋ Разместить</button></div>
+        <div class="toolbar"><h2 style="margin:0;flex:1;">Остатки по адресам</h2><button class="btn" data-cap="edit" id="placeBtn" style="width:auto;padding:8px 14px;">＋ Разместить</button></div>
         <div class="form-grid">
           <div class="field"><label>Материал</label><select id="stMat"><option value="">— все —</option></select></div>
           <div class="field"><label>Адрес</label><select id="stAddr"><option value="">— все —</option></select></div>
@@ -118,9 +124,10 @@
   <script src="../../assets/js/router.js?v=1"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=78"></script>
-  <script src="../../assets/js/shell.js?v=39"></script>
-  <script src="warehouse.js?v=3"></script>
+  <script src="../../assets/js/nav.js?v=79"></script>
+  <script src="../../assets/js/shell.js?v=40"></script>
+  <script src="../../assets/js/export.js?v=1"></script>
+  <script src="warehouse.js?v=4"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>

@@ -16,6 +16,12 @@
   function rpc(n, a) { return SB.rpc(n, a).then(function (r) { if (r.error) throw new Error(r.error.message); return r.data; }); }
   var screens = AppRouter.create({ onShow: function () { window.scrollTo(0, 0); }, onBackEmpty: function () { location.href = '../../index.html'; } });
 
+  /* ---------- Роли (data-cap) ---------- */
+  var ALL = { edit: 1, reports: 1 };
+  var CAPS = { admin: ALL, owner: ALL, director: ALL, manager: ALL, supply: ALL, chief: { edit: 1, reports: 1 }, master: { edit: 1 }, default: { reports: 1 } };
+  function can(c) { return !!(me && (CAPS[me.role] || CAPS['default'])[c]); }
+  function applyCaps() { $$('[data-cap]').forEach(function (el) { var n = (el.dataset.cap || '').split('|'); if (!n.some(can)) el.style.display = 'none'; }); }
+
   function load() {
     return Promise.all([
       rpc('app_material_list', { p_token: token }),
@@ -213,6 +219,27 @@
   $('#toForm').addEventListener('click', function () { editId = null; $('#formTitle').textContent = 'Новый материал'; ['#mName', '#mCode', '#mUnit', '#mPrice', '#mMin'].forEach(function (s) { $(s).value = ''; }); clearMsg('#fMsg'); screens.go('s-form'); });
   $('#back1').addEventListener('click', function () { screens.go('s-list'); });
   $('#back2').addEventListener('click', function () { load(); screens.go('s-list'); });
+  /* ---------- Отчёт (склад) ---------- */
+  function warehouseReportPdf() {
+    if (!window.AppExport) { ui.toast('Экспорт недоступен'); return; }
+    var val = mats.reduce(function (s, m) { return s + num(m.stock_value); }, 0);
+    var cols = [
+      { key: 'name', label: 'Материал' }, { key: 'unit', label: 'Ед.' },
+      { key: 'qty', label: 'Остаток', num: true, value: function (m) { return num(m.qty); } },
+      { key: 'min_qty', label: 'Минимум', num: true, value: function (m) { return num(m.min_qty); } },
+      { key: 'price', label: 'Цена', num: true, value: function (m) { return money(m.price); } },
+      { key: 'stock_value', label: 'Стоимость', num: true, value: function (m) { return money(m.stock_value); } },
+      { key: 'low', label: 'Статус', value: function (m) { return num(m.qty) < num(m.min_qty) ? 'нехватка' : 'норма'; } }
+    ];
+    AppExport.exportPdf('Склад — отчёт', AppExport.reportDocument({
+      brand: '3DMP Service', title: 'Отчёт по складу (ТМЦ)', subtitle: new Date().toLocaleDateString('ru-RU'),
+      kpis: [{ label: 'Позиций', value: mats.length }, { label: 'Ниже минимума', value: low.length }, { label: 'Стоимость запаса', value: money(val) }],
+      sections: [{ title: 'Остатки', columns: cols, rows: mats }],
+      sign: ['Кладовщик', 'Руководитель'], footer: '3DMP Service · склад'
+    }));
+  }
+  $('#repBtn').addEventListener('click', warehouseReportPdf);
+
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
   $('#filters').addEventListener('click', function (e) {
     var c = e.target.closest('.chip'); if (!c) return;
@@ -250,7 +277,7 @@
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
-    me = s; token = s.token;
+    me = s; token = s.token; applyCaps();
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#listMsg', 'Supabase не подключён.', 'err'); return; }
     load();
