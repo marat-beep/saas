@@ -26,6 +26,12 @@
   <main class="wrap fluid">
     <div class="hero"><h1>Инструмент и стойкость</h1><p>Учёт режущего инструмента: ресурс и наработка, заточки, износ; связь с оборудованием. Прототипы B13/B19.</p></div>
     <div class="kpi-row" id="kpis"></div>
+    <div class="sv-actions" style="margin-top:10px;">
+      <button class="btn secondary" data-cap="reports" id="repBtn">📄 Отчёт PDF</button>
+      <a class="btn secondary" href="../production/index.html">🏭 Производство ↗</a>
+      <a class="btn secondary" href="../warehouse/index.html">📦 Склад ↗</a>
+      <a class="btn secondary" href="../maintenance/index.html">🧰 ТОиР ↗</a>
+    </div>
 
     <div class="card mt">
       <h2>Новый инструмент</h2>
@@ -46,7 +52,7 @@
         <div class="field"><label>Число заточек</label><input type="text" id="gWears" inputmode="numeric" placeholder="3"><span class="hint">Сколько переточек выдерживает.</span></div>
       </div>
       <div class="field"><label>Расположение</label><input type="text" id="gLoc" placeholder="инструментальная"></div>
-      <button class="btn" id="gAdd">Добавить инструмент</button>
+      <button class="btn" data-cap="edit" id="gAdd">Добавить инструмент</button>
     </div>
 
     <div class="card">
@@ -65,9 +71,10 @@
   <script src="../../assets/js/auth.js?v=6"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=81"></script>
-  <script src="../../assets/js/shell.js?v=42"></script>
-  <script src="tooling.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=82"></script>
+  <script src="../../assets/js/shell.js?v=43"></script>
+  <script src="../../assets/js/export.js?v=1"></script>
+  <script src="tooling.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>

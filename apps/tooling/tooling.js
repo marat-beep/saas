@@ -8,6 +8,31 @@
   var token = null, me = null, tools = [], eq = [], q = '';
 
   var STAT = { ok: 'в работе', worn: 'изношен', scrapped: 'списан' };
+
+  /* ---------- Роли (data-cap) ---------- */
+  var ALL = { edit: 1, reports: 1 };
+  var CAPS = { admin: ALL, owner: ALL, director: ALL, manager: ALL, chief: ALL, master: { edit: 1 }, technologist: { edit: 1 }, operator: { edit: 1 }, default: { reports: 1 } };
+  function can(c) { return !!(me && (CAPS[me.role] || CAPS['default'])[c]); }
+  function applyCaps() { $$('[data-cap]').forEach(function (el) { var n = (el.dataset.cap || '').split('|'); if (!n.some(can)) el.style.display = 'none'; }); }
+
+  /* ---------- Отчёт (инструмент) ---------- */
+  function reportPdf() {
+    if (!window.AppExport) { ui.toast('Экспорт недоступен'); return; }
+    var cols = [
+      { key: 'name', label: 'Инструмент' }, { key: 'code', label: 'Код' }, { key: 'tool_type', label: 'Тип' },
+      { key: 'diameter', label: 'Ø', num: true }, { key: 'equipment', label: 'Станок' },
+      { key: 'status', label: 'Статус', value: function (t) { return STAT[t.status] || t.status; } },
+      { key: 'used_min', label: 'Наработка, мин', num: true }, { key: 'resource_min', label: 'Ресурс, мин', num: true },
+      { key: 'life_pct', label: 'Износ, %', num: true }, { key: 'wears', label: 'Заточек (факт/макс)', num: true, value: function (t) { return num(t.wears) + '/' + num(t.max_wears); } }
+    ];
+    AppExport.exportPdf('Инструмент — отчёт', AppExport.reportDocument({
+      brand: '3DMP Service', title: 'Отчёт по инструменту и стойкости', subtitle: new Date().toLocaleDateString('ru-RU'),
+      kpis: [{ label: 'Инструмента', value: tools.length }],
+      sections: [{ title: 'Инструмент', columns: cols, rows: tools }],
+      sign: ['Инженер-технолог', 'Начальник цеха'], footer: '3DMP Service · инструмент'
+    }));
+  }
+  $('#repBtn').addEventListener('click', reportPdf);
   function esc(v) { return ui.esc(v); }
   function num(v) { return Number(v) || 0; }
   function msg(id, t, k) { var e = $(id); e.className = 'msg show ' + (k || 'info'); e.textContent = t; }
@@ -83,7 +108,7 @@
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
-    me = s; token = s.token;
+    me = s; token = s.token; applyCaps();
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#tMsg', 'Supabase не подключён.', 'err'); return; }
     load();
