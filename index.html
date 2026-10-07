@@ -16,7 +16,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#2563eb">
 <link rel="icon" href="assets/icons/app.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/app.css?v=22">
+<link rel="stylesheet" href="assets/css/app.css?v=23">
 <style>
   .grp { margin-bottom: 18px; }
   .grp-t { font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 10px; }
@@ -52,7 +52,8 @@
 
     <div class="kpi-row" id="hubStats" style="margin-bottom:16px;"></div>
 
-    <div class="ugrid" id="hubTools" style="margin-bottom:16px;"></div>
+    <div class="card" id="hubQuick" style="margin-bottom:16px;"></div>
+    <div class="card" id="hubTools" style="margin-bottom:16px;"></div>
     <script>if ('serviceWorker' in navigator && location.protocol === 'https:') { navigator.serviceWorker.register('sw.js', { scope: './' }).catch(function () {}); }</script>
 
     <section class="card">
@@ -143,15 +144,58 @@
           '<div class="ulist uextra" id="ux-' + gid + '">' + extra.map(function (a) { return urow(a, logged); }).join('') + '</div>';
         return h;
       }
+      function chip(a, logged, editing) {
+        var needAuth = !a.guest && !logged;
+        var href = needAuth ? 'apps/auth/index.html' : a.href;
+        return '<a href="' + href + '">' + a.icon + ' ' + ui.esc(a.title) +
+          (editing ? '<span class="qx" data-del="' + a.id + '" title="Убрать">✕</span>' : '') + '</a>';
+      }
+
       var TOOLS = ['norms', 'calc', 'docbuilder', 'bom', 'forecast', 'labels', 'assistant', 'reports'];
       function renderTools(user, list) {
         var el = document.getElementById('hubTools'); if (!el) return;
         var byId = {}; list.forEach(function (a) { byId[a.id] = a; });
         var tools = TOOLS.map(function (id) { return byId[id]; }).filter(Boolean);
         if (!tools.length) { el.innerHTML = ''; return; }
-        el.innerHTML = '<div class="ucard"><h3>🧰 Быстрые инструменты</h3>' +
-          '<div class="udesc">Простые калькуляторы и генераторы — в один клик.</div>' +
-          '<div class="ulist">' + tools.map(function (a) { return urow(a, !!user); }).join('') + '</div></div>';
+        el.innerHTML = '<h2>🧰 Быстрые инструменты</h2>' +
+          '<p class="note">Простые калькуляторы и генераторы — в один клик. Ссылки ведут в функциональные модули.</p>' +
+          '<div class="qa">' + tools.map(function (a) { return chip(a, !!user); }).join('') + '</div>';
+      }
+
+      function renderQuick(user, list) {
+        var el = document.getElementById('hubQuick'); if (!el) return;
+        var key = '3dmp:quick:' + ((user && user.login) || 'guest');
+        var byId = {}; list.forEach(function (a) { byId[a.id] = a; });
+        var def = ['orders', 'docbuilder', 'bom', 'forecast', 'mes', 'finance'];
+        var ids = [];
+        try { ids = JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) {}
+        if (!ids.length) ids = def.filter(function (id) { return byId[id]; });
+        ids = ids.filter(function (id) { return byId[id]; });
+        var editing = false;
+
+        function save() { try { localStorage.setItem(key, JSON.stringify(ids)); } catch (e) {} }
+        function render() {
+          var chips = ids.map(function (id) { return chip(byId[id], !!user, editing); }).join('');
+          var rest = list.filter(function (a) { return ids.indexOf(a.id) < 0; })
+            .map(function (a) { return '<option value="' + a.id + '">' + ui.esc(a.title) + '</option>'; }).join('');
+          el.innerHTML = '<h2 style="display:flex;align-items:center;gap:10px;">⭐ Мои быстрые кнопки' +
+            '<button class="tbtn" id="qEdit" type="button" style="margin-left:auto">' + (editing ? 'Готово' : 'Изменить') + '</button></h2>' +
+            '<p class="note">Ваши закреплённые модули и сервисы — под рукой. Добавляйте и убирайте сами.</p>' +
+            '<div class="qa">' + (chips || '<span class="note">Пока пусто — нажмите «Изменить».</span>') + '</div>' +
+            (editing ? '<div class="qa-add"><select id="qAddSel"><option value="">— добавить модуль —</option>' + rest + '</select>' +
+              '<button class="btn secondary" id="qAdd" type="button" style="width:auto;padding:8px 14px;">＋ Добавить</button></div>' : '');
+          var e = document.getElementById('qEdit');
+          if (e) e.addEventListener('click', function () { editing = !editing; render(); });
+          ui.qsa('#hubQuick [data-del]').forEach(function (x) {
+            x.addEventListener('click', function (ev) {
+              ev.preventDefault(); ev.stopPropagation();
+              ids = ids.filter(function (i) { return i !== x.getAttribute('data-del'); }); save(); render();
+            });
+          });
+          var add = document.getElementById('qAdd');
+          if (add) add.addEventListener('click', function () { var s = document.getElementById('qAddSel'); if (s && s.value) { ids.push(s.value); save(); render(); } });
+        }
+        render();
       }
 
       function renderApps(user) {
@@ -223,6 +267,7 @@
           if (!a.roles) return true;
           return a.roles.indexOf(currentUser.role) >= 0;
         });
+        renderQuick(currentUser, vis);
         renderTools(currentUser, vis);
         renderApps(currentUser);
       }

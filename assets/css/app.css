@@ -406,6 +406,13 @@ table.mini{width:100%;border-collapse:collapse}
 .qa{display:flex;gap:10px;flex-wrap:wrap}
 .qa a{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:999px;padding:9px 16px;text-decoration:none;color:var(--text);font-weight:600;font-size:.85rem;background:#fff}
 .qa a:hover{border-color:var(--accent);background:var(--accent-100)}
+.qa a .qx{margin-left:8px;color:var(--danger);font-weight:700}
+.qa-add{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.qa-add select{flex:1;min-width:200px;padding:9px;border:1px solid var(--border);border-radius:9px;font:inherit}
+#hubQuick .qa a,#hubTools .qa a{white-space:nowrap}
+
+/* Чипы-инструменты и быстрые кнопки растягиваются по ширине */
+.qa{display:flex;flex-wrap:wrap;gap:10px}
 /* Унификация: сетки и таблицы применяются во ВСЕХ модулях (замена локальных .gridN/table.mini) */
 .grid2,.grid3,.grid4{display:grid;gap:var(--space-3)}
 .grid2{grid-template-columns:repeat(2,1fr)}
