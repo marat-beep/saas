@@ -36,8 +36,11 @@ $r1 = Row $s1; $r2 = Row $s2
 
 Write-Host ("app_smoke_test:     {0}/{1}" -f $r1.ok, $r1.total)
 Write-Host ("app_smoke_test_ext: {0}/{1}" -f $r2.ok, $r2.total)
-if ([int]$r1.ok -eq [int]$r1.total -and [int]$r2.ok -eq [int]$r2.total) {
-  Write-Host 'Смоук пройден ✅' -ForegroundColor Green; exit 0
-} else {
-  Write-Host 'Смоук не пройден ❌' -ForegroundColor Red; exit 1
-}
+
+# Проверка кодировки: в ответах БЗ и описаниях тарифов не должно быть символа '?' (признак потери текста)
+$enc = Row (Sql "select (select count(*) from public.app_knowledge where answer like '%?%') as answers_q, (select count(*) from public.app_plans where description like '%?%') as plans_q")
+Write-Host ("Кодировка ('?' в текстах): ответы БЗ={0}, тарифы={1}" -f $enc.answers_q, $enc.plans_q)
+
+$ok = ([int]$r1.ok -eq [int]$r1.total -and [int]$r2.ok -eq [int]$r2.total -and [int]$enc.answers_q -eq 0 -and [int]$enc.plans_q -eq 0)
+if ($ok) { Write-Host 'Смоук пройден ✅' -ForegroundColor Green; exit 0 }
+else { Write-Host 'Смоук не пройден ❌' -ForegroundColor Red; exit 1 }

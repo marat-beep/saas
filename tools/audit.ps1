@@ -65,6 +65,20 @@ $cv2 = (Get-Content 'assets/js/shell.js' -Encoding UTF8 | Select-String "CATALOG
 Write-Host "  CATALOG_V: nav=$cv shell=$cv2"
 if ($cv -ne $cv2) { $fail++; Write-Host "!! CATALOG_V в nav.js и shell.js различаются" -ForegroundColor Red }
 
+# --- 3b. Дубли id (#who/#logout/#tabs) и единая версия notify.js ---
+$dupPages = @()
+foreach ($p in $pages) {
+  $t = [System.IO.File]::ReadAllText($p.FullName, [System.Text.Encoding]::UTF8)
+  $w = ([regex]::Matches($t, 'id="who"')).Count
+  $l = ([regex]::Matches($t, 'id="logout"')).Count
+  $tb = ([regex]::Matches($t, 'id="tabs"')).Count
+  if ($w -gt 1 -or $l -gt 1 -or $tb -gt 1) { $dupPages += ($p.FullName.Substring($root.Length + 1) + " who=$w logout=$l tabs=$tb") }
+}
+if ($dupPages.Count) { $fail++; Write-Host ("!! Дубли id на страницах: " + ($dupPages -join '; ')) -ForegroundColor Red } else { Write-Host "  Дублей id (#who/#logout/#tabs) нет" -ForegroundColor Green }
+$notifyV = Versions 'notify\.js\?v=(\d+)'
+Write-Host "  notify.js версии: $($notifyV -join ',')"
+if ($notifyV.Count -gt 1) { $fail++; Write-Host "!! Разные версии notify.js" -ForegroundColor Red }
+
 # --- 4. Синтаксис JS ---
 if ($node) {
   $jsFiles = @(Get-ChildItem -Path 'assets/js' -Filter '*.js') + @(Get-ChildItem -Path 'apps' -Filter '*.js' -Recurse)
