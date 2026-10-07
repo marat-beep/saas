@@ -30,7 +30,8 @@
             <span class="chip active" data-f="">Все</span><span class="chip" data-f="draft">Черновики</span>
             <span class="chip" data-f="passed">Годен</span><span class="chip" data-f="failed">Брак</span>
           </div>
-          <button class="btn" id="toNew" style="width:auto;padding:11px 18px;">＋ Новый чек-лист</button>
+          <button class="btn secondary" data-cap="reports" id="repBtn" style="width:auto;padding:11px 16px;">📄 Отчёт PDF</button>
+          <button class="btn" data-cap="edit" id="toNew" style="width:auto;padding:11px 18px;">＋ Новый чек-лист</button>
         </div>
         <div id="listMsg"></div>
         <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
@@ -54,7 +55,7 @@
         <div class="form-grid">
           <div class="field"><label>Параметр</label><input type="text" id="spcNewParam" placeholder="Диаметр Ø12H7"></div>
           <div class="field"><label>Значение</label><input type="text" id="spcNewValue" inputmode="decimal" placeholder="12.010"></div>
-          <div class="field" style="display:flex;align-items:flex-end;"><button class="btn secondary" id="spcAdd">Добавить</button></div>
+          <div class="field" style="display:flex;align-items:flex-end;"><button class="btn secondary" data-cap="edit" id="spcAdd">Добавить</button></div>
         </div>
         <div class="msg" id="spcMsg"></div>
       </div>
@@ -74,7 +75,7 @@
           <div class="field"><label>Кол-во всего</label><input type="text" id="cQtyTotal" inputmode="decimal" placeholder="10"><span class="hint">Сколько предъявлено к контролю.</span></div>
           <div class="field"><label>Годных</label><input type="text" id="cQtyGood" inputmode="decimal" placeholder="10"><span class="hint">Прошло контроль (разница — брак).</span></div>
         </div>
-        <button class="btn" id="createBtn" title="Создать чек-лист контроля">Создать чек-лист</button>
+        <button class="btn" data-cap="edit" id="createBtn" title="Создать чек-лист контроля">Создать чек-лист</button>
       </div>
     </section>
 
@@ -92,11 +93,11 @@
           <input type="text" id="lValue" placeholder="12.01">
           <select id="lResult"><option value="ok">Годен</option><option value="no">Брак</option></select>
         </div>
-        <button class="btn secondary mt" id="addLine">＋ Добавить позицию</button>
+        <button class="btn secondary mt" data-cap="edit" id="addLine">＋ Добавить позицию</button>
         <div class="msg" id="iMsg"></div>
         <div class="toolbar mt">
-          <button class="btn" id="passBtn">Принять (годен)</button>
-          <button class="btn secondary" id="failBtn">Зафиксировать брак</button>
+          <button class="btn" data-cap="edit" id="passBtn">Принять (годен)</button>
+          <button class="btn secondary" data-cap="edit" id="failBtn">Зафиксировать брак</button>
         </div>
       </div>
       <div class="card">
@@ -108,7 +109,7 @@
         <div class="field"><label>Критичность</label>
           <select id="dSev"><option value="minor">Незначительный</option><option value="major">Значительный</option><option value="critical">Критический</option></select>
         </div>
-        <button class="btn secondary" id="addDefect">Зарегистрировать дефект</button>
+        <button class="btn secondary" data-cap="edit" id="addDefect">Зарегистрировать дефект</button>
       </div>
       <div class="card">
         <h2>Трассируемость изделия</h2>
@@ -128,10 +129,12 @@
   <script src="../../assets/js/router.js?v=1"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=73"></script>
+  <script src="../../assets/js/nav.js?v=74"></script>
+  <script src="../../assets/js/shell.js?v=35"></script>
   <script src="../../assets/js/files.js?v=1"></script>
   <script src="../../assets/js/offline-queue.js?v=1"></script>
-  <script src="qc.js?v=5"></script>
+  <script src="../../assets/js/export.js?v=1"></script>
+  <script src="qc.js?v=6"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>

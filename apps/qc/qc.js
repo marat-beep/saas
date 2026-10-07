@@ -17,6 +17,39 @@
   function rpc(n, a) { return SB.rpc(n, a).then(function (r) { if (r.error) throw new Error(r.error.message); return r.data; }); }
   var screens = AppRouter.create({ onShow: function () { window.scrollTo(0, 0); }, onBackEmpty: function () { location.href = '../../index.html'; } });
 
+  /* ---------- Роли (data-cap) ---------- */
+  var ALL = { edit: 1, reports: 1 };
+  var CAPS = { admin: ALL, owner: ALL, director: ALL, manager: ALL, chief: { edit: 1, reports: 1 }, master: { edit: 1 }, technologist: { edit: 1 }, qc: { edit: 1, reports: 1 }, default: {} };
+  function can(c) { return !!(me && (CAPS[me.role] || CAPS['default'])[c]); }
+  function applyCaps() { $$('[data-cap]').forEach(function (el) { var n = (el.dataset.cap || '').split('|'); if (!n.some(can)) el.style.display = 'none'; }); }
+
+  /* ---------- Отчёт ОТК ---------- */
+  function qcReportPdf() {
+    if (!window.AppExport) { ui.toast('Экспорт недоступен'); return; }
+    ui.formDialog({ title: 'Отчёт ОТК', okText: 'Сформировать PDF', fields: [
+      { name: 'from', label: 'С даты', type: 'date', value: new Date(Date.now() - 90 * 864e5).toISOString().slice(0, 10) },
+      { name: 'to', label: 'По дату', type: 'date', value: new Date().toISOString().slice(0, 10) }
+    ] }).then(function (v) { if (!v) return;
+      rpc('app_qc_report', { p_token: token, p_from: v.from || null, p_to: v.to || null }).then(function (rows) {
+        rows = rows || [];
+        var okc = rows.filter(function (r) { return r.status === 'passed'; }).length;
+        var bad = rows.filter(function (r) { return r.status === 'failed'; }).length;
+        AppExport.exportPdf('ОТК — отчёт', AppExport.reportDocument({
+          brand: '3DMP Service', title: 'Отчёт по контролю качества (ОТК)', subtitle: (v.from || '—') + ' — ' + (v.to || '—'),
+          meta: [{ k: 'Сформирован', v: new Date().toLocaleString('ru-RU') }],
+          kpis: [{ label: 'Проверок', value: rows.length }, { label: 'Годен', value: okc }, { label: 'Брак', value: bad }],
+          sections: [{ title: 'Проверки', columns: [
+            { key: 'number', label: '№' }, { key: 'created_at', label: 'Дата', value: function (r) { return String(r.created_at || '').slice(0, 10); } },
+            { key: 'product', label: 'Изделие' }, { key: 'status', label: 'Результат', value: function (r) { return ({ passed: 'годен', failed: 'брак', draft: 'черновик' }[r.status] || r.status); } },
+            { key: 'inspector', label: 'Контролёр' }, { key: 'defects', label: 'Дефектов', num: true }
+          ], rows: rows }],
+          sign: ['Начальник ОТК', 'Главный инженер'], footer: '3DMP Service · ОТК'
+        }));
+      }).catch(function (e) { ui.toast('Ошибка: ' + e.message); });
+    });
+  }
+  $('#repBtn').addEventListener('click', qcReportPdf);
+
   function load() {
     return Promise.all([
       rpc('app_qc_list', { p_token: token }),
@@ -247,7 +280,7 @@
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
-    me = s; token = s.token;
+    me = s; token = s.token; applyCaps();
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#listMsg', 'Supabase не подключён.', 'err'); return; }
     load();

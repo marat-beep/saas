@@ -30,7 +30,7 @@
             <span class="chip" data-f="in_work">В работе</span><span class="chip" data-f="capa">CAPA</span>
             <span class="chip" data-f="closed">Закрытые</span>
           </div>
-          <button class="btn" id="toNew" style="width:auto;padding:11px 18px;">＋ Новая претензия</button>
+          <button class="btn secondary" data-cap="reports" id="repBtn" style="width:auto;padding:11px 16px;">📄 Отчёт PDF</button><button class="btn" data-cap="edit" id="toNew" style="width:auto;padding:11px 18px;">＋ Новая претензия</button>
         </div>
         <div class="msg" id="listMsg"></div>
         <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
@@ -55,7 +55,7 @@
         </div>
         <div class="field"><label>Описание</label><textarea id="nDescription" rows="3" placeholder="Детали (при обнаружении/приёмке)."></textarea></div>
         <div class="field"><label>Ответственный (логин)</label><input type="text" id="nAssignee" placeholder="otk"></div>
-        <button class="btn" id="createBtn">Зарегистрировать</button>
+        <button class="btn" data-cap="edit" id="createBtn">Зарегистрировать</button>
       </div>
     </section>
 
@@ -70,14 +70,14 @@
             <option value="in_work">В работе</option><option value="capa">CAPA</option>
             <option value="closed">Закрыта</option><option value="rejected">Отклонена</option>
           </select>
-          <button class="btn secondary" id="stBtn">Сменить статус</button>
-          <button class="btn secondary" id="escBtn">⚡ Эскалировать в проблему</button>
+          <button class="btn secondary" data-cap="edit" id="stBtn">Сменить статус</button>
+          <button class="btn secondary" data-cap="edit" id="escBtn">⚡ Эскалировать в проблему</button>
         </div>
         <div class="field"><label>Решение/комментарий</label><input type="text" id="stNote" placeholder="Кратко"></div>
         <div class="msg" id="iMsg"></div>
       </div>
       <div class="card">
-        <div class="toolbar"><h2 style="margin:0;flex:1;">CAPA-мероприятия</h2><button class="btn secondary" id="capaAdd" style="width:auto;padding:8px 14px;">＋ Мероприятие</button></div>
+        <div class="toolbar"><h2 style="margin:0;flex:1;">CAPA-мероприятия</h2><button class="btn secondary" data-cap="edit" id="capaAdd" style="width:auto;padding:8px 14px;">＋ Мероприятие</button></div>
         <div id="capaList" class="mt"><span class="note">—</span></div>
       </div>
     </section>
@@ -93,9 +93,10 @@
   <script src="../../assets/js/router.js?v=1"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=73"></script>
-  <script src="../../assets/js/shell.js?v=34"></script>
-  <script src="claims.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=74"></script>
+  <script src="../../assets/js/shell.js?v=35"></script>
+  <script src="../../assets/js/export.js?v=1"></script>
+  <script src="claims.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>

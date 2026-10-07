@@ -22,6 +22,39 @@
   function sevBadge(s) { return '<span class="badge ' + (s === 'critical' ? 'cancelled' : s === 'major' ? 'in_progress' : '') + '">' + (SEV[s] || s) + '</span>'; }
   var screens = AppRouter.create({ onShow: function () { window.scrollTo(0, 0); }, onBackEmpty: function () { location.href = '../../index.html'; } });
 
+  /* ---------- Роли (data-cap) ---------- */
+  var ALL = { edit: 1, reports: 1 };
+  var CAPS = { admin: ALL, owner: ALL, director: ALL, manager: ALL, chief: { edit: 1, reports: 1 }, qc: { edit: 1, reports: 1 }, technologist: { edit: 1 }, default: { reports: 1 } };
+  function can(c) { return !!(me && (CAPS[me.role] || CAPS['default'])[c]); }
+  function applyCaps() { $$('[data-cap]').forEach(function (el) { var n = (el.dataset.cap || '').split('|'); if (!n.some(can)) el.style.display = 'none'; }); }
+
+  /* ---------- Отчёт по претензиям ---------- */
+  function claimsReportPdf() {
+    if (!window.AppExport) { ui.toast('Экспорт недоступен'); return; }
+    ui.formDialog({ title: 'Отчёт по претензиям', okText: 'Сформировать PDF', fields: [
+      { name: 'from', label: 'С даты', type: 'date', value: new Date(Date.now() - 90 * 864e5).toISOString().slice(0, 10) },
+      { name: 'to', label: 'По дату', type: 'date', value: new Date().toISOString().slice(0, 10) }
+    ] }).then(function (v) { if (!v) return;
+      rpc('app_claims_report', { p_token: token, p_from: v.from || null, p_to: v.to || null }).then(function (rows) {
+        rows = rows || [];
+        var open = rows.filter(function (r) { return r.status !== 'closed' && r.status !== 'rejected'; }).length;
+        AppExport.exportPdf('Претензии — отчёт', AppExport.reportDocument({
+          brand: '3DMP Service', title: 'Отчёт по претензиям и CAPA', subtitle: (v.from || '—') + ' — ' + (v.to || '—'),
+          meta: [{ k: 'Сформирован', v: new Date().toLocaleString('ru-RU') }],
+          kpis: [{ label: 'Претензий', value: rows.length }, { label: 'Открытых', value: open }],
+          sections: [{ title: 'Претензии', columns: [
+            { key: 'number', label: '№' }, { key: 'created_at', label: 'Дата', value: function (r) { return String(r.created_at || '').slice(0, 10); } },
+            { key: 'customer', label: 'Заказчик' }, { key: 'product', label: 'Изделие' }, { key: 'reason', label: 'Причина' },
+            { key: 'severity', label: 'Критичность' }, { key: 'status', label: 'Статус' },
+            { key: 'capa_done', label: 'CAPA (вып./всего)', num: true, value: function (r) { return r.capa_done + '/' + r.capa_total; } }
+          ], rows: rows }],
+          sign: ['Начальник ОТК', 'Директор по качеству'], footer: '3DMP Service · претензии'
+        }));
+      }).catch(function (e) { ui.toast('Ошибка: ' + e.message); });
+    });
+  }
+  $('#repBtn').addEventListener('click', claimsReportPdf);
+
   function load() {
     return rpc('app_claim_list', { p_token: token }).then(function (r) {
       claims = r || [];
@@ -170,7 +203,7 @@
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
-    me = s; token = s.token;
+    me = s; token = s.token; applyCaps();
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#listMsg', 'Supabase не подключён.', 'err'); return; }
     load();
