@@ -18,7 +18,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>CRM сотрудников (B12)</h1><p>Кадровые карточки, статусы, рейтинг и история взаимодействий.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -29,10 +29,10 @@
         <div class="field"><label>ФИО *</label><input type="text" id="fName"></div>
         <div class="field"><label>Должность</label><input type="text" id="fPos"></div>
         <div class="field"><label>Подразделение</label><input type="text" id="fDept"></div>
-        <div class="field"><label>Руководитель</label><input type="text" id="fMgr"></div>
+        <div class="field"><label>Руководитель</label><input type="text" id="fMgr"><span class="hint">ФИО/логин руководителя — для иерархии.</span></div>
         <div class="field"><label>Статус</label><select id="fStatus"><option value="active">Работает</option><option value="leave">Отпуск</option><option value="fired">Уволен</option></select></div>
         <div class="field"><label>Дата приёма</label><input type="date" id="fHired"></div>
-        <div class="field"><label>Рейтинг (0–5)</label><input type="number" step="0.1" id="fRating" value="0"></div>
+        <div class="field"><label>Рейтинг (0–5)</label><input type="number" step="0.1" id="fRating" value="0"><span class="hint">Оценка эффективности сотрудника.</span></div>
         <div class="field" style="display:flex;align-items:flex-end;gap:8px;"><button class="btn" id="fSave">Сохранить</button><button class="btn secondary" id="fClear">Очистить</button></div>
       </div>
     </div>

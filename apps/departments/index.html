@@ -22,7 +22,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Подразделения и иерархия (P13)</h1><p>Дерево структуры организации, руководители, сотрудники. Основа для разграничения доступа.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -30,7 +30,7 @@
       <h2>Новое/редактируемое подразделение</h2>
       <div class="msg" id="fMsg"></div>
       <div class="grid3">
-        <div class="field"><label>Родитель</label><select id="fParent"><option value="">— корневое —</option></select></div>
+        <div class="field"><label>Родитель</label><select id="fParent"><option value="">— корневое —</option></select><span class="hint">Вышестоящее подразделение — для дерева структуры.</span></div>
         <div class="field"><label>Название *</label><input type="text" id="fName"></div>
         <div class="field"><label>Код</label><input type="text" id="fCode" placeholder="PROD"></div>
         <div class="field"><label>Руководитель</label><input type="text" id="fHead"></div>

@@ -28,7 +28,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Админ-панель клиента</h1><p>Сотрудники и роли организации, доступные модули, тариф и брендирование.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -45,7 +45,7 @@
         <div class="msg" id="bMsg"></div>
         <div class="grid2c">
           <div class="field"><label>Название</label><input type="text" id="brName" placeholder="ООО «Мой завод»"></div>
-          <div class="field"><label>Акцентный цвет</label><input type="text" id="brColor" placeholder="#2563eb"></div>
+          <div class="field"><label>Акцентный цвет</label><input type="text" id="brColor" placeholder="#2563eb"><span class="hint">HEX-цвет бренда (кнопки/акценты).</span></div>
         </div>
         <div class="field"><label>Ссылка на логотип</label><input type="text" id="brLogo" placeholder="https://…"></div>
         <button class="btn" id="brSave">Сохранить бренд</button>
@@ -66,7 +66,7 @@
         <div class="msg" id="cMsg"></div>
         <div class="grid2c">
           <div class="field"><label>Логин</label><input type="text" id="uLogin" placeholder="ivanov"></div>
-          <div class="field"><label>Пароль</label><input type="text" id="uPass" placeholder="мин. 4 символа"></div>
+          <div class="field"><label>Пароль</label><input type="text" id="uPass" placeholder="мин. 4 символа"><span class="hint">Минимум 4 символа; логин/пароль = доступ в сервис.</span></div>
         </div>
         <div class="grid2c">
           <div class="field"><label>Имя</label><input type="text" id="uName" placeholder="Иванов И.И."></div>

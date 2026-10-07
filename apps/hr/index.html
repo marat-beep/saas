@@ -29,7 +29,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Кадры</h1><p>Сотрудники и их связь с пользователями (роли), смены/табель, обучение.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -44,18 +44,18 @@
         <h2>Новый сотрудник</h2>
         <div class="msg" id="eMsg"></div>
         <div class="grid2c">
-          <div class="field"><label>ФИО *</label><input type="text" id="eName" placeholder="Иванов И.И."></div>
+          <div class="field"><label>ФИО *</label><input type="text" id="eName" placeholder="Иванов И.И."><span class="hint">Полное имя сотрудника.</span></div>
           <div class="field"><label>Должность</label><input type="text" id="eJob" placeholder="Оператор ЧПУ"></div>
         </div>
         <div class="grid2c">
-          <div class="field"><label>Отдел/цех</label><input type="text" id="eDept" placeholder="Механообработка"></div>
+          <div class="field"><label>Отдел/цех</label><input type="text" id="eDept" placeholder="Механообработка"><span class="hint">Подразделение — влияет на оргструктуру и гейтинг.</span></div>
           <div class="field"><label>Телефон</label><input type="text" id="ePhone" placeholder="+7…"></div>
         </div>
         <div class="grid2c">
           <div class="field"><label>E-mail</label><input type="text" id="eEmail" placeholder="name@…"></div>
           <div class="field"><label>Дата приёма</label><input type="date" id="eHired"></div>
         </div>
-        <div class="field"><label>Логин пользователя системы (роль подтянется)</label><input type="text" id="eLogin" placeholder="master / operator / otk…"></div>
+        <div class="field"><label>Логин пользователя системы (роль подтянется)</label><input type="text" id="eLogin" placeholder="master / operator / otk…"><span class="hint">Связь сотрудника с учётной записью — роль и доступ подтянутся из системы.</span></div>
         <button class="btn" id="eAdd">Добавить сотрудника</button>
       </div>
       <div class="card">
@@ -75,7 +75,7 @@
         </div>
         <div class="grid2">
           <div class="field"><label>Тип</label><select id="shKind"><option value="day">Дневная</option><option value="night">Ночная</option><option value="off">Выходной</option><option value="vacation">Отпуск</option><option value="sick">Больничный</option></select></div>
-          <div class="field"><label>Часы</label><input type="text" id="shHours" inputmode="decimal" placeholder="8"></div>
+          <div class="field"><label>Часы</label><input type="text" id="shHours" inputmode="decimal" placeholder="8"><span class="hint">Отработанные часы в смене (для табеля).</span></div>
         </div>
         <button class="btn" id="shAdd">Добавить смену</button>
       </div>

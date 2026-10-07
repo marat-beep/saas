@@ -14,7 +14,7 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap fluid">
     <div class="hero"><h1>Компетенции и обучение</h1><p>Навыки, матрица компетенций сотрудников и план обучения. Партия J.</p></div>
     <div class="kpi-row" id="kpis"></div>
 
@@ -23,7 +23,7 @@
       <div class="msg" id="skMsg"></div>
       <div class="form-grid">
         <div class="field"><label>Код *</label><input type="text" id="skCode" placeholder="turner"></div>
-        <div class="field"><label>Название *</label><input type="text" id="skName" placeholder="Токарная обработка"></div>
+        <div class="field"><label>Название *</label><input type="text" id="skName" placeholder="Токарная обработка"><span class="hint">Название навыка (в списке и матрице).</span></div>
         <div class="field"><label>Категория</label><input type="text" id="skCat" placeholder="Механообработка"></div>
         <div class="field"><label>Макс. уровень</label><input type="number" id="skMax" value="5" min="1" max="10"></div>
         <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="skSave">Добавить навык</button></div>
@@ -44,7 +44,7 @@
       <div class="form-grid">
         <div class="field"><label>Сотрудник *</label><select id="tpEmp"></select></div>
         <div class="field"><label>Навык</label><select id="tpSkill"></select></div>
-        <div class="field"><label>Целевой уровень</label><input type="number" id="tpLevel" value="3" min="1" max="10"></div>
+        <div class="field"><label>Целевой уровень</label><input type="number" id="tpLevel" value="3" min="1" max="10"><span class="hint">До какого уровня обучаем сотрудника.</span></div>
         <div class="field"><label>Срок</label><input type="date" id="tpDue"></div>
         <div class="field"><label>Статус</label><select id="tpStatus"><option value="planned">Запланировано</option><option value="in_progress">В работе</option><option value="done">Выполнено</option></select></div>
         <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="tpSave">Добавить в план</button></div>
