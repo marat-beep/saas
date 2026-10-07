@@ -18,6 +18,12 @@
     <section class="screen active" id="s-list">
       <div class="hero"><h1>Финансы</h1><p>Счета, частичные оплаты и дебиторская задолженность. Связь с заявкой, договором и заказчиком (CRM).</p></div>
       <div class="kpi-row" id="kpis"></div>
+    <div class="sv-actions" style="margin-top:10px;">
+      <button class="btn secondary" data-cap="reports" id="repBtn">📄 Отчёт PDF</button>
+      <a class="btn secondary" href="../orders/index.html">📥 Заказы ↗</a>
+      <a class="btn secondary" href="../docs/index.html">📄 Документы ↗</a>
+      <a class="btn secondary" href="../economics/index.html">💰 Экономика ↗</a>
+    </div>
       <div class="card mt">
         <div class="toolbar">
           <input type="search" class="search" id="q" placeholder="Поиск: номер счёта, заказчик, заявка…">
@@ -26,7 +32,7 @@
             <span class="chip" data-f="sent">Отправлены</span><span class="chip" data-f="paid">Оплачены</span>
             <span class="chip" data-f="overdue">Просрочены</span>
           </div>
-          <button class="btn" id="toNew" style="width:auto;padding:11px 18px;">＋ Новый счёт</button>
+          <button class="btn" data-cap="edit" id="toNew" style="width:auto;padding:11px 18px;">＋ Новый счёт</button>
         </div>
         <div id="listMsg"></div>
         <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
@@ -51,7 +57,7 @@
           <div class="field"><label>Исполнитель (логин)</label><input type="text" id="fAssignee" placeholder="economist"></div>
           <div class="field"><label>Примечание</label><input type="text" id="fNote" placeholder="условия оплаты"></div>
         </div>
-        <button class="btn" id="createBtn" title="Создать счёт">Создать счёт</button>
+        <button class="btn" data-cap="edit" id="createBtn" title="Создать счёт">Создать счёт</button>
       </div>
     </section>
 
@@ -66,10 +72,10 @@
           <div class="field"><label>Способ</label><select id="pMethod"><option value="bank">Безнал</option><option value="cash">Наличные</option><option value="card">Карта</option></select><span class="hint">Как поступила оплата.</span></div>
         </div>
         <div class="field"><label>Комментарий</label><input type="text" id="pNote" placeholder="№ платёжки"></div>
-        <button class="btn" id="payBtn">Добавить платёж</button>
+        <button class="btn" data-cap="edit" id="payBtn">Добавить платёж</button>
         <div class="toolbar mt">
-          <button class="btn secondary" id="sendBtn">Отметить «Отправлен»</button>
-          <button class="btn secondary" id="cancelBtn">Отменить счёт</button>
+          <button class="btn secondary" data-cap="edit" id="sendBtn">Отметить «Отправлен»</button>
+          <button class="btn secondary" data-cap="edit" id="cancelBtn">Отменить счёт</button>
         </div>
       </div>
       <div class="card">
@@ -89,9 +95,10 @@
   <script src="../../assets/js/router.js?v=1"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=80"></script>
-  <script src="../../assets/js/shell.js?v=41"></script>
-  <script src="finance.js?v=2"></script>
+  <script src="../../assets/js/nav.js?v=81"></script>
+  <script src="../../assets/js/shell.js?v=42"></script>
+  <script src="../../assets/js/export.js?v=1"></script>
+  <script src="finance.js?v=3"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>

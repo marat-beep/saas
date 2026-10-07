@@ -17,6 +17,34 @@
   function rpc(n, a) { return SB.rpc(n, a).then(function (r) { if (r.error) throw new Error(r.error.message); return r.data; }); }
   var screens = AppRouter.create({ onShow: function () { window.scrollTo(0, 0); }, onBackEmpty: function () { location.href = '../../index.html'; } });
 
+  /* ---------- Роли (data-cap) ---------- */
+  var ALL = { edit: 1, reports: 1 };
+  var CAPS = { admin: ALL, owner: ALL, director: ALL, manager: ALL, economist: ALL, chief: { reports: 1 }, default: { reports: 1 } };
+  function can(c) { return !!(me && (CAPS[me.role] || CAPS['default'])[c]); }
+  function applyCaps() { $$('[data-cap]').forEach(function (el) { var n = (el.dataset.cap || '').split('|'); if (!n.some(can)) el.style.display = 'none'; }); }
+
+  /* ---------- Отчёт (финансы) ---------- */
+  function reportPdf() {
+    if (!window.AppExport) { ui.toast('Экспорт недоступен'); return; }
+    var sum = inv.reduce(function (s, i) { return s + (Number(i.amount) || 0); }, 0);
+    var paid = inv.reduce(function (s, i) { return s + (Number(i.paid) || 0); }, 0);
+    var cols = [
+      { key: 'number', label: 'Счёт' }, { key: 'customer_name', label: 'Заказчик' },
+      { key: 'status', label: 'Статус', value: function (i) { return ST[i.status] || i.status; } },
+      { key: 'amount', label: 'Сумма', num: true, value: function (i) { return money(i.amount); } },
+      { key: 'paid', label: 'Оплачено', num: true, value: function (i) { return money(i.paid); } },
+      { key: 'due_date', label: 'Срок', value: function (i) { return i.due_date ? String(i.due_date).slice(0, 10) : ''; } },
+      { key: 'is_overdue', label: 'Просрочка', value: function (i) { return i.is_overdue ? 'да' : ''; } }
+    ];
+    AppExport.exportPdf('Финансы — отчёт', AppExport.reportDocument({
+      brand: '3DMP Service', title: 'Реестр счетов и оплат', subtitle: new Date().toLocaleDateString('ru-RU'),
+      kpis: [{ label: 'Счетов', value: inv.length }, { label: 'Выставлено', value: money(sum) }, { label: 'Оплачено', value: money(paid) }, { label: 'Дебиторка', value: money(sum - paid) }],
+      sections: [{ title: 'Счета', columns: cols, rows: inv }],
+      sign: ['Финансовый директор', 'Главный бухгалтер'], footer: '3DMP Service · финансы'
+    }));
+  }
+  $('#repBtn').addEventListener('click', reportPdf);
+
   function load() {
     return Promise.all([
       rpc('app_invoice_list', { p_token: token }),
@@ -146,7 +174,7 @@
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
-    me = s; token = s.token;
+    me = s; token = s.token; applyCaps();
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#listMsg', 'Supabase не подключён.', 'err'); return; }
     load();
