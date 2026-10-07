@@ -8,6 +8,31 @@
   var token = null, me = null, rows = [], byEq = [], eq = [], q = '';
 
   var SHIFTS = { '1': '1-я', '2': '2-я', night: 'Ночная' };
+
+  /* ---------- Роли (data-cap) ---------- */
+  var ALL = { edit: 1, reports: 1 };
+  var CAPS = { admin: ALL, owner: ALL, director: ALL, manager: ALL, chief: ALL, master: { edit: 1 }, technologist: ALL, operator: { edit: 1 }, default: { reports: 1 } };
+  function can(c) { return !!(me && (CAPS[me.role] || CAPS['default'])[c]); }
+  function applyCaps() { $$('[data-cap]').forEach(function (el) { var n = (el.dataset.cap || '').split('|'); if (!n.some(can)) el.style.display = 'none'; }); }
+
+  /* ---------- Отчёт (OEE) ---------- */
+  function reportPdf() {
+    if (!window.AppExport) { ui.toast('Экспорт недоступен'); return; }
+    var cols = [
+      { key: 'shift_date', label: 'Дата', value: function (r) { return fmt(r.shift_date); } },
+      { key: 'equipment', label: 'Оборудование' }, { key: 'shift', label: 'Смена', value: function (r) { return SHIFTS[r.shift] || r.shift; } },
+      { key: 'oee', label: 'OEE, %', num: true }, { key: 'availability', label: 'Доступность, %', num: true },
+      { key: 'quality', label: 'Качество, %', num: true }, { key: 'downtime_min', label: 'Простой, мин', num: true },
+      { key: 'downtime_reason', label: 'Причина простоя' }
+    ];
+    AppExport.exportPdf('OEE — отчёт', AppExport.reportDocument({
+      brand: '3DMP Service', title: 'Отчёт OEE (эффективность оборудования)', subtitle: new Date().toLocaleDateString('ru-RU'),
+      kpis: [{ label: 'Смен', value: rows.length }],
+      sections: [{ title: 'Смены', columns: cols, rows: rows }],
+      sign: ['Главный инженер', 'Начальник производства'], footer: '3DMP Service · OEE'
+    }));
+  }
+  $('#repBtn').addEventListener('click', reportPdf);
   function esc(v) { return ui.esc(v); }
   function num(v) { return Number(v) || 0; }
   function fmt(d) { if (!d) return '—'; var x = new Date(d); return isNaN(x.getTime()) ? String(d) : x.toLocaleDateString('ru-RU'); }
@@ -72,7 +97,7 @@
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
-    me = s; token = s.token;
+    me = s; token = s.token; applyCaps();
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#fMsg', 'Supabase не подключён.', 'err'); return; }
     $('#fDate').value = new Date().toISOString().slice(0, 10);
