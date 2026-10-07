@@ -104,6 +104,21 @@
     me = s; token = s.token;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#pMsg', 'Supabase не подключён.', 'err'); return; }
-    load();
+    load(); renderRuntime();
   });
+
+  function renderRuntime() {
+    rpc('app_mnt_runtime_status', { p_token: token }).then(function (list) {
+      list = list || [];
+      if (!list.length) { $('#runtime').innerHTML = '<span class="note">Планов нет.</span>'; return; }
+      var pad = { ok: 'в норме', soon: 'скоро', overdue: 'просрочено' };
+      var bdg = { ok: 'done', soon: 'in_progress', overdue: 'cancelled' };
+      $('#runtime').innerHTML = '<table class="tab2" style="width:100%;border-collapse:collapse"><thead><tr><th>Оборудование</th><th>Вид</th><th>Период, дн</th><th>Наработка, ч</th><th>Норма, ч</th><th>%</th><th>Следующее ТО</th><th>Статус</th></tr></thead><tbody>' +
+        list.map(function (r) {
+          return '<tr><td>' + esc(r.equipment) + '</td><td>' + esc(r.kind || '') + '</td><td>' + num(r.period_days) + '</td>' +
+            '<td>' + num(r.run_hours) + '</td><td>' + num(r.due_hours) + '</td><td>' + (r.pct != null ? r.pct + '%' : '—') + '</td>' +
+            '<td>' + fmt(r.next_due) + '</td><td><span class="badge ' + (bdg[r.status] || '') + '">' + (pad[r.status] || r.status) + '</span></td></tr>';
+        }).join('') + '</tbody></table>';
+    }).catch(function () { $('#runtime').innerHTML = '<span class="note">Недоступно.</span>'; });
+  }
 })();
