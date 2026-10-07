@@ -693,6 +693,18 @@
     }).catch(function (e) { msg('#eqMsg', 'Ошибка: ' + e.message, 'err'); });
   }
 
+  /* ---------- База знаний ---------- */
+  function loadKb() {
+    var qv = ($('#kbQ').value || '').trim();
+    rpc('app_knowledge_search', { p_token: token, p_q: qv, p_limit: 30 }).then(function (rows) {
+      rows = rows || [];
+      $('#kbRes').innerHTML = rows.length ? rows.map(function (k) {
+        return '<div class="kvr" style="align-items:flex-start;flex-direction:column;gap:4px;"><div><span class="badge">' + esc(k.category || 'БЗ') + '</span> <b>' + esc(k.question || '') + '</b></div>' +
+          '<div style="font-size:.82rem;color:var(--muted);">' + esc(k.answer || '') + '</div></div>';
+      }).join('') : '<span class="note">Ничего не найдено.</span>';
+    }).catch(function (e) { $('#kbRes').innerHTML = '<span class="note">Ошибка: ' + esc(e.message) + '</span>'; });
+  }
+
   function renderAccess() {
     var roles = [['admin', 'Администратор'], ['owner', 'Владелец'], ['director', 'Руководитель предприятия'], ['chief', 'Главный инженер'], ['manager', 'Диспетчер (manager)'], ['support', 'Поддержка'], ['master', 'Сервисный инженер'], ['qc', 'ОТК (qc)']];
     var cols = [['dash', 'Дашборд'], ['list', 'Заявки'], ['visits', 'Выезды'], ['refs', 'Гарантии/контракты'], ['reports', 'KPI и отчёты'], ['access', 'Матрица'], ['new', 'Создать заявку'], ['edit', 'Статус/отчёт'], ['assign', 'Назначить выезд'], ['supply', 'Снабжение'], ['rules', 'Правила IIoT'], ['act', 'Акт'], ['passport', 'Паспорт станка']];
@@ -774,6 +786,8 @@
   $('#eqFindBtn').addEventListener('click', function () { go('s-eqfind'); $('#eqQ').focus(); });
   $('#eqFindGo').addEventListener('click', loadEqFind);
   $('#eqQ').addEventListener('keydown', function (e) { if (e.key === 'Enter') loadEqFind(); });
+  $('#kbGo').addEventListener('click', loadKb);
+  $('#kbQ').addEventListener('keydown', function (e) { if (e.key === 'Enter') loadKb(); });
   function runScan(sel, name) {
     rpc(name, { p_token: token }).then(function (d) {
       var r = d && d[0];

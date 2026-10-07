@@ -38,6 +38,41 @@
     var bar = document.querySelector('.topbar');
     if (bar) bar.insertBefore(btn, bar.firstChild ? bar.firstChild.nextSibling : null);
 
+    /* ---------- Системный поиск в шапке ---------- */
+    (function globalSearch() {
+      if (!bar || document.getElementById('gsWrap')) return;
+      var box = document.createElement('div');
+      box.id = 'gsWrap';
+      box.style.cssText = 'position:relative;flex:1;max-width:440px;margin:0 10px;min-width:120px;';
+      box.innerHTML = '<input id="gsInput" type="search" placeholder="Поиск по системе: заявки, станки, гарантии, БЗ…" autocomplete="off" ' +
+        'style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:#fff;font:inherit;font-size:.86rem;">' +
+        '<div id="gsDrop" style="display:none;position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:960;background:var(--surface,#fff);border:1px solid var(--border);border-radius:12px;box-shadow:0 14px 34px rgba(15,23,42,.18);max-height:60vh;overflow-y:auto;"></div>';
+      var spacer = bar.querySelector('.spacer');
+      if (spacer) bar.insertBefore(box, spacer); else bar.appendChild(box);
+      var input = box.querySelector('#gsInput'), drop = box.querySelector('#gsDrop'), timer = null, lastQ = '';
+      var ICON = { kb: '📚', request: '🎫', equipment: '🏭', customer: '🏢', order: '📦' };
+      function hide() { drop.style.display = 'none'; }
+      function run() {
+        var q = input.value.trim(); if (q.length < 2) { hide(); return; }
+        if (q === lastQ) return; lastQ = q;
+        if (!g.SB || !g.Auth || !g.Auth.token()) return;
+        g.SB.rpc('app_global_search', { p_token: g.Auth.token(), p_q: q, p_limit: 12 }).then(function (r) {
+          if (r.error) { hide(); return; }
+          var rows = r.data || [];
+          if (!rows.length) { drop.innerHTML = '<div style="padding:12px;color:#64748b;font-size:.82rem;">Ничего не найдено</div>'; drop.style.display = ''; return; }
+          drop.innerHTML = rows.map(function (x) {
+            return '<a href="' + ROOT + esc(x.url) + '" style="display:flex;gap:8px;align-items:center;padding:9px 12px;text-decoration:none;color:inherit;border-bottom:1px solid var(--border);">' +
+              '<span>' + (ICON[x.kind] || '•') + '</span><span style="flex:1;min-width:0;"><b style="font-size:.84rem;">' + esc(x.title || '') + '</b>' +
+              '<div style="font-size:.74rem;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(x.subtitle || '') + '</div></span></a>';
+          }).join('');
+          drop.style.display = '';
+        }).catch(function () { hide(); });
+      }
+      input.addEventListener('input', function () { if (timer) clearTimeout(timer); timer = setTimeout(run, 300); });
+      input.addEventListener('keydown', function (e) { if (e.key === 'Enter') run(); if (e.key === 'Escape') { hide(); input.blur(); } });
+      document.addEventListener('click', function (e) { if (!box.contains(e.target)) hide(); });
+    })();
+
     /* Тема: светлая/тёмная (светлая палитра не меняется; тёмная — доп. режим) */
     function applyTheme(t) { document.documentElement.setAttribute('data-theme', t); try { localStorage.setItem('3dmp:theme', t); } catch (e) {} }
     var saved = ''; try { saved = localStorage.getItem('3dmp:theme') || ''; } catch (e) {}
