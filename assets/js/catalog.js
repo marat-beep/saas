@@ -8,7 +8,7 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '8.1',
+  version: '8.2',
   updated: '07.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
@@ -21,7 +21,7 @@ window.AppCatalog = {
     auth:1, panel:2, dashboard:3, orders:4, crm:5, tkp:6, docs:7, templates:8, docbuilder:9, competences:10, client:11,
     registry:10, bom:11, calc:12, norms:13, assistant:14,
     production:15, mes:16, terminal:17, planning:18, slots:19, forecast:20, warehouse:21,
-    qc:22, passport:23, quality:24, maintenance:25, tooling:26, oee:27, iiot:28, setup:29, lean:30, issues:31, service:32, calendar:33,
+    qc:22, passport:23, quality:24, claims:70, maintenance:25, tooling:26, oee:27, iiot:28, setup:29, lean:30, issues:31, service:32, calendar:33,
     economics:34, teo:35, finance:36, bi:37, reports:38,
     hr:39, departments:40, staff:41, org:42, roles:43,
     dicts:44, config:45, reverse:46, partners:47, equipment:48, suppliers:49, procurement:50, supplier:51,
@@ -426,10 +426,17 @@ window.AppCatalog = {
     /* ---------- Качество ---------- */
     {
       id: 'qc', icon: '✅', title: 'ОТК', href: 'apps/qc/index.html', guest: false, group: 'quality', audience: 'user',
-      desc: 'Чек-листы контроля, дефекты, решения.',
-      purpose: 'Контроль качества: чек-листы по изделиям, фиксация дефектов и их закрытие.',
-      features: ['Чек-листы (параметр/допуск/факт)', 'Итог: годен/брак', 'Реестр дефектов', 'Критичность и закрытие', 'Уведомления'],
-      connects: ['production', 'passport', 'quality'], out: 'Годен/брак → паспорт'
+      desc: 'Чек-листы контроля, дефекты, решения, SPC (контрольные карты, Cp/Cpk).',
+      purpose: 'Контроль качества: чек-листы по изделиям, фиксация дефектов и их закрытие; статистическое управление процессом (SPC) — контрольная карта x̄/Rs и индексы Cp/Cpk.',
+      features: ['Чек-листы (параметр/допуск/факт)', 'Итог: годен/брак', 'Реестр дефектов', 'Критичность и закрытие', 'SPC: карта x̄/Rs, UCL/LCL, точки вне границ', 'Индексы Cp/Cpk, Pp/Ppk', 'Ввод измерений', 'Уведомления'],
+      connects: ['production', 'passport', 'quality', 'claims'], out: 'Годен/брак → паспорт; измерения → SPC'
+    },
+    {
+      id: 'claims', icon: '📋', title: 'Претензии и CAPA', href: 'apps/claims/index.html', guest: false, group: 'quality', audience: 'user',
+      desc: 'W2: рекламации заказчиков, эскалация в проблемы, CAPA-мероприятия.',
+      purpose: 'Претензии: регистрация рекламаций (заказчик, изделие, причина, критичность), статусы, эскалация в связанную проблему; CAPA — корректирующие и предупреждающие мероприятия со сроками и статусами.',
+      features: ['Претензия CLM-NNNNN (заказчик/изделие/причина/кол-во/критичность)', 'Статусы: новая → принята → в работе → CAPA → закрыта/отклонена', 'Эскалация в проблему (реестр «Проблемы»)', 'CAPA-мероприятия (корректирующие/предупреждающие, ответственный, срок)', 'KPI и уведомления'],
+      connects: ['qc', 'quality', 'issues', 'passport', 'service'], in_: 'Рекламация заказчика', out: 'Проблема + CAPA'
     },
     {
       id: 'passport', icon: '🪪', title: 'Паспорта изделий', href: 'apps/passport/index.html', guest: false, group: 'quality', audience: 'user',

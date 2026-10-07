@@ -36,6 +36,28 @@
         <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
       </div>
       <div class="card"><h2>Дефекты</h2><div id="defects"><span class="note">—</span></div></div>
+
+      <div class="card">
+        <h2>SPC — контрольная карта и индексы</h2>
+        <p class="note">Карта индивидуальных значений (x̄) и скользящих размахов (Rs); Cp/Cpk по границам допуска.</p>
+        <div class="form-grid">
+          <div class="field"><label>Параметр</label><select id="spcParam"></select></div>
+          <div class="field"><label>LSL (нижн. допуск)</label><input type="text" id="spcLsl" inputmode="decimal" placeholder="12.000"></div>
+          <div class="field"><label>USL (верхн. допуск)</label><input type="text" id="spcUsl" inputmode="decimal" placeholder="12.018"></div>
+          <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="spcBuild">Построить карту</button></div>
+        </div>
+        <div class="kpi-row" id="spcStats" style="margin-top:10px;"></div>
+        <div id="spcChart" class="mt"><span class="note">Выберите параметр и нажмите «Построить карту».</span></div>
+        <div id="spcPoints" class="mt"></div>
+        <div class="stat-div"></div>
+        <h3 style="font-size:.9rem;margin:6px 0;">Добавить измерение</h3>
+        <div class="form-grid">
+          <div class="field"><label>Параметр</label><input type="text" id="spcNewParam" placeholder="Диаметр Ø12H7"></div>
+          <div class="field"><label>Значение</label><input type="text" id="spcNewValue" inputmode="decimal" placeholder="12.010"></div>
+          <div class="field" style="display:flex;align-items:flex-end;"><button class="btn secondary" id="spcAdd">Добавить</button></div>
+        </div>
+        <div class="msg" id="spcMsg"></div>
+      </div>
     </section>
 
     <section class="screen" id="s-new">
@@ -106,9 +128,9 @@
   <script src="../../assets/js/router.js?v=1"></script>
   <script src="../../assets/js/notify.js?v=2"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=60"></script>
+  <script src="../../assets/js/nav.js?v=61"></script>
   <script src="../../assets/js/files.js?v=1"></script>
-  <script src="qc.js?v=3"></script>
+  <script src="qc.js?v=4"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>

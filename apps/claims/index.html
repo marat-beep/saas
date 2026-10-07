@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Претензии и CAPA — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=32">
+<style>
+  .capa-row { display:flex; gap:8px; align-items:center; padding:8px 0; border-top:1px solid var(--border); font-size:.82rem; }
+  .capa-row:first-child { border-top:none; }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">📋</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap fluid">
+    <section class="screen active" id="s-list">
+      <div class="hero"><h1>Претензии и CAPA</h1><p>Рекламации заказчиков, причины, эскалация в проблемы и корректирующие/предупреждающие мероприятия.</p></div>
+      <div class="kpi-row" id="kpis"></div>
+      <div class="card mt">
+        <div class="toolbar">
+          <input type="search" class="search" id="q" placeholder="Поиск: номер, заказчик, изделие, причина…">
+          <div class="chips" id="filters">
+            <span class="chip active" data-f="">Все</span><span class="chip" data-f="new">Новые</span>
+            <span class="chip" data-f="in_work">В работе</span><span class="chip" data-f="capa">CAPA</span>
+            <span class="chip" data-f="closed">Закрытые</span>
+          </div>
+          <button class="btn" id="toNew" style="width:auto;padding:11px 18px;">＋ Новая претензия</button>
+        </div>
+        <div class="msg" id="listMsg"></div>
+        <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="s-new">
+      <button class="back" id="back1">← К списку</button>
+      <div class="card">
+        <h2>Новая претензия</h2>
+        <div class="msg" id="nMsg"></div>
+        <div class="grid2c">
+          <div class="field"><label>Заказчик</label><input type="text" id="nCustomer" placeholder="ООО «Клиент»"></div>
+          <div class="field"><label>Изделие</label><input type="text" id="nProduct" placeholder="Кронштейн КР-01"></div>
+        </div>
+        <div class="field"><label>Причина *</label><input type="text" id="nReason" placeholder="Несоответствие размера"></div>
+        <div class="grid2c">
+          <div class="field"><label>Количество</label><input type="text" id="nQty" inputmode="decimal" placeholder="1"></div>
+          <div class="field"><label>Критичность</label>
+            <select id="nSeverity"><option value="minor">Незначительная</option><option value="major" selected>Значительная</option><option value="critical">Критическая</option></select>
+          </div>
+        </div>
+        <div class="field"><label>Описание</label><textarea id="nDescription" rows="3" placeholder="Детали (при обнаружении/приёмке)."></textarea></div>
+        <div class="field"><label>Ответственный (логин)</label><input type="text" id="nAssignee" placeholder="otk"></div>
+        <button class="btn" id="createBtn">Зарегистрировать</button>
+      </div>
+    </section>
+
+    <section class="screen" id="s-item">
+      <button class="back" id="back2">← К списку</button>
+      <div class="card" id="claim"></div>
+      <div class="card">
+        <h2>Статус и эскалация</h2>
+        <div class="toolbar">
+          <select id="stSel" style="max-width:240px;">
+            <option value="new">Новая</option><option value="accepted">Принята</option>
+            <option value="in_work">В работе</option><option value="capa">CAPA</option>
+            <option value="closed">Закрыта</option><option value="rejected">Отклонена</option>
+          </select>
+          <button class="btn secondary" id="stBtn">Сменить статус</button>
+          <button class="btn secondary" id="escBtn">⚡ Эскалировать в проблему</button>
+        </div>
+        <div class="field"><label>Решение/комментарий</label><input type="text" id="stNote" placeholder="Кратко"></div>
+        <div class="msg" id="iMsg"></div>
+      </div>
+      <div class="card">
+        <div class="toolbar"><h2 style="margin:0;flex:1;">CAPA-мероприятия</h2><button class="btn secondary" id="capaAdd" style="width:auto;padding:8px 14px;">＋ Мероприятие</button></div>
+        <div id="capaList" class="mt"><span class="note">—</span></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">3DMP Service · претензии и CAPA</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=4"></script>
+  <script src="../../assets/js/auth.js?v=6"></script>
+  <script src="../../assets/js/router.js?v=1"></script>
+  <script src="../../assets/js/notify.js?v=2"></script>
+  <script src="../../assets/js/support-widget.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=61"></script>
+  <script src="../../assets/js/shell.js?v=21"></script>
+  <script src="claims.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+  <script src="../../assets/js/module-info.js?v=1"></script>
+</body>
+</html>

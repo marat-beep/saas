@@ -25,7 +25,7 @@
     ]).then(function (r) {
       checks = r[0] || []; defects = r[1] || []; naryads = r[2] || [];
       $('#cNaryad').innerHTML = '<option value="">— нет —</option>' + naryads.map(function (n) { return '<option value="' + n.id + '">' + esc(n.number) + ' · ' + esc(n.title) + '</option>'; }).join('');
-      renderKpi(); render(); renderDefects();
+      renderKpi(); render(); renderDefects(); loadSpcParams();
     }).catch(function (e) { msg('#listMsg', 'Ошибка: ' + e.message, 'err'); });
   }
   function renderKpi() {
@@ -112,6 +112,86 @@
       }).join('') : '<span class="note">Связей не найдено (нет наряда/заявки).</span>';
     }).catch(function () { $('#trace').innerHTML = '<span class="note">Трассируемость недоступна.</span>'; });
   }
+
+  /* ---------- SPC: контрольная карта и индексы ---------- */
+  var spcParam = '';
+  function loadSpcParams() {
+    return rpc('app_qc_params', { p_token: token }).then(function (ps) {
+      ps = ps || [];
+      var sel = $('#spcParam');
+      sel.innerHTML = '<option value="">— параметр —</option>' + ps.map(function (p) { return '<option value="' + esc(p.param) + '">' + esc(p.param) + ' (' + p.n + ')</option>'; }).join('');
+      if (!spcParam && ps.length) spcParam = ps[0].param;
+      if (spcParam) sel.value = spcParam;
+      if (spcParam && ps.length) buildSpc();
+    }).catch(function () {});
+  }
+  function numOrNull(v) { var n = parseFloat(String(v || '').replace(',', '.')); return isNaN(n) ? null : n; }
+  function spcSvg(points, st) {
+    var W = 760, H = 280, pl = 56, pr = 14, pt = 14, pb = 30;
+    var vals = points.map(function (p) { return Number(p.value); });
+    var ucl = st.ucl != null ? Number(st.ucl) : null, lcl = st.lcl != null ? Number(st.lcl) : null;
+    var cl = st.cl != null ? Number(st.cl) : null;
+    var all = vals.slice(); if (ucl != null) all.push(ucl); if (lcl != null) all.push(lcl); if (cl != null) all.push(cl);
+    var mn = Math.min.apply(null, all), mx = Math.max.apply(null, all);
+    var pad = (mx - mn) * 0.15 || 0.01; mn -= pad; mx += pad;
+    var n = points.length;
+    function X(i) { return pl + (n <= 1 ? 0 : i * (W - pl - pr) / (n - 1)); }
+    function Y(v) { return pt + (mx - v) * (H - pt - pb) / (mx - mn || 1); }
+    function line(v, color, dash) { if (v == null) return ''; var y = Y(v).toFixed(1); return '<line x1="' + pl + '" y1="' + y + '" x2="' + (W - pr) + '" y2="' + y + '" stroke="' + color + '" stroke-width="1"' + (dash ? ' stroke-dasharray="5 4"' : '') + '/>'; }
+    var poly = points.map(function (p, i) { return X(i).toFixed(1) + ',' + Y(Number(p.value)).toFixed(1); }).join(' ');
+    var dots = points.map(function (p, i) {
+      var col = p.out_ctl ? '#b91c1c' : '#2563eb';
+      return '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(Number(p.value)).toFixed(1) + '" r="' + (p.out_ctl ? 4 : 3) + '" fill="' + col + '"/>';
+    }).join('');
+    return '<div style="overflow:auto;"><svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" height="' + H + '" style="max-width:100%;">' +
+      '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#fff"/>' +
+      line(ucl, '#b91c1c', true) + line(cl, '#10b981', false) + line(lcl, '#b91c1c', true) +
+      '<polyline points="' + poly + '" fill="none" stroke="#94a3b8" stroke-width="1.4"/>' + dots +
+      '<text x="' + (pl - 6) + '" y="' + (Y(mx) + 4) + '" text-anchor="end" font-size="10" fill="#64748b">' + mx.toFixed(3) + '</text>' +
+      '<text x="' + (pl - 6) + '" y="' + (Y(mn) + 4) + '" text-anchor="end" font-size="10" fill="#64748b">' + mn.toFixed(3) + '</text>' +
+      '</svg></div>' +
+      '<div class="note" style="margin-top:4px;">— CL ' + (cl != null ? cl.toFixed(4) : '—') + ' · UCL ' + (ucl != null ? ucl.toFixed(4) : '—') + ' · LCL ' + (lcl != null ? lcl.toFixed(4) : '—') + ' (красные точки — вне границ)</div>';
+  }
+  function buildSpc() {
+    var param = $('#spcParam').value || spcParam; if (!param) { msg('#spcMsg', 'Выберите параметр.', 'err'); return; }
+    spcParam = param;
+    var st = null;
+    rpc('app_qc_spc_stats', { p_token: token, p_param: param, p_lsl: numOrNull($('#spcLsl').value), p_usl: numOrNull($('#spcUsl').value), p_limit: 100 })
+      .then(function (rows) {
+        st = rows && rows[0]; if (!st) { $('#spcStats').innerHTML = ''; return Promise.resolve([]); }
+        $('#spcStats').innerHTML =
+          cell('Измерений', st.n) +
+          cell('Cp', st.cp != null ? Number(st.cp).toFixed(3) : '—', st.cp != null && st.cp < 1 ? '#b91c1c' : '') +
+          cell('Cpk', st.cpk != null ? Number(st.cpk).toFixed(3) : '—', st.cpk != null && st.cpk < 1 ? '#b91c1c' : '') +
+          cell('Pp', st.pp != null ? Number(st.pp).toFixed(3) : '—') +
+          cell('Ppk', st.ppk != null ? Number(st.ppk).toFixed(3) : '—') +
+          cell('Вне границ', st.out_count, st.out_count ? '#b91c1c' : '');
+        return rpc('app_qc_spc_points', { p_token: token, p_param: param, p_limit: 100 });
+      })
+      .then(function (pts) {
+        pts = pts || [];
+        if (pts.length < 2) { $('#spcChart').innerHTML = '<span class="note">Недостаточно данных (нужно ≥ 2 измерений).</span>'; $('#spcPoints').innerHTML = ''; return; }
+        $('#spcChart').innerHTML = spcSvg(pts, st);
+        $('#spcPoints').innerHTML = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th class="num">#</th><th>Время</th><th class="num">Значение</th><th class="num">UCL</th><th class="num">LCL</th><th>Контроль</th></tr></thead><tbody>' +
+          pts.slice(-12).reverse().map(function (p) {
+            return '<tr><td class="num">' + p.seq + '</td><td class="muted">' + fmt(p.ts) + '</td><td class="num">' + Number(p.value).toFixed(4) + '</td>' +
+              '<td class="num">' + (p.ucl != null ? Number(p.ucl).toFixed(4) : '—') + '</td><td class="num">' + (p.lcl != null ? Number(p.lcl).toFixed(4) : '—') + '</td>' +
+              '<td><span class="badge ' + (p.out_ctl ? 'cancelled' : 'done') + '">' + (p.out_ctl ? 'вне границ' : 'в норме') + '</span></td></tr>';
+          }).join('') + '</tbody></table></div>';
+      })
+      .catch(function (e) { msg('#spcMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
+  $('#spcBuild').addEventListener('click', buildSpc);
+  $('#spcAdd').addEventListener('click', function () {
+    var p = $('#spcNewParam').value.trim(), v = numOrNull($('#spcNewValue').value);
+    if (!p) { msg('#spcMsg', 'Укажите параметр.', 'err'); return; }
+    if (v == null) { msg('#spcMsg', 'Укажите значение.', 'err'); return; }
+    rpc('app_qc_measure_add', { p_token: token, p_check_id: null, p_position_id: null, p_param: p, p_value: v })
+      .then(function (r) { var x = r && r[0]; if (!x || !x.ok) { msg('#spcMsg', x ? x.message : 'Ошибка', 'err'); return; }
+        window.Auth.log('SPC измерение', p + ' = ' + v); msg('#spcMsg', x.message, 'ok'); $('#spcNewValue').value = '';
+        spcParam = p; $('#spcNewParam').value = ''; loadSpcParams(); })
+      .catch(function (e) { msg('#spcMsg', 'Ошибка: ' + e.message, 'err'); });
+  });
 
   $('#toNew').addEventListener('click', function () { clearMsg('#nMsg'); screens.go('s-new'); });
   $('#back1').addEventListener('click', function () { screens.go('s-list'); });
