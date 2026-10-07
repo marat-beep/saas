@@ -31,7 +31,9 @@
   .hub-hero { position: relative; padding: 10px 34px 10px 14px; margin-bottom: 8px; }
   .hero-x { position: absolute; top: 6px; right: 8px; border: 0; background: transparent; color: var(--muted); font-size: 1rem; line-height: 1; cursor: pointer; padding: 4px 6px; border-radius: 8px; }
   .hero-x:hover { color: var(--danger); background: rgba(15,23,42,.05); }
-  .hero-tag { display: inline-block; font-size: .66rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--accent-700); background: #fff; border: 1px solid var(--border); border-radius: 999px; padding: 3px 10px; margin-bottom: 6px; }
+  .ann-zone { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
+  .ann-tag { display: inline-block; font-size: .66rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--accent-700); background: #fff; border: 1px solid var(--border); border-radius: 999px; padding: 3px 10px; margin-bottom: 6px; }
+  .ann-body { font-size: .84rem; }
   .hub-hero h1 { font-size: 1.3rem; margin: 0 0 3px; }
   .hub-hero p { font-size: .82rem; line-height: 1.4; }
   .cab-ava { width: 42px; height: 42px; border-radius: 12px; font-size: 1.1rem; }
@@ -97,10 +99,11 @@
   <main class="wrap fluid">
     <section class="hub-hero" id="hero">
       <button class="hero-x" id="heroX" type="button" title="Скрыть до обновления страницы" aria-label="Скрыть">✕</button>
-      <span class="hero-tag" id="heroTag">📣 Объявления</span>
-      <div id="heroBody">
-        <h1>Рабочий сервис 3DMP</h1>
-        <p>Единое рабочее пространство предприятия: заявки и КП, подготовка производства (КТПП), производство и MES, качество, экономика, персонал и администрирование. Данные, вход и права — в облаке Supabase. Публикация — на <b>sapfir.eu/saas</b>.</p>
+      <h1>Рабочий сервис 3DMP</h1>
+      <p>Единое рабочее пространство предприятия: заявки и КП, подготовка производства (КТПП), производство и MES, качество, экономика, персонал и администрирование. Данные, вход и права — в облаке Supabase. Публикация — на <b>sapfir.eu/saas</b>.</p>
+      <div class="ann-zone" id="annZone">
+        <span class="ann-tag">📣 Объявления</span>
+        <div class="ann-body" id="annBody"><span class="note">Пока объявлений нет.</span></div>
       </div>
     </section>
 
