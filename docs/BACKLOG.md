@@ -5,8 +5,8 @@
 > **Конец сессии:** обнови статусы пунктов (и краткий журнал в §5), затем `PLAN.md`/`PROMPTS.md` при необходимости.
 
 ## 1. Состояние (кратко)
-- Миграции `0001…0123`, `apply_all.sql` идемпотентен; смоук `app_smoke_test` 10/10, `app_smoke_test_ext` 14/14.
-- Приложений 78 (`apps/`), прототипов 72 (`eco/apps`); каталог `catalog.js` v8.7 — единый источник модулей.
+- Миграции `0001…0124`, `apply_all.sql` идемпотентен; смоук `app_smoke_test` 10/10, `app_smoke_test_ext` 14/14.
+- Приложений 78 (`apps/`), прототипов 72 (`eco/apps`); каталог `catalog.js` v8.8 — единый источник модулей.
 - Дизайн-система: светлая палитра, зелёный акцент `--accent #10b981`; тёмная — опционально (кнопка «Тема»).
 - Единая верхняя панель на всех страницах (`nav.js`): Тема · Сервер · Вход · Пользователь; боковое меню-drawer (`shell.js`) скрыто по умолчанию, открывается «☰».
 - Версии: `app.css` v32, `nav.js` v59, `shell.js` v19, `ui.js` v4, `auth.js` v6, `notify.js` v2, каталог v8.0.
@@ -31,7 +31,7 @@
 | P5 | средний | Интеграции: 1С/e-mail/Telegram/ЭДО | миграция `0121`: `app_integrations`, `app_integration_log`; RPC save/delete/enqueue/process/retry/log_list/kpi; коннекторы (OData/SMTP/Telegram/SMS/ЭДО/webhook); UI `apps/integrations` | конфиг из UI, журнал обмена, ретраи | ☑ (v167) |
 | P6 | средний | Биллинг/подписки + SLA платформы | `app_plans.limits`, использование, `app_health_checks` | квоты тарифа, статус-борд | ☐ |
 | P7 | низкий | ИИ: авто-нормирование, CV-ОТК | сервисы + RPC + UI | пилот на данных | ☐ |
-| P8 | высокий | Сервис ЧПУ: дополнение по ТЗ (SR v2) | **S1 (`0122`) — ☑ (v169):** приоритет/SLA, канал/источник, гарантия, `app_service_history`, `app_service_visits`, `assign`, KPI (SLA/MTTR/FTFR/CSAT), `app_service_iiot_auto`; UI `apps/service`. **S2 (`0123`) — ☑ (v170):** `app_warranties`, `app_service_contracts` (SLA), `app_service_parts` (резерв со склада), авто-гарантия и SLA из контракта в `save`, `app_service_my_visits`, офлайн-обновление статусов; UI: деталь (гарантия/контракт/запчасти), экраны «Гарантии/контракты», «Мои выезды». **S3 (`0124`):** IIoT-мост/MTBF/загрузка, документы (акт), события в интеграции, портал дилера | заявка→выезд→запчасть→акт; авто-тикет IIoT; KPI сервиса | ◑ S1+S2 (v169–170) |
+| P8 | высокий | Сервис ЧПУ: дополнение по ТЗ (SR v2) | **S1 (`0122`) — ☑ (v169):** приоритет/SLA, канал/источник, гарантия, `app_service_history`, `app_service_visits`, `assign`, KPI (SLA/MTTR/FTFR/CSAT), `app_service_iiot_auto`; UI `apps/service`. **S2 (`0123`) — ☑ (v170):** `app_warranties`, `app_service_contracts` (SLA), `app_service_parts` (резерв со склада), авто-гарантия и SLA из контракта в `save`, `app_service_my_visits`, офлайн-обновление статусов; UI: деталь (гарантия/контракт/запчасти), экраны «Гарантии/контракты», «Мои выезды». **S3 (`0124`) — ☑ (v171):** правила IIoT (`app_service_iot_rules`), MTBF/загрузка инженеров (`app_service_kpi_ext`, `app_service_engineer_load`), акт (`app_service_act`, печать), событие в `app_integrations` при закрытии. **Вынесено:** портал дилера (отдельный внешний портал по образцу `apps/supplier`) — требует отдельной роли/доступа, см. примечание §5. | заявка→выезд→запчасть→акт; авто-тикет IIoT; KPI сервиса | ☑ S1–S3 (v169–171) |
 | S1 | высокий | Малые доработки UI | — | см. §4 | ☐ |
 
 ## 4. Мелкие пункты (быстрые)
@@ -53,6 +53,7 @@
 - v168 — правило «ТЗ → аудит → дополнение» и накопленные приёмы внесены в `MODULE_STANDARD.md` §6–7 и `AGENTS.md`; разобран ТЗ «Сервис и ремонт ЧПУ» (в корне), задача дополнения `apps/service` поставлена в очередь (P8, шаги S1–S3).
 - v169 — **W-S (S1, 0122)**: Сервис ЧПУ по ТЗ — SR v2 (`app_service_history`, `app_service_visits`, SLA-план по приоритету, `app_service_assign`, KPI SLA/MTTR/FTFR/CSAT, `app_service_iiot_auto`); UI `apps/service` (KPI, фильтры, карточка, таймлайн, выезды); каталог v8.6, nav v65/shell v25.
 - v170 — **W-S (S2, 0123)**: Сервис ЧПУ — гарантии (`app_warranties`) и сервисные контракты (`app_service_contracts`, SLA); резерв запчастей под заявку (`app_service_parts` ⟂ `app_spare_parts`); авто-гарантия и SLA из контракта при создании заявки; мобильные выезды (`app_service_my_visits`) с офлайн-очередью; UI: деталь (гарантия/контракт/запчасти), экраны «Гарантии/контракты» и «Мои выезды»; каталог v8.7, nav v66/shell v26.
+- v171 — **W-S (S3, 0124)**: Сервис ЧПУ по ТЗ закрыт — правила IIoT (`app_service_iot_rules`), IIoT-скан по правилам, MTBF и загрузка инженеров (`app_service_kpi_ext`, `app_service_engineer_load`), акт (`app_service_act`, печать), событие в `app_integrations` при закрытии; UI `apps/service` (KPI MTBF/выезды, правила, загрузка, кнопка «Акт»); каталог v8.8, nav v67/shell v27. Портал дилера вынесен в отдельную задачу (внешний доступ).
 
 ## 6. Стартовый промт новой сессии (копируй как есть)
 ```

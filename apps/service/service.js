@@ -30,14 +30,17 @@
       rpc('app_service_list', { p_token: token, p_q: null }),
       rpc('app_service_kpi', { p_token: token }),
       rpc('app_customer_list', { p_token: token }).catch(function () { return []; }),
-      rpc('app_equipment_list', { p_token: token }).catch(function () { return []; })
+      rpc('app_equipment_list', { p_token: token }).catch(function () { return []; }),
+      rpc('app_service_kpi_ext', { p_token: token }).catch(function () { return []; })
     ]).then(function (r) {
-      list = r[0] || []; var k = (r[1] && r[1][0]) || {}; customers = r[2] || []; eq = r[3] || [];
+      list = r[0] || []; var k = (r[1] && r[1][0]) || {}; customers = r[2] || []; eq = r[3] || []; var ke = (r[4] && r[4][0]) || {};
       $('#kpis').innerHTML = cell('Открытых', num(k.open), num(k.open) ? '#92400e' : '') +
         cell('Критичных', num(k.critical), num(k.critical) ? '#b91c1c' : '') +
         cell('Просрочено SLA', num(k.overdue_sla), num(k.overdue_sla) ? '#b91c1c' : '') +
         cell('MTTR, ч', k.mttr_hours != null ? num(k.mttr_hours) : '—') +
+        cell('MTBF, ч', ke.mtbf_hours != null ? num(ke.mtbf_hours) : '—') +
         cell('FTFR, %', k.ftfr_pct != null ? num(k.ftfr_pct) : '—') +
+        cell('Активных выездов', num(ke.active_visits)) +
         cell('Затраты', money(k.cost_sum));
       render();
       if (cur) loadDetail(cur.id);
@@ -329,8 +332,71 @@
       });
   }
 
+  /* ---------- Правила IIoT и загрузка инженеров ---------- */
+  var iotRules = [];
+  function loadRules() {
+    rpc('app_service_iot_rules_list', { p_token: token }).then(function (r) {
+      iotRules = r || [];
+      $('#ruleList').innerHTML = iotRules.length ? '<table class="tbl"><thead><tr><th>Метрика</th><th>Условие</th><th>Приоритет</th><th>Вид</th><th>Статус</th><th></th></tr></thead><tbody>' +
+        iotRules.map(function (x) { return '<tr><td><b>' + esc(x.metric) + '</b></td><td>' + esc(x.op) + ' ' + num(x.threshold) + '</td><td>' + (PRIO[x.priority] || x.priority) + '</td>' +
+          '<td>' + (KIND[x.kind] || x.kind) + '</td><td><span class="badge ' + (x.active ? 'done' : 'cancelled') + '">' + (x.active ? 'активно' : 'выкл') + '</span></td>' +
+          '<td style="white-space:nowrap;"><button class="act" data-redit="' + x.id + '">Изменить</button><button class="act danger" data-rdel="' + x.id + '">Удалить</button></td></tr>'; }).join('') + '</tbody></table>' : '<span class="note">Правил нет.</span>';
+      $$('#ruleList [data-redit]').forEach(function (b) { b.addEventListener('click', function () { ruleForm(iotRules.filter(function (x) { return x.id === b.dataset.redit; })[0]); }); });
+      $$('#ruleList [data-rdel]').forEach(function (b) { b.addEventListener('click', function () { if (!window.confirm('Удалить правило?')) return; rpc('app_service_iot_rule_delete', { p_token: token, p_id: b.dataset.rdel }).then(function (d) { var r2 = d && d[0]; msg('#refMsg', r2 ? r2.message : '', r2 && r2.ok ? 'ok' : 'err'); loadRules(); }); }); });
+    }).catch(function () { $('#ruleList').innerHTML = '<span class="note">Недоступно.</span>'; });
+  }
+  function ruleForm(x) {
+    x = x || {};
+    ui.formDialog({ title: x.id ? 'Правило IIoT' : 'Новое правило IIoT', okText: 'Сохранить', fields: [
+      { name: 'metric', label: 'Метрика', type: 'text', required: true, placeholder: 'temperature' },
+      { name: 'op', label: 'Оператор', type: 'select', options: [{ value: '>=', label: '>=' }, { value: '>', label: '>' }] },
+      { name: 'threshold', label: 'Порог', type: 'text', required: true, value: '1' },
+      { name: 'priority', label: 'Приоритет', type: 'select', options: [{ value: 'low', label: 'Низкий' }, { value: 'normal', label: 'Обычный' }, { value: 'high', label: 'Высокий' }, { value: 'critical', label: 'Критичный' }] },
+      { name: 'kind', label: 'Вид заявки', type: 'select', options: [{ value: 'repair', label: 'Ремонт' }, { value: 'service', label: 'Сервис' }] },
+      { name: 'active', label: 'Активно', type: 'checkbox' }
+    ], values: { metric: x.metric || '', op: x.op || '>=', threshold: x.threshold != null ? String(x.threshold) : '1', priority: x.priority || 'critical', kind: x.kind || 'repair', active: (x.id ? x.active : true) ? 'да' : '' } })
+      .then(function (v) { if (!v) return; var th = parseFloat(String(v.threshold).replace(',', '.'));
+        rpc('app_service_iot_rule_save', { p_token: token, p_id: x.id || null, p_metric: v.metric, p_op: v.op, p_threshold: isNaN(th) ? 1 : th, p_priority: v.priority, p_kind: v.kind, p_active: !!v.active })
+          .then(function (d) { var r = d && d[0]; msg('#refMsg', r ? r.message : '', r && r.ok ? 'ok' : 'err'); if (r && r.ok) loadRules(); });
+      });
+  }
+  function loadEngineerLoad() {
+    rpc('app_service_engineer_load', { p_token: token }).then(function (r) {
+      r = r || [];
+      $('#loadList').innerHTML = r.length ? '<table class="tbl"><thead><tr><th>Инженер</th><th class="num">Выездов</th><th class="num">Заявок</th></tr></thead><tbody>' +
+        r.map(function (x) { return '<tr><td>' + esc(x.engineer) + '</td><td class="num">' + num(x.open_visits) + '</td><td class="num">' + num(x.open_requests) + '</td></tr>'; }).join('') + '</tbody></table>' : '<span class="note">Активных выездов нет.</span>';
+    }).catch(function () { $('#loadList').innerHTML = '<span class="note">Недоступно.</span>'; });
+  }
+
+  /* ---------- Акт (печать) ---------- */
+  function openAct() {
+    if (!cur) return;
+    rpc('app_service_act', { p_token: token, p_id: cur.id }).then(function (r) {
+      var a = (r || [])[0]; if (!a) { msg('#iMsg', 'Нет данных акта', 'err'); return; }
+      var w = window.open('', '_blank');
+      if (!w) { msg('#iMsg', 'Разрешите всплывающие окна', 'err'); return; }
+      var rows = [
+        ['Номер', a.number], ['Заказчик', a.customer || '—'], ['Оборудование', a.equipment || '—'],
+        ['Тема', a.title || ''], ['Инженер', a.engineer || '—'],
+        ['Создана', fmtTs(a.reported_at)], ['Выполнена', fmtTs(a.resolved_at)],
+        ['Работы', a.works || ''], ['Решение', a.solution || ''], ['Запчасти', a.parts || '—'],
+        ['Стоимость работ', money(a.cost)], ['Стоимость запчастей', money(a.parts_cost)]
+      ];
+      w.document.write('<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Акт ' + esc(a.number) + '</title>' +
+        '<style>body{font-family:Segoe UI,Roboto,sans-serif;padding:28px;color:#0f172a}h1{font-size:18px}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:8px;border:1px solid #cbd5e1;font-size:14px}td:first-child{width:180px;color:#475569;background:#f8fafc}.sig{margin-top:36px;display:flex;justify-content:space-between}.sig div{border-top:1px solid #94a3b8;padding-top:6px;width:45%}</style></head><body>' +
+        '<h1>Акт выполненных работ — ' + esc(a.number) + '</h1><table>' +
+        rows.map(function (row) { return '<tr><td>' + esc(row[0]) + '</td><td>' + esc(row[1] == null ? '—' : String(row[1])) + '</td></tr>'; }).join('') +
+        '</table><div class="sig"><div>Исполнитель</div><div>Заказчик</div></div>' +
+        '<p style="margin-top:20px;color:#64748b;font-size:12px">3DMP Service · сервис и ремонт · сформировано ' + new Date().toLocaleString('ru-RU') + '</p>' +
+        '<script>window.print()</' + 'script></body></html>');
+      w.document.close();
+    }).catch(function (e) { msg('#iMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
+
   $('#myBtn').addEventListener('click', function () { loadMyVisits(); screens.go('s-visits'); });
-  $('#refBtn').addEventListener('click', function () { loadRefs(); screens.go('s-refs'); });
+  $('#refBtn').addEventListener('click', function () { loadRefs(); loadRules(); loadEngineerLoad(); screens.go('s-refs'); });
+  $('#ruleAdd').addEventListener('click', function () { ruleForm(null); });
+  $('#actBtn').addEventListener('click', openAct);
   $('#backM').addEventListener('click', function () { screens.go('s-list'); });
   $('#backR').addEventListener('click', function () { screens.go('s-list'); });
   $('#warrAdd').addEventListener('click', function () { warrForm(null); });
