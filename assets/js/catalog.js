@@ -8,8 +8,8 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '8.0',
-  updated: '06.10.2026',
+  version: '8.1',
+  updated: '07.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
      По умолчанию — done; здесь перечислены частично реализованные и черновые. */
@@ -26,7 +26,7 @@ window.AppCatalog = {
     hr:39, departments:40, staff:41, org:42, roles:43,
     dicts:44, config:45, reverse:46, partners:47, equipment:48, suppliers:49, procurement:50, supplier:51,
     marketplace:52, escrow:53, labels:54, engraving:55, files:56, builder:57, industry:58, usage:59, adoption:60,
-    guide:61, modules:62, platform:63, admin:64, diagnostics:65, scale:66, whitelabel:67, api:68, eco:99
+    guide:61, modules:62, platform:63, admin:64, diagnostics:65, scale:66, whitelabel:67, api:68, announcements:69, eco:99
   },
   implOrderOf: function (id) { return (this.implOrder && this.implOrder[id]) || 999; },
   priorityOf: function (id) { var n = this.implOrderOf(id); return n <= 9 ? 1 : (n <= 21 ? 2 : (n <= 33 ? 3 : 4)); },
@@ -597,6 +597,13 @@ window.AppCatalog = {
       purpose: 'White-label: организация настраивает поддомен/домен и бренд (логотип, акцентный цвет, слоган); тема применяется в интерфейсе по поддомену.',
       features: ['Поддомен (уникальный)', 'Свой домен', 'Логотип и слоган', 'Акцентный цвет/тема', 'Предпросмотр', 'Разрешение темы по поддомену', 'Настройка backend снимков /shot (endpoint/токен/проверка)'],
       connects: ['org', 'platform', 'panel'], in_: 'Бренд организации', out: 'Тема интерфейса'
+    },
+    {
+      id: 'announcements', icon: '📣', title: 'Объявления', href: 'apps/announcements/index.html', guest: false, roles: ['admin', 'owner'], group: 'platform', audience: 'client_admin',
+      desc: 'W1: объявления платформы/организации — баннер на главной, тех.работы, прочтение.',
+      purpose: 'Объявления платформы и организации: типы (информация/релиз/плановые тех.работы/критично), период показа, закрепление; активные объявления выводятся в баннере на главной (critical/pinned — первыми), прочтение фиксируется, о плановых тех.работах за 24 часа рассылаются уведомления.',
+      features: ['Объявления платформы (все организации) и организации', 'Типы: информация/релиз/тех.работы/критично', 'Период показа (начало/окончание) и закрепление', 'Баннер на главной с каруселью и приоритетами', 'Учёт прочтений', 'Авторассылка уведомлений о плановых тех.работах'],
+      connects: ['dashboard', 'panel', 'support', 'org'], in_: 'Публикация (admin/owner)', out: 'Баннер + уведомления'
     }
   ]
 };

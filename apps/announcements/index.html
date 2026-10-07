@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Объявления — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=32">
+<style>
+  .an-kind { display:inline-block; font-size:.68rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; padding:3px 9px; border-radius:999px; border:1px solid var(--border); background:#fff; }
+  .an-kind.k-info { color:var(--accent-700); }
+  .an-kind.k-release { color:#1d4ed8; }
+  .an-kind.k-maintenance { color:#b45309; border-color:#fcd34d; background:#fffbeb; }
+  .an-kind.k-critical { color:#b91c1c; border-color:#fca5a5; background:#fef2f2; }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">📣</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap fluid">
+    <div class="hero"><h1>Объявления</h1><p>Объявления платформы и организации: баннер на главной, приоритеты и рассылка о плановых тех.работах. Доступно ролям <b>admin</b> и <b>owner</b>.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="card mt">
+      <div class="toolbar">
+        <button class="btn" id="newBtn" style="width:auto;padding:9px 16px;">＋ Новое объявление</button>
+        <span class="note" style="margin-left:auto;">Критичные и закреплённые показываются первыми; прочтение фиксируется.</span>
+      </div>
+      <div class="msg" id="msg"></div>
+      <div id="list" class="mt"><span class="note">Загрузка…</span></div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · объявления</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=4"></script>
+  <script src="../../assets/js/auth.js?v=6"></script>
+  <script src="../../assets/js/notify.js?v=2"></script>
+  <script src="../../assets/js/support-widget.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=60"></script>
+  <script src="../../assets/js/shell.js?v=20"></script>
+  <script src="announcements.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=1"></script>
+  <script src="../../assets/js/module-info.js?v=1"></script>
+</body>
+</html>

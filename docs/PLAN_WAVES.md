@@ -10,7 +10,8 @@
 - **Инварианты:** русский язык; светлая палитра, акцент `#10b981`, тёмная — опция; `?v=N`; UTF-8 для SQL; `apply_all.sql` пересобирать; смоук после миграций; доки в конце.
 
 ## 1. Текущее состояние (старт волн)
-- Миграции `0001…0115`, смоук 10/10 и 14/14; приложений 75; каталог v8.0.
+- Миграции `0001…0116`, смоук 10/10 и 14/14; приложений 76; каталог v8.1.
+- **W1 выполнена (v162):** объявления + плановые тех.работы (миграция `0116`, модуль `apps/announcements`, баннер на главной).
 - Единая панель (Тема·Сервер·Вход·Пользователь) и меню-drawer — унифицированы.
 - Дизайн-система: `.card/.tbl/.ucard/.urow/.mod-info/.cab-*`; тёмная тема (кнопка).
 
@@ -23,12 +24,12 @@
 - [ ] Единая версия `notify.js` во всех страницах.
 **DoD:** чек-лист закрыт; коммит.
 
-### W1. Объявления и плановые тех.работы (миграция `0116`)
+### W1. Объявления и плановые тех.работы (миграция `0116`) — ☑ выполнено (v162)
 **Цель:** окно объявлений на главной + в колокольчике; рассылка о плановых тех.работах.
 - Данные: `app_announcements` (tenant_id NULL=платформа, kind: `info|maintenance|release|critical`, title, body, url, starts_at, ends_at, active, pinned), `app_announcement_reads` (announcement_id, login, read_at).
-- RPC: `app_announcements_active`, `app_announcement_save/delete` (admin), `app_announcement_read`.
-- UI: баннер `#hero` показывает активные (critical/pinned — первыми, карусель); админ-раздел создания (в `apps/admin` или `apps/whitelabel`); при `kind=maintenance` — рассылка `app_notifications` за N часов.
-**DoD:** админ публикует/снимает; баннер и колокольчик показывают; прочтение фиксируется.
+- RPC: `app_announcements_active`, `app_announcements_all`, `app_announcement_save/delete` (admin/owner), `app_announcement_read`, `app_announcements_scan`.
+- UI: баннер `#hero` (`assets/js/hero-ann.js`) показывает активные (critical/pinned — первыми, карусель, прочтение); раздел управления — модуль `apps/announcements` (admin/owner); при `kind=maintenance` — рассылка `app_notifications` за 24 ч.
+**DoD:** админ публикует/снимает; баннер и колокольчик показывают; прочтение фиксируется. ✅ (смоук 10/10 и 14/14; функц. тест: рассылка 13 получателям, прочтение фиксируется).
 
 ### W2. Качество: SPC и претензии/CAPA (`0117`)
 - Измерения `app_qc_measures` (position_id/param, value, ts); RPC: x̄/Rs, контрольные границы, Cp/Cpk; UI в `apps/qc` (карта + индексы).
