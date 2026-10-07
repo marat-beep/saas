@@ -16,7 +16,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#2563eb">
 <link rel="icon" href="assets/icons/app.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/app.css?v=21">
+<link rel="stylesheet" href="assets/css/app.css?v=22">
 <style>
   .grp { margin-bottom: 18px; }
   .grp-t { font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 10px; }
@@ -51,6 +51,8 @@
     <input type="search" id="hubSearch" class="search" placeholder="Поиск по модулям и функциям: напр. «КП», «нормы», «слоты», «фрезеровка»…" style="width:100%;margin-bottom:16px;padding:12px 14px;">
 
     <div class="kpi-row" id="hubStats" style="margin-bottom:16px;"></div>
+
+    <div class="ugrid" id="hubTools" style="margin-bottom:16px;"></div>
     <script>if ('serviceWorker' in navigator && location.protocol === 'https:') { navigator.serviceWorker.register('sw.js', { scope: './' }).catch(function () {}); }</script>
 
     <section class="card">
@@ -141,6 +143,17 @@
           '<div class="ulist uextra" id="ux-' + gid + '">' + extra.map(function (a) { return urow(a, logged); }).join('') + '</div>';
         return h;
       }
+      var TOOLS = ['norms', 'calc', 'docbuilder', 'bom', 'forecast', 'labels', 'assistant', 'reports'];
+      function renderTools(user, list) {
+        var el = document.getElementById('hubTools'); if (!el) return;
+        var byId = {}; list.forEach(function (a) { byId[a.id] = a; });
+        var tools = TOOLS.map(function (id) { return byId[id]; }).filter(Boolean);
+        if (!tools.length) { el.innerHTML = ''; return; }
+        el.innerHTML = '<div class="ucard"><h3>🧰 Быстрые инструменты</h3>' +
+          '<div class="udesc">Простые калькуляторы и генераторы — в один клик.</div>' +
+          '<div class="ulist">' + tools.map(function (a) { return urow(a, !!user); }).join('') + '</div></div>';
+      }
+
       function renderApps(user) {
         var logged = !!user;
         var list = C.apps.filter(function (a) {
@@ -204,6 +217,13 @@
       function refreshUI() {
         currentUser = window.Auth.session();
         renderAccount(currentUser);
+        var vis = C.apps.filter(function (a) {
+          if (!currentUser) return true;
+          if (currentUser.role === 'client') return !!(a.roles && a.roles.indexOf('client') >= 0);
+          if (!a.roles) return true;
+          return a.roles.indexOf(currentUser.role) >= 0;
+        });
+        renderTools(currentUser, vis);
         renderApps(currentUser);
       }
 
