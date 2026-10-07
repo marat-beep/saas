@@ -9,7 +9,7 @@
   'use strict';
 
   var SELF = document.currentScript;
-  var CATALOG_V = '74';
+  var CATALOG_V = '75';
 
   function ready(fn) {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);

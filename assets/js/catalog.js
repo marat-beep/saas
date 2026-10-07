@@ -8,7 +8,7 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '9.8',
+  version: '9.9',
   updated: '07.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
@@ -156,8 +156,8 @@ window.AppCatalog = {
       id: 'procurement', icon: '🛒', title: 'Закупки', href: 'apps/procurement/index.html', guest: false, group: 'sales', audience: 'user',
       desc: 'Публикация закупок, приём КП, выбор победителя.',
       purpose: 'Снабжение: публикация потребностей, сбор коммерческих предложений, выбор поставщика.',
-      features: ['Создание/публикация закупки', 'Сбор КП', 'Сравнение цен/сроков', 'Выбор победителя', 'Уведомления поставщикам'],
-      connects: ['supplier', 'warehouse', 'finance'], in_: 'Потребность', out: 'Победитель, КП'
+      features: ['Создание/публикация закупки', 'Сбор КП', 'Сравнение цен/сроков', 'Выбор победителя', 'Отчёт по закупкам (PDF)', 'Роли (data-cap)', 'Уведомления поставщикам'],
+      connects: ['supplier', 'warehouse', 'finance', 'orders'], in_: 'Потребность (заявка/ремонт)', out: 'Победитель, КП'
     },
     {
       id: 'suppliers', icon: '🏭', title: 'Реестр поставщиков', href: 'apps/suppliers/index.html', guest: false, group: 'sales', audience: 'user',

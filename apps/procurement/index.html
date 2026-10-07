@@ -22,6 +22,12 @@
     <section class="screen active" id="s-list">
       <div class="hero"><h1>Закупки</h1><p>Потребность → публикация → КП поставщиков → выбор победителя. Связь с заявкой и поставщиками.</p></div>
       <div class="kpi-row" id="kpis"></div>
+    <div class="sv-actions" style="margin-top:10px;">
+      <button class="btn secondary" data-cap="reports" id="repBtn">📄 Отчёт PDF</button>
+      <a class="btn secondary" href="../supplier/index.html">📦 Портал поставщика ↗</a>
+      <a class="btn secondary" href="../warehouse/index.html">🏭 Склад ↗</a>
+      <a class="btn secondary" href="../orders/index.html">📥 Заказы ↗</a>
+    </div>
       <div class="card mt">
         <div class="toolbar">
           <input type="search" class="search" id="q" placeholder="Поиск: название, категория, материал, заявка…">
@@ -29,7 +35,7 @@
             <span class="chip active" data-f="">Все</span><span class="chip" data-f="open">Открытые</span>
             <span class="chip" data-f="awarded">С победителем</span><span class="chip" data-f="closed">Закрытые</span>
           </div>
-          <button class="btn" id="toCreate" style="width:auto;padding:11px 18px;">＋ Новая закупка</button>
+          <button class="btn" data-cap="edit" id="toCreate" style="width:auto;padding:11px 18px;">＋ Новая закупка</button>
         </div>
         <div id="listMsg"></div>
         <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
@@ -59,7 +65,7 @@
           <div class="field"><label>Заказчик</label><input type="text" id="fCustomer" placeholder="ООО «Привод»"></div>
           <div class="field"><label>Срок подачи КП</label><input type="date" id="fDeadline"></div>
         </div>
-        <button class="btn" id="createBtn">Опубликовать закупку</button>
+        <button class="btn" data-cap="edit" id="createBtn">Опубликовать закупку</button>
       </div>
     </section>
 
@@ -78,7 +84,7 @@
             <select id="dStatus"><option value="open">Открыта</option><option value="closed">Закрыта</option></select>
           </div>
         </div>
-        <button class="btn secondary" id="stBtn">Сохранить статус</button>
+        <button class="btn secondary" data-cap="edit" id="stBtn">Сохранить статус</button>
       </div>
     </section>
   </main>
@@ -93,9 +99,10 @@
   <script src="../../assets/js/router.js?v=1"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=77"></script>
-  <script src="../../assets/js/shell.js?v=38"></script>
-  <script src="procurement.js?v=2"></script>
+  <script src="../../assets/js/nav.js?v=78"></script>
+  <script src="../../assets/js/shell.js?v=39"></script>
+  <script src="../../assets/js/export.js?v=1"></script>
+  <script src="procurement.js?v=3"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>

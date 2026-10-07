@@ -9,6 +9,12 @@
   var token = null, me = null, tenders = [], orders = [], cur = null, filter = '', q = '';
 
   var ST = { open: 'Открыта', awarded: 'Победитель', closed: 'Закрыта' };
+
+  /* ---------- Роли (data-cap) ---------- */
+  var ALL = { edit: 1, reports: 1 };
+  var CAPS = { admin: ALL, owner: ALL, director: ALL, manager: ALL, supply: ALL, chief: { reports: 1 }, economist: { reports: 1 }, default: { reports: 1 } };
+  function can(c) { return !!(me && (CAPS[me.role] || CAPS['default'])[c]); }
+  function applyCaps() { $$('[data-cap]').forEach(function (el) { var n = (el.dataset.cap || '').split('|'); if (!n.some(can)) el.style.display = 'none'; }); }
   function stBadge(s) { return '<span class="badge ' + s + '">' + (ST[s] || s) + '</span>'; }
   function bidBadge(s) { var m = { submitted: 'Подано', accepted: 'Принято', rejected: 'Отклонено' }; return '<span class="badge ' + (s === 'accepted' ? 'done' : s === 'rejected' ? 'cancelled' : '') + '">' + (m[s] || s) + '</span>'; }
   function esc(v) { return ui.esc(v); }
@@ -36,6 +42,26 @@
       cell('Открыто', c.open) + cell('С победителем', c.awarded) + cell('Закрыто', c.closed) + cell('КП подано', c.bids);
     function cell(l, v) { return '<div class="kpi"><small>' + l + '</small><b>' + v + '</b></div>'; }
   }
+  /* ---------- Отчёт (закупки) ---------- */
+  function reportPdf() {
+    if (!window.AppExport) { ui.toast('Экспорт недоступен'); return; }
+    var best = tenders.reduce(function (s, t) { return s + (Number(t.best_price) || 0); }, 0);
+    var cols = [
+      { key: 'title', label: 'Закупка' }, { key: 'category', label: 'Категория' }, { key: 'material', label: 'Материал' },
+      { key: 'qty', label: 'Кол-во', num: true }, { key: 'unit', label: 'Ед.' },
+      { key: 'status', label: 'Статус', value: function (t) { return ST[t.status] || t.status; } },
+      { key: 'deadline', label: 'Срок', value: function (t) { return t.deadline ? String(t.deadline).slice(0, 10) : ''; } },
+      { key: 'bids_count', label: 'КП', num: true }, { key: 'best_price', label: 'Лучшая цена', num: true, value: function (t) { return money(t.best_price); } }
+    ];
+    AppExport.exportPdf('Закупки — отчёт', AppExport.reportDocument({
+      brand: '3DMP Service', title: 'Отчёт по закупкам (тендеры)', subtitle: new Date().toLocaleDateString('ru-RU'),
+      kpis: [{ label: 'Закупок', value: tenders.length }, { label: 'Сумма лучших КП', value: money(best) }],
+      sections: [{ title: 'Закупки', columns: cols, rows: tenders }],
+      sign: ['Отдел снабжения', 'Руководитель'], footer: '3DMP Service · закупки'
+    }));
+  }
+  $('#repBtn').addEventListener('click', reportPdf);
+
   function filtered() {
     var s = q.toLowerCase();
     return tenders.filter(function (t) {
@@ -148,7 +174,7 @@
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
-    me = s; token = s.token;
+    me = s; token = s.token; applyCaps();
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#listMsg', 'Supabase не подключён.', 'err'); return; }
     load();

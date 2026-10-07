@@ -5,8 +5,8 @@
 > **Конец сессии:** обнови статусы пунктов (и краткий журнал в §5), затем `PLAN.md`/`PROMPTS.md` при необходимости.
 
 ## 1. Состояние (кратко)
-- Миграции `0001…0141`, `apply_all.sql` идемпотентен; смоук `app_smoke_test` 10/10, `app_smoke_test_ext` 14/14.
-- Приложений 78 (`apps/`), прототипов 72 (`eco/apps`); каталог `catalog.js` v9.8 — единый источник модулей.
+- Миграции `0001…0142`, `apply_all.sql` идемпотентен; смоук `app_smoke_test` 10/10, `app_smoke_test_ext` 14/14.
+- Приложений 78 (`apps/`), прототипов 72 (`eco/apps`); каталог `catalog.js` v9.9 — единый источник модулей.
 - Методика типового апгрейда модуля — `docs/MODULE_BLUEPRINT.md`.
 - **Релиз:** `tools/build-release.ps1` → `dist/saas-YYYYMMDD-HHmm.zip` (деплой-артефакты для FTP; `dist/` в .gitignore).
 - **Типовой инструментарий:** `.sv-actions`, `.tabs2`, `.act` в `app.css`; `shell.js` (сайдбар + системный поиск) подключён во всех модулях `apps/`.
@@ -40,7 +40,7 @@
 | M3 | средний | Апгрейд модуля: Качество (`qc`/`claims`) | по `MODULE_BLUEPRINT`: отчёты (`app_qc_report`, `app_claims_report`; PDF/CSV), роли `data-cap`, `shell.js`+`export.js` | — | ☑ (v187) |
 | M4 | средний | Апгрейд модуля: Экономика (`economics`) | по `MODULE_BLUEPRINT`: отчёт по экономике (PDF/CSV, клиентский), роли `data-cap`, `shell.js`+`export.js`, переходы Заказы/Финансы/Справочники; KB | — | ☑ (v188) |
 | M5 | средний | Апгрейд модуля: Кадры (`hr`) | по `MODULE_BLUEPRINT`: отчёт по персоналу (PDF), роли `data-cap`, `export.js`, переходы staff/departments/roles; KB | — | ☑ (v189) |
-| M6 | средний | Апгрейд модулей: производство/закупки/склад/документы/финансы | по `MODULE_BLUEPRINT` (очередь §7). **`production` — ☑ (v190):** отчёт (PDF), роли `data-cap`, `export.js`, переходы заказы/маршруты/MES/OEE, KB. Далее: procurement, warehouse, docs, finance | — | ◑ (production v190) |
+| M6 | средний | Апгрейд модулей: производство/закупки/склад/документы/финансы | по `MODULE_BLUEPRINT` (очередь §7). **`production` — ☑ (v190); `procurement` — ☑ (v191):** отчёт (PDF), роли `data-cap`, `export.js`, переходы supplier/warehouse/orders, KB. Далее: warehouse, docs, finance | — | ◑ (production v190, procurement v191) |
 | S1 | высокий | Малые доработки UI | — | см. §4 | ☐ |
 
 ## 4. Мелкие пункты (быстрые)
@@ -62,6 +62,7 @@
 - v168 — правило «ТЗ → аудит → дополнение» и накопленные приёмы внесены в `MODULE_STANDARD.md` §6–7 и `AGENTS.md`; разобран ТЗ «Сервис и ремонт ЧПУ» (в корне), задача дополнения `apps/service` поставлена в очередь (P8, шаги S1–S3).
 - v169 — **W-S (S1, 0122)**: Сервис ЧПУ по ТЗ — SR v2 (`app_service_history`, `app_service_visits`, SLA-план по приоритету, `app_service_assign`, KPI SLA/MTTR/FTFR/CSAT, `app_service_iiot_auto`); UI `apps/service` (KPI, фильтры, карточка, таймлайн, выезды); каталог v8.6, nav v65/shell v25.
 - v170 — **W-S (S2, 0123)**: Сервис ЧПУ — гарантии (`app_warranties`) и сервисные контракты (`app_service_contracts`, SLA); резерв запчастей под заявку (`app_service_parts` ⟂ `app_spare_parts`); авто-гарантия и SLA из контракта при создании заявки; мобильные выезды (`app_service_my_visits`) с офлайн-очередью; UI: деталь (гарантия/контракт/запчасти), экраны «Гарантии/контракты» и «Мои выезды»; каталог v8.7, nav v66/shell v26.
+- v191 — **M6 Закупки (0142)**: отчёт по закупкам (PDF), роли `data-cap`, `export.js`, переходы поставщик/склад/заказы, KB; каталог v9.9, nav v78/shell v39.
 - v190 — **M6 Производство (0141)**: отчёт по нарядам (PDF), роли `data-cap`, `export.js`, переходы заказы/маршруты/MES/OEE, KB; каталог v9.8, nav v77/shell v38.
 - v189 — **M5 Кадры (0140)**: отчёт по персоналу (PDF), роли `data-cap`, `export.js`, переходы Сотрудники(реестр)/Подразделения/Роли; каталог v9.7, nav v76/shell v37.
 - v188 — **M4 Экономика + инструментарий + релиз (0139)**: экономика — отчёт по себестоимости/марже (PDF/CSV), роли `data-cap`, `export.js`, переходы Заказы/Финансы/Справочники, KB; **типовой инструментарий** (`.sv-actions`/`.tabs2` в `app.css`, `shell.js` во всех модулях); **релиз-сборка** `tools/build-release.ps1` → `dist/saas-<date>.zip`; каталог v9.6, nav v75/shell v36, app.css v35.
