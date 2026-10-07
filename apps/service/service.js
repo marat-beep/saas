@@ -6,6 +6,7 @@
   'use strict';
   var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa, SB = window.SB;
   var token = null, me = null, list = [], customers = [], eq = [], cur = null, filter = '', q = '';
+  var lastK = {}, lastKe = {};
 
   var KIND = { service: 'Сервис', repair: 'Ремонт', warranty: 'Гарантия' };
   var ST = { new: 'Новая', scheduled: 'Запланирована', in_progress: 'В работе', done: 'Выполнена', cancelled: 'Отменена' };
@@ -25,6 +26,31 @@
   function rpc(n, a) { return SB.rpc(n, a).then(function (r) { if (r.error) throw new Error(r.error.message); return r.data; }); }
   var screens = AppRouter.create({ onShow: function () { window.scrollTo(0, 0); }, onBackEmpty: function () { location.href = '../../index.html'; } });
 
+  /* ---------- Роли: доступные функции (оргструктура службы) ---------- */
+  var ALL = { dash:1, list:1, visits:1, refs:1, reports:1, new:1, edit:1, assign:1, supply:1, act:1, passport:1, parts:1, rules:1, iiot:1 };
+  var CAPS = {
+    admin: ALL, owner: ALL, director: ALL,
+    manager: { dash:1, list:1, visits:1, refs:1, reports:1, new:1, edit:1, assign:1, supply:1, act:1, passport:1, parts:1, iiot:1, rules:1 },
+    chief:   { dash:1, list:1, visits:1, refs:1, reports:1, new:1, edit:1, assign:1, supply:1, act:1, passport:1, parts:1, iiot:1, rules:1 },
+    support: { list:1, new:1, edit:1, assign:1, act:1, visits:1, passport:1 },
+    master:  { list:1, visits:1, edit:1, act:1, passport:1, parts:1 },
+    qc:      { list:1, visits:1, edit:1, act:1, passport:1 },
+    default: { list:1, visits:1, act:1, passport:1 }
+  };
+  function capsFor(role) { return CAPS[role] || CAPS['default']; }
+  function can(c) { return !!(me && capsFor(me.role)[c]); }
+  function applyCaps() {
+    $$('[data-cap]').forEach(function (el) {
+      var need = (el.dataset.cap || '').split('|');
+      var ok = need.some(function (n) { return can(n); });
+      if (!ok) { el.style.display = 'none'; el.classList.remove('active'); }
+    });
+  }
+  function setActiveTab(id) {
+    $$('#tabs button').forEach(function (b) { b.classList.toggle('active', b.dataset.go === id); });
+  }
+  function go(id) { setActiveTab(id); screens.go(id); if (id === 's-visits') loadMyVisits(); if (id === 's-refs') { loadRefs(); loadRules(); loadEngineerLoad(); } if (id === 's-reports') loadReports(); if (id === 's-dash') renderDash(); }
+
   function load() {
     return Promise.all([
       rpc('app_service_list', { p_token: token, p_q: null }),
@@ -42,7 +68,8 @@
         cell('FTFR, %', k.ftfr_pct != null ? num(k.ftfr_pct) : '—') +
         cell('Активных выездов', num(ke.active_visits)) +
         cell('Затраты', money(k.cost_sum));
-      render();
+      lastK = k; lastKe = ke;
+      render(); renderDash();
       if (cur) loadDetail(cur.id);
     }).catch(function (e) { msg('#listMsg', 'Ошибка: ' + e.message, 'err'); });
     function cell(l, v, c) { return '<div class="kpi"><small>' + l + '</small><b' + (c ? ' style="color:' + c + '"' : '') + '>' + v + '</b></div>'; }
@@ -78,6 +105,7 @@
   }
 
   function kv(k, v) { return v ? '<div class="kvr"><span class="k">' + k + '</span><b>' + esc(v) + '</b></div>' : ''; }
+  function kpi(l, v, c) { return '<div class="kpi"><small>' + l + '</small><b' + (c ? ' style="color:' + c + '"' : '') + '>' + v + '</b></div>'; }
   function openItem(id) { cur = { id: id }; screens.go('s-item'); loadDetail(id); }
   function loadDetail(id) {
     Promise.all([
@@ -360,12 +388,13 @@
           .then(function (d) { var r = d && d[0]; msg('#refMsg', r ? r.message : '', r && r.ok ? 'ok' : 'err'); if (r && r.ok) loadRules(); });
       });
   }
-  function loadEngineerLoad() {
+  function loadEngineerLoad(sel) {
+    sel = sel || '#loadList';
     rpc('app_service_engineer_load', { p_token: token }).then(function (r) {
       r = r || [];
-      $('#loadList').innerHTML = r.length ? '<table class="tbl"><thead><tr><th>Инженер</th><th class="num">Выездов</th><th class="num">Заявок</th></tr></thead><tbody>' +
+      $(sel).innerHTML = r.length ? '<table class="tbl"><thead><tr><th>Инженер</th><th class="num">Выездов</th><th class="num">Заявок</th></tr></thead><tbody>' +
         r.map(function (x) { return '<tr><td>' + esc(x.engineer) + '</td><td class="num">' + num(x.open_visits) + '</td><td class="num">' + num(x.open_requests) + '</td></tr>'; }).join('') + '</tbody></table>' : '<span class="note">Активных выездов нет.</span>';
-    }).catch(function () { $('#loadList').innerHTML = '<span class="note">Недоступно.</span>'; });
+    }).catch(function () { $(sel).innerHTML = '<span class="note">Недоступно.</span>'; });
   }
 
   /* ---------- Акт (печать) ---------- */
@@ -393,8 +422,8 @@
     }).catch(function (e) { msg('#iMsg', 'Ошибка: ' + e.message, 'err'); });
   }
 
-  $('#myBtn').addEventListener('click', function () { loadMyVisits(); screens.go('s-visits'); });
-  $('#refBtn').addEventListener('click', function () { loadRefs(); loadRules(); loadEngineerLoad(); screens.go('s-refs'); });
+  $('#myBtn').addEventListener('click', function () { go('s-visits'); });
+  $('#refBtn').addEventListener('click', function () { go('s-refs'); });
   $('#ruleAdd').addEventListener('click', function () { ruleForm(null); });
   $('#actBtn').addEventListener('click', openAct);
 
@@ -483,23 +512,103 @@
   $('#supplyBtn').addEventListener('click', supplyForm);
   $('#passportBtn').addEventListener('click', openPassport);
   $('#passportPdf').addEventListener('click', passportPdf);
-  $('#backE').addEventListener('click', function () { if (cur) screens.go('s-item'); else screens.go('s-list'); });
-  $('#backM').addEventListener('click', function () { screens.go('s-list'); });
-  $('#backR').addEventListener('click', function () { screens.go('s-list'); });
+  $('#backE').addEventListener('click', function () { if (cur) screens.go('s-item'); else go('s-list'); });
   $('#warrAdd').addEventListener('click', function () { warrForm(null); });
   $('#conAdd').addEventListener('click', function () { conForm(null); });
   $('#partAdd').addEventListener('click', partForm);
 
-  $('#backBtn').addEventListener('click', function () { cur = null; load(); screens.go('s-list'); });
+  $('#backBtn').addEventListener('click', function () { cur = null; load(); go('s-list'); });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
   window.addEventListener('online', function () { setTimeout(load, 1200); });
+
+  /* ---------- Дашборд ---------- */
+  function renderDash() {
+    var k = lastK, ke = lastKe;
+    var open = list.filter(function (r) { return r.status !== 'done' && r.status !== 'cancelled'; });
+    $('#dashKpis').innerHTML = kpi('Открытых', open.length, open.length ? '#92400e' : '') +
+      kpi('Критичных', num(k.critical), num(k.critical) ? '#b91c1c' : '') +
+      kpi('Просрочено SLA', num(k.overdue_sla), num(k.overdue_sla) ? '#b91c1c' : '') +
+      kpi('MTTR, ч', k.mttr_hours != null ? num(k.mttr_hours) : '—') +
+      kpi('MTBF, ч', ke.mtbf_hours != null ? num(ke.mtbf_hours) : '—') +
+      kpi('FTFR, %', k.ftfr_pct != null ? num(k.ftfr_pct) : '—') +
+      kpi('Активных выездов', num(ke.active_visits)) + kpi('Затраты', money(k.cost_sum));
+    var act = open.slice().sort(function (a, b) {
+      var pa = a.priority === 'critical' ? 0 : a.priority === 'high' ? 1 : 2, pb = b.priority === 'critical' ? 0 : b.priority === 'high' ? 1 : 2;
+      return pa - pb;
+    }).slice(0, 6);
+    $('#dashActive').innerHTML = act.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>№</th><th>Станок</th><th>Тема</th><th>Приоритет</th><th>Статус</th><th>Инженер</th><th>SLA</th></tr></thead><tbody>' +
+      act.map(function (r) { return '<tr data-id="' + r.id + '" style="cursor:pointer;"><td><b>' + esc(r.number) + '</b></td><td>' + esc(r.equipment || '—') + '</td><td>' + esc(r.title || '') + '</td>' +
+        '<td>' + prioBadge(r.priority) + '</td><td>' + (ST[r.status] || r.status) + '</td><td>' + esc(r.assigned_login || r.engineer || '—') + '</td>' +
+        '<td>' + (r.sla_state === 'overdue' ? '<span class="badge sla-overdue">просрочен</span>' : r.sla_state === 'warn' ? '<span class="badge sla-warn">истекает</span>' : '<span class="badge sla-ok">норма</span>') + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<span class="note">Открытых заявок нет.</span>';
+    $$('#dashActive tr[data-id]').forEach(function (tr) { tr.addEventListener('click', function () { openItem(tr.dataset.id); }); });
+    loadEngineerLoad('#dashLoad');
+    rpc('app_spare_parts_list', { p_token: token }).then(function (ps) {
+      var low = (ps || []).filter(function (p) { return p.low; });
+      $('#dashParts').innerHTML = low.length ? low.map(function (p) { return '<div class="kvr"><b>' + esc(p.name) + '</b><span class="note" style="margin-left:auto;">' + num(p.qty) + ' / мин ' + num(p.min_qty) + '</span></div>'; }).join('') : '<span class="note">Все позиции в норме.</span>';
+    }).catch(function () { $('#dashParts').innerHTML = '<span class="note">—</span>'; });
+    $('#dashHistory').innerHTML = list.slice(0, 6).map(function (r) {
+      return '<div class="tl-item"><div class="note">' + fmtTs(r.reported_at || r.created_at) + ' · ' + esc(r.number) + '</div><div>' + esc(r.title || '') + ' — ' + (ST[r.status] || r.status) + '</div></div>';
+    }).join('') || '<span class="note">Событий нет.</span>';
+  }
+
+  /* ---------- KPI и отчёты ---------- */
+  var reportRows = [];
+  function repCols() {
+    return [
+      { key: 'number', label: 'Номер' }, { key: 'reported_at', label: 'Создана', value: function (r) { return fmtTs(r.reported_at); } },
+      { key: 'customer', label: 'Заказчик' }, { key: 'equipment', label: 'Оборудование' }, { key: 'title', label: 'Тема' },
+      { key: 'priority', label: 'Приоритет', value: function (r) { return PRIO[r.priority] || r.priority; } },
+      { key: 'status', label: 'Статус', value: function (r) { return ST[r.status] || r.status; } },
+      { key: 'resolved_at', label: 'Выполнена', value: function (r) { return fmtTs(r.resolved_at); } },
+      { key: 'total', label: 'Сумма, ₽', num: true, value: function (r) { return money(r.total); } }
+    ];
+  }
+  function reportHtml() {
+    var rows = reportRows;
+    var total = rows.length, open = rows.filter(function (r) { return r.status !== 'done' && r.status !== 'cancelled'; }).length;
+    var done = rows.filter(function (r) { return r.status === 'done'; }).length;
+    var sum = rows.reduce(function (s, r) { return s + num(r.total); }, 0);
+    return AppExport.reportDocument({
+      brand: '3DMP Service', title: 'Отчёт по сервису и ремонту', subtitle: ($('#repFrom').value || '—') + ' — ' + ($('#repTo').value || '—'),
+      meta: [{ k: 'Сформирован', v: new Date().toLocaleString('ru-RU') }],
+      kpis: [{ label: 'Заявок', value: total }, { label: 'Открытых', value: open }, { label: 'Выполнено', value: done }, { label: 'Сумма', value: money(sum) }],
+      sections: [{ title: 'Заявки', columns: repCols(), rows: rows }],
+      sign: ['Руководитель сервиса', 'Главный инженер'], footer: '3DMP Service · сервис и ремонт'
+    });
+  }
+  function loadReports() {
+    if (!$('#repFrom').value) $('#repFrom').value = new Date(Date.now() - 90 * 864e5).toISOString().slice(0, 10);
+    if (!$('#repTo').value) $('#repTo').value = new Date().toISOString().slice(0, 10);
+    rpc('app_service_report', { p_token: token, p_from: $('#repFrom').value || null, p_to: $('#repTo').value || null }).then(function (rows) {
+      reportRows = rows || [];
+      var total = reportRows.length, open = reportRows.filter(function (r) { return r.status !== 'done' && r.status !== 'cancelled'; }).length;
+      var done = reportRows.filter(function (r) { return r.status === 'done'; }).length;
+      var sum = reportRows.reduce(function (s, r) { return s + num(r.total); }, 0);
+      $('#repKpis').innerHTML = kpi('Заявок', total) + kpi('Открытых', open) + kpi('Выполнено', done) + kpi('Сумма', money(sum));
+      $('#repTable').innerHTML = reportRows.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Номер</th><th>Создана</th><th>Заказчик</th><th>Оборудование</th><th>Тема</th><th>Приоритет</th><th>Статус</th><th class="num">Сумма</th></tr></thead><tbody>' +
+        reportRows.map(function (r) { return '<tr><td><b>' + esc(r.number) + '</b></td><td class="muted">' + fmtTs(r.reported_at) + '</td><td>' + esc(r.customer || '') + '</td><td>' + esc(r.equipment || '') + '</td>' +
+          '<td>' + esc(r.title || '') + '</td><td>' + prioBadge(r.priority) + '</td><td>' + (ST[r.status] || r.status) + '</td><td class="num">' + money(r.total) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<span class="note">Нет заявок за период.</span>';
+    }).catch(function (e) { msg('#repMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
+
+  $('#tabs').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b || !b.dataset.go) return; go(b.dataset.go);
+  });
+  $('#repFrom').addEventListener('change', loadReports);
+  $('#repTo').addEventListener('change', loadReports);
+  $('#repPdf').addEventListener('click', function () { if (window.AppExport) AppExport.exportPdf('Сервис — отчёт', reportHtml()); });
+  $('#repDoc').addEventListener('click', function () { if (window.AppExport) AppExport.exportDoc('Сервис — отчёт', 'Отчёт по сервису и ремонту', reportHtml()); });
+  $('#repCsv').addEventListener('click', function () { if (window.AppExport) AppExport.exportCsv('service-report', repCols(), reportRows); });
 
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
     me = s; token = s.token;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
+    applyCaps();
     if (!SB) { msg('#listMsg', 'Supabase не подключён.', 'err'); return; }
     load();
+    var land = can('dash') ? 's-dash' : (can('list') ? 's-list' : (can('visits') ? 's-visits' : 's-dash'));
+    setActiveTab(land); screens.go(land);
   });
 })();
