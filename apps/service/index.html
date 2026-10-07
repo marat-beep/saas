@@ -3,63 +3,97 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Сервис — 3DMP Service</title>
+<title>Сервис и ремонт — 3DMP Service</title>
 <link rel="stylesheet" href="../../assets/css/app.css?v=32">
 <style>
-  
-  @media(max-width:680px){}
+  .sv-prio { font-weight:700; }
+  .badge.p-critical { background:#fef2f2; color:#b91c1c; border-color:#fca5a5; }
+  .badge.p-high { background:#fffbeb; color:#b45309; border-color:#fcd34d; }
+  .badge.p-normal { background:#f1f5f9; color:#475569; }
+  .badge.p-low { background:#f1f5f9; color:#64748b; }
+  .badge.sla-overdue { background:#fef2f2; color:#b91c1c; border-color:#fca5a5; }
+  .badge.sla-warn { background:#fffbeb; color:#b45309; border-color:#fcd34d; }
+  .badge.sla-ok { background:#ecfdf5; color:#047857; border-color:#a7f3d0; }
+  .tl { position:relative; padding-left:16px; }
+  .tl:before { content:''; position:absolute; left:4px; top:2px; bottom:2px; width:2px; background:var(--border); }
+  .tl-item { position:relative; margin:0 0 10px; font-size:.82rem; }
+  .tl-item:before { content:''; position:absolute; left:-16px; top:4px; width:8px; height:8px; border-radius:50%; background:var(--accent,#10b981); }
 </style>
 </head>
 <body>
   <header class="topbar">
-    <div class="brand"><span class="logo">🧑🔧</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="brand"><span class="logo">🧑‍🔧</span> <a href="../../index.html">3DMP Service</a></div>
     <div class="spacer"></div>
     <span class="who" id="who">…</span>
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
   <main class="wrap fluid">
-    <div class="hero"><h1>Сервис и ремонт</h1><p>Заявки на сервис/ремонт: заказчик, оборудование, дата, инженер, работы и стоимость. Прототип B29.</p></div>
-    <div class="kpi-row" id="kpis"></div>
+    <section class="screen active" id="s-list">
+      <div class="hero"><h1>Сервис и ремонт ЧПУ</h1><p>Заявки сервиса/ремонта: приоритет и SLA, гарантия, инженер и выезд, история. Авто-тикеты от IIoT.</p></div>
+      <div class="kpi-row" id="kpis"></div>
 
-    <div class="card mt">
-      <h2>Новая заявка</h2>
-      <div class="msg" id="fMsg"></div>
-      <div class="grid3">
-        <div class="field"><label>Заказчик</label><select id="fCust"><option value="">— нет —</option></select></div>
-        <div class="field"><label>Оборудование</label><select id="fEq"><option value="">— нет —</option></select></div>
-        <div class="field"><label>Тема *</label><input type="text" id="fTitle" placeholder="Пусконаладка штампа"></div>
+      <div class="card mt">
+        <div class="toolbar">
+          <input type="search" class="search" id="q" placeholder="Поиск: номер, тема, заказчик, инженер…">
+          <div class="chips" id="filters">
+            <span class="chip active" data-f="">Все</span>
+            <span class="chip" data-f="open">Открытые</span>
+            <span class="chip" data-f="critical">Критичные</span>
+            <span class="chip" data-f="warranty">Гарантия</span>
+            <span class="chip" data-f="overdue">Просрочен SLA</span>
+          </div>
+          <button class="btn secondary" id="iiotBtn" style="width:auto;padding:10px 14px;" title="Создать заявки из ошибок ЧПУ (IIoT)">⚙ IIoT → заявки</button>
+          <button class="btn" id="newBtn" style="width:auto;padding:10px 16px;">＋ Заявка</button>
+        </div>
+        <div class="msg" id="listMsg"></div>
+        <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
       </div>
-      <div class="grid3">
-        <div class="field"><label>Вид</label><select id="fKind"><option value="service">Сервис</option><option value="repair">Ремонт</option><option value="warranty">Гарантия</option></select></div>
-        <div class="field"><label>Дата</label><input type="date" id="fDate"></div>
-        <div class="field"><label>Инженер</label><input type="text" id="fEng" placeholder="service"></div>
-      </div>
-      <div class="grid3">
-        <div class="field"><label>Работы</label><input type="text" id="fWorks" placeholder="пробный прогон, подгонка"></div>
-        <div class="field"><label>Стоимость, ₽</label><input type="text" id="fCost" inputmode="decimal" placeholder="25000"></div>
-        <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="fAdd">Создать заявку</button></div>
-      </div>
-    </div>
+    </section>
 
-    <div class="card">
-      <div class="toolbar"><input type="search" class="search" id="q" placeholder="Поиск: тема, заказчик, инженер…"></div>
-      <h2>Заявки <span class="note" id="cnt"></span></h2>
-      <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
-    </div>
+    <section class="screen" id="s-item">
+      <button class="back" id="backBtn">← К списку</button>
+      <div class="card" id="detail"><span class="note">—</span></div>
+      <div class="card">
+        <h2>Действия</h2>
+        <div class="msg" id="iMsg"></div>
+        <div class="form-grid">
+          <div class="field"><label>Статус</label><select id="stSel">
+            <option value="new">Новая</option><option value="scheduled">Запланирована</option>
+            <option value="in_progress">В работе</option><option value="done">Выполнена</option><option value="cancelled">Отменена</option>
+          </select></div>
+          <div class="field"><label>Комментарий к статусу</label><input type="text" id="stNote" placeholder="необязательно"></div>
+          <div class="field" style="display:flex;align-items:flex-end;gap:8px;">
+            <button class="btn" id="stBtn">Сменить статус</button>
+            <button class="btn secondary" id="assignBtn">Назначить выезд</button>
+            <button class="btn secondary" id="commentBtn">Комментарий</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="toolbar"><h2 style="margin:0;flex:1;">Выезды</h2></div>
+        <div id="visits"><span class="note">—</span></div>
+      </div>
+      <div class="card">
+        <h2>История</h2>
+        <div class="tl" id="history"><span class="note">—</span></div>
+      </div>
+    </section>
   </main>
 
-  <footer class="foot">3DMP Service · сервис</footer>
+  <footer class="foot">3DMP Service · сервис и ремонт</footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="../../assets/js/config.js?v=2"></script>
   <script src="../../assets/js/supabase-client.js?v=1"></script>
   <script src="../../assets/js/ui.js?v=4"></script>
   <script src="../../assets/js/auth.js?v=6"></script>
+  <script src="../../assets/js/router.js?v=1"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=64"></script>
-  <script src="service.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=65"></script>
+  <script src="../../assets/js/shell.js?v=25"></script>
+  <script src="service.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>
