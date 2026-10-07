@@ -48,15 +48,49 @@
       '<div class="kpi"><small>Организация</small><b style="font-size:1rem;">' + esc(session.tenant_name || '—') + '</b></div>';
   }
 
-  function renderQuick(list) {
-    var cand = ['orders', 'crm', 'docbuilder', 'tkp', 'bom', 'mes', 'terminal', 'qc', 'remarks', 'support'];
+  function chip(a, editing) {
+    return '<a href="../' + a.id + '/index.html">' + a.icon + ' ' + esc(a.title) +
+      (editing ? '<span class="qx" data-del="' + a.id + '" title="Убрать">✕</span>' : '') + '</a>';
+  }
+  var TOOLS = ['norms', 'calc', 'docbuilder', 'bom', 'forecast', 'labels', 'assistant', 'reports'];
+  function renderTools(list) {
     var byId = {}; list.forEach(function (a) { byId[a.id] = a; });
-    var items = cand.map(function (id) { return byId[id]; }).filter(Boolean).slice(0, 6);
-    if (!items.length) return;
+    var tools = TOOLS.map(function (id) { return byId[id]; }).filter(Boolean);
+    if (!tools.length) return;
+    $('#toolsCard').style.display = '';
+    $('#tools').innerHTML = tools.map(function (a) { return chip(a); }).join('');
+  }
+
+  function renderQuick(session, list) {
+    var byId = {}; list.forEach(function (a) { byId[a.id] = a; });
+    var key = '3dmp:quick:' + (session.login || 'guest');
+    var def = ['orders', 'docbuilder', 'bom', 'forecast', 'mes', 'finance'];
+    var ids = [];
+    try { ids = JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) {}
+    if (!ids.length) ids = def.filter(function (id) { return byId[id]; });
+    ids = ids.filter(function (id) { return byId[id]; });
+    if (!list.length) { $('#quickCard').style.display = 'none'; return; }
     $('#quickCard').style.display = '';
-    $('#quick').innerHTML = items.map(function (a) {
-      return '<a href="../' + a.id + '/index.html">' + a.icon + ' ' + esc(a.title) + '</a>';
-    }).join('');
+    var editing = false;
+    function save() { try { localStorage.setItem(key, JSON.stringify(ids)); } catch (e) {} }
+    function render() {
+      $('#quick').innerHTML = ids.map(function (id) { return chip(byId[id], editing); }).join('') ||
+        '<span class="note">Пока пусто — нажмите «Изменить».</span>';
+      var e = $('#qEdit'); if (e) e.textContent = editing ? 'Готово' : 'Изменить';
+      if (editing) {
+        var rest = list.filter(function (a) { return ids.indexOf(a.id) < 0; })
+          .map(function (a) { return '<option value="' + a.id + '">' + esc(a.title) + '</option>'; }).join('');
+        $('#qAddWrap').innerHTML = '<div class="qa-add"><select id="qAddSel"><option value="">— добавить модуль —</option>' + rest + '</select>' +
+          '<button class="btn secondary" id="qAdd" type="button" style="width:auto;padding:8px 14px;">＋ Добавить</button></div>';
+        var add = $('#qAdd');
+        if (add) add.addEventListener('click', function () { var s = $('#qAddSel'); if (s && s.value) { ids.push(s.value); save(); render(); } });
+      } else { $('#qAddWrap').innerHTML = ''; }
+      ui.qsa('#quick [data-del]').forEach(function (x) {
+        x.addEventListener('click', function (ev) { ev.preventDefault(); ev.stopPropagation(); ids = ids.filter(function (i) { return i !== x.getAttribute('data-del'); }); save(); render(); });
+      });
+    }
+    $('#qEdit').addEventListener('click', function () { editing = !editing; render(); });
+    render();
   }
 
   var GD = {
@@ -281,7 +315,8 @@
     renderKpi(s, list);
     renderKpiLive(s);
     renderWorkplace(s);
-    renderQuick(list);
+    renderQuick(s, list);
+    renderTools(list);
     renderNotifications(s);
     renderOrders(s);
     renderMes(s);
