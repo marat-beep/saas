@@ -108,6 +108,21 @@ code { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px;
 .urow:hover { color: var(--accent-700); }
 .urow:hover .uic { background: var(--accent); color: #fff; }
 .urow:hover .chev { color: var(--accent); }
+/* Карточки: скрытые строки и кнопка «ещё N» */
+.uextra { display: none; }
+.uextra.show { display: flex; }
+.umore { width: 100%; background: none; border: 0; border-bottom: 1px solid var(--border); color: var(--accent-700); font: 600 .82rem/1 inherit; cursor: pointer; padding: 11px 2px; text-align: left; }
+.umore:hover { color: var(--accent); }
+/* Сайдбар: сворачиваемые группы */
+.sh-group .sh-grp { margin: 6px 0 0; padding: 8px 10px; border-radius: 9px; font-size: .7rem; letter-spacing: .03em; text-transform: uppercase; color: var(--muted); font-weight: 800; }
+.sh-group .sh-grp:hover { background: var(--bg); color: var(--text); }
+.sh-group-body { display: none; padding: 2px 0 6px; }
+.sh-group.open .sh-group-body { display: block; }
+.sh-group .sh-cnt { display: inline-flex; gap: 4px; align-items: center; font-weight: 700; }
+.sh-cv { font-style: normal; display: inline-block; transition: transform .15s; }
+.sh-group.open .sh-cv { transform: rotate(180deg); }
+body.sh-collapsed .sh-group .sh-grp { justify-content: center; padding: 8px 4px; }
+body.sh-collapsed .sh-group .sh-cnt { font-size: .6rem; }
 
 /* формы */
 .field { margin-bottom: 12px; }

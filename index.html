@@ -16,7 +16,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#2563eb">
 <link rel="icon" href="assets/icons/app.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/app.css?v=19">
+<link rel="stylesheet" href="assets/css/app.css?v=20">
 <style>
   .grp { margin-bottom: 18px; }
   .grp-t { font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 10px; }
@@ -119,6 +119,15 @@
           '<span class="chev">›</span></a>';
       }
 
+      var MAXROWS = 5;
+      function ulist(items, logged, gid) {
+        var shown = items.slice(0, MAXROWS), extra = items.slice(MAXROWS);
+        var h = '<div class="ulist">' + shown.map(function (a) { return urow(a, logged); }).join('');
+        if (!extra.length) return h + '</div>';
+        h += '<button class="umore" type="button" data-m="' + gid + '">ещё ' + extra.length + ' ▾</button></div>' +
+          '<div class="ulist uextra" id="ux-' + gid + '">' + extra.map(function (a) { return urow(a, logged); }).join('') + '</div>';
+        return h;
+      }
       function renderApps(user) {
         var logged = !!user;
         var list = C.apps.filter(function (a) {
@@ -131,12 +140,17 @@
           var items = list.filter(function (a) { return a.group === g.id; });
           if (!items.length) return;
           out += '<div class="ucard"><h3>' + g.icon + ' ' + ui.esc(g.title) + '</h3>' +
-            '<div class="udesc">' + ui.esc(GD[g.id] || '') + '</div>' +
-            '<div class="ulist">' + items.map(function (a) { return urow(a, logged); }).join('') + '</div></div>';
+            '<div class="udesc">' + ui.esc(GD[g.id] || '') + '</div>' + ulist(items, logged, g.id) + '</div>';
         });
         var rest = list.filter(function (a) { return !a.group; });
-        if (rest.length) out += '<div class="ucard"><h3>Прочее</h3><div class="ulist">' + rest.map(function (a) { return urow(a, logged); }).join('') + '</div></div>';
+        if (rest.length) out += '<div class="ucard"><h3>Прочее</h3>' + ulist(rest, logged, 'rest') + '</div>';
         document.getElementById('apps').innerHTML = '<div class="ugrid">' + out + '</div>';
+        Array.prototype.forEach.call(document.querySelectorAll('#apps .umore'), function (b) {
+          b.addEventListener('click', function () {
+            var x = document.getElementById('ux-' + b.getAttribute('data-m'));
+            if (x) { var open = x.classList.toggle('show'); b.textContent = open ? 'свернуть ▴' : ('ещё ' + x.querySelectorAll('.urow').length + ' ▾'); }
+          });
+        });
       }
 
       function renderAccount(s) {

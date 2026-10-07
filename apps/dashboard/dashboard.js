@@ -74,6 +74,15 @@
     return '<a class="urow" href="../' + a.id + '/index.html">' +
       '<span class="uic">' + a.icon + '</span><span class="lbl">' + esc(a.title) + '</span><span class="chev">›</span></a>';
   }
+  var MAXROWS = 5;
+  function ulist(items, gid) {
+    var shown = items.slice(0, MAXROWS), extra = items.slice(MAXROWS);
+    var h = '<div class="ulist">' + shown.map(urow).join('');
+    if (!extra.length) return h + '</div>';
+    h += '<button class="umore" type="button" data-m="' + gid + '">ещё ' + extra.length + ' ▾</button></div>' +
+      '<div class="ulist uextra" id="ux-' + gid + '">' + extra.map(urow).join('') + '</div>';
+    return h;
+  }
   function renderModules(session, list) {
     var groups = (window.AppCatalog && window.AppCatalog.groups) || [];
     var html = '';
@@ -81,12 +90,17 @@
       var items = list.filter(function (a) { return a.group === g.id; });
       if (!items.length) return;
       html += '<div class="ucard"><h3>' + (g.icon || '') + ' ' + esc(g.title) + '</h3>' +
-        '<div class="udesc">' + esc(GD[g.id] || '') + '</div>' +
-        '<div class="ulist">' + items.map(urow).join('') + '</div></div>';
+        '<div class="udesc">' + esc(GD[g.id] || '') + '</div>' + ulist(items, g.id) + '</div>';
     });
     var rest = list.filter(function (a) { return !a.group || !groups.some(function (g) { return g.id === a.group; }); });
-    if (rest.length) html += '<div class="ucard"><h3>Прочее</h3><div class="ulist">' + rest.map(urow).join('') + '</div></div>';
+    if (rest.length) html += '<div class="ucard"><h3>Прочее</h3>' + ulist(rest, 'rest') + '</div>';
     $('#modules').innerHTML = html ? '<div class="ugrid">' + html + '</div>' : '<span class="note">Модулей пока нет.</span>';
+    ui.qsa('#modules .umore').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var x = document.getElementById('ux-' + b.getAttribute('data-m'));
+        if (x) { var open = x.classList.toggle('show'); b.textContent = open ? 'свернуть ▴' : ('ещё ' + x.querySelectorAll('.urow').length + ' ▾'); }
+      });
+    });
   }
 
   function renderKpiLive(session) {
