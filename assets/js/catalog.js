@@ -8,7 +8,7 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '10.5',
+  version: '10.6',
   updated: '07.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
@@ -26,7 +26,7 @@ window.AppCatalog = {
     hr:39, departments:40, staff:41, org:42, roles:43,
     dicts:44, config:45, reverse:46, partners:47, equipment:48, suppliers:49, procurement:50, supplier:51,
     marketplace:52, escrow:53, labels:54, engraving:55, files:56, builder:57, industry:58, usage:59, adoption:60,
-    guide:61, modules:62, platform:63, admin:64, diagnostics:65, scale:66, whitelabel:67, api:68, announcements:69, integrations:72, eco:99
+    guide:61, modules:62, platform:63, admin:64, diagnostics:65, scale:66, whitelabel:67, api:68, announcements:69, integrations:72, billing:73, eco:99
   },
   implOrderOf: function (id) { return (this.implOrder && this.implOrder[id]) || 999; },
   priorityOf: function (id) { var n = this.implOrderOf(id); return n <= 9 ? 1 : (n <= 21 ? 2 : (n <= 33 ? 3 : 4)); },
@@ -618,6 +618,13 @@ window.AppCatalog = {
       purpose: 'Объявления платформы и организации: типы (информация/релиз/плановые тех.работы/критично), период показа, закрепление; активные объявления выводятся в баннере на главной (critical/pinned — первыми), прочтение фиксируется, о плановых тех.работах за 24 часа рассылаются уведомления.',
       features: ['Объявления платформы (все организации) и организации', 'Типы: информация/релиз/тех.работы/критично', 'Период показа (начало/окончание) и закрепление', 'Баннер на главной с каруселью и приоритетами', 'Учёт прочтений', 'Авторассылка уведомлений о плановых тех.работах'],
       connects: ['dashboard', 'panel', 'support', 'org'], in_: 'Публикация (admin/owner)', out: 'Баннер + уведомления'
+    },
+    {
+      id: 'billing', icon: '💳', title: 'Биллинг и подписки', href: 'apps/billing/index.html', guest: false, roles: ['admin', 'owner'], group: 'platform', audience: 'saas_admin',
+      desc: 'W7: тарифы и квоты, подписки организаций, счета платформы, статус-борд доступности (SLA).',
+      purpose: 'Биллинг SaaS-платформы: тарифы с лимитами (пользователи/заявки/наряды/документы/файлы/поставщики/сервис), подписки организаций (статус, места, сумма, период, автопродление), контроль квот (app_quota_check), счета платформы (PLT-ГГГГ-NNNNN, статусы, авто-формирование за период) и статус-борд доступности (БД, таблицы, функции, Realtime, очередь интеграций, просрочка). Администратор платформы видит все организации, владелец — свою.',
+      features: ['Тарифы и лимиты (квоты) по модулям', 'Подписки организаций: статус/места/сумма/период', 'Использование и квоты с индикаторами', 'Проверка квоты (app_quota_check), лимит заявок применяется', 'Счета платформы: создание, статусы, авто-формирование, PDF/CSV', 'KPI: MRR, активные подписки, просрочка, выставлено/оплачено', 'Статус-борд доступности (SLA) и история проверок'],
+      connects: ['platform', 'org', 'usage', 'finance', 'integrations'], in_: 'Тарифы/подписки/счета', out: 'Квоты, счета, доступность'
     }
   ]
 };

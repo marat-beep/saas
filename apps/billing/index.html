@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Биллинг и подписки — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=35">
+<style>
+  .bl-prog { height:8px; border-radius:999px; background:#eef2f7; overflow:hidden; margin-top:5px; }
+  .bl-prog > i { display:block; height:100%; border-radius:999px; background:var(--accent); }
+  .bl-prog.warn > i { background:#f59e0b; }
+  .bl-prog.over > i { background:#dc2626; }
+  .bl-plan { border:1px solid var(--border); border-radius:12px; padding:14px 16px; background:#fff; display:flex; flex-direction:column; gap:8px; }
+  .bl-plan h3 { margin:0; font-size:1rem; }
+  .bl-plan .price { font-size:1.5rem; font-weight:800; color:var(--accent-700); }
+  .bl-plan ul { margin:6px 0 0; padding-left:18px; font-size:.82rem; color:var(--muted); }
+  .bl-plan.current { border-color:var(--accent); box-shadow:0 0 0 2px rgba(16,185,129,.12); }
+  .bl-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; }
+  .bl-badge { display:inline-block; font-size:.68rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; padding:3px 9px; border-radius:999px; border:1px solid var(--border); background:#fff; }
+  .bl-badge.ok { color:var(--accent-700); }
+  .bl-badge.warn { color:#b45309; border-color:#fcd34d; background:#fffbeb; }
+  .bl-badge.fail { color:#b91c1c; border-color:#fca5a5; background:#fef2f2; }
+  .bl-health { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:12px; }
+  .bl-hcard { border:1px solid var(--border); border-radius:12px; padding:12px 14px; background:#fff; }
+  .bl-hcard small { color:var(--muted); display:block; }
+  .bl-hcard b { font-size:.95rem; }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">💳</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap fluid">
+    <div class="hero"><h1>Биллинг и подписки</h1><p>Тарифы и квоты, подписки организаций, счета платформы и статус-борд доступности (SLA). Платформенный администратор видит все организации, владелец — свою.</p></div>
+
+    <div class="tabs2" id="tabs">
+      <button data-scr="overview" class="active">Обзор</button>
+      <button data-scr="plans">Тарифы</button>
+      <button data-scr="invoices">Счета платформы</button>
+      <button data-scr="health">Доступность</button>
+    </div>
+
+    <!-- Обзор -->
+    <section class="screen active" id="scr-overview">
+      <div class="kpi-row" id="kpis"></div>
+      <div class="grid2 mt">
+        <div class="card" id="subCard" style="display:none;">
+          <h2>Подписка организации</h2>
+          <div id="sub"></div>
+          <div class="sv-actions mt">
+            <button class="btn" id="btnSub" data-cap="edit" style="width:auto;padding:9px 16px;">Изменить подписку</button>
+          </div>
+        </div>
+        <div class="card" id="usageCard" style="display:none;">
+          <h2>Использование и квоты</h2>
+          <div class="note" style="margin-bottom:8px;">Ограничения действуют только при заданном лимите тарифа.</div>
+          <div id="usage"><span class="note">Загрузка…</span></div>
+        </div>
+      </div>
+      <div class="card mt" id="subsCard" style="display:none;">
+        <h2>Подписки организаций <span class="note" id="subsCnt"></span></h2>
+        <div style="overflow:auto;"><table class="tbl" id="subs"></table></div>
+      </div>
+    </section>
+
+    <!-- Тарифы -->
+    <section class="screen" id="scr-plans">
+      <div class="bl-grid" id="plans"></div>
+    </section>
+
+    <!-- Счета -->
+    <section class="screen" id="scr-invoices">
+      <div class="card">
+        <div class="toolbar">
+          <button class="btn" id="btnInv" data-cap="platform" style="width:auto;padding:9px 16px;">＋ Счёт</button>
+          <button class="btn" id="btnGen" data-cap="platform" style="width:auto;padding:9px 16px;">Сформировать за период</button>
+          <button class="act" id="btnInvPdf">Отчёт PDF</button>
+          <button class="act" id="btnInvCsv">CSV</button>
+          <span class="note" style="margin-left:auto;">Номера: PLT-ГГГГ-NNNNN. Статусы: черновик → выставлен → оплачен / просрочен.</span>
+        </div>
+        <div class="msg" id="iMsg"></div>
+        <div id="invoices" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <!-- Доступность -->
+    <section class="screen" id="scr-health">
+      <div class="card">
+        <div class="toolbar">
+          <button class="btn" id="btnScan" style="width:auto;padding:9px 16px;">↻ Проверить сейчас</button>
+          <span class="note" style="margin-left:auto;">Проверки: БД, таблицы, функции, Realtime, очередь интеграций, просрочка счетов.</span>
+        </div>
+        <div class="msg" id="hMsg"></div>
+        <div class="bl-health mt" id="board"><span class="note">Нажмите «Проверить сейчас».</span></div>
+      </div>
+      <div class="card mt">
+        <h2>История проверок</h2>
+        <div style="overflow:auto;"><table class="tbl" id="history"></table></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">3DMP Service · биллинг и подписки</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=4"></script>
+  <script src="../../assets/js/auth.js?v=6"></script>
+  <script src="../../assets/js/notify.js?v=3"></script>
+  <script src="../../assets/js/support-widget.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=85"></script>
+  <script src="../../assets/js/shell.js?v=47"></script>
+  <script src="../../assets/js/export.js?v=1"></script>
+  <script src="billing.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=2"></script>
+  <script src="../../assets/js/module-info.js?v=1"></script>
+</body>
+</html>
