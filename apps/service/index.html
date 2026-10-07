@@ -262,6 +262,12 @@
       <button class="back" id="backE">← Назад</button>
       <div class="card" id="passport"><span class="note">Загрузка…</span></div>
       <div class="card">
+        <div class="toolbar"><h2 style="margin:0;flex:1;">Открытые заявки по станку</h2>
+          <button class="btn secondary" data-cap="new" id="eqNewReq" style="width:auto;padding:8px 14px;">＋ Заявка по станку</button>
+        </div>
+        <div id="eqOpen" style="overflow:auto;"><span class="note">—</span></div>
+      </div>
+      <div class="card">
         <button class="btn secondary" id="passportPdf" style="width:auto;padding:9px 16px;">📄 Паспорт в PDF</button>
       </div>
     </section>
@@ -281,7 +287,7 @@
   <script src="../../assets/js/shell.js?v=32"></script>
   <script src="../../assets/js/offline-queue.js?v=1"></script>
   <script src="../../assets/js/export.js?v=1"></script>
-  <script src="service.js?v=13"></script>
+  <script src="service.js?v=15"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>

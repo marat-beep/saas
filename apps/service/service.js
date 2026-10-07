@@ -199,8 +199,8 @@
     });
   }
 
-  function openForm() {
-    if (!customers.length && !eq.length) { /* допустимо */ }
+  function openForm(prefill) {
+    prefill = prefill || {};
     ui.formDialog({
       title: 'Новая заявка', okText: 'Создать', size: 'lg',
       fields: [
@@ -219,7 +219,7 @@
         { name: 'works', label: 'Работы', type: 'text' },
         { name: 'note', label: 'Примечание', type: 'textarea', rows: 2 }
       ],
-      values: { kind: 'service', priority: 'normal', channel: 'manual', scheduled_date: new Date().toISOString().slice(0, 10) }
+      values: { kind: 'service', priority: 'normal', channel: 'manual', scheduled_date: new Date().toISOString().slice(0, 10), customer_id: prefill.customer_id || '', equipment_id: prefill.equipment_id || '' }
     }).then(function (v) {
       if (!v) return;
       var cost = parseFloat(String(v.cost || '').replace(',', '.'));
@@ -746,7 +746,7 @@
   }
 
   /* ---------- Цифровой паспорт станка ---------- */
-  var passportData = null, passportHist = [];
+  var passportData = null, passportHist = [], passportOpen = [];
   function openPassport(eqId) {
     var eid = eqId || (cur && cur.equipment_id);
     if (!eid) { msg('#iMsg', 'Не указано оборудование', 'err'); return; }
@@ -756,6 +756,9 @@
       rpc('app_service_equipment_history', { p_token: token, p_equipment_id: eid })
         .then(function (hs) { passportHist = hs || []; renderPassport(); })
         .catch(function () { passportHist = []; renderPassport(); });
+      rpc('app_service_equipment_open', { p_token: token, p_equipment_id: eid })
+        .then(function (os) { passportOpen = os || []; renderEqOpen(); })
+        .catch(function () { passportOpen = []; renderEqOpen(); });
     }).catch(function (e) { msg('#iMsg', 'Ошибка: ' + e.message, 'err'); });
   }
   function renderPassport() {
@@ -776,6 +779,13 @@
       (passportHist.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>№</th><th>Дата</th><th>Тема</th><th>Вид</th><th>Статус</th><th class="num">Сумма</th></tr></thead><tbody>' +
         passportHist.map(function (h) { return '<tr><td><b>' + esc(h.number) + '</b></td><td class="muted">' + fmtTs(h.reported_at) + '</td><td>' + esc(h.title || '') + '</td><td>' + esc(KIND[h.kind] || h.kind || '') + '</td><td>' + (ST[h.status] || h.status) + '</td><td class="num">' + money(num(h.cost) + num(h.parts_cost)) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<span class="note">Записей нет.</span>');
     screens.go('s-eq');
+  }
+  function renderEqOpen() {
+    if (!$('#eqOpen')) return;
+    $('#eqOpen').innerHTML = passportOpen.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>№</th><th>Дата</th><th>Тема</th><th>Приоритет</th><th>Статус</th><th>SLA</th></tr></thead><tbody>' +
+      passportOpen.map(function (o) { return '<tr data-open-req="' + o.id + '" style="cursor:pointer;"><td><b>' + esc(o.number) + '</b></td><td class="muted">' + fmtTs(o.reported_at) + '</td><td>' + esc(o.title || '') + '</td>' +
+        '<td>' + prioBadge(o.priority) + '</td><td>' + (ST[o.status] || o.status) + '</td><td>' + (o.sla_state === 'overdue' ? '<span class="badge sla-overdue">просрочен</span>' : o.sla_state === 'warn' ? '<span class="badge sla-warn">истекает</span>' : '') + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<span class="note">Открытых заявок нет.</span>';
+    $$('#eqOpen [data-open-req]').forEach(function (tr) { tr.addEventListener('click', function () { openItem(tr.dataset.openReq); }); });
   }
   function passportPdf() {
     if (!passportData || !window.AppExport) { msg('#iMsg', 'Нет данных', 'err'); return; }
@@ -828,8 +838,9 @@
   $('#pprBtn').addEventListener('click', function () { runScan('#dashMsg', 'app_service_ppr_scan'); });
   $('#pprBtn2').addEventListener('click', function () { runScan('#listMsg', 'app_service_ppr_scan'); });
   $('#vq').addEventListener('input', function () { vq = this.value; renderVisits(); });
-  $('#passportBtn').addEventListener('click', openPassport);
+  $('#passportBtn').addEventListener('click', function () { openPassport(); });
   $('#passportPdf').addEventListener('click', passportPdf);
+  $('#eqNewReq').addEventListener('click', function () { openForm({ equipment_id: passportData && passportData.id, customer_id: cur && cur.customer_id }); });
   $('#backE').addEventListener('click', function () { if (cur) screens.go('s-item'); else go('s-list'); });
   $('#warrAdd').addEventListener('click', function () { warrForm(null); });
   $('#conAdd').addEventListener('click', function () { conForm(null); });
