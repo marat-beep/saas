@@ -106,3 +106,20 @@ config.js → supabase-client.js → ui.js → status.js (если нужно) �
 - Списки модулей, продублированные в разных файлах.
 - Перенос прототипа «как есть» без переработки под стандарт.
 - Создание второго модуля-дубля вместо дополнения существующего по ТЗ.
+
+## 8. Инструменты и типовые ошибки волн W7–W12
+**Единый API-слой:** ssets/js/api.js (window.AppAPI): AppAPI.call(name, args) — RPC с единой обработкой ошибок; AppAPI.callSafe(name, args, fallback); AppAPI.first(name, args). Подключать на новых страницах после supabase-client.js. Существующие модули используют SB.rpc — постепенно переводить на AppAPI.
+**Автотесты (tools/):**
+- 	ools/audit.ps1 — локальный автотест: каталог (id/связи/href/дубли), наличие shell.js/
+av.js на всех pps/*/index.html, согласованность версий (
+av.js?v, shell.js?v, CATALOG_V), синтаксис всех JS (
+ode --check). Запускать после каждой волны.
+- 	ools/db-smoke.ps1 -Token sbp_... — смоук БД через Management API (pp_smoke_test 10/10, pp_smoke_test_ext 14/14). Токен не сохраняется.
+- 	ools/build-release.ps1 — сборка dist/ (не в git).
+**plpgsql — новые грабли:**
+- Присваивание элементу массива: select ... into arr[i] — **недопустимо**, только скаляр: select ... into v_tmp; arr[i] := v_tmp;.
+- UNION ALL ... ORDER BY <выражение> — нельзя; оборачивать в подзапрос: select * from ( ... union all ... ) t order by impact desc.
+- eturns table: типы столбцов строгие — агрегаты (count, least/greatest с целыми) кастовать к 
+umeric.
+- Перегрузки запрещены: при добавлении параметра — drop function if exists <старая сигнатура> и новая с default.
+**Скрипты ps1 — кодировка:** файлы .ps1 сохранять **UTF-8 с BOM**, иначе PowerShell 5.1 читает как ANSI и падает на кириллице/эмодзи.

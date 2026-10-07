@@ -11,6 +11,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 
 ## 2. База данных
 - Миграции `supabase/migrations/0001…0156` + пересобранный `supabase/apply_all.sql`.
+- Инструменты: `tools/build-release.ps1` (сборка dist), `tools/audit.ps1` (локальный автотест), `tools/db-smoke.ps1` (смоук БД через Management API).
 - Применение — Supabase → SQL Editor → вставить `apply_all.sql` → Run (либо Management API, UTF-8).
 - Смоук: `select * from app_smoke_test(:token);` (10/10) и `app_smoke_test_ext(:token)` (14/14).
 
@@ -34,6 +35,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 - [ ] Отметки в `BACKLOG.md`, `PLAN_WAVES.md`, `STATUS.md`, `NOTES.md`, `PROMPTS.md`.
 
 ## 6. Журнал релизов (последнее)
+- **v208 (W12)** — продуктивность и эксплуатация: единый API-слой `assets/js/api.js`; автотесты `tools/audit.ps1` (audit ✅) и `tools/db-smoke.ps1` (10/10+14/14); ревизия доков (MODULE_STANDARD §8).
 - **v207 (миграция `0156`)** — W11 ИИ: авто-нормирование, CV-ОТК, цифровой двойник, помощник по БЗ, журнал задач; модуль `apps/ai`; каталог v10.10, nav v89/shell v51.
 - **v206 (миграция `0155`)** — W10 enterprise-права и аудит: наборы прав, делегирование, согласования, расширенный аудит; модуль `apps/access`; каталог v10.9, nav v88/shell v50.
 - **v205 (миграция `0154`)** — W9 MES/APS/IIoT: APS-автоплан, коннекторы OPC UA/MTConnect, приём телеметрии, OEE онлайн, износ инструмента; `apps/planning`+`apps/iiot`; каталог v10.8, nav v87/shell v49.
