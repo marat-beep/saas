@@ -62,12 +62,79 @@
   }
   function renderLog() {
     var list = log.filter(function (l) { if (!rq) return true; var s = rq.toLowerCase(); return [l.equipment, l.works, l.executor].join(' ').toLowerCase().indexOf(s) >= 0; });
-    $('#log').innerHTML = '<table class="tab" style="width:100%;border-collapse:collapse"><thead><tr><th>Дата</th><th>Оборудование</th><th>Вид</th><th>Работы</th><th>Заменено</th><th>Исполнитель</th><th>Стоимость</th></tr></thead><tbody>' +
+    $('#log').innerHTML = '<table class="tab" style="width:100%;border-collapse:collapse"><thead><tr><th>Дата</th><th>Оборудование</th><th>Вид</th><th>Работы</th><th>Заменено</th><th>Исполнитель</th><th>Стоимость</th><th>Запчасти</th></tr></thead><tbody>' +
       (list.length ? list.map(function (l) {
         return '<tr style="border-bottom:1px solid var(--border)"><td>' + fmt(l.work_date) + '</td><td><b>' + esc(l.equipment || '—') + '</b></td>' +
           '<td>' + (KINDS[l.kind] || l.kind || '') + '</td><td>' + esc(l.works || '') + '</td><td>' + esc(l.replaced || '') + '</td>' +
-          '<td>' + esc(l.executor || '') + '</td><td>' + money(l.cost) + '</td></tr>';
-      }).join('') : '<tr><td colspan="7"><span class="note">Записей нет.</span></td></tr>') + '</tbody></table>';
+          '<td>' + esc(l.executor || '') + '</td><td>' + money(l.cost) + '</td>' +
+          '<td><button class="act" data-parts="' + l.id + '">Запчасти</button></td></tr>';
+      }).join('') : '<tr><td colspan="8"><span class="note">Записей нет.</span></td></tr>') + '</tbody></table>';
+    $$('#log [data-parts]').forEach(function (b) { b.addEventListener('click', function () { partsDialog(b.dataset.parts); }); });
+  }
+
+  /* ---------- Запчасти ТОиР ---------- */
+  var spare = [], spq = '';
+  function loadSpare() { return rpc('app_spare_parts_list', { p_token: token }).then(function (r) { spare = r || []; renderSpare(); }).catch(function () {}); }
+  function renderSpare() {
+    var list = spare.filter(function (p) { if (!spq) return true; return [p.name, p.code].join(' ').toLowerCase().indexOf(spq.toLowerCase()) >= 0; });
+    $('#spareCnt').textContent = '(' + list.length + ')';
+    $('#spareList').innerHTML = list.length ? '<table class="tbl"><thead><tr><th>Название</th><th>Код</th><th class="num">Остаток</th><th class="num">Мин.</th><th class="num">Цена</th><th class="num">Стоимость</th><th></th></tr></thead><tbody>' +
+      list.map(function (p) { return '<tr><td><b>' + esc(p.name) + '</b>' + (p.low ? ' <span class="badge cancelled">нехватка</span>' : '') + '</td><td class="muted">' + esc(p.code || '') + '</td>' +
+        '<td class="num">' + num(p.qty) + ' ' + esc(p.unit || '') + '</td><td class="num">' + num(p.min_qty) + '</td><td class="num">' + money(p.price) + '</td><td class="num">' + money(p.value) + '</td>' +
+        '<td style="white-space:nowrap;"><button class="act" data-mov="' + p.id + '">Движение</button><button class="act danger" data-spdel="' + p.id + '">Удалить</button></td></tr>'; }).join('') + '</tbody></table>' : '<span class="note">Запчастей нет.</span>';
+    $$('#spareList [data-mov]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var p = spare.filter(function (x) { return x.id === b.dataset.mov; })[0]; if (!p) return;
+        ui.formDialog({ title: 'Движение запчасти', okText: 'Провести', fields: [
+          { name: 'kind', label: 'Тип', type: 'select', options: [{ value: 'in', label: 'Приход' }, { value: 'out', label: 'Расход' }] },
+          { name: 'qty', label: 'Количество (остаток ' + num(p.qty) + ')', type: 'text', required: true }
+        ] }).then(function (v) { if (!v) return; var q = parseFloat(String(v.qty).replace(',', '.')); if (isNaN(q) || q <= 0) { msg('#spMsg', 'Некорректное количество', 'err'); return; }
+          rpc('app_spare_part_move', { p_token: token, p_part_id: p.id, p_kind: v.kind, p_qty: q, p_note: null }).then(function (r) { var x = r && r[0]; msg('#spMsg', x ? x.message : '', x && x.ok ? 'ok' : 'err'); if (x && x.ok) { window.Auth.log('Движение запчасти', p.name); loadSpare(); } }); });
+      });
+    });
+    $$('#spareList [data-spdel]').forEach(function (b) {
+      b.addEventListener('click', function () { if (!window.confirm('Удалить запчасть?')) return;
+        rpc('app_spare_part_delete', { p_token: token, p_id: b.dataset.spdel }).then(function (r) { var x = r && r[0]; msg('#spMsg', x ? x.message : '', x && x.ok ? 'ok' : 'err'); loadSpare(); }); });
+    });
+  }
+  function partsDialog(logId) {
+    ui.dialog({
+      title: 'Запчасти по работе', okText: 'Закрыть', hideCancel: true, html: true, size: 'lg',
+      body: '<div id="mpBox"><span class="note">Загрузка…</span></div>',
+      onOpen: function (back) { renderMp(back, logId); }
+    });
+  }
+  function renderMp(back, logId) {
+    var box = back.querySelector('#mpBox'); if (!box) return;
+    rpc('app_mnt_parts_list', { p_token: token, p_log_id: logId }).then(function (list) {
+      list = list || [];
+      var opts = spare.map(function (s) { return '<option value="' + s.id + '">' + esc(s.name) + ' (' + num(s.qty) + ' ' + esc(s.unit || '') + ')</option>'; }).join('');
+      box.innerHTML = (list.length ? '<table class="tbl"><thead><tr><th>Запчасть</th><th class="num">Кол-во</th><th class="num">Цена</th><th class="num">Стоимость</th><th></th></tr></thead><tbody>' +
+        list.map(function (x) { return '<tr><td>' + esc(x.part || '') + '</td><td class="num">' + num(x.qty) + '</td><td class="num">' + money(x.price) + '</td><td class="num">' + money(x.value) + '</td>' +
+          '<td><button class="act danger" data-mprem="' + x.id + '">Убрать</button></td></tr>'; }).join('') + '</tbody></table>' : '<div class="note">Запчасти не списаны.</div>') +
+        '<div class="form-grid mt"><div class="field"><label>Запчасть</label><select id="mpPart">' + (opts || '<option value="">— нет запчастей —</option>') + '</select></div>' +
+        '<div class="field"><label>Количество</label><input type="text" id="mpQty" inputmode="decimal" value="1"></div>' +
+        '<div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="mpAdd">Списать на работу</button></div></div>' +
+        '<div class="msg" id="mpMsg"></div>';
+      var add = box.querySelector('#mpAdd');
+      if (add) add.addEventListener('click', function () {
+        var pid = box.querySelector('#mpPart').value; var q = parseFloat((box.querySelector('#mpQty').value || '').replace(',', '.'));
+        if (!pid || isNaN(q) || q <= 0) { var m = box.querySelector('#mpMsg'); m.className = 'msg show err'; m.textContent = 'Выберите запчасть и количество'; return; }
+        rpc('app_mnt_part_add', { p_token: token, p_log_id: logId, p_part_id: pid, p_qty: q }).then(function (r) { var x = r && r[0]; if (!x || !x.ok) { var m2 = box.querySelector('#mpMsg'); m2.className = 'msg show err'; m2.textContent = x ? x.message : 'Ошибка'; return; }
+          window.Auth.log('Списание запчасти', ''); loadSpare(); load(); renderMp(back, logId); });
+      });
+      $$('#mpBox [data-mprem]').forEach(function (b) {
+        b.addEventListener('click', function () { rpc('app_mnt_part_remove', { p_token: token, p_id: b.dataset.mprem }).then(function () { loadSpare(); load(); renderMp(back, logId); }); });
+      });
+    });
+  }
+  function loadCost() {
+    rpc('app_mnt_cost_by_equipment', { p_token: token }).then(function (list) {
+      list = list || [];
+      $('#costEq').innerHTML = list.length ? '<table class="tbl"><thead><tr><th>Оборудование</th><th class="num">Планов</th><th class="num">Работ</th><th class="num">Запчасти</th><th class="num">Всего</th></tr></thead><tbody>' +
+        list.map(function (r) { return '<tr><td><b>' + esc(r.equipment) + '</b></td><td class="num">' + num(r.plans) + '</td><td class="num">' + num(r.works) + '</td>' +
+          '<td class="num">' + money(r.parts_cost) + '</td><td class="num">' + money(r.total_cost) + '</td></tr>'; }).join('') + '</tbody></table>' : '<span class="note">Нет затрат/планов.</span>';
+    }).catch(function () { $('#costEq').innerHTML = '<span class="note">Недоступно.</span>'; });
   }
 
   $('#tabs').addEventListener('click', function (e) {
@@ -75,6 +142,17 @@
     $$('#tabs button').forEach(function (x) { x.classList.toggle('active', x === b); });
     $('#t-plans').style.display = (b.dataset.t === 'plans') ? '' : 'none';
     $('#t-log').style.display = (b.dataset.t === 'log') ? '' : 'none';
+    $('#t-parts').style.display = (b.dataset.t === 'parts') ? '' : 'none';
+  });
+  $('#spq').addEventListener('input', function () { spq = this.value; renderSpare(); });
+  $('#spAdd').addEventListener('click', function () {
+    var name = $('#spName').value.trim(); if (!name) { msg('#spMsg', 'Укажите название.', 'err'); return; }
+    var price = parseFloat(($('#spPrice').value || '').replace(',', '.')), qv = parseFloat(($('#spQty').value || '').replace(',', '.')), mn = parseFloat(($('#spMin').value || '').replace(',', '.'));
+    rpc('app_spare_part_save', { p_token: token, p_id: null, p_code: $('#spCode').value.trim(), p_name: name, p_unit: $('#spUnit').value.trim() || 'шт', p_qty: isNaN(qv) ? 0 : qv, p_min_qty: isNaN(mn) ? 0 : mn, p_price: isNaN(price) ? 0 : price })
+      .then(function (r) { var x = r && r[0]; msg('#spMsg', x ? x.message : '', x && x.ok ? 'ok' : 'err'); if (x && x.ok) { window.Auth.log('Запчасть ТОиР', name); ['#spName', '#spCode', '#spUnit', '#spPrice', '#spQty', '#spMin'].forEach(function (s) { $(s).value = ''; }); loadSpare(); } });
+  });
+  $('#autoBtn').addEventListener('click', function () {
+    rpc('app_mnt_auto_schedule', { p_token: token }).then(function (r) { var x = r && r[0]; msg('#autoMsg', x ? x.message : '', x && x.created > 0 ? 'ok' : 'info'); if (x && x.created > 0) { window.Auth.log('Авто-наряд ППР', 'создано ' + x.created); if (window.AppNotify) window.AppNotify.refresh(true); load(); } });
   });
   $('#pq').addEventListener('input', function () { pq = this.value; renderPlans(); });
   $('#rQ').addEventListener('input', function () { rq = this.value; renderLog(); });
@@ -82,9 +160,11 @@
   $('#pAdd').addEventListener('click', function () {
     var eid = $('#pEq').value; if (!eid) { msg('#pMsg', 'Выберите оборудование.', 'err'); return; }
     var per = parseInt(($('#pPeriod').value || '').replace(',', '.'), 10);
+    var perH = parseFloat(($('#pPeriodH').value || '').replace(',', '.'));
     rpc('app_mnt_plan_save', { p_token: token, p_id: null, p_equipment_id: eid, p_kind: $('#pKind').value, p_title: $('#pTitle').value.trim(),
-      p_period_days: isNaN(per) ? null : per, p_last_done: $('#pLast').value || null, p_next_due: null, p_responsible: $('#pResp').value.trim(), p_note: $('#pNote').value.trim() })
-      .then(function (d) { var r = d && d[0]; msg('#pMsg', (r && r.message) || '', r && r.ok ? 'ok' : 'err'); if (r && r.ok) { window.Auth.log('План ТОиР', ''); ['#pTitle', '#pPeriod', '#pLast', '#pResp', '#pNote'].forEach(function (s) { $(s).value = ''; }); load(); } })
+      p_period_days: isNaN(per) ? null : per, p_last_done: $('#pLast').value || null, p_next_due: null, p_responsible: $('#pResp').value.trim(), p_note: $('#pNote').value.trim(),
+      p_period_hours: isNaN(perH) ? null : perH })
+      .then(function (d) { var r = d && d[0]; msg('#pMsg', (r && r.message) || '', r && r.ok ? 'ok' : 'err'); if (r && r.ok) { window.Auth.log('План ТОиР', ''); ['#pTitle', '#pPeriod', '#pPeriodH', '#pLast', '#pResp', '#pNote'].forEach(function (s) { $(s).value = ''; }); load(); } })
       .catch(function (e) { msg('#pMsg', 'Ошибка: ' + e.message, 'err'); });
   });
   $('#rAdd').addEventListener('click', function () {
@@ -104,7 +184,7 @@
     me = s; token = s.token;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#pMsg', 'Supabase не подключён.', 'err'); return; }
-    load(); renderRuntime();
+    load(); renderRuntime(); loadSpare(); loadCost();
   });
 
   function renderRuntime() {
@@ -115,7 +195,7 @@
       var bdg = { ok: 'done', soon: 'in_progress', overdue: 'cancelled' };
       $('#runtime').innerHTML = '<table class="tab2" style="width:100%;border-collapse:collapse"><thead><tr><th>Оборудование</th><th>Вид</th><th>Период, дн</th><th>Наработка, ч</th><th>Норма, ч</th><th>%</th><th>Следующее ТО</th><th>Статус</th></tr></thead><tbody>' +
         list.map(function (r) {
-          return '<tr><td>' + esc(r.equipment) + '</td><td>' + esc(r.kind || '') + '</td><td>' + num(r.period_days) + '</td>' +
+          return '<tr><td>' + esc(r.equipment) + '</td><td>' + esc(r.kind || '') + '</td><td>' + num(r.period_days) + ' дн' + (r.period_hours ? ' · ' + num(r.period_hours) + ' ч' : '') + '</td>' +
             '<td>' + num(r.run_hours) + '</td><td>' + num(r.due_hours) + '</td><td>' + (r.pct != null ? r.pct + '%' : '—') + '</td>' +
             '<td>' + fmt(r.next_due) + '</td><td><span class="badge ' + (bdg[r.status] || '') + '">' + (pad[r.status] || r.status) + '</span></td></tr>';
         }).join('') + '</tbody></table>';

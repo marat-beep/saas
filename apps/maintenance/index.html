@@ -26,6 +26,7 @@
     <div class="tabs2" id="tabs">
       <button class="active" data-t="plans">Планы ТО/ППР</button>
       <button data-t="log">История работ</button>
+      <button data-t="parts">Запчасти ТОиР</button>
     </div>
 
     <section id="t-plans">
@@ -38,9 +39,10 @@
             <option value="to1">ТО-1</option><option value="to2">ТО-2</option><option value="to3">ТО-3</option>
             <option value="ppr">ППР</option><option value="repair">Ремонт</option><option value="service">Сервис</option></select></div>
         </div>
+        <div class="field"><label>Название</label><input type="text" id="pTitle" placeholder="ТО-1 фрезерного ЧПУ"></div>
         <div class="grid2c">
-          <div class="field"><label>Название</label><input type="text" id="pTitle" placeholder="ТО-1 фрезерного ЧПУ"></div>
           <div class="field"><label>Периодичность, дней</label><input type="text" id="pPeriod" inputmode="numeric" placeholder="30"><span class="hint">Через сколько дней повторять ТО.</span></div>
+          <div class="field"><label>Норма наработки, ч</label><input type="text" id="pPeriodH" inputmode="decimal" placeholder="500"><span class="hint">ППР по наработке (часы из журнала OEE).</span></div>
         </div>
         <div class="grid2c">
           <div class="field"><label>Последнее ТО</label><input type="date" id="pLast"></div>
@@ -83,10 +85,42 @@
         <div style="overflow:auto;" id="log"><span class="note">Загрузка…</span></div>
       </div>
     </section>
+    <section id="t-parts" style="display:none;">
+      <div class="card">
+        <h2>Запчасть ТОиР</h2>
+        <div class="msg" id="spMsg"></div>
+        <div class="grid2c">
+          <div class="field"><label>Название *</label><input type="text" id="spName" placeholder="Подшипник 6205"></div>
+          <div class="field"><label>Код</label><input type="text" id="spCode" placeholder="SP-001"></div>
+        </div>
+        <div class="grid2c">
+          <div class="field"><label>Ед.</label><input type="text" id="spUnit" placeholder="шт"></div>
+          <div class="field"><label>Цена, ₽</label><input type="text" id="spPrice" inputmode="decimal" placeholder="350"></div>
+        </div>
+        <div class="grid2c">
+          <div class="field"><label>Остаток</label><input type="text" id="spQty" inputmode="decimal" placeholder="20"></div>
+          <div class="field"><label>Мин. остаток</label><input type="text" id="spMin" inputmode="decimal" placeholder="5"></div>
+        </div>
+        <button class="btn" id="spAdd">Добавить запчасть</button>
+      </div>
+      <div class="card">
+        <div class="toolbar"><input type="search" class="search" id="spq" placeholder="Поиск: название, код…"></div>
+        <h2>Склад запчастей <span class="note" id="spareCnt"></span></h2>
+        <div style="overflow:auto;" id="spareList"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
     <div class="card">
-      <h2>ТОиР по наработке</h2>
-      <p class="note">Наработка с последнего ТО (из журнала OEE) против периодичности; статус: в норме / скоро / просрочено.</p>
+      <div class="toolbar"><h2 style="margin:0;flex:1;">ТОиР по наработке</h2><button class="btn secondary" id="autoBtn" style="width:auto;padding:8px 14px;">⚙ Сформировать наряды по наработке</button></div>
+      <p class="note">Наработка с последнего ТО (из журнала OEE) против нормы (period_hours или период×8 ч); статус: в норме / скоро / просрочено.</p>
+      <div class="msg" id="autoMsg"></div>
       <div id="runtime" style="overflow:auto;"><span class="note">Загрузка…</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Затраты по оборудованию</h2>
+      <p class="note">Стоимость обслуживания (работы + запчасти) по каждому станку.</p>
+      <div id="costEq" style="overflow:auto;"><span class="note">Загрузка…</span></div>
     </div>
   </main>
 
@@ -99,8 +133,8 @@
   <script src="../../assets/js/auth.js?v=6"></script>
   <script src="../../assets/js/notify.js?v=2"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=62"></script>
-  <script src="maintenance.js?v=2"></script>
+  <script src="../../assets/js/nav.js?v=63"></script>
+  <script src="maintenance.js?v=3"></script>
   <script src="../../assets/js/realtime.js?v=1"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>
