@@ -31,6 +31,7 @@
 | P5 | средний | Интеграции: 1С/e-mail/Telegram/ЭДО | миграция `0121`: `app_integrations`, `app_integration_log`; RPC save/delete/enqueue/process/retry/log_list/kpi; коннекторы (OData/SMTP/Telegram/SMS/ЭДО/webhook); UI `apps/integrations` | конфиг из UI, журнал обмена, ретраи | ☑ (v167) |
 | P6 | средний | Биллинг/подписки + SLA платформы | `app_plans.limits`, использование, `app_health_checks` | квоты тарифа, статус-борд | ☐ |
 | P7 | низкий | ИИ: авто-нормирование, CV-ОТК | сервисы + RPC + UI | пилот на данных | ☐ |
+| P8 | высокий | Сервис ЧПУ: дополнение по ТЗ (SR v2) | миграции `0122`–`0124`: поля приоритет/канал/гарантия/SLA, `app_service_history`, `app_service_visits`, `app_warranties`, `app_service_contracts`, `app_service_parts`, IIoT-мост, KPI (SLA/MTTR/MTBF/FTFR/CSAT); UI `apps/service`; методика — MODULE_STANDARD §6 | по ТЗ: заявка→выезд→запчасть→акт, авто-тикет от IIoT, KPI сервиса | ☐ |
 | S1 | высокий | Малые доработки UI | — | см. §4 | ☐ |
 
 ## 4. Мелкие пункты (быстрые)
@@ -49,6 +50,7 @@
 - v165 — **W4 (0119)**: ТОиР — норма наработки (`app_mnt_plans.period_hours`), авто-наряд по наработке (`app_mnt_auto_schedule`), склад запчастей (`app_spare_parts`), расход на работу (`app_mnt_parts`), затраты по оборудованию; UI `apps/maintenance`; каталог v8.4, nav v63/shell v23.
 - v166 — **W5 (0120)**: Realtime уведомления (`notify.js` v3 + подписка на `app_notifications` с фолбэком) и PWA-офлайн (`offline-queue.js` IndexedDB, `sw.js`/terminal `sw.js` v2, журнал `app_offline_sync`); офлайн-очередь в `terminal`/`qc`.
 - v167 — **W6 (0121)**: Интеграции — `app_integrations`/`app_integration_log`, коннекторы (OData/1С, SMTP, Telegram/SMS, ЭДО, webhook), очередь обмена с ретраями, журнал и ручной повтор; модуль `apps/integrations`; каталог v8.5, nav v64/shell v24.
+- v168 — правило «ТЗ → аудит → дополнение» и накопленные приёмы внесены в `MODULE_STANDARD.md` §6–7 и `AGENTS.md`; разобран ТЗ «Сервис и ремонт ЧПУ» (в корне), задача дополнения `apps/service` поставлена в очередь (P8, шаги S1–S3).
 
 ## 6. Стартовый промт новой сессии (копируй как есть)
 ```
