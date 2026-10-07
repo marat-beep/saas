@@ -21,6 +21,12 @@
   <main class="wrap fluid">
     <div class="hero"><h1>Управляющие программы (УП)</h1><p>Реестр УП: заказ, деталь, станок, номер, версия, время и файлы. Прототипы B18/B27.</p></div>
     <div class="kpi-row" id="kpis"></div>
+    <div class="sv-actions" style="margin-top:10px;">
+      <button class="btn secondary" data-cap="reports" id="repBtn">📄 Отчёт PDF</button>
+      <a class="btn secondary" href="../orders/index.html">📥 Заказы ↗</a>
+      <a class="btn secondary" href="../production/index.html">🏭 Производство ↗</a>
+      <a class="btn secondary" href="../terminal/index.html">🖥 Пульт ↗</a>
+    </div>
 
     <div class="card mt">
       <h2>Новая УП</h2>
@@ -33,7 +39,7 @@
       <div class="grid3">
         <div class="field"><label>Номер УП</label><input type="text" id="fNo" placeholder="УП010135"><span class="hint">Номер управляющей программы (можно авто).</span></div>
         <div class="field"><label>Время обработки, мин</label><input type="text" id="fTime" inputmode="decimal" placeholder="480"><span class="hint">Машинное время — для нормирования/планирования.</span></div>
-        <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="fAdd">Добавить УП</button></div>
+        <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" data-cap="edit" id="fAdd">Добавить УП</button></div>
       </div>
     </div>
 
@@ -56,9 +62,10 @@
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
   <script src="../../assets/js/files.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=82"></script>
-  <script src="../../assets/js/shell.js?v=43"></script>
-  <script src="nc.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=83"></script>
+  <script src="../../assets/js/shell.js?v=44"></script>
+  <script src="../../assets/js/export.js?v=1"></script>
+  <script src="nc.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>

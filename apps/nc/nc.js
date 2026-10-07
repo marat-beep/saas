@@ -8,6 +8,31 @@
   var token = null, me = null, list = [], orders = [], eq = [], q = '';
 
   var ST = { draft: 'Черновик', approved: 'Апробирована', archive: 'Архив' };
+
+  /* ---------- Роли (data-cap) ---------- */
+  var ALL = { edit: 1, reports: 1 };
+  var CAPS = { admin: ALL, owner: ALL, director: ALL, manager: ALL, chief: ALL, master: { edit: 1 }, technologist: ALL, operator: { edit: 1 }, default: { reports: 1 } };
+  function can(c) { return !!(me && (CAPS[me.role] || CAPS['default'])[c]); }
+  function applyCaps() { $$('[data-cap]').forEach(function (el) { var n = (el.dataset.cap || '').split('|'); if (!n.some(can)) el.style.display = 'none'; }); }
+
+  /* ---------- Отчёт (УП) ---------- */
+  function reportPdf() {
+    if (!window.AppExport) { ui.toast('Экспорт недоступен'); return; }
+    var totalMin = list.reduce(function (s, n) { return s + num(n.program_time_min); }, 0);
+    var cols = [
+      { key: 'detail', label: 'Деталь' }, { key: 'program_no', label: '№ УП' }, { key: 'version', label: 'Версия', num: true },
+      { key: 'status', label: 'Статус', value: function (n) { return ST[n.status] || n.status; } },
+      { key: 'machine', label: 'Станок' }, { key: 'order_number', label: 'Заявка' },
+      { key: 'program_time_min', label: 'Время, мин', num: true }
+    ];
+    AppExport.exportPdf('УП — отчёт', AppExport.reportDocument({
+      brand: '3DMP Service', title: 'Реестр управляющих программ (УП)', subtitle: new Date().toLocaleDateString('ru-RU'),
+      kpis: [{ label: 'Программ', value: list.length }, { label: 'Суммарное время, мин', value: totalMin }],
+      sections: [{ title: 'Программы', columns: cols, rows: list }],
+      sign: ['Инженер-технолог', 'Начальник цеха'], footer: '3DMP Service · ЧПУ'
+    }));
+  }
+  $('#repBtn').addEventListener('click', reportPdf);
   function esc(v) { return ui.esc(v); }
   function num(v) { return Number(v) || 0; }
   function msg(id, t, k) { var e = $(id); e.className = 'msg show ' + (k || 'info'); e.textContent = t; }
@@ -74,7 +99,7 @@
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
-    me = s; token = s.token;
+    me = s; token = s.token; applyCaps();
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#fMsg', 'Supabase не подключён.', 'err'); return; }
     load();
