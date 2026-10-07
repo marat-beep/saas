@@ -115,6 +115,7 @@
 
   /* ---------- SPC: контрольная карта и индексы ---------- */
   var spcParam = '';
+  function kpiCell(l, v, col) { return '<div class="kpi"><small>' + l + '</small><b' + (col ? ' style="color:' + col + '"' : '') + '>' + v + '</b></div>'; }
   function loadSpcParams() {
     return rpc('app_qc_params', { p_token: token }).then(function (ps) {
       ps = ps || [];
@@ -160,12 +161,12 @@
       .then(function (rows) {
         st = rows && rows[0]; if (!st) { $('#spcStats').innerHTML = ''; return Promise.resolve([]); }
         $('#spcStats').innerHTML =
-          cell('Измерений', st.n) +
-          cell('Cp', st.cp != null ? Number(st.cp).toFixed(3) : '—', st.cp != null && st.cp < 1 ? '#b91c1c' : '') +
-          cell('Cpk', st.cpk != null ? Number(st.cpk).toFixed(3) : '—', st.cpk != null && st.cpk < 1 ? '#b91c1c' : '') +
-          cell('Pp', st.pp != null ? Number(st.pp).toFixed(3) : '—') +
-          cell('Ppk', st.ppk != null ? Number(st.ppk).toFixed(3) : '—') +
-          cell('Вне границ', st.out_count, st.out_count ? '#b91c1c' : '');
+          kpiCell('Измерений', st.n) +
+          kpiCell('Cp', st.cp != null ? Number(st.cp).toFixed(3) : '—', st.cp != null && st.cp < 1 ? '#b91c1c' : '') +
+          kpiCell('Cpk', st.cpk != null ? Number(st.cpk).toFixed(3) : '—', st.cpk != null && st.cpk < 1 ? '#b91c1c' : '') +
+          kpiCell('Pp', st.pp != null ? Number(st.pp).toFixed(3) : '—') +
+          kpiCell('Ppk', st.ppk != null ? Number(st.ppk).toFixed(3) : '—') +
+          kpiCell('Вне границ', st.out_count, st.out_count ? '#b91c1c' : '');
         return rpc('app_qc_spc_points', { p_token: token, p_param: param, p_limit: 100 });
       })
       .then(function (pts) {
