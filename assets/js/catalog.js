@@ -8,7 +8,7 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '10.0',
+  version: '10.1',
   updated: '07.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
@@ -191,8 +191,8 @@ window.AppCatalog = {
       id: 'docs', icon: '📄', title: 'Документы', href: 'apps/docs/index.html', guest: false, group: 'sales', audience: 'user',
       desc: 'КП, договоры, техкарты, акты — с версиями.',
       purpose: 'Документооборот: единое хранилище КП, договоров, техкарт и актов с версионированием.',
-      features: ['Создание документов по типам', 'Версии при правках', 'Привязка к заявке', 'Статусы (черновик/в работе/архив)'],
-      connects: ['orders', 'finance', 'procurement'], out: 'КП/договор/акт'
+      features: ['Создание документов по типам', 'Версии при правках', 'Привязка к заявке/заказчику', 'Статусы (черновик/в работе/архив)', 'Реестр документов (PDF)', 'Роли (data-cap)'],
+      connects: ['orders', 'finance', 'procurement', 'service', 'templates'], out: 'КП/договор/акт'
     },
     {
       id: 'templates', icon: '📝', title: 'Шаблоны документов', href: 'apps/templates/index.html', guest: false, group: 'sales', audience: 'user',

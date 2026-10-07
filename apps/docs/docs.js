@@ -19,6 +19,33 @@
 
   var screens = AppRouter.create({ onShow: function () { window.scrollTo(0, 0); }, onBackEmpty: function () { location.href = '../../index.html'; } });
 
+  /* ---------- Роли (data-cap) ---------- */
+  var ALL = { edit: 1, reports: 1 };
+  var CAPS = { admin: ALL, owner: ALL, director: ALL, manager: ALL, chief: { edit: 1, reports: 1 }, economist: { reports: 1 }, support: { reports: 1 }, default: { reports: 1 } };
+  function can(c) { return !!(me && (CAPS[me.role] || CAPS['default'])[c]); }
+  function applyCaps() { $$('[data-cap]').forEach(function (el) { var n = (el.dataset.cap || '').split('|'); if (!n.some(can)) el.style.display = 'none'; }); }
+
+  /* ---------- Отчёт (документы) ---------- */
+  function reportPdf() {
+    if (!window.AppExport) { ui.toast('Экспорт недоступен'); return; }
+    var sum = docs.reduce(function (s, d) { return s + (Number(d.amount) || 0); }, 0);
+    var cols = [
+      { key: 'number', label: '№' }, { key: 'doc_type', label: 'Тип', value: function (d) { return T[d.doc_type] || d.doc_type; } },
+      { key: 'title', label: 'Название' }, { key: 'customer_name', label: 'Заказчик' },
+      { key: 'status', label: 'Статус', value: function (d) { return ST[d.status] || d.status; } },
+      { key: 'amount', label: 'Сумма', num: true, value: function (d) { return money(d.amount); } },
+      { key: 'version', label: 'Версия', num: true },
+      { key: 'created_at', label: 'Создан', value: function (d) { return fmt(d.created_at); } }
+    ];
+    AppExport.exportPdf('Документы — отчёт', AppExport.reportDocument({
+      brand: '3DMP Service', title: 'Реестр документов', subtitle: new Date().toLocaleDateString('ru-RU'),
+      kpis: [{ label: 'Документов', value: docs.length }, { label: 'Сумма', value: money(sum) }],
+      sections: [{ title: 'Документы', columns: cols, rows: docs }],
+      sign: ['Руководитель', 'Делопроизводство'], footer: '3DMP Service · документы'
+    }));
+  }
+  $('#repBtn').addEventListener('click', reportPdf);
+
   function load() {
     return Promise.all([
       rpc('app_doc_list', { p_token: token, p_type: filter || null }),
@@ -154,7 +181,7 @@
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
-    me = s; token = s.token;
+    me = s; token = s.token; applyCaps();
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#listMsg', 'Supabase не подключён.', 'err'); return; }
     load();

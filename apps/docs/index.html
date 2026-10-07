@@ -18,6 +18,12 @@
     <section class="screen active" id="s-list">
       <div class="hero"><h1>Документы</h1><p>КП, договоры, техкарты и акты с версиями. Сквозная цепочка: заявка → КП → договор → акт, далее счёт и наряд.</p></div>
       <div class="kpi-row" id="kpi"></div>
+    <div class="sv-actions" style="margin-top:10px;">
+      <button class="btn secondary" data-cap="reports" id="repBtn">📄 Отчёт PDF</button>
+      <a class="btn secondary" href="../orders/index.html">📥 Заказы ↗</a>
+      <a class="btn secondary" href="../service/index.html">🧑‍🔧 Сервис ↗</a>
+      <a class="btn secondary" href="../templates/index.html">🧩 Шаблоны ↗</a>
+    </div>
       <div class="card mt">
         <div class="toolbar">
           <input type="search" class="search" id="q" placeholder="Поиск: номер, название, заказчик, заявка…">
@@ -25,7 +31,7 @@
             <span class="chip active" data-f="">Все</span><span class="chip" data-f="kp">КП</span>
             <span class="chip" data-f="contract">Договоры</span><span class="chip" data-f="techcard">Техкарты</span><span class="chip" data-f="act">Акты</span>
           </div>
-          <button class="btn" id="toNew" style="width:auto;padding:11px 18px;">＋ Новый документ</button>
+          <button class="btn" data-cap="edit" id="toNew" style="width:auto;padding:11px 18px;">＋ Новый документ</button>
         </div>
         <div id="listMsg"></div>
         <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
@@ -54,7 +60,7 @@
           <div class="field"><label>Исполнитель (логин)</label><input type="text" id="fAssignee" placeholder="manager"></div>
         </div>
         <div class="field"><label>Содержание</label><textarea id="fContent" rows="5" placeholder="Текст документа…" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;font:inherit;"></textarea></div>
-        <button class="btn" id="createBtn" title="Создать документ (версия 1)">Создать документ</button>
+        <button class="btn" data-cap="edit" id="createBtn" title="Создать документ (версия 1)">Создать документ</button>
       </div>
     </section>
 
@@ -78,10 +84,10 @@
           <div class="field"><label>Исполнитель</label><input type="text" id="uAssignee"></div>
         </div>
         <div class="field"><label>Содержание</label><textarea id="uContent" rows="5" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;font:inherit;"></textarea></div>
-        <button class="btn" id="saveBtn">Сохранить новую версию</button>
+        <button class="btn" data-cap="edit" id="saveBtn">Сохранить новую версию</button>
         <div class="toolbar mt">
-          <button class="btn secondary" id="activeBtn">В работу</button>
-          <button class="btn secondary" id="archBtn">В архив</button>
+          <button class="btn secondary" data-cap="edit" id="activeBtn">В работу</button>
+          <button class="btn secondary" data-cap="edit" id="archBtn">В архив</button>
         </div>
       </div>
       <div class="card"><h2>Версии</h2><div id="versions"><span class="note">—</span></div></div>
@@ -98,10 +104,11 @@
   <script src="../../assets/js/router.js?v=1"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=79"></script>
-  <script src="../../assets/js/shell.js?v=40"></script>
+  <script src="../../assets/js/nav.js?v=80"></script>
+  <script src="../../assets/js/shell.js?v=41"></script>
   <script src="../../assets/js/files.js?v=1"></script>
-  <script src="docs.js?v=3"></script>
+  <script src="../../assets/js/export.js?v=1"></script>
+  <script src="docs.js?v=4"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>
