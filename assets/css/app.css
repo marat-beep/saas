@@ -382,10 +382,12 @@ h1,h2,h3{line-height:1.25}
 .hero h1{font-size:var(--fs-6)}
 .hero p{font-size:var(--fs-3)}
 /* ===== uCoz-каркас: глобальный левый сайдбар (.sh-*). Только layout, палитра та же. ===== */
-body.sh-has{padding-left:224px}
-body.sh-has.sh-collapsed{padding-left:60px}
-.sh-side{position:fixed;top:0;left:0;bottom:0;width:224px;background:var(--surface);border-right:1px solid var(--border);overflow:visible;padding:8px 6px;z-index:900}
-body.sh-collapsed .sh-side{width:60px;padding:8px 6px}
+body.sh-has{padding-left:0}
+body.sh-has.sh-collapsed{padding-left:0}
+.sh-side{position:fixed;top:0;left:0;bottom:0;width:250px;background:var(--surface);border-right:1px solid var(--border);overflow:visible;padding:8px 6px;z-index:900;transform:translateX(-105%);transition:transform .2s ease;box-shadow:0 12px 40px rgba(15,23,42,.18)}
+body.sh-open .sh-side{transform:none}
+.sh-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.34);z-index:880;display:none}
+body.sh-open .sh-backdrop{display:block}
 .sh-brand{display:flex;gap:6px;align-items:baseline;padding:8px 10px 12px;font-weight:800;color:var(--accent-700)}
 .sh-brand b{color:var(--text)}
 .sh-grp{margin:10px 10px 4px;font-size:.68rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}

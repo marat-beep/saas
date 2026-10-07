@@ -27,12 +27,14 @@
     wrap.id = 'shSide'; wrap.className = 'sh-side';
     document.body.appendChild(wrap);
 
+    var backdrop = document.createElement('div');
+    backdrop.className = 'sh-backdrop'; backdrop.id = 'shBackdrop';
+    backdrop.addEventListener('click', function () { document.body.classList.remove('sh-open'); });
+    document.body.appendChild(backdrop);
+
     var btn = document.createElement('button');
     btn.className = 'tbtn sh-burger'; btn.type = 'button'; btn.setAttribute('aria-label', 'Меню'); btn.textContent = '☰';
-    btn.addEventListener('click', function () {
-      if (window.innerWidth <= 768) { document.body.classList.toggle('sh-open'); }
-      else { collapsed = !collapsed; applyCollapsed(); }
-    });
+    btn.addEventListener('click', function () { document.body.classList.toggle('sh-open'); });
     var bar = document.querySelector('.topbar');
     if (bar) bar.insertBefore(btn, bar.firstChild ? bar.firstChild.nextSibling : null);
 
