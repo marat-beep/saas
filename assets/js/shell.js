@@ -149,6 +149,18 @@
 
     var navWrap = document.getElementById('navWrap'); if (navWrap) navWrap.style.display = 'none'; // верхнее меню заменяем сайдбаром
 
+    /* Стили выпадающего меню контуров — встраиваем из JS (устойчиво к кэшу CSS) */
+    (function () {
+      if (document.getElementById('shFlyStyle')) return;
+      var st = document.createElement('style'); st.id = 'shFlyStyle';
+      st.textContent =
+        '.sh-side .sh-group{position:relative}' +
+        '.sh-side .sh-group-body{position:absolute;left:100%;top:0;margin-left:6px;min-width:240px;max-width:340px;max-height:76vh;overflow:auto;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 14px 34px rgba(15,23,42,.18);padding:6px;display:none;z-index:970}' +
+        '.sh-side .sh-group.open .sh-group-body{display:block}' +
+        '@media(max-width:680px){.sh-side .sh-group-body{position:static;left:auto;margin-left:0;box-shadow:none;border:0;border-radius:0;padding:2px 0 6px;min-width:0;max-width:none;max-height:none}}';
+      document.head.appendChild(st);
+    })();
+
     if (g.AppCatalog && g.AppCatalog.apps) build(g.AppCatalog);
     else { var s = document.createElement('script'); s.src = ROOT + 'assets/js/catalog.js?v=' + CATALOG_V; s.onload = function () { build(g.AppCatalog); }; document.head.appendChild(s); }
     resolveBrand();
