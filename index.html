@@ -25,6 +25,9 @@
   .hub-hero p { margin: 0; max-width: 780px; }
   .hub-top { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; margin-bottom: 16px; align-items: start; }
   @media (max-width: 900px) { .hub-top { grid-template-columns: 1fr; } }
+  .hub-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; margin-bottom: 16px; }
+  .hub-col { display: flex; flex-direction: column; }
+  @media (max-width: 900px) { .hub-cols { grid-template-columns: 1fr; } }
   .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media (max-width: 768px) { .calc-grid { grid-template-columns: 1fr; } }
   .calc { border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
@@ -68,9 +71,12 @@
       </section>
     </div>
 
+    <div class="hub-cols">
+      <div class="hub-col">
     <div class="card" id="hubQuick" style="margin-bottom:16px;"></div>
     <div class="card" id="hubTools" style="margin-bottom:16px;"></div>
-
+      </div>
+      <div class="hub-col">
     <div class="card" id="hubCalc" style="margin-bottom:16px;">
       <h2>🧮 Быстрые расчёты</h2>
       <p class="note">Простые калькуляторы прямо на главной — считают мгновенно, без сохранения.</p>
@@ -93,6 +99,8 @@
           </div>
           <div class="calc-res" id="cResM">= —</div>
         </div>
+      </div>
+    </div>
       </div>
     </div>
     <script>if ('serviceWorker' in navigator && location.protocol === 'https:') { navigator.serviceWorker.register('sw.js', { scope: './' }).catch(function () {}); }</script>
