@@ -25,14 +25,7 @@
   .hub-hero p { margin: 0; max-width: 780px; }
   .hub-top { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; margin-bottom: 16px; align-items: start; }
   @media (max-width: 900px) { .hub-top { grid-template-columns: 1fr; } }
-  .hub-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; margin-bottom: 16px; }
-  .hub-col { display: flex; flex-direction: column; }
-  @media (max-width: 900px) { .hub-cols { grid-template-columns: 1fr; } }
-  .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  @media (max-width: 768px) { .calc-grid { grid-template-columns: 1fr; } }
-  .calc { border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
-  .calc h4 { margin: 0 0 10px; font-size: .9rem; }
-  .calc-res { margin-top: 10px; font-weight: 800; color: var(--accent-700); }
+
 </style>
 </head>
 <body>
@@ -71,38 +64,8 @@
       </section>
     </div>
 
-    <div class="hub-cols">
-      <div class="hub-col">
     <div class="card" id="hubQuick" style="margin-bottom:16px;"></div>
     <div class="card" id="hubTools" style="margin-bottom:16px;"></div>
-      </div>
-      <div class="hub-col">
-    <div class="card" id="hubCalc" style="margin-bottom:16px;">
-      <h2>🧮 Быстрые расчёты</h2>
-      <p class="note">Простые калькуляторы прямо на главной — считают мгновенно, без сохранения.</p>
-      <div class="calc-grid">
-        <div class="calc">
-          <h4>Стоимость по нормочасу</h4>
-          <div class="form-grid">
-            <div class="field"><label>Часы</label><input type="number" id="cH" value="1" step="0.1" min="0"></div>
-            <div class="field"><label>Ставка, ₽/ч</label><input type="number" id="cR" value="3000" step="100" min="0"></div>
-          </div>
-          <div class="calc-res" id="cResH">= —</div>
-        </div>
-        <div class="calc">
-          <h4>Масса заготовки</h4>
-          <div class="form-grid">
-            <div class="field"><label>Длина, мм</label><input type="number" id="mL" value="100" step="1" min="0"></div>
-            <div class="field"><label>Ширина, мм</label><input type="number" id="mW" value="100" step="1" min="0"></div>
-            <div class="field"><label>Высота, мм</label><input type="number" id="mH" value="50" step="1" min="0"></div>
-            <div class="field"><label>Плотность, г/см³</label><input type="number" id="mD" value="7.85" step="0.01" min="0"></div>
-          </div>
-          <div class="calc-res" id="cResM">= —</div>
-        </div>
-      </div>
-    </div>
-      </div>
-    </div>
     <script>if ('serviceWorker' in navigator && location.protocol === 'https:') { navigator.serviceWorker.register('sw.js', { scope: './' }).catch(function () {}); }</script>
 
     <section class="card" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
@@ -320,14 +283,7 @@
         if (qEl) qEl.addEventListener('input', function () { renderApps(currentUser); });
       })();
 
-      (function initCalc() {
-        function g(id) { return document.getElementById(id); }
-        function upH() { var v = (parseFloat(g('cH').value) || 0) * (parseFloat(g('cR').value) || 0); g('cResH').textContent = '= ' + v.toLocaleString('ru-RU', { maximumFractionDigits: 2 }) + ' руб.'; }
-        function upM() { var cm3 = ((parseFloat(g('mL').value) || 0) * (parseFloat(g('mW').value) || 0) * (parseFloat(g('mH').value) || 0)) / 1000; var kg = cm3 * (parseFloat(g('mD').value) || 0) / 1000; g('cResM').textContent = '= ' + kg.toLocaleString('ru-RU', { maximumFractionDigits: 3 }) + ' кг'; }
-        ['cH', 'cR'].forEach(function (id) { var e = g(id); if (e) e.addEventListener('input', upH); });
-        ['mL', 'mW', 'mH', 'mD'].forEach(function (id) { var e = g(id); if (e) e.addEventListener('input', upM); });
-        upH(); upM();
-      })();
+
 
       window.AppStatus.render('#conn').then(function () {
         refreshUI();
