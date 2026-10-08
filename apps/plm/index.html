@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Изделия и состав (PLM) — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=35">
+<style>.num{text-align:right;font-variant-numeric:tabular-nums}</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">📐</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap fluid">
+    <div class="hero"><h1>Изделия и состав (PDM/PLM)</h1><p>Изделия с версиями и состояниями, состав (BOM), документы (ЕСКД/ЕСТД), изменения (ECN). Роли: staff.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="tabs2" id="tabs">
+      <button data-scr="prod" class="active">Изделия</button>
+      <button data-scr="ecn">Изменения (ECN)</button>
+    </div>
+    <div class="msg" id="m"></div>
+
+    <section class="screen active" id="scr-prod">
+      <div class="card">
+        <div class="toolbar">
+          <input type="search" class="search" id="q" placeholder="Поиск: код, наименование…">
+          <select id="state" style="padding:9px;border:1px solid var(--border);border-radius:9px;">
+            <option value="">Все</option><option value="draft">Черновик</option><option value="released">Выпущено</option><option value="obsolete">Снято</option>
+          </select>
+          <button class="btn" data-cap="edit" id="add" style="width:auto;padding:8px 14px;">＋ Изделие</button>
+        </div>
+        <div id="list" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+      <div class="card" id="detailCard" style="display:none;">
+        <div id="detail"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-ecn">
+      <div class="card">
+        <div class="toolbar"><button class="btn" data-cap="edit" id="newEcn" style="width:auto;padding:8px 14px;">＋ Изменение</button>
+          <span class="note" style="margin-left:auto;">Статусы: черновик → в работе → утверждено/отклонено (решение — владелец/админ).</span></div>
+        <div id="ecn" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">3DMP Service · изделия и состав</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=4"></script>
+  <script src="../../assets/js/auth.js?v=6"></script>
+  <script src="../../assets/js/notify.js?v=3"></script>
+  <script src="../../assets/js/support-widget.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=95"></script>
+  <script src="../../assets/js/shell.js?v=57"></script>
+  <script src="plm.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=2"></script>
+  <script src="../../assets/js/module-info.js?v=1"></script>
+</body>
+</html>
