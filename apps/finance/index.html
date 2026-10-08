@@ -83,6 +83,34 @@
         <div id="payments"><span class="note">—</span></div>
       </div>
     </section>
+
+    <div class="card">
+      <h2>Управленческий учёт <span class="note">бюджеты · план-факт · платёжный календарь</span></h2>
+      <div class="kpi-row" id="f2kpi"></div>
+      <div class="tabs2" id="f2tabs" style="margin-top:10px;">
+        <button data-scr="bud" class="active">Бюджеты / ЦФО</button>
+        <button data-scr="cash">Платёжный календарь</button>
+      </div>
+      <div class="msg" id="f2m"></div>
+
+      <section class="screen f2scr active" id="f2-bud">
+        <div class="toolbar"><button class="btn" data-cap="edit" id="f2newBud" style="width:auto;padding:8px 14px;">＋ Бюджет</button>
+          <span class="note" style="margin-left:auto;">Строки по статьям/месяцам, план и факт; факт «Продажи» — из оплаченных счетов.</span></div>
+        <div id="f2bud" class="mt"><span class="note">Загрузка…</span></div>
+        <div id="f2budPanel" class="mt"></div>
+      </section>
+
+      <section class="screen f2scr" id="f2-cash">
+        <div class="toolbar">
+          <label class="note">Горизонт, дней:</label><input type="number" id="f2days" value="30" min="1" max="365" style="padding:9px;border:1px solid var(--border);border-radius:9px;width:100px;">
+          <button class="btn" data-cap="edit" id="f2newPay" style="width:auto;padding:8px 14px;">＋ Платёж</button>
+          <span class="note" style="margin-left:auto;">Входящие счета + ручные платежи; дебиторка/кредиторка — в KPI выше.</span></div>
+        <h3>Календарь</h3>
+        <div id="f2cal" class="mt"><span class="note">Загрузка…</span></div>
+        <h3 class="mt">Платежи</h3>
+        <div id="f2pay" class="mt"></div>
+      </section>
+    </div>
   </main>
 
   <footer class="foot">3DMP Service · финансы</footer>
@@ -95,10 +123,11 @@
   <script src="../../assets/js/router.js?v=1"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=92"></script>
-  <script src="../../assets/js/shell.js?v=54"></script>
+  <script src="../../assets/js/nav.js?v=93"></script>
+  <script src="../../assets/js/shell.js?v=55"></script>
   <script src="../../assets/js/export.js?v=1"></script>
   <script src="finance.js?v=3"></script>
+  <script src="finance2.js?v=1"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>
