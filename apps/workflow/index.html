@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Процессы и автоматизация — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=35">
+<style>
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .chip{display:inline-block;font-size:.72rem;padding:2px 8px;border-radius:999px;background:#f1f5f9;border:1px solid var(--border);margin:0 4px 4px 0}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">⚙️</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap fluid">
+    <div class="hero"><h1>Процессы и автоматизация</h1><p>Low-code: конструктор процессов (этапы/SLA), правила-триггеры (notify/audit/start_process), конструктор форм. Роли: staff.</p></div>
+
+    <div class="tabs2" id="tabs">
+      <button data-scr="defs" class="active">Процессы</button>
+      <button data-scr="my">Мои задачи</button>
+      <button data-scr="inst">Экземпляры</button>
+      <button data-scr="rules">Правила</button>
+      <button data-scr="forms">Формы</button>
+    </div>
+
+    <section class="screen active" id="scr-defs">
+      <div class="card">
+        <div class="toolbar"><button class="btn" id="newDef" data-cap="edit" style="width:auto;padding:8px 14px;">＋ Процесс</button>
+          <span class="note" style="margin-left:auto;">Шаги: роль/исполнитель, срок (SLA, ч). Запуск создаёт задачи этапов.</span></div>
+        <div class="msg" id="dMsg"></div>
+        <div id="defs" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-my">
+      <div class="card">
+        <div class="toolbar"><button class="btn secondary" id="myBtn" style="width:auto;padding:8px 14px;">Обновить</button></div>
+        <div class="msg" id="mMsg"></div>
+        <div id="my" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-inst">
+      <div class="card">
+        <div class="toolbar"><select id="iStatus" style="padding:9px;border:1px solid var(--border);border-radius:9px;">
+          <option value="">Все</option><option value="running">В работе</option><option value="done">Завершены</option><option value="rejected">Отклонены</option><option value="cancelled">Отменены</option>
+        </select><button class="btn secondary" id="instBtn" style="width:auto;padding:8px 14px;">Обновить</button></div>
+        <div id="inst" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-rules">
+      <div class="card">
+        <div class="toolbar"><button class="btn" id="newRule" data-cap="edit" style="width:auto;padding:8px 14px;">＋ Правило</button>
+          <span class="note" style="margin-left:auto;">Событие + условие (field/op/value) + действия (notify/audit/start_process).</span></div>
+        <div class="msg" id="rMsg"></div>
+        <div id="rules" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-forms">
+      <div class="card">
+        <div class="toolbar"><button class="btn" id="newForm" data-cap="edit" style="width:auto;padding:8px 14px;">＋ Форма</button>
+          <span class="note" style="margin-left:auto;">Кастомные поля карточек модулей (без миграций).</span></div>
+        <div class="msg" id="fMsg"></div>
+        <div id="forms" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">3DMP Service · процессы и автоматизация</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/api.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=4"></script>
+  <script src="../../assets/js/auth.js?v=6"></script>
+  <script src="../../assets/js/notify.js?v=3"></script>
+  <script src="../../assets/js/support-widget.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=92"></script>
+  <script src="../../assets/js/shell.js?v=54"></script>
+  <script src="workflow.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=2"></script>
+  <script src="../../assets/js/module-info.js?v=1"></script>
+</body>
+</html>
