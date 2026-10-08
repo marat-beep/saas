@@ -10,7 +10,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 **Не льётся:** `supabase/`, `docs/`, `tools/`, `dist/`, `.git`, `README.md`, `AGENTS.md`.
 
 ## 2. База данных
-- Миграции `supabase/migrations/0001…0157` + пересобранный `supabase/apply_all.sql`.
+- Миграции `supabase/migrations/0001…0158` + пересобранный `supabase/apply_all.sql`.
 - Инструменты: `tools/build-release.ps1` (сборка dist), `tools/audit.ps1` (локальный автотест), `tools/db-smoke.ps1` (смоук БД через Management API).
 - Применение — Supabase → SQL Editor → вставить `apply_all.sql` → Run (либо Management API, UTF-8).
 - Смоук: `select * from app_smoke_test(:token);` (10/10) и `app_smoke_test_ext(:token)` (14/14).
@@ -35,6 +35,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 - [ ] Отметки в `BACKLOG.md`, `PLAN_WAVES.md`, `STATUS.md`, `NOTES.md`, `PROMPTS.md`.
 
 ## 6. Журнал релизов (последнее)
+- **v215 (миграция `0158`)** — W13 инструментальное хозяйство 2.0: экземпляры/история, каталог+аналоги, инвентаризация, оснащение техкарт; UI `tooling`; каталог v10.12, nav v91/shell v53.
 - **v214** — план обновления v2 (W13–W27, миграции `0158…0174`): ЭДО/СЭД, КЭДО, инструмент 2.0, CMMS/EAM 2.0, low-code workflow, ERP-контур (FRP/MDM/PDM), EHS, холдинг. Детали `PLAN_UPDATE_V2.md`.
 - **v213** — P0 закрыт (приёмка панели залита); `tools/db-smoke.ps1` дополнен дымовыми проверками волн W7–R4 (17/17).
 - **v212 (миграция `0157`)** — R1+R3+R4: CRM-напоминания, генеалогия партий, гейтинг по подразделению; каталог v10.11, nav v90/shell v52. (R2 онлайн-оплата — пропущено.)

@@ -60,6 +60,45 @@
       <h2>Инструмент <span class="note" id="cnt"></span></h2>
       <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
     </div>
+    <div class="card">
+      <h2>Инструментальное хозяйство 2.0 <span class="note">поэкземплярно · каталог · инвентаризация · оснащение</span></h2>
+      <div class="kpi-row" id="t2kpi"></div>
+      <div class="tabs2" id="t2tabs" style="margin-top:10px;">
+        <button data-scr="items" class="active">Экземпляры</button>
+        <button data-scr="catalog">Каталог</button>
+        <button data-scr="inv">Инвентаризация</button>
+        <button data-scr="route">Оснащение по техкартам</button>
+      </div>
+      <div class="msg" id="t2m"></div>
+
+      <section class="screen t2scr active" id="t2-items">
+        <div class="toolbar"><button class="btn" data-cap="edit" id="t2add" style="width:auto;padding:8px 14px;">＋ Экземпляр</button>
+          <span class="note" style="margin-left:auto;">Выдача/возврат/установка на станок, история и наработка по каждому экземпляру.</span></div>
+        <div id="t2items" class="mt"><span class="note">Загрузка…</span></div>
+      </section>
+
+      <section class="screen t2scr" id="t2-catalog">
+        <div class="toolbar"><button class="btn" data-cap="edit" id="t2addCat" style="width:auto;padding:8px 14px;">＋ Позиция каталога</button>
+          <span class="note" style="margin-left:auto;">Цифровой каталог производителей с аналогами.</span></div>
+        <div id="t2cat" class="mt"><span class="note">Загрузка…</span></div>
+      </section>
+
+      <section class="screen t2scr" id="t2-inv">
+        <div class="toolbar"><button class="btn" data-cap="edit" id="t2invStart" style="width:auto;padding:8px 14px;">Начать инвентаризацию</button>
+          <span class="note" style="margin-left:auto;">Скан по серийному номеру/метке; расхождения фиксируются.</span></div>
+        <div id="t2inv" class="mt"><span class="note">Загрузка…</span></div>
+        <div id="t2invPanel" class="mt"></div>
+      </section>
+
+      <section class="screen t2scr" id="t2-route">
+        <div class="toolbar">
+          <label class="note">Маршрут:</label><select id="t2routeSel" style="padding:9px;border:1px solid var(--border);border-radius:9px;min-width:220px;"></select>
+          <label class="note">Операция:</label><select id="t2stepSel" style="padding:9px;border:1px solid var(--border);border-radius:9px;min-width:200px;"></select>
+          <button class="btn" data-cap="edit" id="t2addRt" style="width:auto;padding:8px 14px;">＋ Инструмент</button>
+        </div>
+        <div id="t2rtools" class="mt"><span class="note">Загрузка…</span></div>
+      </section>
+    </div>
   </main>
 
   <footer class="foot">3DMP Service · инструмент и стойкость</footer>
@@ -71,10 +110,11 @@
   <script src="../../assets/js/auth.js?v=6"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
-  <script src="../../assets/js/nav.js?v=90"></script>
-  <script src="../../assets/js/shell.js?v=52"></script>
+  <script src="../../assets/js/nav.js?v=91"></script>
+  <script src="../../assets/js/shell.js?v=53"></script>
   <script src="../../assets/js/export.js?v=1"></script>
   <script src="tooling.js?v=2"></script>
+  <script src="tool2.js?v=1"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>
