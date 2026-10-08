@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>НСИ / Мастер-данные — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=35">
+<style>.num{text-align:right;font-variant-numeric:tabular-nums}</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🗂️</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap fluid">
+    <div class="hero"><h1>НСИ / Мастер-данные</h1><p>Единый справочник номенклатуры: версии, внешние коды (1С/PLM), поиск дублей и слияние, импорт. Роли: staff.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="tabs2" id="tabs">
+      <button data-scr="reg" class="active">Реестр</button>
+      <button data-scr="dup">Дубли</button>
+      <button data-scr="imp">Импорт</button>
+    </div>
+    <div class="msg" id="m"></div>
+
+    <section class="screen active" id="scr-reg">
+      <div class="card">
+        <div class="toolbar">
+          <input type="search" class="search" id="q" placeholder="Поиск: код, наименование…">
+          <select id="type" style="padding:9px;border:1px solid var(--border);border-radius:9px;">
+            <option value="">Все типы</option><option value="material">Материалы</option><option value="product">Изделия</option>
+            <option value="service">Услуги</option><option value="equipment">Оборудование</option><option value="tool">Инструмент</option><option value="other">Прочее</option>
+          </select>
+          <button class="btn" data-cap="edit" id="add" style="width:auto;padding:8px 14px;">＋ Позиция</button>
+          <button class="act" id="expCsv">CSV</button><button class="act" id="expPdf">PDF</button>
+        </div>
+        <div id="list" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-dup">
+      <div class="card">
+        <div class="toolbar"><button class="btn secondary" id="dupBtn" style="width:auto;padding:8px 14px;">Обновить</button>
+          <span class="note" style="margin-left:auto;">Группы позиций с одинаковым наименованием. Слияние переносит коды/атрибуты и архивирует дубль.</span></div>
+        <div id="dups" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-imp">
+      <div class="card">
+        <div class="toolbar"><button class="btn" data-cap="edit" id="impBtn" style="width:auto;padding:8px 14px;">Импортировать</button></div>
+        <p class="note">JSON-массив: [{"code":"MAT-1","name":"...","item_type":"material","unit":"кг","external":{"1c":"00-1"}}]. Upsert по коду.</p>
+        <div class="field"><textarea id="imp" rows="8" style="width:100%;font-family:monospace;"></textarea></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">3DMP Service · НСИ / мастер-данные</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=4"></script>
+  <script src="../../assets/js/auth.js?v=6"></script>
+  <script src="../../assets/js/notify.js?v=3"></script>
+  <script src="../../assets/js/support-widget.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=94"></script>
+  <script src="../../assets/js/shell.js?v=56"></script>
+  <script src="mdm.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=2"></script>
+  <script src="../../assets/js/export.js?v=1"></script>
+  <script src="../../assets/js/module-info.js?v=1"></script>
+</body>
+</html>
