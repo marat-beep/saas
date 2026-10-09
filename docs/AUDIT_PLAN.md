@@ -41,6 +41,7 @@
 | `docs/AUDIT_PLAN.md` | этот план |
 | `docs/AUDIT_METHODS.md` | методики, шкалы, веса, формулы |
 | `docs/AUDIT_CHECKLIST.md` | чек-листы L3/L4 с ID |
+| `docs/AUDIT_L4_APPLICABILITY.md` | L4: SUS, сценарные задачи, наблюдение, пилот |
 | `docs/AUDIT_TRACE.md` | матрица трассируемости |
 | `docs/AUDIT_REPORT_TEMPLATE.md` | шаблон отчёта |
 | `docs/AUDIT_RISK_REGISTER.md` | реестр рисков |
