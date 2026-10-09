@@ -10,7 +10,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 **Не льётся:** `supabase/`, `docs/`, `tools/`, `dist/`, `.git`, `README.md`, `AGENTS.md`.
 
 ## 2. База данных
-- Миграции `supabase/migrations/0001…0167` + пересобранный `supabase/apply_all.sql`.
+- Миграции `supabase/migrations/0001…0168` + пересобранный `supabase/apply_all.sql`.
 - Инструменты: `tools/build-release.ps1` (сборка dist), `tools/audit.ps1` (локальный автотест), `tools/db-smoke.ps1` (смоук БД через Management API).
 - Применение — Supabase → SQL Editor → вставить `apply_all.sql` → Run (либо Management API, UTF-8).
 - Смоук: `select * from app_smoke_test(:token);` (10/10) и `app_smoke_test_ext(:token)` (14/14).
@@ -35,6 +35,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 - [ ] Отметки в `BACKLOG.md`, `PLAN_WAVES.md`, `STATUS.md`, `NOTES.md`, `PROMPTS.md`.
 
 ## 6. Журнал релизов (последнее)
+- **v225 (миграция `0168`)** — W21 охрана труда/EHS: инструктажи, допуски, СИЗ, медосмотры, инциденты; модуль `apps/safety`; каталог v10.22, nav v101/shell v63.
 - **v224 (миграция `0167`)** — W17 экосистема: лог API, подписи (ПЭП/УНЭП/УКЭП/Госключ), проверка контрагентов; reuse ключей/webhooks; UI `apps/api`; каталог v10.21, nav v100/shell v62.
 - **v223 (миграция `0166`)** — W14 CMMS/EAM 2.0: вибро(+авто-наряд), энерго, простои, версии УП, карта цеха; модуль `apps/eam`; каталог v10.20, nav v99/shell v61. Пакет 3 закрыт.
 - **v222 (миграция `0165`)** — W20 КЭДО: кадровые документы/ознакомления/подпись, шаблоны, ЛК, МЧД; модуль `apps/kedo`; каталог v10.19, nav v98/shell v60.

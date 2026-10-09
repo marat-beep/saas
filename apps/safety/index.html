@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Охрана труда (EHS) — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=35">
+<style>.num{text-align:right;font-variant-numeric:tabular-nums}</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">⛑️</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap fluid">
+    <div class="hero"><h1>Охрана труда (EHS)</h1><p>Инструктажи, наряды-допуски, СИЗ, медосмотры, инциденты. Роли: staff.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="tabs2" id="tabs">
+      <button data-scr="br" class="active">Инструктажи</button>
+      <button data-scr="pm">Допуски</button>
+      <button data-scr="ppe">СИЗ</button>
+      <button data-scr="med">Медосмотры</button>
+      <button data-scr="inc">Инциденты</button>
+    </div>
+    <div class="msg" id="m"></div>
+
+    <section class="screen active" id="scr-br"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addBr" style="width:auto;padding:8px 14px;">＋ Инструктаж</button></div><div id="br" class="mt"></div></div></section>
+    <section class="screen" id="scr-pm"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addPm" style="width:auto;padding:8px 14px;">＋ Наряд-допуск</button></div><div id="pm" class="mt"></div></div></section>
+    <section class="screen" id="scr-ppe"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addPpe" style="width:auto;padding:8px 14px;">＋ СИЗ</button></div><div id="ppe" class="mt"></div></div></section>
+    <section class="screen" id="scr-med"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addMed" style="width:auto;padding:8px 14px;">＋ Медосмотр</button></div><div id="med" class="mt"></div></div></section>
+    <section class="screen" id="scr-inc"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addInc" style="width:auto;padding:8px 14px;">＋ Инцидент</button></div><div id="inc" class="mt"></div></div></section>
+  </main>
+
+  <footer class="foot">3DMP Service · охрана труда</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=4"></script>
+  <script src="../../assets/js/auth.js?v=6"></script>
+  <script src="../../assets/js/notify.js?v=3"></script>
+  <script src="../../assets/js/support-widget.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=101"></script>
+  <script src="../../assets/js/shell.js?v=63"></script>
+  <script src="safety.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=2"></script>
+  <script src="../../assets/js/module-info.js?v=1"></script>
+</body>
+</html>
