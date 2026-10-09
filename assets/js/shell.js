@@ -6,7 +6,7 @@
 (function (g) {
   'use strict';
   var SELF = document.currentScript;
-  var CATALOG_V = '106'; // версия каталога для внешних страниц
+  var CATALOG_V = '107'; // версия каталога для внешних страниц
 
   function esc(v) { return (g.AppUI && g.AppUI.esc) ? g.AppUI.esc(v) : String(v == null ? '' : v); }
   function ready(fn) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn); else fn(); }
@@ -231,6 +231,9 @@
       if (!document.querySelector('link[rel="manifest"]')) { var lk = document.createElement('link'); lk.rel = 'manifest'; lk.href = ROOT + 'manifest.webmanifest'; document.head.appendChild(lk); }
       if ('serviceWorker' in navigator && location.protocol === 'https:') { navigator.serviceWorker.register(ROOT + 'sw.js', { scope: ROOT }).catch(function () {}); }
     } catch (e) {}
+
+    /* W31: мини-мобильный режим модулей (нижняя панель быстрых действий) */
+    if (!g.AppMobile) { var mjs = document.createElement('script'); mjs.src = ROOT + 'assets/js/mobile.js?v=1'; document.head.appendChild(mjs); }
 
     document.addEventListener('click', function (e) { if (window.innerWidth <= 768 && e.target.closest && e.target.closest('.sh-item')) document.body.classList.remove('sh-open'); });
 

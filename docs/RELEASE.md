@@ -29,6 +29,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 - `module-report.js` + `app_module_report(token, module)` — универсальный отчёт по модулю (кнопка `data-report`).
 - Роли — `data-cap` + карта `CAPS` в JS модуля.
 - `wizard.js` + `wizards.js` — пошаговые мастера (W32): кнопка `data-wizard`/авто-подстановка; черновик в localStorage.
+- `mobile.js` — мини-мобильный режим (W31): нижняя панель быстрых действий из `AppCatalog.quick`, `?mobile=1`, офлайн-действия (`AppOffline`), PWA-установка.
 
 ## 4. Волны апгрейда (сделано)
 - **W-S (сервис ЧПУ по ТЗ):** заявки/SLA/гарантии/контракты, выезды, паспорт станка, отчёты, IIoT/ППР, матрица ролей, процесс, печать.
@@ -43,6 +44,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 - [ ] Отметки в `BACKLOG.md`, `PLAN_WAVES.md`, `STATUS.md`, `NOTES.md`, `PROMPTS.md`.
 
 ## 6. Журнал релизов (последнее)
+- **v240** — W31 мини-мобильные приложения модулей: `assets/js/mobile.js` (нижняя панель быстрых действий, `?mobile=1`, PWA-установка) + `quick` в `catalog.js` (15 модулей; переходы/мастера/RPC с офлайн-очередью). Каталог v10.31, shell v72, CATALOG_V 107. Пакет П2 закрыт.
 - **v239** — W32 мастера (wizards): движок `assets/js/wizard.js` + `assets/js/wizards.js` (6 пилотов: НСИ, инструмент, приёмка, процесс, КЭДО, перевозка), авто-кнопка в 6 модулях.
 - **v238 (миграция `0178`)** — W34 отчёты/BI на новые модули: `app_module_report` +16 веток, `module-report.js` v2 (авто-кнопка отчёта) в 15 модулях, `reports.js` — 16 наборов данных + дашборд новых модулей.
 - **v237 (миграция `0177`)** — W33 эксплуатация/мониторинг: `app_health_ping` (uptime по API-ключу), `app_health_alerts`+`app_health_pings`, алерты с дедупом и уведомлением в `app_health_scan` (+«свежесть данных»), `app_health_alerts_list`/`app_health_alert_resolve`, `app_health_trend`; дашборд в `apps/diagnostics`; `tools/run-checks.ps1` + CI `.github/workflows/checks.yml`. Каталог v10.30, nav v108/shell v71.
