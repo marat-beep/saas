@@ -83,7 +83,7 @@
   $('#tabs').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     $$('#tabs button').forEach(function (x) { x.classList.toggle('active', x === b); });
-    ['org', 'users', 'mods', 'plan'].forEach(function (t) { $('#t-' + t).style.display = (b.dataset.t === t) ? '' : 'none'; });
+    ['org', 'users', 'mods', 'plan', 'sec'].forEach(function (t) { $('#t-' + t).style.display = (b.dataset.t === t) ? '' : 'none'; });
   });
 
   $('#brSave').addEventListener('click', function () {

@@ -39,6 +39,7 @@
       <button data-t="users">Пользователи</button>
       <button data-t="mods">Модули</button>
       <button data-t="plan">Тариф</button>
+      <button data-t="sec">Безопасность</button>
     </div>
 
     <section id="t-org">
@@ -103,6 +104,63 @@
         <div class="msg" id="pMsg"></div>
       </div>
     </section>
+    <section id="t-sec" style="display:none;">
+      <div class="card">
+        <h2>Моя безопасность</h2>
+        <p class="note" id="secState">…</p>
+        <div class="msg" id="secMsg"></div>
+        <div class="grid2c">
+          <div>
+            <h3 style="font-size:.9rem;margin:0 0 6px;">Двухфакторная аутентификация</h3>
+            <div id="sec2faSetup" style="display:none;border:1px dashed var(--border);border-radius:10px;padding:10px;margin-bottom:8px;">
+              <div class="note">Добавьте секрет в приложение-аутентификатор, затем введите код.</div>
+              <div class="field"><label>Секрет</label><input type="text" id="sec2faSecret" readonly></div>
+              <div class="field"><label>Ссылка otpauth</label><input type="text" id="sec2faUri" readonly></div>
+            </div>
+            <div class="field"><label>Код 2FA</label><input type="text" id="sec2faCode" inputmode="numeric" placeholder="6 цифр"></div>
+            <div class="toolbar">
+              <button class="btn secondary" id="sec2faPrep" data-cap="edit" style="width:auto;padding:8px 12px;">Настроить</button>
+              <button class="btn" id="sec2faOn" data-cap="edit" style="width:auto;padding:8px 12px;">Включить</button>
+              <button class="btn secondary" id="sec2faOff" data-cap="edit" style="width:auto;padding:8px 12px;">Отключить</button>
+            </div>
+          </div>
+          <div>
+            <h3 style="font-size:.9rem;margin:0 0 6px;">Смена пароля</h3>
+            <div class="field"><label>Текущий пароль</label><input type="password" id="pwdOld" autocomplete="current-password"></div>
+            <div class="field"><label>Новый пароль</label><input type="password" id="pwdNew" autocomplete="new-password"></div>
+            <button class="btn" id="pwdSave" data-cap="edit">Сменить пароль</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Мои устройства и сессии <span class="note" id="secCnt"></span></h2>
+        <div style="overflow:auto;"><table class="tab2" id="secSessions"></table></div>
+        <button class="btn secondary mt" id="secRevokeAll" data-cap="edit">Завершить все прочие</button>
+      </div>
+
+      <div class="card">
+        <h2>Политика безопасности организации</h2>
+        <div class="grid2c">
+          <div class="field"><label>Роли, требующие 2FA (через запятую)</label><input type="text" id="polRoles" placeholder="admin, owner"></div>
+          <div class="field"><label>Минимальная длина пароля</label><input type="number" id="polPwdMin" min="4" value="8"></div>
+        </div>
+        <div class="grid2c">
+          <div class="field"><label>Срок действия пароля, дней (0 — бессрочно)</label><input type="number" id="polPwdExp" min="0" value="0"></div>
+          <div class="field"><label>TTL сессии, минут (0 — 30 дней)</label><input type="number" id="polTtl" min="0" value="0"></div>
+        </div>
+        <div class="field"><label>Разрешённые IP (через запятую; пусто — все)</label><input type="text" id="polIp" placeholder="10.0.0.0/8, 192.168.1.10"></div>
+        <button class="btn" id="polSave" data-cap="edit">Сохранить политику</button>
+      </div>
+
+      <div class="card">
+        <h2>Журнал доступа (администратор платформы)</h2>
+        <div class="msg" id="logMsg"></div>
+        <div style="overflow:auto;"><table class="tab2" id="secLog"></table></div>
+        <button class="btn secondary mt" id="logLoad">Показать журнал</button>
+      </div>
+    </section>
+
     <div class="card">
       <h2>Гейтинг данных по подразделению</h2>
       <div class="note">R4: при включении пользователи видят заказы и наряды только своего подразделения (admin/owner/manager — все; записи без отдела не ограничиваются).</div>
@@ -126,8 +184,9 @@
   <script src="../../assets/js/nav.js?v=108"></script>
   <script src="../../assets/js/shell.js?v=73"></script>
   <script src="../../assets/js/module-report.js?v=2"></script>
-  <script src="org.js?v=2"></script>
+  <script src="org.js?v=3"></script>
   <script src="scope.js?v=1"></script>
+  <script src="security.js?v=1"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>

@@ -10,7 +10,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 **Не льётся:** `supabase/`, `docs/`, `tools/`, `dist/`, `.git`, `README.md`, `AGENTS.md`.
 
 ## 2. База данных
-- Миграции `supabase/migrations/0001…0180` + пересобранный `supabase/apply_all.sql`.
+- Миграции `supabase/migrations/0001…0181` + пересобранный `supabase/apply_all.sql`.
 - Инструменты: `tools/build-release.ps1` (сборка dist), `tools/audit.ps1` (локальный автотест), `tools/db-smoke.ps1` (смоук БД через Management API), `tools/run-checks.ps1` (обёртка audit+db-smoke, лог в `dist/checks/`, код возврата).
 - Применение — Supabase → SQL Editor → вставить `apply_all.sql` → Run (либо Management API, UTF-8).
 - Смоук: `select * from app_smoke_test(:token);` (10/10) и `app_smoke_test_ext(:token)` (14/14).
@@ -45,6 +45,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 - [ ] Отметки в `BACKLOG.md`, `PLAN_WAVES.md`, `STATUS.md`, `NOTES.md`, `PROMPTS.md`.
 
 ## 6. Журнал релизов (последнее)
+- **v247 (миграция `0181`)** — W39 безопасность/аудит 2.0: политики (`app_security_policies`), смена пароля, «мои устройства/сессии», журнал доступа, TTL сессии/срок пароля в `app_login`; вкладка «Безопасность» в `apps/org`.
+- **v246** — W38 UI/UX-консистентность (план v4): единые адаптивные сетки.
 - **v243** — W36 мобильный офлайн (план v3 закрыт): `offline-queue.js` v2 (идемпотентность), `offline-cache.js` (IndexedDB-кэш чтения), `scan.js` (QR/ШК/фото/геометка), `sw.js` v3 (кэш по маршрутам); офлайн-склад, скан в моб. панели. Каталог v10.32, shell v73, CATALOG_V 108.
 - **v242 (миграция `0180`)** — W37 документация/мануалы: актуализированы USER/ADMIN/RUNBOOK/ECOSYSTEM/MODULE_REFERENCE; паки БЗ «Справка»/«Администрирование»; раздел «Справка и мануалы» в `apps/guide` v4.
 - **v241 (миграция `0179`)** — W35 маркетплейс-расширения: `app_extensions`/`app_extension_installs` + RPC (каталог/установка/включение/удаление/манифест), включение коннектора подтягивает `app_integrations`, аудит; вкладка «Расширения» в `apps/marketplace`.
