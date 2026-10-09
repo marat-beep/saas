@@ -1,0 +1,124 @@
+{
+    "generated_at":  "2026-10-09T17:16:42",
+    "capacity":  20,
+    "open":  8,
+    "waves":  [
+                  {
+                      "version":  "v4.1",
+                      "items":  [
+                                    {
+                                        "area":  "E",
+                                        "sev":  "Info",
+                                        "title":  "Знаки \u0027?\u0027 в строковых литералах: 85",
+                                        "detail":  "Проверить на порчу кодировки UTF-8 (many могут быть легитимны).",
+                                        "evidence":  "supabase/migrations",
+                                        "method":  "integrity",
+                                        "effort":  3,
+                                        "impact":  1,
+                                        "status":  "open",
+                                        "id":  "F-0004",
+                                        "prio":  0,
+                                        "pclass":  "P3"
+                                    },
+                                    {
+                                        "area":  "F",
+                                        "sev":  "Info",
+                                        "title":  "Упоминание service_role (не ключ)",
+                                        "detail":  "Проверить, что это лишь комментарий/документация.",
+                                        "evidence":  "\\assets\\js\\config.js",
+                                        "method":  "security",
+                                        "effort":  3,
+                                        "impact":  1,
+                                        "status":  "open",
+                                        "id":  "F-0006",
+                                        "prio":  0,
+                                        "pclass":  "P3"
+                                    },
+                                    {
+                                        "area":  "H",
+                                        "sev":  "Info",
+                                        "title":  "Много RPC-функций: 1038",
+                                        "detail":  "Проверять пагинацию/индексы горячих списков.",
+                                        "evidence":  "supabase/migrations",
+                                        "method":  "perf",
+                                        "effort":  3,
+                                        "impact":  1,
+                                        "status":  "open",
+                                        "id":  "F-0005",
+                                        "prio":  0,
+                                        "pclass":  "P3"
+                                    },
+                                    {
+                                        "area":  "B",
+                                        "sev":  "Minor",
+                                        "title":  "apps без каталога (3)",
+                                        "detail":  "engraving, product, templates",
+                                        "evidence":  "apps/",
+                                        "method":  "trace",
+                                        "effort":  1,
+                                        "impact":  1,
+                                        "status":  "open",
+                                        "id":  "F-0007",
+                                        "prio":  0,
+                                        "pclass":  "P3"
+                                    },
+                                    {
+                                        "area":  "A",
+                                        "sev":  "Info",
+                                        "title":  "RPC только на backend (нет вызова из UI): 125",
+                                        "detail":  "Кандидаты на проверку/документирование API.",
+                                        "evidence":  "supabase/migrations",
+                                        "method":  "trace",
+                                        "effort":  3,
+                                        "impact":  1,
+                                        "status":  "open",
+                                        "id":  "F-0008",
+                                        "prio":  0,
+                                        "pclass":  "P3"
+                                    },
+                                    {
+                                        "area":  "B",
+                                        "sev":  "Minor",
+                                        "title":  "Приложение без записи в каталоге: \u0027product\u0027",
+                                        "detail":  "apps/product есть на диске, но нет id в catalog.js.",
+                                        "evidence":  "apps/product",
+                                        "method":  "deep",
+                                        "effort":  1,
+                                        "impact":  1,
+                                        "status":  "open",
+                                        "id":  "F-0002",
+                                        "prio":  0,
+                                        "pclass":  "P3"
+                                    },
+                                    {
+                                        "area":  "B",
+                                        "sev":  "Minor",
+                                        "title":  "Приложение без записи в каталоге: \u0027templates\u0027",
+                                        "detail":  "apps/templates есть на диске, но нет id в catalog.js.",
+                                        "evidence":  "apps/templates",
+                                        "method":  "deep",
+                                        "effort":  1,
+                                        "impact":  1,
+                                        "status":  "open",
+                                        "id":  "F-0003",
+                                        "prio":  0,
+                                        "pclass":  "P3"
+                                    },
+                                    {
+                                        "area":  "B",
+                                        "sev":  "Minor",
+                                        "title":  "Приложение без записи в каталоге: \u0027engraving\u0027",
+                                        "detail":  "apps/engraving есть на диске, но нет id в catalog.js.",
+                                        "evidence":  "apps/engraving",
+                                        "method":  "deep",
+                                        "effort":  1,
+                                        "impact":  1,
+                                        "status":  "open",
+                                        "id":  "F-0001",
+                                        "prio":  0,
+                                        "pclass":  "P3"
+                                    }
+                                ]
+                  }
+              ]
+}

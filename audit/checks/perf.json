@@ -1,0 +1,17 @@
+{
+    "tool":  "perf",
+    "at":  "2026-10-09T17:14:26",
+    "findings":  [
+                     {
+                         "area":  "H",
+                         "sev":  "Info",
+                         "title":  "Много RPC-функций: 1038",
+                         "detail":  "Проверять пагинацию/индексы горячих списков.",
+                         "evidence":  "supabase/migrations",
+                         "method":  "perf",
+                         "effort":  3,
+                         "impact":  1,
+                         "status":  "open"
+                     }
+                 ]
+}

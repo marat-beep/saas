@@ -1,0 +1,28 @@
+{
+    "tool":  "trace",
+    "at":  "2026-10-09T17:14:22",
+    "findings":  [
+                     {
+                         "area":  "B",
+                         "sev":  "Minor",
+                         "title":  "apps без каталога (3)",
+                         "detail":  "engraving, product, templates",
+                         "evidence":  "apps/",
+                         "method":  "trace",
+                         "effort":  1,
+                         "impact":  1,
+                         "status":  "open"
+                     },
+                     {
+                         "area":  "A",
+                         "sev":  "Info",
+                         "title":  "RPC только на backend (нет вызова из UI): 125",
+                         "detail":  "Кандидаты на проверку/документирование API.",
+                         "evidence":  "supabase/migrations",
+                         "method":  "trace",
+                         "effort":  3,
+                         "impact":  1,
+                         "status":  "open"
+                     }
+                 ]
+}
