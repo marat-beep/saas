@@ -74,12 +74,41 @@
         '<a href="../adoption/index.html">🚀 Карта внедрения</a>' +
         '<a href="../../index.html">🏠 Хаб</a></div></div>';
     }
-    var html = man + head + groups.map(function (g) {
+    var gf = '';
+    if (!only && !q && window.AppGuideFields) {
+      var G = window.AppGuideFields;
+      var opts = '<option value="__generic">Общие правила заполнения</option>';
+      Object.keys(G.modules).forEach(function (k) { opts += '<option value="' + k + '">' + esc(G.modules[k].title) + '</option>'; });
+      gf = '<div class="card" id="gf"><h2>🧭 Инструкции: поля и как работать</h2>' +
+        '<p class="note">Выберите модуль — порядок работы и назначение полей.</p>' +
+        '<select id="gfSel" style="max-width:440px;">' + opts + '</select>' +
+        '<div id="gfBody" class="mt"></div></div>';
+    }
+    var html = man + gf + head + groups.map(function (g) {
       var items = (C.apps || []).filter(function (a) { return a.group === g.id && match(a); });
       if (!items.length) return '';
       return '<div class="guide-grp"><h2>' + g.icon + ' ' + esc(g.title) + '</h2>' + items.map(moduleCard).join('') + '</div>';
     }).join('');
     $('#guide').innerHTML = html || '<div class="card"><span class="note">Ничего не найдено.</span></div>';
+    if ($('#gfSel') && window.AppGuideFields) {
+      var renderGf = function (key) {
+        var G = window.AppGuideFields, body = $('#gfBody');
+        if (key === '__generic') {
+          body.innerHTML = '<h3>Общие правила</h3><ol>' + G.generic.steps.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ol>' +
+            '<h4>Полезно</h4><ul>' + G.generic.tips.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>';
+          return;
+        }
+        var m = G.modules[key]; if (!m) { body.innerHTML = ''; return; }
+        body.innerHTML = '<h3>' + esc(m.title) + '</h3><p>' + esc(m.intro) + '</p>' +
+          '<h4>Порядок работы</h4><ol>' + m.flow.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ol>' +
+          '<h4>Поля</h4><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Поле</th><th>Назначение</th><th>Как заполнять</th><th>Обязательное</th></tr></thead><tbody>' +
+          m.fields.map(function (f) { return '<tr><td><b>' + esc(f.n) + '</b></td><td>' + esc(f.desc || '') + '</td><td class="note">' + esc(f.hint || '') + '</td><td>' + (f.req ? 'да' : '—') + '</td></tr>'; }).join('') +
+          '</tbody></table></div>' +
+          (m.tips && m.tips.length ? '<h4>Подсказки</h4><ul>' + m.tips.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>' : '');
+      };
+      $('#gfSel').addEventListener('change', function () { renderGf(this.value); });
+      renderGf('__generic');
+    }
   }
 
   $('#q').addEventListener('input', function () { render(this.value); });
