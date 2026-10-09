@@ -92,7 +92,10 @@
       if (rest.length) opts += '<optgroup label="Прочее">' + rest.map(function (a) { return '<option value="' + a.id + '">' + esc(a.title) + '</option>'; }).join('') + '</optgroup>';
       gf = '<div class="card" id="gf"><h2>🧭 Инструкции: поля и как работать</h2>' +
         '<p class="note">Выберите модуль. «★» — расширенная инструкция по полям; остальные — назначение и порядок работы из каталога.</p>' +
-        '<div class="field" style="max-width:460px;"><label>Модуль</label><select id="gfSel">' + opts + '</select></div>' +
+        '<div class="g-tools">' +
+          '<div class="field" style="flex:1;margin:0;"><label>Поиск модуля</label><input type="search" id="gfQ" placeholder="начните вводить название…"></div>' +
+          '<div class="field" style="flex:1;margin:0;"><label>Модуль</label><select id="gfSel">' + opts + '</select></div>' +
+        '</div>' +
         '<div id="gfBody" class="mt"></div></div>';
     }
     var html = man + gf + head + groups.map(function (g) {
@@ -134,6 +137,20 @@
           '<div class="links mt"><a class="chip" href="../../' + a.href + '">Открыть «' + esc(a.title) + '»</a><a class="chip" href="../../assets/js/catalog.js">Каталог</a></div>';
       };
       $('#gfSel').addEventListener('change', function () { renderGf(this.value); });
+      var gfQ = $('#gfQ');
+      if (gfQ) gfQ.addEventListener('input', function () {
+        var q2 = (this.value || '').trim().toLowerCase();
+        var sel = $('#gfSel'), firstVisible = null;
+        Array.prototype.forEach.call(sel.options, function (o) {
+          o.hidden = !!q2 && o.text.toLowerCase().indexOf(q2) < 0;
+          if (!o.hidden && !firstVisible) firstVisible = o;
+        });
+        Array.prototype.forEach.call(sel.getElementsByTagName('optgroup'), function (g) {
+          var any = Array.prototype.some.call(g.children, function (o) { return !o.hidden; });
+          g.hidden = !any;
+        });
+        if (q2 && firstVisible) { sel.value = firstVisible.value; renderGf(firstVisible.value); }
+      });
       renderGf('__generic');
     }
     if (q) { $$('.mod').forEach(function (d) { d.open = true; }); }
