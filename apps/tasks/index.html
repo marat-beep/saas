@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Задачи и проекты — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=35">
+<style>
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .kcol{background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:8px;min-height:120px}
+  .kcol h4{margin:4px 6px 8px;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  .kcard{background:#fff;border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin-bottom:8px}
+  .kcard .k-t{font-weight:600;font-size:.88rem}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🗒️</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap fluid">
+    <div class="hero"><h1>Задачи и проекты</h1><p>Проекты, канбан-задачи, учёт времени, обсуждения (упоминания @логин) и контакт-центр. Роли: staff.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="tabs2" id="tabs">
+      <button data-scr="prj" class="active">Проекты</button>
+      <button data-scr="board">Доска</button>
+      <button data-scr="my">Мои задачи</button>
+      <button data-scr="inbox">Контакт-центр</button>
+    </div>
+    <div class="msg" id="m"></div>
+
+    <section class="screen active" id="scr-prj">
+      <div class="card">
+        <div class="toolbar"><input type="search" class="search" id="pq" placeholder="Поиск проекта…">
+          <button class="btn" data-cap="edit" id="addPrj" style="width:auto;padding:8px 14px;">＋ Проект</button></div>
+        <div id="projects" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-board">
+      <div class="card">
+        <div class="toolbar"><label class="note">Проект:</label><select id="prjSel" style="padding:9px;border:1px solid var(--border);border-radius:9px;min-width:220px;"></select>
+          <button class="btn" data-cap="edit" id="addTask" style="width:auto;padding:8px 14px;">＋ Задача</button></div>
+        <div class="kanban mt" id="board"><span class="note">Выберите проект.</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-my">
+      <div class="card"><div class="toolbar"><button class="btn secondary" id="myBtn" style="width:auto;padding:8px 14px;">Обновить</button></div>
+        <div id="my" class="mt"><span class="note">Загрузка…</span></div></div>
+    </section>
+
+    <section class="screen" id="scr-inbox">
+      <div class="card">
+        <div class="toolbar"><select id="ibStatus" style="padding:9px;border:1px solid var(--border);border-radius:9px;">
+          <option value="">Все</option><option value="new">Новые</option><option value="assigned">Назначенные</option><option value="closed">Закрытые</option></select>
+          <button class="btn" data-cap="edit" id="addIb" style="width:auto;padding:8px 14px;">＋ Обращение</button></div>
+        <div id="inbox" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">3DMP Service · задачи и проекты</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=4"></script>
+  <script src="../../assets/js/auth.js?v=6"></script>
+  <script src="../../assets/js/notify.js?v=3"></script>
+  <script src="../../assets/js/support-widget.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=97"></script>
+  <script src="../../assets/js/shell.js?v=59"></script>
+  <script src="tasks.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=2"></script>
+  <script src="../../assets/js/module-info.js?v=1"></script>
+</body>
+</html>
