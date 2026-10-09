@@ -61,9 +61,11 @@
     if (!d) return;
     Promise.all([
       rpc('app_doc_links_list', { p_token: token, p_doc_id: d.id }).catch(function () { return []; }),
-      rpc('app_doc_resolutions_list', { p_token: token, p_doc_id: d.id }).catch(function () { return []; })
+      rpc('app_doc_resolutions_list', { p_token: token, p_doc_id: d.id }).catch(function () { return []; }),
+      rpc('app_tenant_users', { p_token: token }).catch(function () { return []; })
     ]).then(function (r) {
-      var links = r[0] || [], res = r[1] || [];
+      var links = r[0] || [], res = r[1] || [], users = r[2] || [];
+      var uOpts = (users || []).map(function (u) { return '<option value="' + esc(u.login) + '">' + esc(u.login + (u.full_name ? ' — ' + u.full_name : '')) + '</option>'; }).join('');
       var nOpts = noms.map(function (n) { return '<option value="' + n.id + '">' + esc(n.idx + ' ' + n.title) + '</option>'; }).join('');
       var html =
         '<div class="note"><b>' + esc(KIND[d.kind] || d.kind) + '</b> · ' + esc(d.title) + ' · ' + esc(d.reg_number || 'черновик') + '</div>' +
@@ -74,7 +76,7 @@
         '<div class="field"><label>Примечание</label><input id="lNote"></div><div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="lAdd" style="width:auto;padding:6px 10px;">Добавить связь</button></div></div>' +
         '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Тип связи</th><th>Примечание</th><th></th></tr></thead><tbody>' +
         (links.length ? links.map(function (l) { return '<tr><td>' + esc(l.entity_type) + '</td><td class="muted">' + esc(l.note || '') + '</td><td><button class="act danger" data-ldel="' + l.id + '">Удалить</button></td></tr>'; }).join('') : '<tr><td colspan="3" class="note">Связей нет</td></tr>') + '</tbody></table></div>' +
-        '<div class="form-grid mt"><div class="field"><label>Поручение</label><input id="rText"></div><div class="field"><label>Исполнитель (логин)</label><input id="rWho"></div>' +
+        '<div class="form-grid mt"><div class="field"><label>Поручение</label><input id="rText" placeholder="Что нужно сделать"></div><div class="field"><label>Исполнитель</label><select id="rWho"><option value="">— выберите —</option>' + uOpts + '</select></div>' +
         '<div class="field"><label>Срок</label><input type="date" id="rDue"></div><div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="rAdd" style="width:auto;padding:6px 10px;">Поручить</button></div></div>' +
         '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Поручение</th><th>Исполнитель</th><th>Статус</th><th></th></tr></thead><tbody>' +
         (res.length ? res.map(function (x) { return '<tr><td>' + esc(x.body) + '</td><td>' + esc(x.assignee_login || '') + '</td><td>' + esc(x.status) + '</td><td>' + (x.status === 'open' ? '<button class="act" data-rdone="' + x.id + '">Выполнено</button>' : '') + '</td></tr>'; }).join('') : '<tr><td colspan="4" class="note">Поручений нет</td></tr>') + '</tbody></table></div>' +
@@ -83,14 +85,29 @@
       ui.dialog({ title: 'Документ', body: html, html: true, cancelText: 'Закрыть', onOpen: function (back) {
         back.querySelectorAll('[data-act]').forEach(function (b) { b.addEventListener('click', function () {
           var a = b.dataset.act;
-          if (a === 'register') rpc('app_doc_register', { p_token: token, p_id: d.id }).then(function () { back.querySelector('[data-ok]').click(); });
-          else rpc('app_doc_flow_set_status', { p_token: token, p_id: d.id, p_status: a, p_comment: null }).then(function () { back.querySelector('[data-ok]').click(); });
+          var p = (a === 'register') ? rpc('app_doc_register', { p_token: token, p_id: d.id })
+                                     : rpc('app_doc_flow_set_status', { p_token: token, p_id: d.id, p_status: a, p_comment: null });
+          p.then(function (r) { var x = r && r[0]; if (x && x.ok === false) { ui.toast(x.message || 'Ошибка'); return; } if (a === 'register') ui.toast('Зарегистрировано'); refreshDoc(); }).catch(fail);
         }); });
-        back.querySelectorAll('[data-ldel]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_doc_link_delete', { p_token: token, p_id: b.dataset.ldel }).then(function () { back.querySelector('[data-ok]').click(); }); }); });
-        back.querySelectorAll('[data-rdone]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_doc_resolution_set_status', { p_token: token, p_id: b.dataset.rdone, p_status: 'done' }).then(function () { back.querySelector('[data-ok]').click(); }); }); });
-        back.querySelector('#lAdd').addEventListener('click', function () { var t = back.querySelector('#lType').value.trim(); if (!t) return; rpc('app_doc_link_save', { p_token: token, p_id: null, p_doc_id: d.id, p_entity_type: t, p_entity_id: null, p_note: back.querySelector('#lNote').value || null }).then(function () { back.querySelector('[data-ok]').click(); }); });
-        back.querySelector('#rAdd').addEventListener('click', function () { var t = back.querySelector('#rText').value.trim(); if (!t) return; rpc('app_doc_resolution_add', { p_token: token, p_doc_id: d.id, p_text: t, p_assignee: back.querySelector('#rWho').value || null, p_due_date: back.querySelector('#rDue').value || null }).then(function () { back.querySelector('[data-ok]').click(); }); });
-        back.querySelector('#arBtn').addEventListener('click', function () { var nid = back.querySelector('#arNom').value; if (!nid) return; rpc('app_doc_archive', { p_token: token, p_doc_id: d.id, p_nomenclature_id: nid }).then(function () { back.querySelector('[data-ok]').click(); }); });
+        back.querySelectorAll('[data-ldel]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_doc_link_delete', { p_token: token, p_id: b.dataset.ldel }).then(function () { refreshDoc(); }).catch(fail); }); });
+        back.querySelectorAll('[data-rdone]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_doc_resolution_set_status', { p_token: token, p_id: b.dataset.rdone, p_status: 'done' }).then(function () { ui.toast('Поручение выполнено'); refreshDoc(); }).catch(fail); }); });
+        function refreshDoc() { back.querySelector('[data-ok]').click(); setTimeout(function () { openDoc(d); }, 230); }
+        function fail(e) { ui.toast('Ошибка: ' + ((e && e.message) || e)); }
+        back.querySelector('#lAdd').addEventListener('click', function () {
+          var t = back.querySelector('#lType').value.trim(); if (!t) { ui.toast('Укажите тип связи'); return; }
+          rpc('app_doc_link_save', { p_token: token, p_id: null, p_doc_id: d.id, p_entity_type: t, p_entity_id: null, p_note: back.querySelector('#lNote').value || null })
+            .then(function (r) { var x = r && r[0]; if (x && x.ok === false) { ui.toast(x.message || 'Ошибка'); return; } ui.toast('Связь добавлена'); refreshDoc(); }).catch(fail);
+        });
+        back.querySelector('#rAdd').addEventListener('click', function () {
+          var t = back.querySelector('#rText').value.trim(); if (!t) { ui.toast('Укажите текст поручения'); return; }
+          rpc('app_doc_resolution_add', { p_token: token, p_doc_id: d.id, p_text: t, p_assignee: back.querySelector('#rWho').value || null, p_due_date: back.querySelector('#rDue').value || null })
+            .then(function (r) { var x = r && r[0]; if (x && x.ok === false) { ui.toast(x.message || 'Ошибка'); return; } ui.toast('Поручение выдано'); refreshDoc(); }).catch(fail);
+        });
+        back.querySelector('#arBtn').addEventListener('click', function () {
+          var nid = back.querySelector('#arNom').value; if (!nid) { ui.toast('Выберите дело'); return; }
+          rpc('app_doc_archive', { p_token: token, p_doc_id: d.id, p_nomenclature_id: nid })
+            .then(function (r) { var x = r && r[0]; if (x && x.ok === false) { ui.toast(x.message || 'Ошибка'); return; } ui.toast('Документ в архиве'); back.querySelector('[data-ok]').click(); }).catch(fail);
+        });
       } }).then(function () { loadList(); loadKpi(); });
     });
   }
