@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EAM 2.0 — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=35">
+<style>
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .map{position:relative;background:#f8fafc;border:1px solid var(--border);border-radius:12px;height:340px;overflow:auto}
+  .mnode{position:absolute;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:.72rem;display:flex;align-items:center;justify-content:center;text-align:center;padding:2px}
+  .mnode.alarm{background:#fee2e2;border-color:#fca5a5}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🛠️</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap fluid">
+    <div class="hero"><h1>EAM 2.0 (CMMS)</h1><p>Вибрация (авто-наряд ТОиР), энергоменеджмент, простои и дисциплина, версии УП (сверка), 3D-карта цеха. Роли: staff.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="tabs2" id="tabs">
+      <button data-scr="vibro" class="active">Вибрация</button>
+      <button data-scr="energy">Энергия</button>
+      <button data-scr="dt">Простои</button>
+      <button data-scr="nc">Версии УП</button>
+      <button data-scr="map">Карта цеха</button>
+    </div>
+    <div class="msg" id="m"></div>
+
+    <section class="screen active" id="scr-vibro">
+      <div class="card">
+        <div class="toolbar"><button class="btn" data-cap="edit" id="vAdd" style="width:auto;padding:8px 14px;">＋ Показание</button>
+          <button class="btn secondary" id="vLim" style="width:auto;padding:8px 14px;">Пороги…</button>
+          <span class="note" style="margin-left:auto;">При «alarm» создаётся наряд ТОиР и уведомление мастеру.</span></div>
+        <div id="vboard" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-energy">
+      <div class="card">
+        <div class="toolbar"><button class="btn" data-cap="edit" id="eAdd" style="width:auto;padding:8px 14px;">＋ Показание</button></div>
+        <h4>Расход за месяц</h4>
+        <div id="ekpi" class="mt"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-dt">
+      <div class="card">
+        <div class="toolbar"><button class="btn" data-cap="edit" id="rAdd" style="width:auto;padding:8px 14px;">＋ Причина</button>
+          <button class="btn secondary" data-cap="edit" id="oAdd" style="width:auto;padding:8px 14px;">Отметка вход/выход</button></div>
+        <div id="reasons" class="mt"></div>
+        <h4 class="mt">Журнал оператора</h4>
+        <div id="olog" class="mt"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-nc">
+      <div class="card">
+        <div class="toolbar"><button class="btn" data-cap="edit" id="ncAdd" style="width:auto;padding:8px 14px;">＋ Версия УП</button>
+          <span class="note" style="margin-left:auto;">base — эталон, actual — загруженная на станок.</span></div>
+        <div id="nc" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-map">
+      <div class="card">
+        <div class="toolbar"><button class="btn" data-cap="edit" id="mapAdd" style="width:auto;padding:8px 14px;">＋ Станок</button>
+          <span class="note" style="margin-left:auto;">Простые координаты x/y; при аварийной вибрации — красный.</span></div>
+        <div class="map mt" id="map"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">3DMP Service · EAM 2.0</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=4"></script>
+  <script src="../../assets/js/auth.js?v=6"></script>
+  <script src="../../assets/js/notify.js?v=3"></script>
+  <script src="../../assets/js/support-widget.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=99"></script>
+  <script src="../../assets/js/shell.js?v=61"></script>
+  <script src="eam.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=2"></script>
+  <script src="../../assets/js/module-info.js?v=1"></script>
+</body>
+</html>
