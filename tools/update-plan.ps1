@@ -63,6 +63,7 @@ $sb = New-Object System.Text.StringBuilder
 if ($last) { [void]$sb.AppendLine('Оценка overall: **' + (@($last.overall)[0]) + '%** (' + (@($last.rag)[0]) + '); находок: ' + (@($last.findings)[0]) + '.') }
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine(('Открытых пунктов плана: **' + $scored.Count + '**; волн: **' + $waves.Count + '** (вместимость ' + $WaveCapacity + '/волна).'))
+if ($last -and (@($last.scenarioPass)[0] -ne $null)) { [void]$sb.AppendLine('Сценарии L3: **' + (@($last.scenarioPass)[0]) + ' pass / ' + (@($last.scenarioFail)[0]) + ' fail** (tools/scenario-check.ps1).') }
 [void]$sb.AppendLine('')
 [void]$sb.AppendLine('## Топ-10')
 [void]$sb.AppendLine('| P | ID | Область | Sev | Заголовок | Доказательство |')

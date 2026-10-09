@@ -10,9 +10,9 @@
                                                               "Count":  2
                                                           },
                                                           {
-                                                              "at":  "2026-10-09T17:24:18",
-                                                              "findings":  5,
-                                                              "counts":  "@{Blocker=0; Info=5; Minor=0; Major=0; Critical=0}",
+                                                              "at":  "2026-10-09T17:30:58",
+                                                              "findings":  4,
+                                                              "counts":  "@{Blocker=0; Info=4; Minor=0; Major=0; Critical=0}",
                                                               "areaPct":  "@{E=100; D=100; G=100; F=100; B=100; I=100; K=100; H=100; C=100; J=100; A=100}",
                                                               "overall":  100,
                                                               "rag":  "green"
@@ -21,7 +21,7 @@
                                             "Count":  2
                                         },
                                         {
-                                            "at":  "2026-10-09T17:25:23",
+                                            "at":  "2026-10-09T17:36:45",
                                             "findings":  4,
                                             "counts":  {
                                                            "Blocker":  0,
@@ -50,12 +50,12 @@
                           "Count":  2
                       },
                       {
-                          "at":  "2026-10-09T17:30:58",
-                          "findings":  4,
+                          "at":  "2026-10-09T17:39:46",
+                          "findings":  5,
                           "counts":  {
                                          "Blocker":  0,
                                          "Info":  4,
-                                         "Minor":  0,
+                                         "Minor":  1,
                                          "Major":  0,
                                          "Critical":  0
                                      },
@@ -73,13 +73,15 @@
                                           "A":  100
                                       },
                           "overall":  100,
-                          "rag":  "green"
+                          "rag":  "green",
+                          "scenarioPass":  45,
+                          "scenarioFail":  0
                       }
                   ],
         "Count":  2
     },
     {
-        "at":  "2026-10-09T17:36:45",
+        "at":  "2026-10-09T17:43:23",
         "findings":  4,
         "counts":  {
                        "Blocker":  0,
@@ -102,6 +104,8 @@
                         "A":  100
                     },
         "overall":  100,
-        "rag":  "green"
+        "rag":  "green",
+        "scenarioPass":  45,
+        "scenarioFail":  0
     }
 ]

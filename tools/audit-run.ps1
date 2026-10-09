@@ -69,7 +69,10 @@ foreach ($a in $areas) { $sc = [math]::Max(0, [math]::Min(4, 4 - $ded[$a])); $pc
 $overall = [math]::Round($acc / $sumW * 100, 1)
 $rag = if ($overall -ge 85) { 'green' } elseif ($overall -ge 70) { 'yellow' } else { 'red' }
 
-$rec = [ordered]@{ at = (Get-Date).ToString('s'); findings = $final.Count; counts = $counts; areaPct = $areaPct; overall = $overall; rag = $rag }
+$scPass = $null; $scFail = $null
+$scj = Join-Path $Root 'audit\checks\scenario.json'
+if (Test-Path $scj) { try { $s = Get-Content $scj -Raw -Encoding UTF8 | ConvertFrom-Json; $scPass = $s.pass; $scFail = $s.fail } catch {} }
+$rec = [ordered]@{ at = (Get-Date).ToString('s'); findings = $final.Count; counts = $counts; areaPct = $areaPct; overall = $overall; rag = $rag; scenarioPass = $scPass; scenarioFail = $scFail }
 $statePath = Join-Path $Root 'audit\state.json'
 $hist = @()
 if (Test-Path $statePath) { try { $hist = @(Get-Content $statePath -Raw -Encoding UTF8 | ConvertFrom-Json) } catch { $hist = @() } }

@@ -39,7 +39,8 @@ function ExpectV($name, $rows, $label) {
 }
 
 Write-Host '=== scenario-check (L3) ==='
-$t = (Rows (Sql "select token as v from public.app_login('admin','admin')"))[0].v
+$t = $null
+try { $t = (Rows (Sql "select token as v from public.app_login('admin','admin')"))[0].v } catch { $t = $null }
 if (-not $t) { Add-F 'C' 'Critical' 'Логин admin не вернул токен' 'Проверить app_login.' 'app_login' 1 3; Write-Out; exit 1 }
 
 # 1. orders
@@ -186,9 +187,18 @@ $del = @(
   "delete from public.app_notifications where title like '%SCN%' and created_at >= now() - interval '30 minutes'",
   "delete from public.app_events where (detail like '%SCN%' or action='Рассылка отчёта') and created_at >= now() - interval '30 minutes'"
 )
-$cleanFail = 0
-foreach ($d in $del) { try { Sql $d | Out-Null } catch { $cleanFail++ } }
-if ($cleanFail -gt 0) { Add-F 'C' 'Minor' "Очистка сценарных данных: не выполнено шагов $cleanFail" 'Проверить таблицы/колонки очистки.' 'cleanup' 2 1 }
+$cleanFail = 0; $cleanErrs = New-Object System.Collections.ArrayList
+foreach ($d in $del) {
+  try { Sql $d | Out-Null }
+  catch {
+    $cleanFail++
+    $m = ''; try { $m = [string]$_.ErrorDetails.Message } catch {}
+    if (-not $m) { try { $m = [string]$_.Exception.Message } catch {} }
+    $m = ($m -replace '\s+', ' ')
+    if ($cleanErrs.Count -lt 4 -and $m) { [void]$cleanErrs.Add($m.Substring(0, [Math]::Min(180, $m.Length))) }
+  }
+}
+if ($cleanFail -gt 0) { Add-F 'C' 'Minor' "Очистка сценарных данных: не выполнено шагов $cleanFail" ($cleanErrs -join ' || ') 'cleanup' 2 1 }
 Write-Host ("scenario-check: очистка выполнена (ошибок " + $cleanFail + ')')
 
 Write-Out
