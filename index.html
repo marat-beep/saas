@@ -415,7 +415,11 @@
           s.addEventListener('click', function (ev) { ev.preventDefault(); ev.stopPropagation(); toggleFav(s.getAttribute('data-fav')); renderApps(user); });
         });
         ui.qsa('#apps a.tile').forEach(function (a) {
-          a.addEventListener('click', function () { if (!a.getAttribute('data-need')) pushRecent(a.getAttribute('data-app')); });
+          a.addEventListener('click', function () {
+            if (a.getAttribute('data-need')) return;
+            pushRecent(a.getAttribute('data-app'));
+            try { sessionStorage.setItem('3dmp:hub:scroll', JSON.stringify({ y: window.scrollY || 0, filter: hubState.filter })); } catch (e) {}
+          });
         });
       }
       function toggleGroup(gid, user) {
@@ -507,7 +511,10 @@
         if (out) out.addEventListener('click', function () { window.Auth.logout(); location.reload(); });
       })();
 
+      var savedScroll = null;
+      try { savedScroll = JSON.parse(sessionStorage.getItem('3dmp:hub:scroll') || 'null'); if (savedScroll) sessionStorage.removeItem('3dmp:hub:scroll'); } catch (e) {}
       if (applyHash()) { setTimeout(scrollToFilter, 60); }
+      else if (savedScroll) { hubState.filter = savedScroll.filter || ''; setTimeout(function () { try { window.scrollTo(0, savedScroll.y || 0); } catch (e) {} }, 80); }
 
       window.AppStatus.render('#conn').then(function () {
         refreshUI();
