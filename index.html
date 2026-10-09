@@ -106,6 +106,13 @@
   .iconlink:hover { border-color: var(--accent); background: var(--accent-100); }
   @media (max-width: 560px) { .tgrid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 7px; } .hub-tools { gap: 8px; } }
 
+  /* Карточки групп — колоночный поток (заполняет пустое место рядом с крупными группами) */
+  #apps .ugrid { display: block; column-count: 3; column-gap: 14px; }
+  #apps .ugrid > * { break-inside: avoid; -webkit-column-break-inside: avoid; page-break-inside: avoid; margin: 0 0 14px; }
+  .grp-body { max-height: 66vh; overflow-y: auto; }
+  @media (max-width: 1100px) { #apps .ugrid { column-count: 2; } }
+  @media (max-width: 680px) { #apps .ugrid { column-count: 1; } }
+
 </style>
 </head>
 <body>

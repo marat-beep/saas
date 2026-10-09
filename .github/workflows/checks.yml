@@ -1,7 +1,9 @@
 name: checks
 
-# Эксплуатационные проверки 3DMP Service (W33):
+# Эксплуатационные проверки 3DMP Service:
 # локальный аудит (каталог/версии/shell/синтаксис) и смоук БД (если задан секрет).
+# ВАЖНО: контекст `secrets` нельзя использовать в `if` — workflow станет «No jobs were run».
+# Поэтому наличие токена проверяем внутри шага (env → shell).
 
 on:
   push:
@@ -9,8 +11,11 @@ on:
   pull_request:
     branches: [ main ]
   schedule:
-    - cron: '0 3 * * *'   # ежедневно 03:00 UTC
-  workflow_dispatch:
+    - cron: '0 3 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
 
 jobs:
   checks:
@@ -28,9 +33,13 @@ jobs:
         shell: pwsh
         run: pwsh -NoProfile -File tools/audit.ps1
 
-      - name: DB smoke (если задан секрет SUPABASE_ACCESS_TOKEN)
-        if: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
+      - name: DB smoke (пропускается без секрета SUPABASE_ACCESS_TOKEN)
         shell: pwsh
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: pwsh -NoProfile -File tools/db-smoke.ps1 -Token $env:SUPABASE_ACCESS_TOKEN
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:SUPABASE_ACCESS_TOKEN)) {
+            Write-Host 'SUPABASE_ACCESS_TOKEN не задан — db-smoke пропущен.'
+            exit 0
+          }
+          pwsh -NoProfile -File tools/db-smoke.ps1 -Token $env:SUPABASE_ACCESS_TOKEN
