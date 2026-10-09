@@ -10,7 +10,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 **Не льётся:** `supabase/`, `docs/`, `tools/`, `dist/`, `.git`, `README.md`, `AGENTS.md`.
 
 ## 2. База данных
-- Миграции `supabase/migrations/0001…0164` + пересобранный `supabase/apply_all.sql`.
+- Миграции `supabase/migrations/0001…0165` + пересобранный `supabase/apply_all.sql`.
 - Инструменты: `tools/build-release.ps1` (сборка dist), `tools/audit.ps1` (локальный автотест), `tools/db-smoke.ps1` (смоук БД через Management API).
 - Применение — Supabase → SQL Editor → вставить `apply_all.sql` → Run (либо Management API, UTF-8).
 - Смоук: `select * from app_smoke_test(:token);` (10/10) и `app_smoke_test_ext(:token)` (14/14).
@@ -35,6 +35,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 - [ ] Отметки в `BACKLOG.md`, `PLAN_WAVES.md`, `STATUS.md`, `NOTES.md`, `PROMPTS.md`.
 
 ## 6. Журнал релизов (последнее)
+- **v222 (миграция `0165`)** — W20 КЭДО: кадровые документы/ознакомления/подпись, шаблоны, ЛК, МЧД; модуль `apps/kedo`; каталог v10.19, nav v98/shell v60.
 - **v221 (миграция `0164`)** — W16 совместная работа: проекты/задачи/канбан, время, обсуждения, inbox, БЗ 2.0; модуль `apps/tasks`; каталог v10.18, nav v97/shell v59.
 - **v220 (миграция `0163`)** — W19 ЭДО/СЭД: реестр документов, регистрация, поручения, связи, номенклатура дел/архив; модуль `apps/edo`; каталог v10.17, nav v96/shell v58. Пакет 2 плана v2 закрыт.
 - **v219 (миграция `0162`)** — W18c PDM/PLM: изделия/состав/документы/ECN; модуль `apps/plm`; каталог v10.16, nav v95/shell v57.
