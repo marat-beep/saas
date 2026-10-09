@@ -43,8 +43,9 @@
 - **DoD:** мастер проводит по шагам, валидирует, создаёт сущность (RPC); можно прервать/продолжить.
 - Оценка: **M**. Зависимости: W15 (workflow/forms), W18b (НСИ).
 
-## W33. Эксплуатация: регулярные проверки и мониторинг (S–M)
+## W33. Эксплуатация: регулярные проверки и мониторинг (S–M) — ☑ v237
 **Цель:** автоматические проверки и алерты.
+**Реализовано (v237, `0177`):** `tools/run-checks.ps1` (audit+db-smoke, лог `dist/checks/`, exit-код) + CI `.github/workflows/checks.yml`; `app_health_ping(p_key)` (uptime по API-ключу), таблицы `app_health_alerts`/`app_health_pings`; `app_health_scan` — «свежесть данных», алерты с дедупом (`kind:name`), уведомление администраторов при сбое, авто-закрытие; `app_health_alerts_list`/`app_health_alert_resolve`; `app_health_trend(days)`; дашборд в `apps/diagnostics`. **Пакет П1 закрыт.**
 - Обёртка `tools/run-checks.ps1` (audit + db-smoke, лог, `exit`); пример CI (`.github/workflows/checks.yml`, опц.) и/или Task Scheduler.
 - Мониторинг: `app_health_ping(p_key)` (по API-ключу) и алерты в `app_health_scan` (дедуп, «свежесть данных»); тренд доступности.
 - Артефакты: `tools/run-checks.ps1`, миграция `health_monitor`, дашборд в `apps/diagnostics`/`billing`, `docs/RELEASE.md`.

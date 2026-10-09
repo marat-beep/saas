@@ -65,6 +65,69 @@
   }
   function kv(v, l) { return '<div class="kv"><div class="v">' + v + '</div><div class="l">' + l + '</div></div>'; }
 
+  /* ---------- W33: мониторинг доступности (SLA платформы) ---------- */
+  function trendSvg(rows) {
+    if (!rows || !rows.length) return '<span class="note">Нет данных мониторинга.</span>';
+    var w = 720, h = 120, pad = 6, bw = (w - pad * 2) / rows.length, bars = '';
+    rows.forEach(function (r, i) {
+      var x = pad + i * bw, up = Number(r.uptime_pct) || 0;
+      var bh = Math.round((h - 26) * (up / 100));
+      var col = 'var(--danger)'; if (r.total === 0) col = '#e2e8f0'; else if (up >= 99) col = 'var(--accent)'; else if (up >= 90) col = 'var(--warning,#f59e0b)';
+      var dd = String(r.day).substr(8, 2) + '.' + String(r.day).substr(5, 2);
+      bars += '<rect x="' + x.toFixed(1) + '" y="' + (h - 18 - Math.max(bh, 2)) + '" width="' + (bw - 4).toFixed(1) + '" height="' + Math.max(bh, 2) + '" rx="3" fill="' + col + '"><title>' + dd + ': ' + up + '% (' + r.ok + '/' + r.total + ')</title></rect>';
+      bars += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (h - 6) + '" font-size="9" fill="#94a3b8" text-anchor="middle">' + dd + '</text>';
+    });
+    return '<svg viewBox="0 0 ' + w + ' ' + h + '" width="100%" height="120" role="img" aria-label="Тренд доступности">' + bars + '</svg>';
+  }
+  function alertRow(a) {
+    var sev = a.severity === 'fail' ? 'err' : 'wait';
+    var dt = a.last_seen ? String(a.last_seen).substr(0, 16).replace('T', ' ') : '';
+    return '<li class="chk ' + sev + '"><span class="mark">' + (a.severity === 'fail' ? '✕' : '!') + '</span>' +
+      '<span><b>' + esc(a.name) + '</b> <span class="note">' + esc(a.detail || '') + '</span></span>' +
+      '<span class="t">×' + a.occurrences + ' · ' + esc(dt) + '</span>' +
+      '<button class="btn secondary" data-resolve="' + a.id + '" style="width:auto;padding:5px 10px;margin-left:8px;">Закрыть</button></li>';
+  }
+  function loadMonitor() {
+    if (!token) return;
+    Promise.all([
+      rpc('app_health_board', { p_token: token }),
+      rpc('app_health_alerts_list', { p_token: token, p_status: 'open' }),
+      rpc('app_health_trend', { p_token: token, p_days: 14 })
+    ]).then(function (res) {
+      var board = res[0] || [], alerts = res[1] || [], trend = res[2] || [];
+      var ok = 0, warn = 0, fail = 0;
+      board.forEach(function (b) { if (b.status === 'ok') ok++; else if (b.status === 'warn') warn++; else fail++; });
+      var lastAt = board.length ? board[0].checked_at : null;
+      var upSum = 0, upN = 0;
+      trend.forEach(function (r) { if (r.total > 0) { upSum += Number(r.uptime_pct); upN++; } });
+      var up = upN ? (upSum / upN).toFixed(1) : '—';
+      $('#mKpis').innerHTML = kv(ok + ' ok', 'В норме') + kv(warn + ' warn', 'Предупреждений') +
+        kv(fail + ' fail', 'Сбоев') + kv(alerts.length, 'Открытых алертов') + kv(up + '%', 'Uptime (14 дней)');
+      $('#mWhen').textContent = lastAt ? ('Последняя проверка: ' + String(lastAt).substr(0, 16).replace('T', ' ')) : 'Проверок ещё не было';
+      $('#mTrend').innerHTML = trendSvg(trend);
+      $('#mAlerts').innerHTML = alerts.length ? alerts.map(alertRow).join('')
+        : '<li class="chk ok"><span class="mark">✓</span><span>Открытых алертов нет</span></li>';
+      $$('#mAlerts [data-resolve]').forEach(function (b) {
+        b.addEventListener('click', function () { resolveAlert(b.getAttribute('data-resolve')); });
+      });
+    }).catch(function (e) {
+      $('#mAlerts').innerHTML = '<li class="chk err"><span class="mark">✕</span><span>' + esc((e && e.message) || e) + '</span></li>';
+    });
+  }
+  function resolveAlert(id) {
+    rpc('app_health_alert_resolve', { p_token: token, p_id: id })
+      .then(function () { ui.toast('Алерт закрыт'); loadMonitor(); })
+      .catch(function (e) { ui.toast('Ошибка: ' + e.message); });
+  }
+  var mScan = $('#mScan'); if (mScan) mScan.addEventListener('click', function () {
+    if (!token) return;
+    msg('Проверка доступности…', 'info');
+    rpc('app_health_scan', { p_token: token })
+      .then(function () { msg('Проверка выполнена.', 'ok'); loadMonitor(); })
+      .catch(function (e) { msg('Ошибка: ' + e.message, 'err'); });
+  });
+  var mRefresh = $('#mRefresh'); if (mRefresh) mRefresh.addEventListener('click', loadMonitor);
+
   function renderEnv() {
     $('#env').innerHTML =
       row('URL сервиса', location.origin + location.pathname) +
@@ -95,7 +158,7 @@
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
     me = s; token = s.token;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '');
-    renderEnv(); renderKpi();
+    renderEnv(); renderKpi(); loadMonitor();
     if (SB) run();
   });
 })();

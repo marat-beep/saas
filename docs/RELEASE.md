@@ -10,10 +10,17 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 **Не льётся:** `supabase/`, `docs/`, `tools/`, `dist/`, `.git`, `README.md`, `AGENTS.md`.
 
 ## 2. База данных
-- Миграции `supabase/migrations/0001…0176` + пересобранный `supabase/apply_all.sql`.
-- Инструменты: `tools/build-release.ps1` (сборка dist), `tools/audit.ps1` (локальный автотест), `tools/db-smoke.ps1` (смоук БД через Management API).
+- Миграции `supabase/migrations/0001…0177` + пересобранный `supabase/apply_all.sql`.
+- Инструменты: `tools/build-release.ps1` (сборка dist), `tools/audit.ps1` (локальный автотест), `tools/db-smoke.ps1` (смоук БД через Management API), `tools/run-checks.ps1` (обёртка audit+db-smoke, лог в `dist/checks/`, код возврата).
 - Применение — Supabase → SQL Editor → вставить `apply_all.sql` → Run (либо Management API, UTF-8).
 - Смоук: `select * from app_smoke_test(:token);` (10/10) и `app_smoke_test_ext(:token)` (14/14).
+
+### 2a. Эксплуатация и мониторинг (W33)
+- **Плановые проверки:** `powershell -ExecutionPolicy Bypass -File tools\run-checks.ps1 -Token sbp_...` (без токена — только локальный аудит; `-SkipDb` — пропустить БД). Лог — `dist\checks\checks-<stamp>.log`; код 0 — ок, 1 — есть проблемы.
+- **Расписание:** Windows Task Scheduler → `powershell -NoProfile -ExecutionPolicy Bypass -File <SAAS>\tools\run-checks.ps1 -Token <…>`; либо CI `.github/workflows/checks.yml` (ежедневно 03:00 UTC; секрет `SUPABASE_ACCESS_TOKEN`).
+- **Внешний uptime-мониторинг:** `select * from public.app_health_ping('<api_key>');` — по API-ключу организации (пишет `app_health_pings`, обновляет `last_used_at`).
+- **Алерты (дедуп):** `app_health_scan` проверяет «свежесть данных» и пинги, открывает записи в `app_health_alerts` (дедуп по `kind:name`) и уведомляет администраторов платформы при сбое; при возврате в норму — закрывает. Список/закрытие: `app_health_alerts_list`, `app_health_alert_resolve`.
+- **Тренд доступности:** `app_health_trend(:token, :days)`; дашборд — модуль **`apps/diagnostics`** (блок «Мониторинг доступности»).
 
 ## 3. Типовой инструментарий (применён во всех модулях `apps/`)
 - Общий CSS (`assets/css/app.css`): `.sv-actions`, `.tabs2`, `.act`, `.screen`/`.screen.active`.
@@ -35,6 +42,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 - [ ] Отметки в `BACKLOG.md`, `PLAN_WAVES.md`, `STATUS.md`, `NOTES.md`, `PROMPTS.md`.
 
 ## 6. Журнал релизов (последнее)
+- **v237 (миграция `0177`)** — W33 эксплуатация/мониторинг: `app_health_ping` (uptime по API-ключу), `app_health_alerts`+`app_health_pings`, алерты с дедупом и уведомлением в `app_health_scan` (+«свежесть данных»), `app_health_alerts_list`/`app_health_alert_resolve`, `app_health_trend`; дашборд в `apps/diagnostics`; `tools/run-checks.ps1` + CI `.github/workflows/checks.yml`. Каталог v10.30, nav v108/shell v71.
+- **v236–v235** — пакет П1 плана v3: W29 хаб/каталог (читаемые группы без «ещё N»), W30 навигация/возврат (кнопка «Назад» + крошки).
 - **v233 (миграция `0176`)** — приёмка волн v2: устранены перегрузки (переименования), `db-smoke` 44/44 + перегрузки 0; релиз `dist/saas-20261009-1301.zip`.
 - **v232 (миграция `0175`)** — W27 бухгалтерия (задел): план счетов, проводки, ОСВ; модуль `apps/accounting`; каталог v10.29, nav v108/shell v70. План обновления v2 (0158–0175) закрыт.
 - **v231 (миграция `0174`)** — W26 e-Learning: курсы, назначения, тесты; модуль `apps/elearning`; каталог v10.28, nav v107/shell v69.

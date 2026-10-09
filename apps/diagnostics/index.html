@@ -41,6 +41,19 @@
       <div class="msg" id="msg"></div>
     </div>
 
+    <div class="card mt">
+      <h2>Мониторинг доступности (SLA платформы)</h2>
+      <div class="btn-row" style="margin-bottom:8px;align-items:center;">
+        <button class="btn" id="mScan" style="width:auto;padding:11px 18px;">Проверить сейчас</button>
+        <button class="btn secondary" id="mRefresh" style="width:auto;padding:11px 18px;">Обновить</button>
+        <span class="note" id="mWhen" style="margin-left:auto;">—</span>
+      </div>
+      <div class="kpi" id="mKpis"></div>
+      <div class="mt" id="mTrend"><span class="note">Тренд за 14 дней…</span></div>
+      <h3 style="margin:16px 0 4px;font-size:.95rem;">Открытые алерты</h3>
+      <ul class="checks" id="mAlerts"><li class="chk wait"><span class="mark">…</span><span>Загрузка…</span></li></ul>
+    </div>
+
     <div class="card">
       <h2>Среда</h2>
       <div id="env"><span class="note">—</span></div>
@@ -65,7 +78,7 @@
   <script src="../../assets/js/support-widget.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=108"></script>
   <script src="../../assets/js/shell.js?v=71"></script>
-  <script src="diagnostics.js?v=1"></script>
+  <script src="diagnostics.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>
