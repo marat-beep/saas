@@ -8,8 +8,8 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '10.29',
-  updated: '07.10.2026',
+  version: '10.30',
+  updated: '09.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
      По умолчанию — done; здесь перечислены частично реализованные и черновые. */
@@ -54,16 +54,54 @@ window.AppCatalog = {
   },
   zoneOf: function (id) { return (this.zoneMap && this.zoneMap[id]) || 'org_admin'; },
   groups: [
-    { id: 'core',       icon: '🧭', title: 'Ядро' },
-    { id: 'sales',      icon: '📥', title: 'Продажи и заказы' },
-    { id: 'ktpp',       icon: '📐', title: 'Подготовка производства (КТПП)' },
-    { id: 'production', icon: '🏭', title: 'Производство' },
-    { id: 'quality',    icon: '✅', title: 'Качество' },
-    { id: 'economics',  icon: '💰', title: 'Экономика и финансы' },
-    { id: 'staff',      icon: '👥', title: 'Персонал и организация' },
-    { id: 'platform',   icon: '🏗', title: 'Платформа и администрирование' },
-    { id: 'refs',       icon: '🌐', title: 'Референсы (прототипы)' }
+    { id: 'core',       icon: '🧭', title: 'Ядро',                          desc: 'Вход, кабинеты, пульт, гид и карта модулей.' },
+    { id: 'sales',      icon: '📥', title: 'Продажи и заказы',              desc: 'Заявки, КП, документы, закупки и продажи.' },
+    { id: 'ktpp',       icon: '📐', title: 'Подготовка производства (КТПП)', desc: 'Справочники, спецификации, маршруты, нормы, УП.' },
+    { id: 'production', icon: '🏭', title: 'Производство',                  desc: 'Наряды, MES, планирование, оборудование, ТОиР, IIoT.' },
+    { id: 'quality',    icon: '✅', title: 'Качество',                      desc: 'ОТК, дефекты, паспорта, метрология, СМК.' },
+    { id: 'economics',  icon: '💰', title: 'Экономика и финансы',           desc: 'Себестоимость, финансы, бюджеты, аналитика и отчёты.' },
+    { id: 'staff',      icon: '👥', title: 'Персонал и организация',        desc: 'Кадры, компетенции, оргструктура.' },
+    { id: 'platform',   icon: '🏗', title: 'Платформа и администрирование', desc: 'Организации, права, интеграции, процессы, поддержка.' },
+    { id: 'refs',       icon: '🌐', title: 'Референсы и справочники',       desc: 'Настраиваемые справочники и библиотека прототипов.' }
   ],
+
+  /* Подгруппы внутри больших контуров (W29): делают группы читаемыми,
+     убирая «ещё N». Состав задаётся списком id — без правки каждой карточки. */
+  subgroups: {
+    sales: [
+      { id: 'sale_orders',   title: 'Заявки и продажи',       apps: ['orders', 'crm', 'tkp', 'client'] },
+      { id: 'sale_procure',  title: 'Закупки и поставщики',   apps: ['supplier', 'procurement', 'suppliers', 'marketplace', 'partners'] },
+      { id: 'sale_docs',     title: 'Документы и отгрузка',   apps: ['docs', 'templates', 'docbuilder', 'labels', 'equipment'] }
+    ],
+    ktpp: [
+      { id: 'ktpp_base',     title: 'Справочники и состав',   apps: ['registry', 'bom', 'config'] },
+      { id: 'ktpp_tech',     title: 'Технологии и расчёты',   apps: ['norms', 'calc', 'nc', 'reverse', 'assistant'] }
+    ],
+    production: [
+      { id: 'prod_shop',     title: 'Цех, план и MES',        apps: ['production', 'mes', 'planning', 'slots', 'forecast', 'setup', 'terminal', 'calendar', 'lean', 'issues'] },
+      { id: 'prod_equip',    title: 'Оборудование, ТОиР и IIoT', apps: ['maintenance', 'tooling', 'oee', 'iiot', 'eam', 'service', 'warehouse'] },
+      { id: 'prod_data',     title: 'НСИ, проекты и логистика', apps: ['mdm', 'plm', 'ai', 'pmo', 'logistics'] }
+    ],
+    quality: [
+      { id: 'qc_ctrl',       title: 'Контроль и претензии',   apps: ['qc', 'claims'] },
+      { id: 'qc_doc',        title: 'Паспорта и СМК',         apps: ['passport', 'quality'] }
+    ],
+    economics: [
+      { id: 'econ_cost',     title: 'Себестоимость и КП',     apps: ['economics', 'teo', 'escrow'] },
+      { id: 'econ_fin',      title: 'Финансы и бюджеты',      apps: ['finance', 'projbudget', 'accounting'] },
+      { id: 'econ_bi',       title: 'Аналитика и отчёты',     apps: ['bi', 'reports'] }
+    ],
+    staff: [
+      { id: 'staff_people',  title: 'Персонал и развитие',    apps: ['hr', 'staff', 'competences'] },
+      { id: 'staff_org',     title: 'Структура и доступ',     apps: ['departments', 'org'] }
+    ],
+    platform: [
+      { id: 'plat_admin',    title: 'Администрирование и тариф', apps: ['platform', 'admin', 'roles', 'access', 'billing', 'usage', 'whitelabel', 'industry', 'holding'] },
+      { id: 'plat_work',     title: 'Работа, процессы, интеграции', apps: ['tasks', 'workflow', 'builder', 'edo', 'kedo', 'integrations', 'api'] },
+      { id: 'plat_ops',      title: 'Эксплуатация и поддержка', apps: ['diagnostics', 'scale', 'files', 'bugbox', 'support', 'itsm', 'announcements'] },
+      { id: 'plat_hr',       title: 'Охрана труда и обучение', apps: ['safety', 'elearning'] }
+    ]
+  },
   apps: [
     /* ---------- Ядро ---------- */
     {

@@ -68,6 +68,46 @@
   .userdrop { position: absolute; right: 12px; top: 54px; width: 320px; max-width: 92vw; background: #fff; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 14px 34px rgba(15,23,42,.2); padding: 14px; z-index: 1000; color: var(--text); }
   .userdrop .cab-info h1 { font-size: 1.1rem; }
 
+  /* W29 — читаемый хаб: панель, фильтры, плитки, подгруппы */
+  .hub-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin: 0 0 14px; }
+  .hub-tools .chips { margin: 0; }
+  .chip-n { opacity: .6; font-weight: 800; margin-left: 2px; }
+  .hub-view { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; background: #fff; flex: 0 0 auto; }
+  .vbtn { border: 0; background: transparent; padding: 7px 14px; font: 600 .78rem/1 inherit; cursor: pointer; color: var(--muted); }
+  .vbtn.on { background: var(--accent-100); color: var(--accent-700); }
+  .hub-note { margin: 0 0 12px; }
+  .grp-card { padding: 14px 14px 12px; }
+  .grp-head { display: flex; align-items: center; gap: 10px; margin: 0 0 4px; cursor: pointer; font-size: 1rem; user-select: none; }
+  .grp-head.static { cursor: default; }
+  .grp-head .grp-ic { font-size: 1.15rem; }
+  .grp-head .grp-tt { flex: 1; min-width: 0; }
+  .grp-head .grp-cnt { font-size: .72rem; font-weight: 800; color: var(--accent-700); background: var(--accent-100); border-radius: 999px; padding: 2px 9px; }
+  .grp-head .grp-cv { color: var(--muted); font-size: .8rem; }
+  .grp-card.collapsed .grp-body { display: none; }
+  .grp-card.collapsed .grp-head { margin-bottom: 0; }
+  .grp-card.collapsed .udesc { display: none; }
+  .subgroup { margin-top: 10px; }
+  .subgroup-t { font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 800; margin: 8px 0 8px; }
+  .tgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 236px), 1fr)); gap: 8px; }
+  .tile { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border: 1px solid var(--border); border-radius: 11px; background: #fff; text-decoration: none; color: var(--text); position: relative; }
+  .tile:hover { border-color: var(--accent); background: var(--accent-100); }
+  .tile .tile-ic { width: 32px; height: 32px; border-radius: 9px; background: var(--accent-100); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex: 0 0 auto; }
+  .tile:hover .tile-ic { background: #fff; }
+  .tile .tile-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .tile .tile-tx b { font-size: .86rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tile .tile-tx small { font-size: .72rem; color: var(--muted); line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .tile .tile-fav { border: 0; background: transparent; color: #cbd5e1; cursor: pointer; font-size: .98rem; padding: 2px 4px; line-height: 1; }
+  .tile .tile-fav.on { color: #f59e0b; }
+  .tile .tile-lock { font-size: .72rem; }
+  .tgrid.compact .tile .tile-tx small { display: none; }
+  .tgrid.compact .tile { padding: 7px 10px; }
+  .iconlink { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; background: #fff; text-decoration: none; color: var(--text); font-size: .84rem; font-weight: 600; }
+  .iconlink:hover { border-color: var(--accent); background: var(--accent-100); }
+  @media (max-width: 680px) {
+    .tgrid { grid-template-columns: 1fr; }
+    .hub-tools { gap: 8px; }
+  }
+
 </style>
 </head>
 <body>
@@ -133,7 +173,7 @@
   <script src="assets/js/ui.js?v=4"></script>
   <script src="assets/js/status.js?v=1"></script>
   <script src="assets/js/auth.js?v=6"></script>
-  <script src="assets/js/catalog.js?v=105"></script>
+  <script src="assets/js/catalog.js?v=106"></script>
   <script>
     (function () {
       'use strict';
@@ -161,35 +201,59 @@
         platform: 'Организации, пользователи, роли, аудит, API.',
         refs: 'Библиотека прототипов экосистемы.'
       };
-      function urow(a, logged, sub) {
-        var needAuth = !a.guest && !logged;
-        var href = needAuth ? 'apps/auth/index.html' : a.href;
-        return '<a class="urow" href="' + href + '">' +
-          '<span class="uic">' + a.icon + '</span>' +
-          '<span class="lbl">' + ui.esc(a.title) + (sub ? ' <span class="note">— ' + ui.esc(sub) + '</span>' : '') + '</span>' +
-          (needAuth ? '<span class="note">вход</span>' : '') +
-          '<span class="chev">›</span></a>';
-      }
       function hubMatch(a, q) {
         if (!q) return false;
         var hay = (a.title + ' ' + (a.desc || '') + ' ' + (a.purpose || '') + ' ' + (a.features || []).join(' ') + ' ' + (a.connects || []).join(' ') + ' ' + (a.group || '')).toLowerCase();
         return hay.indexOf(q) >= 0;
       }
-      function hubSnippet(a, q) {
-        var f = (a.features || []).filter(function (x) { return x.toLowerCase().indexOf(q) >= 0; })[0];
-        if (f) return f;
-        if ((a.desc || '').toLowerCase().indexOf(q) >= 0) return a.desc;
-        return '';
-      }
 
-      var MAXROWS = 5;
-      function ulist(items, logged, gid) {
-        var shown = items.slice(0, MAXROWS), extra = items.slice(MAXROWS);
-        var h = '<div class="ulist">' + shown.map(function (a) { return urow(a, logged); }).join('');
-        if (!extra.length) return h + '</div>';
-        h += '<button class="umore" type="button" data-m="' + gid + '">ещё ' + extra.length + ' ▾</button></div>' +
-          '<div class="ulist uextra" id="ux-' + gid + '">' + extra.map(function (a) { return urow(a, logged); }).join('') + '</div>';
-        return h;
+      /* ---- W29: состояние хаба (избранное/недавние/режим/свёрнутые группы) ---- */
+      var hubState = { filter: '' };
+      function keyOf(base) { return base + ':' + ((currentUser && currentUser.login) || 'guest'); }
+      function getJSON(k) { try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch (e) { return []; } }
+      function setJSON(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+      function getFavs() { return getJSON(keyOf('3dmp:fav')); }
+      function toggleFav(id) { var f = getFavs(), i = f.indexOf(id); if (i >= 0) f.splice(i, 1); else f.push(id); setJSON(keyOf('3dmp:fav'), f); }
+      function getRecent() { return getJSON(keyOf('3dmp:recent')); }
+      function pushRecent(id) { var r = getRecent().filter(function (x) { return x !== id; }); r.unshift(id); setJSON(keyOf('3dmp:recent'), r.slice(0, 8)); }
+      function isCompact() { return localStorage.getItem('3dmp:hub:view') === 'compact'; }
+      function isCollapsed(gid) { return localStorage.getItem('3dmp:hub:collapsed:' + gid) === '1'; }
+
+      function tile(a, logged, compact, favIds) {
+        var needAuth = !a.guest && !logged;
+        var href = needAuth ? 'apps/auth/index.html' : a.href;
+        var on = favIds.indexOf(a.id) >= 0;
+        return '<a class="tile" href="' + href + '" data-app="' + a.id + '"' + (needAuth ? ' data-need="1"' : '') + '>' +
+          '<span class="tile-ic">' + a.icon + '</span>' +
+          '<span class="tile-tx"><b>' + ui.esc(a.title) + '</b>' + (compact ? '' : '<small>' + ui.esc(a.desc || '') + '</small>') + '</span>' +
+          (needAuth ? '<span class="tile-lock" title="Требуется вход">🔒</span>' : '') +
+          '<button class="tile-fav' + (on ? ' on' : '') + '" type="button" data-fav="' + a.id + '" title="В избранное">' + (on ? '★' : '☆') + '</button></a>';
+      }
+      function grid(items, logged, compact, favIds) {
+        return '<div class="tgrid' + (compact ? ' compact' : '') + '">' + items.map(function (a) { return tile(a, logged, compact, favIds); }).join('') + '</div>';
+      }
+      function groupCard(g, items, logged, compact, favIds) {
+        var collapsed = isCollapsed(g.id);
+        var subs = (C.subgroups && C.subgroups[g.id]) || null, body = '';
+        if (subs) {
+          subs.forEach(function (s) {
+            var sub = items.filter(function (a) { return s.apps.indexOf(a.id) >= 0; });
+            if (!sub.length) return;
+            body += '<div class="subgroup"><div class="subgroup-t">' + ui.esc(s.title) + '</div>' + grid(sub, logged, compact, favIds) + '</div>';
+          });
+          var other = items.filter(function (a) {
+            return !subs.some(function (s) { return s.apps.indexOf(a.id) >= 0; });
+          });
+          if (other.length) body += '<div class="subgroup">' + grid(other, logged, compact, favIds) + '</div>';
+        } else {
+          body = grid(items, logged, compact, favIds);
+        }
+        return '<section class="ucard grp-card' + (collapsed ? ' collapsed' : '') + '" id="grp-' + g.id + '" data-grp="' + g.id + '">' +
+          '<h3 class="grp-head" role="button" tabindex="0" data-toggle="' + g.id + '">' +
+          '<span class="grp-ic">' + g.icon + '</span><span class="grp-tt">' + ui.esc(g.title) + '</span>' +
+          '<span class="grp-cnt">' + items.length + '</span><span class="grp-cv">' + (collapsed ? '▸' : '▾') + '</span></h3>' +
+          (g.desc ? '<div class="udesc">' + ui.esc(g.desc) + '</div>' : '') +
+          '<div class="grp-body">' + body + '</div></section>';
       }
       function chip(a, logged, editing) {
         var needAuth = !a.guest && !logged;
@@ -254,38 +318,116 @@
         bindCollapse('quickX', 'quickBody');
       }
 
-      function renderApps(user) {
+      function visibleList(user) {
         var logged = !!user;
-        var list = C.apps.filter(function (a) {
+        return C.apps.filter(function (a) {
           if (logged && user.role === 'client') return !!(a.roles && a.roles.indexOf('client') >= 0);
           if (!a.roles) return true;
           return logged && a.roles.indexOf(user.role) >= 0;
         });
+      }
+
+      function renderApps(user) {
+        var logged = !!user;
+        var list = visibleList(user);
+        var inList = {}; list.forEach(function (a) { inList[a.id] = a; });
+        var byId = {}; C.apps.forEach(function (a) { byId[a.id] = a; });
+        var compact = isCompact();
+        var favIds = getFavs();
+        var host = document.getElementById('apps');
         var qEl = document.getElementById('hubSearch');
         var q = qEl ? (qEl.value || '').trim().toLowerCase() : '';
+
+        var toolbar = '<div class="hub-tools">' +
+          '<div class="chips">' +
+          '<button class="chip' + (hubState.filter === '' ? ' active' : '') + '" type="button" data-filter="">Все</button>' +
+          (function () {
+            var favN = favIds.filter(function (id) { return !!inList[id]; }).length;
+            return '<button class="chip' + (hubState.filter === 'fav' ? ' active' : '') + '" type="button" data-filter="fav">⭐ Избранное' + (favN ? ' <span class="chip-n">' + favN + '</span>' : '') + '</button>';
+          })() +
+          (C.groups || []).map(function (g) {
+            var n = list.filter(function (a) { return a.group === g.id; }).length;
+            if (!n) return '';
+            return '<button class="chip' + (hubState.filter === g.id ? ' active' : '') + '" type="button" data-filter="' + g.id + '">' + g.icon + ' ' + ui.esc(g.title) + ' <span class="chip-n">' + n + '</span></button>';
+          }).join('') +
+          '</div>' +
+          '<div class="hub-view" role="group" aria-label="Вид">' +
+          '<button class="vbtn' + (compact ? '' : ' on') + '" type="button" data-view="normal">Обычный</button>' +
+          '<button class="vbtn' + (compact ? ' on' : '') + '" type="button" data-view="compact">Компактно</button>' +
+          '</div></div>';
+
         if (q) {
           var res = list.filter(function (a) { return hubMatch(a, q); });
-          var html = '<div class="ucard"><h3>🔎 Найдено: ' + res.length + (res.length ? '' : ' — ничего по запросу «' + ui.esc(q) + '»') + '</h3>' +
-            '<div class="ulist">' + res.map(function (a) { return urow(a, logged, hubSnippet(a, q)); }).join('') + '</div></div>';
-          document.getElementById('apps').innerHTML = '<div class="ugrid">' + html + '</div>';
+          var body = res.length
+            ? grid(res, logged, compact, favIds)
+            : '<p class="note hub-note">Ничего не найдено по запросу «' + ui.esc(q) + '».</p>';
+          host.innerHTML = '<h2 class="hub-note">🔎 Найдено: ' + res.length + '</h2><div class="ugrid">' + body + '</div>';
+          bindHub(user);
           return;
         }
-        var out = '';
-        (C.groups || []).forEach(function (g) {
-          var items = list.filter(function (a) { return a.group === g.id; });
-          if (!items.length) return;
-          out += '<div class="ucard"><h3>' + g.icon + ' ' + ui.esc(g.title) + '</h3>' +
-            '<div class="udesc">' + ui.esc(GD[g.id] || '') + '</div>' + ulist(items, logged, g.id) + '</div>';
-        });
-        var rest = list.filter(function (a) { return !a.group; });
-        if (rest.length) out += '<div class="ucard"><h3>Прочее</h3>' + ulist(rest, logged, 'rest') + '</div>';
-        document.getElementById('apps').innerHTML = '<div class="ugrid">' + out + '</div>';
-        Array.prototype.forEach.call(document.querySelectorAll('#apps .umore'), function (b) {
-          b.addEventListener('click', function () {
-            var x = document.getElementById('ux-' + b.getAttribute('data-m'));
-            if (x) { var open = x.classList.toggle('show'); b.textContent = open ? 'свернуть ▴' : ('ещё ' + x.querySelectorAll('.urow').length + ' ▾'); }
+
+        var out = '<div class="ugrid">';
+        out += '<section class="ucard grp-card"><h3 class="grp-head static">⚡ Быстрый доступ</h3><div class="grp-body">' +
+          '<a class="iconlink" href="apps/panel/index.html">🎛 Пульт управления</a> ' +
+          '<a class="iconlink" href="apps/product/index.html">💳 Продукт и цены</a> ' +
+          '<a class="iconlink" href="apps/guide/index.html">📖 Гид по системе</a> ' +
+          '<a class="iconlink" href="apps/adoption/index.html">🚀 Карта внедрения</a>' +
+          '</div></section>';
+
+        var rec = getRecent().map(function (id) { return byId[id]; }).filter(function (a) { return a && inList[a.id]; });
+        if (!hubState.filter && rec.length) {
+          out += '<section class="ucard grp-card"><h3 class="grp-head static">🕘 Недавние</h3><div class="grp-body">' + grid(rec, logged, compact, favIds) + '</div></section>';
+        }
+
+        if (hubState.filter === 'fav') {
+          var fits = favIds.map(function (id) { return inList[id]; }).filter(Boolean);
+          out += '<section class="ucard grp-card"><h3 class="grp-head static">⭐ Избранное</h3><div class="grp-body">' +
+            (fits.length ? grid(fits, logged, compact, favIds) : '<p class="note hub-note">Пока пусто — отмечайте модули звёздочкой ★ на плитке.</p>') +
+            '</div></section>';
+        } else {
+          (C.groups || []).forEach(function (g) {
+            if (hubState.filter && hubState.filter !== g.id) return;
+            var items = list.filter(function (a) { return a.group === g.id; });
+            if (!items.length) return;
+            if (!g.desc && GD[g.id]) g = { id: g.id, icon: g.icon, title: g.title, desc: GD[g.id] };
+            out += groupCard(g, items, logged, compact, favIds);
           });
+          var rest = list.filter(function (a) { return !a.group; });
+          if (rest.length && !hubState.filter) out += groupCard({ id: 'rest', icon: '🗂', title: 'Прочее', desc: '' }, rest, logged, compact, favIds);
+        }
+        out += '</div>';
+        host.innerHTML = toolbar + out;
+        bindHub(user);
+      }
+
+      function bindHub(user) {
+        ui.qsa('#apps [data-view]').forEach(function (b) {
+          b.addEventListener('click', function () { localStorage.setItem('3dmp:hub:view', b.getAttribute('data-view')); renderApps(user); });
         });
+        ui.qsa('#apps [data-filter]').forEach(function (b) {
+          b.addEventListener('click', function () { hubState.filter = b.getAttribute('data-filter'); renderApps(user); scrollToFilter(); });
+        });
+        ui.qsa('#apps .grp-head[data-toggle]').forEach(function (h) {
+          h.addEventListener('click', function () { toggleGroup(h.getAttribute('data-toggle'), user); });
+          h.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGroup(h.getAttribute('data-toggle'), user); } });
+        });
+        ui.qsa('#apps [data-fav]').forEach(function (s) {
+          s.addEventListener('click', function (ev) { ev.preventDefault(); ev.stopPropagation(); toggleFav(s.getAttribute('data-fav')); renderApps(user); });
+        });
+        ui.qsa('#apps a.tile').forEach(function (a) {
+          a.addEventListener('click', function () { if (!a.getAttribute('data-need')) pushRecent(a.getAttribute('data-app')); });
+        });
+      }
+      function toggleGroup(gid, user) {
+        var on = isCollapsed(gid);
+        try { localStorage.setItem('3dmp:hub:collapsed:' + gid, on ? '0' : '1'); } catch (e) {}
+        renderApps(user);
+      }
+      function scrollToFilter() {
+        if (hubState.filter && hubState.filter !== 'fav') {
+          var el = document.getElementById('grp-' + hubState.filter);
+          if (el) try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+        } else if (hubState.filter === '') { try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {} }
       }
 
       function renderAccount(s) {
@@ -309,15 +451,24 @@
       function refreshUI() {
         currentUser = window.Auth.session();
         renderAccount(currentUser);
-        var vis = C.apps.filter(function (a) {
-          if (!currentUser) return true;
-          if (currentUser.role === 'client') return !!(a.roles && a.roles.indexOf('client') >= 0);
-          if (!a.roles) return true;
-          return a.roles.indexOf(currentUser.role) >= 0;
-        });
-        renderQuick(currentUser, vis);
+        renderQuick(currentUser, visibleList(currentUser));
         renderApps(currentUser);
       }
+
+      /* W29/W30: глубокие ссылки хаба — #group/<id>, #app/<id>, #fav */
+      function applyHash() {
+        var h = (location.hash || '').replace(/^#/, ''), m;
+        if (h === 'fav') { hubState.filter = 'fav'; return true; }
+        if ((m = h.match(/^group\/([\w-]+)/))) { hubState.filter = m[1]; return true; }
+        if ((m = h.match(/^app\/([\w-]+)/))) {
+          var a = C.apps.filter(function (x) { return x.id === m[1]; })[0];
+          if (a && a.group) { hubState.filter = a.group; return true; }
+        }
+        return false;
+      }
+      window.addEventListener('hashchange', function () {
+        if (applyHash()) { renderApps(currentUser); scrollToFilter(); }
+      });
 
       (function () {
         var qEl = document.getElementById('hubSearch');
@@ -355,6 +506,8 @@
         var out = document.getElementById('uOut');
         if (out) out.addEventListener('click', function () { window.Auth.logout(); location.reload(); });
       })();
+
+      if (applyHash()) { setTimeout(scrollToFilter, 60); }
 
       window.AppStatus.render('#conn').then(function () {
         refreshUI();
