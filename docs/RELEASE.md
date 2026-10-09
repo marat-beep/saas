@@ -10,7 +10,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 **Не льётся:** `supabase/`, `docs/`, `tools/`, `dist/`, `.git`, `README.md`, `AGENTS.md`.
 
 ## 2. База данных
-- Миграции `supabase/migrations/0001…0177` + пересобранный `supabase/apply_all.sql`.
+- Миграции `supabase/migrations/0001…0178` + пересобранный `supabase/apply_all.sql`.
 - Инструменты: `tools/build-release.ps1` (сборка dist), `tools/audit.ps1` (локальный автотест), `tools/db-smoke.ps1` (смоук БД через Management API), `tools/run-checks.ps1` (обёртка audit+db-smoke, лог в `dist/checks/`, код возврата).
 - Применение — Supabase → SQL Editor → вставить `apply_all.sql` → Run (либо Management API, UTF-8).
 - Смоук: `select * from app_smoke_test(:token);` (10/10) и `app_smoke_test_ext(:token)` (14/14).
@@ -42,6 +42,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 - [ ] Отметки в `BACKLOG.md`, `PLAN_WAVES.md`, `STATUS.md`, `NOTES.md`, `PROMPTS.md`.
 
 ## 6. Журнал релизов (последнее)
+- **v238 (миграция `0178`)** — W34 отчёты/BI на новые модули: `app_module_report` +16 веток, `module-report.js` v2 (авто-кнопка отчёта) в 15 модулях, `reports.js` — 16 наборов данных + дашборд новых модулей.
 - **v237 (миграция `0177`)** — W33 эксплуатация/мониторинг: `app_health_ping` (uptime по API-ключу), `app_health_alerts`+`app_health_pings`, алерты с дедупом и уведомлением в `app_health_scan` (+«свежесть данных»), `app_health_alerts_list`/`app_health_alert_resolve`, `app_health_trend`; дашборд в `apps/diagnostics`; `tools/run-checks.ps1` + CI `.github/workflows/checks.yml`. Каталог v10.30, nav v108/shell v71.
 - **v236–v235** — пакет П1 плана v3: W29 хаб/каталог (читаемые группы без «ещё N»), W30 навигация/возврат (кнопка «Назад» + крошки).
 - **v233 (миграция `0176`)** — приёмка волн v2: устранены перегрузки (переименования), `db-smoke` 44/44 + перегрузки 0; релиз `dist/saas-20261009-1301.zip`.

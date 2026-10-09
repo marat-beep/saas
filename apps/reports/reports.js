@@ -71,8 +71,97 @@
       cols: [{ key: 'number', label: 'Маршрут' }, { key: 'name', label: 'Название' }, { key: 'template_name', label: 'Техпроцесс' },
              { key: 'order_number', label: 'Заявка' }, { key: 'total_min', label: 'Мин', num: true },
              { key: 'total_cost', label: 'Себестоимость', num: true }, { key: 'status', label: 'Статус' }]
+    },
+    /* ---------- W34: наборы по модулям волн v2/v3 (через app_module_report) ---------- */
+    tooling: {
+      name: 'Инструмент (экземпляры)', load: function () { return mr('tooling'); },
+      cols: [{ key: 'serial', label: 'Серийный №' }, { key: 'status', label: 'Статус' }, { key: 'machine', label: 'Станок' },
+             { key: 'used_min', label: 'Наработка, мин', num: true }, { key: 'resource_min', label: 'Ресурс, мин', num: true },
+             { key: 'holder_login', label: 'У кого' }]
+    },
+    mdm: {
+      name: 'НСИ (позиции)', load: function () { return mr('mdm'); },
+      cols: [{ key: 'code', label: 'Код' }, { key: 'name', label: 'Наименование' }, { key: 'item_type', label: 'Тип' },
+             { key: 'unit', label: 'Ед.' }, { key: 'grp', label: 'Группа' }, { key: 'status', label: 'Статус' }, { key: 'source', label: 'Источник' }]
+    },
+    plm: {
+      name: 'Изделия (PLM)', load: function () { return mr('plm'); },
+      cols: [{ key: 'code', label: 'Код' }, { key: 'name', label: 'Изделие' }, { key: 'version', label: 'Версия' }, { key: 'state', label: 'Состояние' }]
+    },
+    edo: {
+      name: 'Документы (ЭДО)', load: function () { return mr('edo'); },
+      cols: [{ key: 'reg_number', label: 'Рег. №' }, { key: 'kind', label: 'Вид' }, { key: 'doc_type', label: 'Тип' },
+             { key: 'title', label: 'Тема' }, { key: 'correspondent', label: 'Корреспондент' }, { key: 'status', label: 'Статус' },
+             { key: 'responsible_login', label: 'Ответственный' }, { key: 'due_date', label: 'Срок' }]
+    },
+    kedo: {
+      name: 'Кадровые документы (КЭДО)', load: function () { return mr('kedo'); },
+      cols: [{ key: 'number', label: 'Номер' }, { key: 'doc_type', label: 'Тип' }, { key: 'title', label: 'Название' },
+             { key: 'employee_login', label: 'Сотрудник' }, { key: 'status', label: 'Статус' }, { key: 'signed_at', label: 'Подписано' }]
+    },
+    eam: {
+      name: 'Вибрация (EAM)', load: function () { return mr('eam'); },
+      cols: [{ key: 'equipment', label: 'Оборудование' }, { key: 'value', label: 'Значение', num: true }, { key: 'unit', label: 'Ед.' },
+             { key: 'result', label: 'Результат' }, { key: 'ts', label: 'Время' }]
+    },
+    safety: {
+      name: 'Инциденты (EHS)', load: function () { return mr('safety'); },
+      cols: [{ key: 'kind', label: 'Тип' }, { key: 'event_date', label: 'Дата' }, { key: 'location', label: 'Место' },
+             { key: 'severity', label: 'Критичность' }, { key: 'status', label: 'Статус' }]
+    },
+    holding: {
+      name: 'Площадки (Холдинг)', load: function () { return mr('holding'); },
+      cols: [{ key: 'name', label: 'Площадка' }, { key: 'code', label: 'Код' }, { key: 'region', label: 'Регион' },
+             { key: 'share', label: 'Доля', num: true }, { key: 'active', label: 'Активна' }]
+    },
+    projbudget: {
+      name: 'Сметы проектов', load: function () { return mr('projbudget'); },
+      cols: [{ key: 'name', label: 'Смета' }, { key: 'version', label: 'Версия' }, { key: 'currency', label: 'Валюта' }, { key: 'status', label: 'Статус' }]
+    },
+    pmo: {
+      name: 'Вехи (PMO)', load: function () { return mr('pmo'); },
+      cols: [{ key: 'name', label: 'Веха' }, { key: 'due_date', label: 'Срок' }, { key: 'status', label: 'Статус' }, { key: 'weight', label: 'Вес', num: true }]
+    },
+    logistics: {
+      name: 'Рейсы (TMS)', load: function () { return mr('logistics'); },
+      cols: [{ key: 'number', label: 'Рейс' }, { key: 'direction', label: 'Направление' }, { key: 'counterparty', label: 'Контрагент' },
+             { key: 'cargo', label: 'Груз' }, { key: 'from_loc', label: 'Откуда' }, { key: 'to_loc', label: 'Куда' },
+             { key: 'cost', label: 'Стоимость', num: true }, { key: 'status', label: 'Статус' }]
+    },
+    itsm: {
+      name: 'Заявки ИТ (ITSM)', load: function () { return mr('itsm'); },
+      cols: [{ key: 'number', label: 'Номер' }, { key: 'title', label: 'Тема' }, { key: 'priority', label: 'Приоритет' },
+             { key: 'status', label: 'Статус' }, { key: 'assignee_login', label: 'Исполнитель' }, { key: 'due_at', label: 'SLA-срок' }]
+    },
+    elearning: {
+      name: 'Курсы (e-Learning)', load: function () { return mr('elearning'); },
+      cols: [{ key: 'code', label: 'Код' }, { key: 'name', label: 'Курс' }, { key: 'category', label: 'Категория' },
+             { key: 'hours', label: 'Часов', num: true }, { key: 'active', label: 'Активен' }]
+    },
+    accounting: {
+      name: 'Проводки (Бухгалтерия)', load: function () { return mr('accounting'); },
+      cols: [{ key: 'number', label: 'Номер' }, { key: 'period_date', label: 'Период' }, { key: 'debit_code', label: 'Дт' },
+             { key: 'credit_code', label: 'Кт' }, { key: 'amount', label: 'Сумма', num: true }, { key: 'memo', label: 'Примечание' }]
+    },
+    tasks: {
+      name: 'Задачи', load: function () { return mr('tasks'); },
+      cols: [{ key: 'title', label: 'Задача' }, { key: 'status', label: 'Статус' }, { key: 'priority', label: 'Приоритет' },
+             { key: 'assignee_login', label: 'Исполнитель' }, { key: 'due_date', label: 'Срок' },
+             { key: 'est_hours', label: 'План, ч', num: true }, { key: 'fact_hours', label: 'Факт, ч', num: true }]
+    },
+    crm_reminders: {
+      name: 'CRM-напоминания', load: function () { return mr('crm_reminders'); },
+      cols: [{ key: 'title', label: 'Напоминание' }, { key: 'due_at', label: 'Срок' }, { key: 'channel', label: 'Канал' },
+             { key: 'status', label: 'Статус' }, { key: 'owner_login', label: 'Ответственный' }]
     }
   };
+  /* Загрузка через универсальный отчёт по модулю (ветки W34 в app_module_report) */
+  function mr(mod) {
+    return rpc('app_module_report', { p_token: token, p_module: mod, p_from: null, p_to: null })
+      .then(function (d) { return (d && d[0] && d[0].rows) || []; });
+  }
+  var NEW_DATASETS = ['tooling', 'mdm', 'plm', 'edo', 'kedo', 'eam', 'safety', 'holding', 'projbudget',
+    'pmo', 'logistics', 'itsm', 'elearning', 'accounting', 'tasks', 'crm_reminders'];
 
   /* ---------------- Базовый отчёт ---------------- */
   function fillDs() {
@@ -379,6 +468,23 @@
   }
   function runCsvRows() { return lastRun.res.rows; }
 
+  /* ---------- W34: дашборд по новым модулям ---------- */
+  function renderDash() {
+    var el = $('#dash'); if (!el) return;
+    el.innerHTML = '<span class="note">Загрузка…</span>';
+    Promise.all(NEW_DATASETS.map(function (k) {
+      return mr(k).then(function (rows) { return { k: k, n: (rows || []).length }; }).catch(function () { return { k: k, n: 0 }; });
+    })).then(function (list) {
+      var max = Math.max.apply(null, list.map(function (x) { return x.n; })) || 1;
+      var shown = list.filter(function (x) { return x.n > 0; }).sort(function (a, b) { return b.n - a.n; });
+      el.innerHTML = shown.length ? shown.map(function (x) {
+        return '<div style="display:flex;align-items:center;gap:8px;margin:4px 0;"><span style="min-width:220px;font-size:.82rem;">' + esc(DATASETS[x.k].name) + '</span>' +
+          '<div class="bar" style="flex:1;"><i style="width:' + Math.round(x.n / max * 100) + '%"></i></div><b style="min-width:50px;text-align:right;">' + x.n + '</b></div>';
+      }).join('') : '<span class="note">Данных по новым модулям нет.</span>';
+    });
+  }
+  var dashBtn = $('#dashBtn'); if (dashBtn) dashBtn.addEventListener('click', renderDash);
+
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
   window.Auth.guard('../auth/index.html').then(function (s) {
@@ -388,5 +494,6 @@
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '');
     if (!SB) { msg('Supabase не подключён.', 'err'); return; }
     fillDs(); loadCurrent(); loadDefs();
+    if ($('#dash')) renderDash();
   });
 })();

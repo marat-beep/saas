@@ -52,8 +52,9 @@
 - **DoD:** проверки по расписанию; при сбое — уведомление; тренд доступности; защита от «устаревших» данных.
 - Оценка: **S–M**. Зависимости: W7 (`app_health_*`), W17 (`app_api_keys`).
 
-## W34. Отчёты/BI на новые модули (S–M)
+## W34. Отчёты/BI на новые модули (S–M) — ☑ v238
 **Цель:** конструктор отчётов и дашборды по новым данным.
+**Реализовано (v238, `0178`):** `app_module_report` расширен 16 ветками (tooling, mdm, plm, edo, kedo, eam, safety, holding, projbudget, pmo, logistics, itsm, elearning, accounting, tasks, crm_reminders); `module-report.js` v2 (метки полей + авто-подстановка кнопки «📄 Отчёт PDF/CSV», подключён в 15 новых модулях); `apps/reports/reports.js` v4 — 16 наборов данных (через `app_module_report`) + карточка «Дашборд новых модулей». Серверный `app_report_run` — не требовался (клиентский конструктор достаточен).
 - Наборы (datasets) для: `tooling`, `mdm`, `plm`, `edo`, `kedo`, `eam`, `safety`, `holding`, `projbudget`, `pmo`, `logistics`, `itsm`, `elearning`, `accounting`, `tasks`/CRM-напоминания.
 - Кнопки `data-report` в новых модулях; ветки `app_module_report`; дашборды (графики/`export.js`).
 - Опционально — серверный `app_report_run(token, def_id)` (безопасная агрегация на БД).
