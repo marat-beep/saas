@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Бухгалтерия — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=35">
+<style>.num{text-align:right;font-variant-numeric:tabular-nums}</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">📒</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+  <main class="wrap fluid">
+    <div class="hero"><h1>Бухгалтерия (задел)</h1><p>План счетов, проводки, оборотно-сальдовая ведомость. Роли: staff.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+    <div class="tabs2" id="tabs"><button data-scr="ac" class="active">Счета</button><button data-scr="po">Проводки</button><button data-scr="osv">ОСВ</button></div>
+    <div class="msg" id="m"></div>
+    <section class="screen active" id="scr-ac"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addAc" style="width:auto;padding:8px 14px;">＋ Счёт</button></div><div id="ac" class="mt"></div></div></section>
+    <section class="screen" id="scr-po"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addPo" style="width:auto;padding:8px 14px;">＋ Проводка</button></div><div id="po" class="mt"></div></div></section>
+    <section class="screen" id="scr-osv"><div class="card"><div class="toolbar"><label class="note">С</label><input type="date" id="d1" style="padding:8px;border:1px solid var(--border);border-radius:8px;"><label class="note">По</label><input type="date" id="d2" style="padding:8px;border:1px solid var(--border);border-radius:8px;"><button class="btn secondary" id="osvBtn" style="width:auto;padding:8px 14px;">Построить</button></div><div id="osv" class="mt"></div></div></section>
+  </main>
+  <footer class="foot">3DMP Service · бухгалтерия</footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=4"></script>
+  <script src="../../assets/js/auth.js?v=6"></script>
+  <script src="../../assets/js/notify.js?v=3"></script>
+  <script src="../../assets/js/support-widget.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=108"></script>
+  <script src="../../assets/js/shell.js?v=70"></script>
+  <script src="accounting.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=2"></script>
+  <script src="../../assets/js/module-info.js?v=1"></script>
+</body>
+</html>
