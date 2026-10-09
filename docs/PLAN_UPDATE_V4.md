@@ -19,9 +19,10 @@
 2FA/TOTP и login-guard уже были (0112/0113). Добавлено (`0181`): политики безопасности (`app_security_policies`, `app_security_policy_get/set`), смена пароля (`app_password_change`), «мои устройства/сессии» (`app_my_sessions`, `app_session_revoke`, `app_session_revoke_all`, `app_session_touch`), журнал доступа (`app_access_log_list`), TTL сессии и срок пароля в `app_login`. UI — вкладка «Безопасность» в `apps/org` (`security.js`).
 **DoD:** усиленная аутентификация и контроль сессий — ✅.
 
-### W40. Расширения экосистемы 2.0 (V3)
+### W40. Расширения экосистемы 2.0 (V3) — ☑ v248
 Типы расширений widget/bi/dashboard, редактор манифеста в UI, зависимости/совместимость, приватные расширения тенанта.
-**DoD:** полноценный реестр расширений.
+**DoD:** полноценный реестр расширений — ✅.
+`0182`: `tenant_id` (приватные), `app_ext_detail`, `app_ext_install` со проверкой deps, `app_ext_save`+`p_tenant_id`, `app_my_tenant_id`; редактор манифеста в `apps/marketplace`.
 
 ### W41. Отчётность/BI 2.0 (V5)
 Дашборды по контурам, планировщик рассылки отчётов (по расписанию, в почту/Telegram), экспорт XLSX, drill-down.

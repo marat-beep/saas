@@ -77,13 +77,16 @@
   }
   function extCard(e) {
     var kl = EK[e.kind] || e.kind;
+    var adm = window.Auth && window.Auth.session && window.Auth.session() && window.Auth.session().role === 'admin';
     var btns = !e.installed
       ? '<button class="btn" data-ext-install="' + e.id + '" style="width:auto;padding:7px 12px;">Установить</button>'
       : '<button class="btn secondary" data-ext-toggle="' + e.id + '" data-on="' + (e.enabled ? '0' : '1') + '" style="width:auto;padding:7px 12px;">' + (e.enabled ? 'Выключить' : 'Включить') + '</button>' +
         '<button class="btn secondary" data-ext-del="' + e.id + '" style="width:auto;padding:7px 12px;">Удалить</button>';
+    if (adm) btns += '<button class="act" data-ext-edit="' + e.id + '" title="Редактор">✎</button>';
     return '<div class="ocard"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">' +
       '<span class="badge">' + esc(kl) + '</span><b>' + esc(e.name) + '</b>' +
       (e.installed ? '<span class="badge done">' + (e.enabled ? 'включено' : 'установлено') + '</span>' : '') +
+      (e.private ? '<span class="badge">приватное</span>' : '') +
       '<span class="note" style="margin-left:auto;">v' + esc(e.version) + (e.vendor ? ' · ' + esc(e.vendor) : '') + '</span></div>' +
       (e.description ? '<div class="note mt">' + esc(e.description) + '</div>' : '') +
       (e.deps && e.deps.length ? '<div class="note">Зависимости: ' + esc(e.deps.join(', ')) + '</div>' : '') +
@@ -100,7 +103,45 @@
     $$('#extList [data-ext-del]').forEach(function (b) { b.addEventListener('click', function () {
       ui.confirmDialog('Удалить расширение?', 'Удаление').then(function (ok) { if (ok) extAct('app_ext_uninstall', { p_token: token, p_id: b.dataset.extDel }); });
     }); });
+    $$('#extList [data-ext-edit]').forEach(function (b) { b.addEventListener('click', function () {
+      openExtEditor(extList.filter(function (x) { return x.id === b.dataset.extEdit; })[0]);
+    }); });
   }
+
+  /* ---------- W40: редактор манифеста (админ платформы) ---------- */
+  var editingExt = null, tenantId = null;
+  function openExtEditor(e) {
+    var s = window.Auth && window.Auth.session && window.Auth.session();
+    if (!s || s.role !== 'admin') return;
+    editingExt = e ? e.id : null;
+    $('#eeTitle').textContent = e ? ('Редактор: ' + e.name) : 'Новый манифест';
+    $('#extEditorCard').style.display = '';
+    var set = function (x) {
+      $('#eeCode').value = x.code || ''; $('#eeName').value = x.name || ''; $('#eeKind').value = x.kind || 'connector';
+      $('#eeVersion').value = x.version || '1.0.0'; $('#eeVendor').value = x.vendor || ''; $('#eeDesc').value = x.description || '';
+      $('#eeDeps').value = (x.deps || []).join(', '); $('#eePerm').value = (x.permissions || []).join(', ');
+      $('#eeActive').checked = x.active !== false; $('#eePrivate').checked = !!x.private;
+    };
+    if (e) { set(e); rpc('app_ext_detail', { p_token: token, p_id: e.id }).then(function (d) { if (d && d[0]) set(d[0]); }).catch(function () {}); }
+    else { set({}); }
+    msg('#eeMsg', '', 'info');
+  }
+  function saveExt() {
+    var deps = ($('#eeDeps').value || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean);
+    var perm = ($('#eePerm').value || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean);
+    rpc('app_ext_save', {
+      p_token: token, p_id: editingExt, p_code: $('#eeCode').value.trim(), p_name: $('#eeName').value.trim(),
+      p_kind: $('#eeKind').value, p_version: $('#eeVersion').value.trim(), p_vendor: $('#eeVendor').value.trim(),
+      p_description: $('#eeDesc').value.trim(), p_deps: deps, p_permissions: perm, p_active: $('#eeActive').checked,
+      p_tenant_id: $('#eePrivate').checked ? tenantId : null
+    }).then(function (r) {
+      var x = r && r[0]; if (x && x.ok === false) { msg('#eeMsg', x.message, 'err'); return; }
+      msg('#eeMsg', (x && x.message) || 'Сохранено', 'ok'); $('#extEditorCard').style.display = 'none'; loadExt();
+    }).catch(function (e) { msg('#eeMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
+  var extNew = $('#extNew'); if (extNew) extNew.addEventListener('click', function () { openExtEditor(null); });
+  var eeSave = $('#eeSave'); if (eeSave) eeSave.addEventListener('click', saveExt);
+  var eeCancel = $('#eeCancel'); if (eeCancel) eeCancel.addEventListener('click', function () { $('#extEditorCard').style.display = 'none'; });
   function extAct(fn, args) {
     rpc(fn, args).then(function (r) {
       var x = r && r[0];
@@ -154,6 +195,10 @@
     token = s.token;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#lMsg', 'Supabase не подключён.', 'err'); return; }
+    if (s.role === 'admin') {
+      var nb = $('#extNew'); if (nb) nb.style.display = '';
+      rpc('app_my_tenant_id', { p_token: token }).then(function (t) { tenantId = t; }).catch(function () {});
+    }
     load().then(loadDict); loadExt();
   });
 })();

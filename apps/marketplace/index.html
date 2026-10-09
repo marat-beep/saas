@@ -60,11 +60,41 @@
       <div id="tabExt" style="display:none">
         <div class="toolbar">
           <h2 style="margin:0;">Каталог расширений <span class="note" id="eCnt"></span></h2>
-          <label class="note" style="margin-left:auto;"><input type="checkbox" id="extOnlyInstalled"> только установленные</label>
+          <label class="note"><input type="checkbox" id="extOnlyInstalled"> только установленные</label>
+          <button class="btn secondary" id="extNew" type="button" style="display:none;width:auto;padding:8px 14px;margin-left:auto;">＋ Новый манифест</button>
         </div>
-        <p class="note">Расширения и шаблоны: коннекторы, шаблоны, отчёты, наборы данных, статьи БЗ, виджеты. Установка декларативна (по тенанту), включение коннектора подтягивает точку интеграции.</p>
+        <p class="note">Расширения и шаблоны: коннекторы, шаблоны, отчёты, наборы данных, статьи БЗ, виджеты, BI. Установка декларативна (по тенанту) с проверкой зависимостей; включение коннектора подтягивает точку интеграции.</p>
         <div class="msg" id="eMsg"></div>
         <div class="olist mt" id="extList"><span class="note">Загрузка…</span></div>
+
+        <div class="card mt" id="extEditorCard" style="display:none;">
+          <h2 id="eeTitle">Новый манифест</h2>
+          <div class="msg" id="eeMsg"></div>
+          <div class="grid2c">
+            <div class="field"><label>Код</label><input id="eeCode" placeholder="conn-xxx"></div>
+            <div class="field"><label>Название</label><input id="eeName"></div>
+          </div>
+          <div class="grid2c">
+            <div class="field"><label>Тип</label><select id="eeKind">
+              <option value="connector">Коннектор</option><option value="template">Шаблон</option>
+              <option value="report">Отчёт</option><option value="dataset">Набор данных</option>
+              <option value="kb">БЗ</option><option value="widget">Виджет</option><option value="bi">BI/дашборд</option>
+            </select></div>
+            <div class="field"><label>Версия</label><input id="eeVersion" value="1.0.0"></div>
+          </div>
+          <div class="grid2c">
+            <div class="field"><label>Поставщик</label><input id="eeVendor"></div>
+            <div class="field"><label>Зависимости (коды через запятую)</label><input id="eeDeps"></div>
+          </div>
+          <div class="field"><label>Права (через запятую)</label><input id="eePerm"></div>
+          <div class="field"><label>Описание</label><input id="eeDesc"></div>
+          <div class="toolbar">
+            <label class="note"><input type="checkbox" id="eeActive" checked> активное</label>
+            <label class="note"><input type="checkbox" id="eePrivate"> приватное (моя организация)</label>
+            <button class="btn" id="eeSave" style="width:auto;padding:8px 14px;margin-left:auto;">Сохранить</button>
+            <button class="btn secondary" id="eeCancel" style="width:auto;padding:8px 14px;">Отмена</button>
+          </div>
+        </div>
       </div>
     </div>
   </main>
@@ -80,7 +110,7 @@
   <script src="../../assets/js/support-widget.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=108"></script>
   <script src="../../assets/js/shell.js?v=73"></script>
-  <script src="marketplace.js?v=2"></script>
+  <script src="marketplace.js?v=3"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>
