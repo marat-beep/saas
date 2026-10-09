@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Холдинг (CPM) — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=35">
+<style>.num{text-align:right;font-variant-numeric:tabular-nums}</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🏢</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap fluid">
+    <div class="hero"><h1>Холдинг (CPM)</h1><p>Площадки группы, снимки KPI и консолидация с учётом доли. Роли: staff.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="tabs2" id="tabs">
+      <button data-scr="units" class="active">Площадки</button>
+      <button data-scr="cons">Консолидация</button>
+    </div>
+    <div class="msg" id="m"></div>
+
+    <section class="screen active" id="scr-units">
+      <div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addUnit" style="width:auto;padding:8px 14px;">＋ Площадка</button>
+        <button class="btn secondary" data-cap="edit" id="addSnap" style="width:auto;padding:8px 14px;">＋ Снимок KPI</button></div>
+        <div id="units" class="mt"><span class="note">Загрузка…</span></div></div>
+    </section>
+
+    <section class="screen" id="scr-cons">
+      <div class="card"><div class="toolbar"><label class="note">Период по:</label><input type="date" id="consDate" style="padding:8px;border:1px solid var(--border);border-radius:8px;"><button class="btn secondary" id="consBtn" style="width:auto;padding:8px 14px;">Обновить</button></div>
+        <div id="cons" class="mt"><span class="note">Загрузка…</span></div></div>
+    </section>
+  </main>
+
+  <footer class="foot">3DMP Service · холдинг</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=4"></script>
+  <script src="../../assets/js/auth.js?v=6"></script>
+  <script src="../../assets/js/notify.js?v=3"></script>
+  <script src="../../assets/js/support-widget.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=102"></script>
+  <script src="../../assets/js/shell.js?v=64"></script>
+  <script src="holding.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=2"></script>
+  <script src="../../assets/js/module-info.js?v=1"></script>
+</body>
+</html>
