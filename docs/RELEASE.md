@@ -10,7 +10,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 **Не льётся:** `supabase/`, `docs/`, `tools/`, `dist/`, `.git`, `README.md`, `AGENTS.md`.
 
 ## 2. База данных
-- Миграции `supabase/migrations/0001…0162` + пересобранный `supabase/apply_all.sql`.
+- Миграции `supabase/migrations/0001…0163` + пересобранный `supabase/apply_all.sql`.
 - Инструменты: `tools/build-release.ps1` (сборка dist), `tools/audit.ps1` (локальный автотест), `tools/db-smoke.ps1` (смоук БД через Management API).
 - Применение — Supabase → SQL Editor → вставить `apply_all.sql` → Run (либо Management API, UTF-8).
 - Смоук: `select * from app_smoke_test(:token);` (10/10) и `app_smoke_test_ext(:token)` (14/14).
@@ -35,6 +35,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 - [ ] Отметки в `BACKLOG.md`, `PLAN_WAVES.md`, `STATUS.md`, `NOTES.md`, `PROMPTS.md`.
 
 ## 6. Журнал релизов (последнее)
+- **v220 (миграция `0163`)** — W19 ЭДО/СЭД: реестр документов, регистрация, поручения, связи, номенклатура дел/архив; модуль `apps/edo`; каталог v10.17, nav v96/shell v58. Пакет 2 плана v2 закрыт.
 - **v219 (миграция `0162`)** — W18c PDM/PLM: изделия/состав/документы/ECN; модуль `apps/plm`; каталог v10.16, nav v95/shell v57.
 - **v218 (миграция `0161`)** — W18b НСИ/MDM: единый справочник, версии, внешние коды, дубли/слияние, импорт; модуль `apps/mdm`; каталог v10.15, nav v94/shell v56.
 - **v217 (миграция `0160`)** — W18a финансы/FRP: бюджеты/ЦФО и план-факт, платёжный календарь, KPI, себестоимость; UI `finance`; каталог v10.14 (🆕), nav v93/shell v55. Пакет 1 плана v2 закрыт.
