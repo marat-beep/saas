@@ -64,8 +64,9 @@
 - **DoD:** источники/отчёты/дашборды по новым модулям; сохранение/запуск/выгрузка.
 - Оценка: **S–M** (клиент) / **M–L** (сервер). Зависимости: W8.
 
-## W35. Маркетплейс-расширения (M–L)
+## W35. Маркетплейс-расширения (M–L) — ☑ v241
 **Цель:** реестр расширений/шаблонов с установкой по тенанту (декларативно, без произвольного JS).
+**Реализовано (v241, `0179`):** `app_extensions` (манифест) + `app_extension_installs`; RPC `app_ext_list`/`app_ext_installs_list`/`app_ext_install`/`app_ext_toggle`/`app_ext_uninstall` (=админ/владелец тенанта), `app_ext_save` (=админ платформы); включение коннектора подтягивает `app_integrations`; аудит `app_log_event`; вкладка «Расширения» в `apps/marketplace`.
 - `app_extensions` (манифест: тип connector|template|report|dataset|kb|widget, версия, зависимости, права), `app_extension_installs` (tenant, ext, version, enabled).
 - Установка/включение через флаги (`tenants.features`), права (`app_access`), аудит; UI в `apps/marketplace`.
 - Интеграционные расширения — через `app_integrations` (воркер `backend-example`).

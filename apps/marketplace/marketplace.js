@@ -7,6 +7,8 @@
   var token = null, listings = [], requests = [], q = '';
 
   var PR = { cnc: 'ЧПУ', edm: 'ЭЭО', grinding: 'Шлифование', heat: 'Термообработка', assembly: 'Сборка', engraving: 'Гравирование', other: 'Прочее' };
+  var EK = { connector: 'Коннектор', template: 'Шаблон', report: 'Отчёт', dataset: 'Набор данных', kb: 'БЗ', widget: 'Виджет' };
+  var extList = [];
   var RS = { new: ['Новая', 'new'], quoted: ['Предложение', 'in_progress'], accepted: ['Принята', 'done'], declined: ['Отклонена', 'cancelled'], closed: ['Закрыта', ''] };
   function esc(v) { return ui.esc(v); }
   function msg(id, t, k) { var e = $(id); e.className = 'msg show ' + (k || 'info'); e.textContent = t; if (!t) e.className = 'msg'; }
@@ -68,6 +70,47 @@
     }); });
   }
 
+  /* ---------- W35: расширения ---------- */
+  function loadExt() {
+    return rpc('app_ext_list', { p_token: token }).then(function (list) { extList = list || []; renderExt(); })
+      .catch(function (e) { msg('#eMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
+  function extCard(e) {
+    var kl = EK[e.kind] || e.kind;
+    var btns = !e.installed
+      ? '<button class="btn" data-ext-install="' + e.id + '" style="width:auto;padding:7px 12px;">Установить</button>'
+      : '<button class="btn secondary" data-ext-toggle="' + e.id + '" data-on="' + (e.enabled ? '0' : '1') + '" style="width:auto;padding:7px 12px;">' + (e.enabled ? 'Выключить' : 'Включить') + '</button>' +
+        '<button class="btn secondary" data-ext-del="' + e.id + '" style="width:auto;padding:7px 12px;">Удалить</button>';
+    return '<div class="ocard"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">' +
+      '<span class="badge">' + esc(kl) + '</span><b>' + esc(e.name) + '</b>' +
+      (e.installed ? '<span class="badge done">' + (e.enabled ? 'включено' : 'установлено') + '</span>' : '') +
+      '<span class="note" style="margin-left:auto;">v' + esc(e.version) + (e.vendor ? ' · ' + esc(e.vendor) : '') + '</span></div>' +
+      (e.description ? '<div class="note mt">' + esc(e.description) + '</div>' : '') +
+      (e.deps && e.deps.length ? '<div class="note">Зависимости: ' + esc(e.deps.join(', ')) + '</div>' : '') +
+      (e.permissions && e.permissions.length ? '<div class="note">Права: ' + esc(e.permissions.join(', ')) + '</div>' : '') +
+      '<div class="toolbar mt">' + btns + '</div></div>';
+  }
+  function renderExt() {
+    var only = $('#extOnlyInstalled') && $('#extOnlyInstalled').checked;
+    var rows = extList.filter(function (e) { return !only || e.installed; });
+    if ($('#eCnt')) $('#eCnt').textContent = '(' + rows.length + ')';
+    $('#extList').innerHTML = rows.length ? rows.map(extCard).join('') : '<span class="note">Расширений нет.</span>';
+    $$('#extList [data-ext-install]').forEach(function (b) { b.addEventListener('click', function () { extAct('app_ext_install', { p_token: token, p_id: b.dataset.extInstall }); }); });
+    $$('#extList [data-ext-toggle]').forEach(function (b) { b.addEventListener('click', function () { extAct('app_ext_toggle', { p_token: token, p_id: b.dataset.extToggle, p_enabled: b.dataset.on === '1' }); }); });
+    $$('#extList [data-ext-del]').forEach(function (b) { b.addEventListener('click', function () {
+      ui.confirmDialog('Удалить расширение?', 'Удаление').then(function (ok) { if (ok) extAct('app_ext_uninstall', { p_token: token, p_id: b.dataset.extDel }); });
+    }); });
+  }
+  function extAct(fn, args) {
+    rpc(fn, args).then(function (r) {
+      var x = r && r[0];
+      if (x && x.ok === false) { msg('#eMsg', x.message, 'err'); return; }
+      window.Auth.log('Расширение', x ? x.message : '');
+      msg('#eMsg', x ? x.message : 'Готово', 'ok'); loadExt();
+    }).catch(function (e) { msg('#eMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
+  var exOnly = $('#extOnlyInstalled'); if (exOnly) exOnly.addEventListener('change', renderExt);
+
   function setListing(id, st) {
     rpc('app_market_listing_set_status', { p_token: token, p_id: id, p_status: st }).then(load).catch(function (e) { msg('#lMsg', e.message, 'err'); });
   }
@@ -90,10 +133,10 @@
     }).catch(function () {});
   }
 
+  var TABS = { shop: 'tabShop', req: 'tabReq', ext: 'tabExt' };
   $$('.tab').forEach(function (b) { b.addEventListener('click', function () {
     $$('.tab').forEach(function (x) { x.classList.remove('active'); }); b.classList.add('active');
-    $('#tabShop').style.display = b.dataset.tab === 'shop' ? 'block' : 'none';
-    $('#tabReq').style.display = b.dataset.tab === 'req' ? 'block' : 'none';
+    Object.keys(TABS).forEach(function (k) { var el = $('#' + TABS[k]); if (el) el.style.display = (k === b.dataset.tab) ? 'block' : 'none'; });
   }); });
   $('#q').addEventListener('input', function () { q = this.value; renderShop(); });
   $('#lSave').addEventListener('click', function () {
@@ -111,6 +154,6 @@
     token = s.token;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#lMsg', 'Supabase не подключён.', 'err'); return; }
-    load().then(loadDict);
+    load().then(loadDict); loadExt();
   });
 })();

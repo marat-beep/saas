@@ -29,6 +29,7 @@
       <div class="tabs">
         <button class="tab active" data-tab="shop">Витрина мощностей</button>
         <button class="tab" data-tab="req">Мои заявки</button>
+        <button class="tab" data-tab="ext">Расширения</button>
       </div>
 
       <div id="tabShop">
@@ -55,6 +56,16 @@
         <div class="olist mt" id="reqList"><span class="note">Загрузка…</span></div>
         <div class="msg" id="rMsg"></div>
       </div>
+
+      <div id="tabExt" style="display:none">
+        <div class="toolbar">
+          <h2 style="margin:0;">Каталог расширений <span class="note" id="eCnt"></span></h2>
+          <label class="note" style="margin-left:auto;"><input type="checkbox" id="extOnlyInstalled"> только установленные</label>
+        </div>
+        <p class="note">Расширения и шаблоны: коннекторы, шаблоны, отчёты, наборы данных, статьи БЗ, виджеты. Установка декларативна (по тенанту), включение коннектора подтягивает точку интеграции.</p>
+        <div class="msg" id="eMsg"></div>
+        <div class="olist mt" id="extList"><span class="note">Загрузка…</span></div>
+      </div>
     </div>
   </main>
 
@@ -69,7 +80,7 @@
   <script src="../../assets/js/support-widget.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=108"></script>
   <script src="../../assets/js/shell.js?v=72"></script>
-  <script src="marketplace.js?v=1"></script>
+  <script src="marketplace.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>

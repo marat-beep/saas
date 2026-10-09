@@ -10,7 +10,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 **Не льётся:** `supabase/`, `docs/`, `tools/`, `dist/`, `.git`, `README.md`, `AGENTS.md`.
 
 ## 2. База данных
-- Миграции `supabase/migrations/0001…0178` + пересобранный `supabase/apply_all.sql`.
+- Миграции `supabase/migrations/0001…0179` + пересобранный `supabase/apply_all.sql`.
 - Инструменты: `tools/build-release.ps1` (сборка dist), `tools/audit.ps1` (локальный автотест), `tools/db-smoke.ps1` (смоук БД через Management API), `tools/run-checks.ps1` (обёртка audit+db-smoke, лог в `dist/checks/`, код возврата).
 - Применение — Supabase → SQL Editor → вставить `apply_all.sql` → Run (либо Management API, UTF-8).
 - Смоук: `select * from app_smoke_test(:token);` (10/10) и `app_smoke_test_ext(:token)` (14/14).
@@ -44,6 +44,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 - [ ] Отметки в `BACKLOG.md`, `PLAN_WAVES.md`, `STATUS.md`, `NOTES.md`, `PROMPTS.md`.
 
 ## 6. Журнал релизов (последнее)
+- **v241 (миграция `0179`)** — W35 маркетплейс-расширения: `app_extensions`/`app_extension_installs` + RPC (каталог/установка/включение/удаление/манифест), включение коннектора подтягивает `app_integrations`, аудит; вкладка «Расширения» в `apps/marketplace`.
 - **v240** — W31 мини-мобильные приложения модулей: `assets/js/mobile.js` (нижняя панель быстрых действий, `?mobile=1`, PWA-установка) + `quick` в `catalog.js` (15 модулей; переходы/мастера/RPC с офлайн-очередью). Каталог v10.31, shell v72, CATALOG_V 107. Пакет П2 закрыт.
 - **v239** — W32 мастера (wizards): движок `assets/js/wizard.js` + `assets/js/wizards.js` (6 пилотов: НСИ, инструмент, приёмка, процесс, КЭДО, перевозка), авто-кнопка в 6 модулях.
 - **v238 (миграция `0178`)** — W34 отчёты/BI на новые модули: `app_module_report` +16 веток, `module-report.js` v2 (авто-кнопка отчёта) в 15 модулях, `reports.js` — 16 наборов данных + дашборд новых модулей.
