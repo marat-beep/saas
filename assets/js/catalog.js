@@ -8,7 +8,7 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '10.20',
+  version: '10.21',
   updated: '07.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
@@ -586,10 +586,10 @@ window.AppCatalog = {
     },
     {
       id: 'api', icon: '🔌', title: 'API и интеграции', href: 'apps/api/index.html', guest: false, group: 'platform', audience: 'developer',
-      desc: 'API-ключи и вебхуки для внешних систем.',
-      purpose: 'Интеграции разработчика: ключи организации и вебхуки, публичное чтение данных по ключу.',
-      features: ['API-ключи организации', 'Вебхуки (регистрация)', 'Публичное чтение (api_orders/api_tenders/api_stock)', 'Документация эндпоинтов'],
-      connects: ['platform', 'orders', 'procurement'], out: 'Интеграция'
+      desc: 'API-ключи, вебхуки + W17 (лог API, подписи, проверка контрагентов).',
+      purpose: 'Интеграции разработчика: ключи организации и вебхуки, публичное чтение по ключу; лог вызовов API, реестр подписей (ПЭП/УНЭП/УКЭП/Госключ), проверка контрагентов (скоринг риска), обмен с 1С/PLM через интеграции и НСИ.',
+      features: ['API-ключи организации', 'Вебхуки (регистрация/вкл-выкл)', 'Лог вызовов API', 'Реестр подписей (ПЭП/УНЭП/УКЭП/Госключ)', 'Проверка контрагентов (риск)', 'Публичное чтение (api_orders/api_tenders/api_stock)'],
+      connects: ['platform', 'orders', 'procurement', 'integrations', 'mdm'], out: 'Интеграция/экосистема'
     },
     {
       id: 'roles', icon: '🔑', title: 'Роли и права', href: 'apps/roles/index.html', guest: false, roles: ['admin', 'owner'], group: 'platform', audience: 'client_admin',
