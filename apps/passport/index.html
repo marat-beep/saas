@@ -6,8 +6,11 @@
 <title>Паспорта изделий — 3DMP Service</title>
 <link rel="stylesheet" href="../../assets/css/app.css?v=36">
 <style>
-  .qrbox{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
-  .qrbox canvas, .qrbox img { border:1px solid var(--border); border-radius:8px; background:#fff; }
+  .qrbox{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+  #qr{flex:0 0 auto}
+  .qrbox canvas, .qrbox img { border:1px solid var(--border); border-radius:8px; background:#fff; display:block; width:160px; height:160px; }
+  .qrl{word-break:break-all;overflow-wrap:anywhere;color:var(--muted);font-size:.76rem;margin-top:4px;max-width:380px}
+  #qrText{min-width:200px;flex:1}
 </style>
 </head>
 <body>
@@ -87,7 +90,7 @@
   <script src="../../assets/js/nav.js?v=108"></script>
   <script src="../../assets/js/shell.js?v=73"></script>
   <script src="../../assets/js/files.js?v=1"></script>
-  <script src="passport.js?v=3"></script>
+  <script src="passport.js?v=4"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=2"></script>
 </body>

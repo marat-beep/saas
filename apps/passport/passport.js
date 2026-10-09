@@ -56,6 +56,18 @@
     $$('#list .ocard').forEach(function (c) { c.addEventListener('click', function () { openItem(c.dataset.id); }); });
   }
   function kv(k, v) { return v ? '<div class="kvr"><span class="k">' + k + '</span><b>' + esc(v) + '</b></div>' : ''; }
+  /* Публичная ссылка на паспорт: на сайте — текущий origin; при открытии локально (file:) — прод-адрес. */
+  function publicLink(id) {
+    var base;
+    if (location.protocol === 'http:' || location.protocol === 'https:') {
+      var path = location.pathname;
+      if (path.slice(-1) === '/') path += 'index.html';
+      base = location.origin + path;
+    } else {
+      base = 'https://sapfir.eu/saas/apps/passport/index.html';
+    }
+    return base.replace(/\?.*$/, '') + '?id=' + encodeURIComponent(id);
+  }
   function openItem(id) {
     rpc('app_passport_get', { p_token: token, p_id: id }).then(function (r) {
       var p = r && r[0]; if (!p) { ui.toast('Паспорт не найден'); return; }
@@ -67,11 +79,16 @@
         kv('Заявка', p.order_number) + kv('Наряд', p.naryad_number) + kv('Чек-лист ОТК', p.qc_number) +
         kv('Материал', data.material) + kv('Примечание', data.note) +
         kv('Оформил', p.created_login) + kv('Создан', fmt(p.created_at));
-      var link = location.origin + location.pathname + '?id=' + p.id;
-      $('#qrText').textContent = p.number + ' · ' + link;
+      var link = publicLink(p.id);
       var box = $('#qr'); box.innerHTML = '';
-      try { if (window.QRCode) new QRCode(box, { text: link, width: 160, height: 160 }); else box.innerHTML = '<span class="note">QR-библиотека не загрузилась</span>'; }
+      try { if (window.QRCode) new QRCode(box, { text: link, width: 160, height: 160, correctLevel: (window.QRCode.CorrectLevel ? QRCode.CorrectLevel.M : undefined) }); else box.innerHTML = '<span class="note">QR-библиотека не загрузилась</span>'; }
       catch (e) { box.innerHTML = '<span class="note">QR недоступен</span>'; }
+      $('#qrText').innerHTML = '<div><b>' + esc(p.number) + '</b></div><div class="qrl">' + esc(link) + '</div>' +
+        '<button class="btn secondary" id="qrCopy" type="button" style="width:auto;padding:7px 12px;margin-top:8px;">Скопировать ссылку</button>';
+      var cp = $('#qrCopy'); if (cp) cp.addEventListener('click', function () {
+        try { if (navigator.clipboard) navigator.clipboard.writeText(link); } catch (e) {}
+        ui.toast('Ссылка скопирована');
+      });
       loadTrace(p.qc_check_id);
       if (window.AppFiles) window.AppFiles.mount({ token: token, entityType: 'passport', entityId: p.id, el: '#filesBox' });
       screens.go('s-item');
