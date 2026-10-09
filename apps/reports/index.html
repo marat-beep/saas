@@ -40,6 +40,7 @@
       </div>
       <div class="fmt">
         <button class="fbtn" data-fmt="csv">📑 CSV</button>
+        <button class="fbtn" data-fmt="xls">📈 XLS</button>
         <button class="fbtn" data-fmt="json">🧩 JSON</button>
         <button class="fbtn" data-fmt="doc">📄 DOC</button>
         <button class="fbtn primary" data-fmt="pdf">🖨 PDF / печать</button>
@@ -72,6 +73,37 @@
 
     <div class="card">
       <div class="toolbar">
+        <h2 style="margin:0;">Дашборд по контурам</h2>
+        <button class="btn secondary" id="kpiBtn" type="button" style="width:auto;padding:8px 14px;margin-left:auto;">🔄 Показать KPI</button>
+      </div>
+      <p class="note">Ключевые показатели по контурам (W41). Данные — app_dashboard_kpis.</p>
+      <div id="kpiContours" class="mt"><span class="note">Нажмите «Показать KPI».</span></div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <h2 style="margin:0;">Расписание рассылки отчётов</h2>
+        <button class="btn secondary" id="scRunDue" type="button" style="width:auto;padding:8px 14px;margin-left:auto;">▶ Обработать очередь (due)</button>
+      </div>
+      <div class="msg" id="scMsg"></div>
+      <div class="grid2c">
+        <div class="field"><label>Название</label><input type="text" id="scName" placeholder="Ежедневный отчёт по заказам"></div>
+        <div class="field"><label>Модуль (id / ветка app_module_report)</label><input type="text" id="scModule" placeholder="orders"></div>
+      </div>
+      <div class="grid2c">
+        <div class="field"><label>Формат</label><select id="scFormat"><option value="pdf">PDF</option><option value="csv">CSV</option><option value="xls">XLS</option></select></div>
+        <div class="field"><label>Периодичность</label><select id="scPeriod"><option value="daily">Ежедневно</option><option value="weekly">Еженедельно</option><option value="monthly">Ежемесячно</option></select></div>
+      </div>
+      <div class="grid2c">
+        <div class="field"><label>Канал</label><select id="scChannel"><option value="email">E-mail</option><option value="telegram">Telegram</option><option value="webhook">Webhook</option></select></div>
+        <div class="field"><label>Адрес/получатель</label><input type="text" id="scTarget" placeholder="mail@example.com"></div>
+      </div>
+      <button class="btn" id="scSave">Сохранить расписание</button>
+      <div id="schedList" class="mt"></div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
         <h2 style="margin:0;">Конструктор отчётов <span class="note" id="defsCnt"></span></h2>
         <button class="btn" id="newDef" style="width:auto;padding:8px 14px;margin-left:auto;">＋ Новый отчёт</button>
       </div>
@@ -99,12 +131,12 @@
   <script src="../../assets/js/supabase-client.js?v=1"></script>
   <script src="../../assets/js/ui.js?v=4"></script>
   <script src="../../assets/js/auth.js?v=6"></script>
-  <script src="../../assets/js/export.js?v=1"></script>
+  <script src="../../assets/js/export.js?v=2"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=108"></script>
   <script src="../../assets/js/shell.js?v=73"></script>
-  <script src="reports.js?v=4"></script>
+  <script src="reports.js?v=5"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>

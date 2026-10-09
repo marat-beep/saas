@@ -200,6 +200,7 @@
       var base = (($('#title').value.trim() || cur.name) + '_' + day(new Date().toISOString())).replace(/[^\wа-яА-ЯёЁ\-]+/g, '_').slice(0, 50);
       var fmt = b.dataset.fmt, ok = true;
       if (fmt === 'csv') ok = EX.exportCsv(base, cols, rows);
+      else if (fmt === 'xls') ok = EX.exportXls(base, cols, rows, $('#title').value.trim() || cur.name);
       else if (fmt === 'json') ok = EX.exportJson(base, rows);
       else if (fmt === 'doc') ok = EX.exportDoc(base, $('#title').value.trim() || cur.name, reportHtml());
       else if (fmt === 'pdf') ok = EX.exportPdf($('#title').value.trim() || cur.name, reportHtml());
@@ -485,6 +486,49 @@
   }
   var dashBtn = $('#dashBtn'); if (dashBtn) dashBtn.addEventListener('click', renderDash);
 
+  /* ---------- W41: дашборд по контурам + расписание рассылки ---------- */
+  function loadKpis() {
+    var el = $('#kpiContours'); if (!el) return; el.innerHTML = '<span class="note">Загрузка…</span>';
+    rpc('app_dashboard_kpis', { p_token: token }).then(function (list) {
+      var by = {}; (list || []).forEach(function (x) { (by[x.contour] = by[x.contour] || []).push(x); });
+      var keys = Object.keys(by);
+      el.innerHTML = keys.length ? keys.map(function (c) {
+        return '<div style="margin:6px 0;"><b style="font-size:.82rem;">' + esc(c) + '</b> ' +
+          '<span style="display:inline-flex;gap:6px;flex-wrap:wrap;margin-left:6px;">' +
+          by[c].map(function (x) { return '<span class="badge" style="background:var(--accent-100);color:var(--accent-700);">' + esc(x.metric) + ': <b>' + esc(x.value) + '</b></span>'; }).join('') + '</span></div>';
+      }).join('') : '<span class="note">Нет данных.</span>';
+    }).catch(function (e) { el.innerHTML = '<span class="note">Ошибка: ' + esc(e.message) + '</span>'; });
+  }
+  function scMsg(t, k) { var e = $('#scMsg'); if (e) { e.className = 'msg show ' + (k || 'info'); e.textContent = t; } }
+  function loadSched() {
+    var el = $('#schedList'); if (!el) return;
+    rpc('app_report_schedules_list', { p_token: token }).then(function (list) {
+      el.innerHTML = (list && list.length) ? '<table class="tbl"><thead><tr><th>Название</th><th>Модуль</th><th>Формат</th><th>Период</th><th>Канал</th><th>Следующий</th><th></th></tr></thead><tbody>' +
+        list.map(function (s) {
+          return '<tr><td>' + esc(s.name) + '</td><td>' + esc(s.module) + '</td><td>' + esc(s.format) + '</td><td>' + esc(s.period) + '</td><td>' + esc(s.channel) + '</td>' +
+            '<td class="note">' + esc(String(s.next_run_at || '').substring(0, 16).replace('T', ' ')) + '</td>' +
+            '<td><button class="act" data-sc-run="' + s.id + '">▶</button> <button class="act danger" data-sc-del="' + s.id + '">✕</button></td></tr>';
+        }).join('') + '</tbody></table>' : '<span class="note">Расписаний нет.</span>';
+      $$('#schedList [data-sc-run]').forEach(function (b) { b.addEventListener('click', function () { runSched(b.dataset.scRun); }); });
+      $$('#schedList [data-sc-del]').forEach(function (b) { b.addEventListener('click', function () { delSched(b.dataset.scDel); }); });
+    }).catch(function (e) { el.innerHTML = '<span class="note">Ошибка: ' + esc(e.message) + '</span>'; });
+  }
+  function saveSched() {
+    var name = $('#scName').value.trim(), mod = $('#scModule').value.trim();
+    if (!name || !mod) { scMsg('Укажите название и модуль', 'err'); return; }
+    rpc('app_report_schedule_save', {
+      p_token: token, p_id: null, p_name: name, p_module: mod,
+      p_format: $('#scFormat').value, p_period: $('#scPeriod').value, p_channel: $('#scChannel').value,
+      p_target: $('#scTarget').value.trim() || null, p_enabled: true
+    }).then(function (r) { var x = r && r[0]; scMsg((x && x.message) || 'Готово', x && x.ok === false ? 'err' : 'ok'); if (x && x.ok) { $('#scName').value = ''; loadSched(); } });
+  }
+  function runSched(id) { rpc('app_report_schedule_run', { p_token: token, p_id: id }).then(function (r) { var x = r && r[0]; scMsg((x && x.message) || 'Готово', x && x.ok === false ? 'err' : 'ok'); loadSched(); }); }
+  function delSched(id) { rpc('app_report_schedule_delete', { p_token: token, p_id: id }).then(function () { scMsg('Расписание удалено', 'ok'); loadSched(); }); }
+  function runDue() { rpc('app_report_run_due', { p_token: token }).then(function (r) { var x = r && r[0]; scMsg((x && x.message) || 'Готово', x && x.ok === false ? 'err' : 'ok'); loadSched(); }); }
+  var kb = $('#kpiBtn'); if (kb) kb.addEventListener('click', loadKpis);
+  var ss = $('#scSave'); if (ss) ss.addEventListener('click', saveSched);
+  var sd = $('#scRunDue'); if (sd) sd.addEventListener('click', runDue);
+
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
   window.Auth.guard('../auth/index.html').then(function (s) {
@@ -495,5 +539,7 @@
     if (!SB) { msg('Supabase не подключён.', 'err'); return; }
     fillDs(); loadCurrent(); loadDefs();
     if ($('#dash')) renderDash();
+    if ($('#kpiContours')) loadKpis();
+    if ($('#schedList')) loadSched();
   });
 })();

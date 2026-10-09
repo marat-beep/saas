@@ -34,7 +34,7 @@
   function toast(t) { if (g.AppUI && g.AppUI.toast) g.AppUI.toast(t); else alert(t); }
   function ensureExport(cb) {
     if (g.AppExport) return cb();
-    var sc = document.createElement('script'); sc.src = ROOT + 'assets/js/export.js?v=1';
+    var sc = document.createElement('script'); sc.src = ROOT + 'assets/js/export.js?v=2';
     sc.onload = cb; sc.onerror = function () { toast('Экспорт недоступен'); };
     document.head.appendChild(sc);
   }
@@ -51,6 +51,8 @@
       if (!rows.length) { toast('Нет данных'); return; }
       var c = cols(rows);
       if (fmt === 'csv') { ensureExport(function () { g.AppExport.exportCsv('report-' + module, c, rows); }); return; }
+      if (fmt === 'xls') { ensureExport(function () { g.AppExport.exportXls('report-' + module, c, rows, title || module); }); return; }
+      if (fmt === 'json') { ensureExport(function () { g.AppExport.exportJson('report-' + module, rows); }); return; }
       ensureExport(function () {
         var html = g.AppExport.reportDocument({
           brand: '3DMP Service', title: title || ('Отчёт: ' + module), subtitle: new Date().toLocaleDateString('ru-RU'),
@@ -79,7 +81,8 @@
     var box = document.createElement('div');
     box.className = 'sv-actions'; box.style.cssText = 'margin:0 0 12px;';
     box.innerHTML = '<button class="btn secondary" type="button" data-report="' + m + '">📄 Отчёт PDF</button>' +
-      '<button class="btn secondary" type="button" data-report="' + m + '" data-fmt="csv">📊 CSV</button>';
+      '<button class="btn secondary" type="button" data-report="' + m + '" data-fmt="csv">📊 CSV</button>' +
+      '<button class="btn secondary" type="button" data-report="' + m + '" data-fmt="xls">📈 XLS</button>';
     main.insertBefore(box, main.firstChild);
   }
   function start() { autoInject(); bind(); }

@@ -15,6 +15,14 @@
     return '\ufeff' + head + '\r\n' + body;
   }
   function json(obj) { return JSON.stringify(obj, null, 2); }
+  function xls(columns, rows, title) {
+    var cols = columns || [];
+    return '<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8">' +
+      '<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Отчёт</x:Name>' +
+      '<x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->' +
+      '</head><body>' + (title ? '<table><tr><td colspan="' + Math.max(cols.length, 1) + '"><b>' + esc(title) + '</b></td></tr></table>' : '') +
+      tableHtml(columns, rows) + '</body></html>';
+  }
   function tableHtml(columns, rows) {
     var cols = columns || [];
     return '<table><thead><tr>' + cols.map(function (c) { return '<th>' + esc(c.label) + '</th>'; }).join('') + '</tr></thead><tbody>' +
@@ -67,9 +75,10 @@
   }
 
   g.AppExport = {
-    csv: csv, json: json, tableHtml: tableHtml, baseCss: baseCss, docBody: docBody, download: download, reportDocument: reportDocument,
+    csv: csv, json: json, xls: xls, tableHtml: tableHtml, baseCss: baseCss, docBody: docBody, download: download, reportDocument: reportDocument,
     exportCsv: function (f, cols, rows) { return download(f + '.csv', csv(cols, rows), 'text/csv;charset=utf-8'); },
     exportJson: function (f, data) { return download(f + '.json', json(data), 'application/json;charset=utf-8'); },
+    exportXls: function (f, cols, rows, title) { return download(f + '.xls', xls(cols, rows, title), 'application/vnd.ms-excel;charset=utf-8'); },
     exportDoc: function (f, title, html) { return download(f + '.doc', docBody(title, html), 'application/msword'); },
     exportPdf: function (title, html) { return printDoc(title, html); }
   };
