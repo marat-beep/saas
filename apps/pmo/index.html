@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Портфель проектов (PMO) — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=35">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🗃️</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+  <main class="wrap fluid">
+    <div class="hero"><h1>Портфель проектов (PMO)</h1><p>Портфели, вехи, риски проектов. Роли: staff.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+    <div class="tabs2" id="tabs">
+      <button data-scr="pf" class="active">Портфели</button>
+      <button data-scr="ms">Вехи</button>
+      <button data-scr="rk">Риски</button>
+    </div>
+    <div class="msg" id="m"></div>
+    <section class="screen active" id="scr-pf"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addPf" style="width:auto;padding:8px 14px;">＋ Портфель</button></div><div id="pf" class="mt"></div><div id="pfItems" class="mt"></div></div></section>
+    <section class="screen" id="scr-ms"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addMs" style="width:auto;padding:8px 14px;">＋ Веха</button></div><div id="ms" class="mt"></div></div></section>
+    <section class="screen" id="scr-rk"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addRk" style="width:auto;padding:8px 14px;">＋ Риск</button></div><div id="rk" class="mt"></div></div></section>
+  </main>
+  <footer class="foot">3DMP Service · PMO</footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=4"></script>
+  <script src="../../assets/js/auth.js?v=6"></script>
+  <script src="../../assets/js/notify.js?v=3"></script>
+  <script src="../../assets/js/support-widget.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=104"></script>
+  <script src="../../assets/js/shell.js?v=66"></script>
+  <script src="pmo.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=2"></script>
+  <script src="../../assets/js/module-info.js?v=1"></script>
+</body>
+</html>
