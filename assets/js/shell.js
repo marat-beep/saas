@@ -6,7 +6,7 @@
 (function (g) {
   'use strict';
   var SELF = document.currentScript;
-  var CATALOG_V = '102'; // версия каталога для внешних страниц
+  var CATALOG_V = '103'; // версия каталога для внешних страниц
 
   function esc(v) { return (g.AppUI && g.AppUI.esc) ? g.AppUI.esc(v) : String(v == null ? '' : v); }
   function ready(fn) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn); else fn(); }

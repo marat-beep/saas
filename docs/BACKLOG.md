@@ -5,8 +5,8 @@
 > **Конец сессии:** обнови статусы пунктов (и краткий журнал в §5), затем `PLAN.md`/`PROMPTS.md` при необходимости.
 
 ## 1. Состояние (кратко)
-- Миграции `0001…0172`, `apply_all.sql` идемпотентен; смоук `app_smoke_test` 10/10, `app_smoke_test_ext` 14/14 (автотест `tools/db-smoke.ps1`).
-- Приложений 93 (`apps/`), прототипов 72 (`eco/apps`); каталог `catalog.js` v10.26 — единый источник модулей. Локальный автотест `tools/audit.ps1`. Новые модули помечены 🆕 в каталоге.
+- Миграции `0001…0173`, `apply_all.sql` идемпотентен; смоук `app_smoke_test` 10/10, `app_smoke_test_ext` 14/14 (автотест `tools/db-smoke.ps1`).
+- Приложений 94 (`apps/`), прототипов 72 (`eco/apps`); каталог `catalog.js` v10.27 — единый источник модулей. Локальный автотест `tools/audit.ps1`. Новые модули помечены 🆕 в каталоге.
 - Методика типового апгрейда модуля — `docs/MODULE_BLUEPRINT.md`.
 - **Релиз:** `tools/build-release.ps1` → `dist/saas-YYYYMMDD-HHmm.zip` (деплой-артефакты для FTP; `dist/` в .gitignore).
 - **Типовой инструментарий:** `.sv-actions`, `.tabs2`, `.act` в `app.css`; `shell.js` (сайдбар + системный поиск) подключён во всех модулях `apps/`.
@@ -70,7 +70,7 @@
 | W21 | средний | Охрана труда / EHS | **☑ (v225, `0168`)**: `app_safety_briefings`/`app_work_permits`/`app_ppe`/`app_medical_checks`/`app_safety_incidents` + `app_ehs_kpi`; UI `apps/safety` | инструктажи, допуски, СИЗ, медосмотры, инциденты | ☑ (v225) |
 | W22 | средний | Холдинг / CPM | **☑ (v226, `0169`)**: `app_holding_units`, `app_holding_snapshots`, `app_holding_consolidate` (с долей), `app_holding_kpi`; UI `apps/holding` | сводка и сравнение площадок | ☑ (v226) |
 | W23 | низкий | TMS / логистика | **☑ (v229, `0172`)**: `app_carriers`, `app_transport_orders` (+статусы), `app_tms_kpi`; UI `apps/logistics` | перевозчики, рейсы, KPI | ☑ (v229) |
-| W24 | низкий | ITSM / ITIL | `0171`: ИТ-услуги/SLA/инциденты; reuse `issues`/`support`/`health` | каталог сервисов и SLA | ☐ |
+| W24 | низкий | ITSM / ITIL | **☑ (v230, `0173`)**: `app_it_services`, `app_it_tickets` (+статусы, SLA), `app_itsm_kpi`; UI `apps/itsm` | каталог сервисов и SLA | ☑ (v230) |
 | W25 | средний | PMO / Проекты | **☑ (v228, `0171`)**: `app_pmo_portfolios`/`app_pmo_items`/`app_pmo_milestones`/`app_pmo_risks` + `app_pmo_kpi`; UI `apps/pmo` | портфели, вехи, риски | ☑ (v228) |
 | W26 | низкий | e-Learning | `0173`: курсы/тесты/аттестация; reuse `competences`/`hr` | курсы и матрица компетенций | ☐ |
 | W27 | горизонт | Бухгалтерский/налоговый учёт | план счетов/проводки/регистры/отчётность | регламентированный учёт (задел) | ☐ |
@@ -84,6 +84,7 @@
 - [x] Ревизия `AUDIT_BACKLOG §3` (контуры) — выполнена (v211): контурные работы закрыты волнами W2–W12, остаток вынесен в R1–R4 (см. `AUDIT_BACKLOG §7`).
 
 ## 5. Журнал (последние версии, кратко)
+- v230 — **W24 (0173) — ITSM/ITIL** (пакет 6, п.1): каталог ИТ-услуг (`app_it_services`: категория/владелец/SLA), заявки/инциденты (`app_it_tickets`: услуга/приоритет/исполнитель, SLA-срок, статусы new→in_progress→resolved/closed), KPI (`app_itsm_kpi`). Новый модуль **`apps/itsm`**. Каталог v10.27, nav v106/shell v68. Смоук 10/10 и 14/14; функц. тест — ОК, данные очищены.
 - v229 — **W23 (0172) — TMS/логистика** (пакет 5, п.3; пакет 5 закрыт): перевозчики (`app_carriers`), заявки на перевозку (`app_transport_orders`: направление/груз/маршрут/даты/ТС/водитель/стоимость, статусы), KPI (`app_tms_kpi`). Новый модуль **`apps/logistics`**. Каталог v10.26, nav v105/shell v67. Смоук 10/10 и 14/14; функц. тест — ОК, данные очищены. **Пакет 5 закрыт.**
 - v228 — **W25 (0171) — PMO** (пакет 5, п.2): портфели (`app_pmo_portfolios`) и состав (`app_pmo_items`), вехи (`app_pmo_milestones` + статусы), риски (`app_pmo_risks`: вероятность×влияние, план мероприятий), KPI (`app_pmo_kpi`). Новый модуль **`apps/pmo`**. Каталог v10.25, nav v104/shell v66. Смоук 10/10 и 14/14; функц. тест — ОК, данные очищены.
 - v227 — **W28 (0170) — Бюджет проектов** (пакет 5, п.1): смета проекта (`app_proj_budgets`: проект/версия/статус), строки план/факт (`app_proj_budget_lines`), план-факт по статьям (`app_proj_budget_plan_fact`), освоение EVM-задел (`app_proj_budget_evm`: PV/AC/EV, CPI/SPI, EAC), KPI (`app_proj_budget_kpi`). Новый модуль **`apps/projbudget`**. Каталог v10.24, nav v103/shell v65. Смоук 10/10 и 14/14; функц. тест — ОК, данные очищены.
@@ -161,7 +162,7 @@
 Папка SAAS/ → деплой по FTP в sapfir.eu\saas (строчными) → https://sapfir.eu/saas/. Репозиторий: github.com/marat-beep/saas (main).
 Supabase: проект zfkbzzmtbrueaksfaqbf; вход собственный (логин/пароль bcrypt, сессии-токены), данные через RPC (НЕ Supabase Auth). SQL применять только UTF-8 (Management API, токен sbp_… вводится вручную; после работы отозвать).
 СНАЧАЛА прочитать: AGENTS.md, README.md, STATUS.md, SAAS/docs/BACKLOG.md (единый план), SAAS/docs/MODULE_STANDARD.md (§6–7), SAAS/docs/MODULE_BLUEPRINT.md (§1–8), SAAS/docs/PLAN_WAVES.md, SAAS/docs/RELEASE.md, SAAS/assets/js/catalog.js.
-Состояние: миграции 0001…0163 (apply_all.sql собран), каталог v10.17, nav v96, shell v58, app.css v35; смоук 10/10 и 14/14; перегрузок нет; ссылки каталога валидны; автотесты tools/audit.ps1 (✅) и tools/db-smoke.ps1. Волны W7–W12, R1/R3/R4, P0 закрыты. **План обновления v2: пакеты 1–5 закрыты (W13/W15/W18a/W18b/W18c/W19/W16/W20/W14/W17/W21/W22/W28/W25/W23).** Остался пакет 6: W24 (ITSM) → W26 (e-Learning) → W27 (бух/налог). Открыто: R2 (пропущено), W24/W26/W27. См. §3a и `PLAN_UPDATE_V2.md`.
+Состояние: миграции 0001…0163 (apply_all.sql собран), каталог v10.17, nav v96, shell v58, app.css v35; смоук 10/10 и 14/14; перегрузок нет; ссылки каталога валидны; автотесты tools/audit.ps1 (✅) и tools/db-smoke.ps1. Волны W7–W12, R1/R3/R4, P0 закрыты. **План обновления v2: пакеты 1–5 закрыты; пакет 6 — W24 ☑;** далее W26 (e-Learning) → W27 (бух/налог — горизонт). Открыто: R2 (пропущено), W26, W27. См. §3a и `PLAN_UPDATE_V2.md`.
 Инструментарий (применять в новых модулях): общий CSS .sv-actions/.tabs2/.act/.screen; shell.js (сайдбар+системный поиск+роли-fallback); export.js (PDF/DOC/CSV); module-report.js + app_module_report(token, module) — универсальный отчёт (кнопка data-report="<module>"); роли data-cap + CAPS.
 Работать волнами по PLAN_WAVES.md, начиная с верхнего незакрытого: W7 биллинг/подписки (0152), W8 аналитика L4 (0153), W9 MES/APS/IIoT (0154), W10 enterprise-права/аудит (0155), W11 ИИ (0156+), W12 экосистема/деплой. (Сервис ЧПУ W-S и волны M1–M7 уже закрыты.)
 Правила: русский; светлая палитра, акцент зелёного #10b981; миграции идемпотентны; после миграций пересобирать apply_all.sql (маркеры -- >>>>>>>>>> NNNN / <<<<<<<<<<); поднимать ?v=N у изменённых ассетов и CATALOG_V; shell.js на всех страницах apps/; связи catalog.connects — только валидные id; перед работой фиксировать задачу в BACKLOG (§3, DoD); после — смоук + функц. тест RPC с очисткой тестовых данных; отметить BACKLOG/PLAN_WAVES/STATUS/NOTES/PROMPTS; коммит/пуш main; релиз — tools/build-release.ps1 (dist/, не в git).

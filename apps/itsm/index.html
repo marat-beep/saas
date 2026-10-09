@@ -3,26 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Логистика (TMS) — 3DMP Service</title>
+<title>ИТ-сервисы (ITSM) — 3DMP Service</title>
 <link rel="stylesheet" href="../../assets/css/app.css?v=35">
 <style>.num{text-align:right;font-variant-numeric:tabular-nums}</style>
 </head>
 <body>
   <header class="topbar">
-    <div class="brand"><span class="logo">🚚</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="brand"><span class="logo">🖥️</span> <a href="../../index.html">3DMP Service</a></div>
     <div class="spacer"></div>
     <span class="who" id="who">…</span>
     <button class="tbtn" id="logout">Выйти</button>
   </header>
   <main class="wrap fluid">
-    <div class="hero"><h1>Логистика (TMS)</h1><p>Перевозчики и заявки на перевозку (рейсы). Роли: staff.</p></div>
+    <div class="hero"><h1>ИТ-сервисы (ITSM/ITIL)</h1><p>Каталог услуг и заявки/инциденты со SLA. Роли: staff.</p></div>
     <div class="kpi-row" id="kpis"></div>
-    <div class="tabs2" id="tabs"><button data-scr="ord" class="active">Рейсы</button><button data-scr="car">Перевозчики</button></div>
+    <div class="tabs2" id="tabs"><button data-scr="tk" class="active">Заявки</button><button data-scr="sv">Услуги</button></div>
     <div class="msg" id="m"></div>
-    <section class="screen active" id="scr-ord"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addOrd" style="width:auto;padding:8px 14px;">＋ Заявка</button></div><div id="ord" class="mt"></div></div></section>
-    <section class="screen" id="scr-car"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addCar" style="width:auto;padding:8px 14px;">＋ Перевозчик</button></div><div id="car" class="mt"></div></div></section>
+    <section class="screen active" id="scr-tk"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addTk" style="width:auto;padding:8px 14px;">＋ Заявка</button></div><div id="tk" class="mt"></div></div></section>
+    <section class="screen" id="scr-sv"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addSv" style="width:auto;padding:8px 14px;">＋ Услуга</button></div><div id="sv" class="mt"></div></div></section>
   </main>
-  <footer class="foot">3DMP Service · логистика</footer>
+  <footer class="foot">3DMP Service · ИТ-сервисы</footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="../../assets/js/config.js?v=2"></script>
   <script src="../../assets/js/supabase-client.js?v=1"></script>
@@ -32,7 +32,7 @@
   <script src="../../assets/js/support-widget.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=106"></script>
   <script src="../../assets/js/shell.js?v=68"></script>
-  <script src="logistics.js?v=1"></script>
+  <script src="itsm.js?v=1"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>

@@ -8,7 +8,7 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '10.26',
+  version: '10.27',
   updated: '07.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
@@ -723,6 +723,13 @@ window.AppCatalog = {
       purpose: 'Управление транспортом: перевозчики (ИНН/контакт/тариф), заявки на перевозку (направление in/out, груз/вес, маршрут, даты, перевозчик/ТС/водитель, стоимость, статусы planned→in_transit→done/cancelled), KPI.',
       features: ['Перевозчики и тарифы', 'Заявки на перевозку (рейсы)', 'Маршрут и даты', 'Статусы рейсов', 'KPI логистики'],
       connects: ['procurement', 'warehouse', 'orders', 'finance'], in_: 'Заявки, грузы', out: 'Рейсы, стоимость доставки'
+    },
+    {
+      id: 'itsm', icon: '🖥️', title: '🆕 ИТ-сервисы (ITSM)', href: 'apps/itsm/index.html', guest: false, roles: ['admin', 'owner', 'manager'], group: 'platform',
+      desc: 'W24: каталог ИТ-услуг, заявки/инциденты со SLA; KPI.',
+      purpose: 'ITSM/ITIL: каталог ИТ-услуг (категория/владелец/SLA), заявки и инциденты (услуга/приоритет/исполнитель, SLA-срок, статусы new→in_progress→resolved/closed), KPI (открытые, нарушение SLA).',
+      features: ['Каталог ИТ-услуг и SLA', 'Заявки/инциденты', 'Статусы и исполнители', 'SLA-срок и просрочка', 'KPI ITSM'],
+      connects: ['support', 'issues', 'access', 'tasks', 'announcements'], in_: 'Обращения, ИТ-услуги', out: 'Заявки, SLA'
     }
   ]
 };
