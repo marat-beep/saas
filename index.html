@@ -88,25 +88,24 @@
   .grp-card.collapsed .udesc { display: none; }
   .subgroup { margin-top: 10px; }
   .subgroup-t { font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 800; margin: 8px 0 8px; }
-  .tgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 236px), 1fr)); gap: 8px; }
-  .tile { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border: 1px solid var(--border); border-radius: 11px; background: #fff; text-decoration: none; color: var(--text); position: relative; }
+  /* Плитки модулей: компактная сетка по 3 в ряд (было по одной — слишком длинно) */
+  .tgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; align-items: stretch; }
+  .tile { display: flex; flex-direction: column; gap: 5px; padding: 9px; min-height: 84px; border: 1px solid var(--border); border-radius: 11px; background: #fff; text-decoration: none; color: var(--text); position: relative; }
   .tile:hover { border-color: var(--accent); background: var(--accent-100); }
-  .tile .tile-ic { width: 32px; height: 32px; border-radius: 9px; background: var(--accent-100); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex: 0 0 auto; }
+  .tile .tile-ic { width: 28px; height: 28px; border-radius: 8px; background: var(--accent-100); display: flex; align-items: center; justify-content: center; font-size: .95rem; flex: 0 0 auto; }
   .tile:hover .tile-ic { background: #fff; }
-  .tile .tile-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-  .tile .tile-tx b { font-size: .86rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .tile .tile-tx small { font-size: .72rem; color: var(--muted); line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-  .tile .tile-fav { border: 0; background: transparent; color: #cbd5e1; cursor: pointer; font-size: .98rem; padding: 2px 4px; line-height: 1; }
+  .tile .tile-tx { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .tile .tile-tx b { font-size: .8rem; font-weight: 700; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .tile .tile-tx small { font-size: .66rem; color: var(--muted); line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .tile .tile-fav { position: absolute; top: 5px; right: 5px; border: 0; background: transparent; color: #cbd5e1; cursor: pointer; font-size: 1rem; padding: 2px 3px; line-height: 1; }
   .tile .tile-fav.on { color: #f59e0b; }
-  .tile .tile-lock { font-size: .72rem; }
+  .tile .tile-lock { position: absolute; top: 8px; right: 26px; font-size: .72rem; }
   .tgrid.compact .tile .tile-tx small { display: none; }
-  .tgrid.compact .tile { padding: 7px 10px; }
+  .tgrid.compact .tile { min-height: 60px; }
   .iconlink { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; background: #fff; text-decoration: none; color: var(--text); font-size: .84rem; font-weight: 600; }
   .iconlink:hover { border-color: var(--accent); background: var(--accent-100); }
-  @media (max-width: 680px) {
-    .tgrid { grid-template-columns: 1fr; }
-    .hub-tools { gap: 8px; }
-  }
+  @media (max-width: 480px) { .tgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; } .hub-tools { gap: 8px; } }
+  @media (max-width: 340px) { .tgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 </style>
 </head>
