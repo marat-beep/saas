@@ -39,7 +39,8 @@
               (feats ? '<div><h4>Возможности</h4><ul class="mi-feat">' + feats + '</ul></div>' : '') +
               (conns ? '<div><h4>Связи</h4><div class="mi-links">' + conns + '</div></div>' : '') +
             '</div>' +
-            '<p class="note mi-hint">Подсказка: заполняйте поля по порядку; данные сохраняются через кнопки действия. Полный гид — «Путеводитель» (apps/guide).</p>' +
+            '<p class="note mi-hint">Подсказка: заполняйте поля по порядку; данные сохраняются через кнопки действия. ' +
+              'Полный гид — <a href="../guide/index.html">📖 «Гид по системе»</a>. Здесь же — справка в базе знаний (категории «Справка»/«Администрирование»).</p>' +
           '</div>';
         var wrapEl = document.querySelector('main.wrap') || document.querySelector('main') || document.body;
         wrapEl.insertBefore(el, wrapEl.firstChild);
@@ -48,7 +49,7 @@
       if (g.AppCatalog) render();
       else {
         var s = document.createElement('script');
-        s.src = '../../assets/js/catalog.js?v=56';
+        s.src = '../../assets/js/catalog.js?v=109';
         s.onload = render;
         document.head.appendChild(s);
       }
