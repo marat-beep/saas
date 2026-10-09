@@ -101,6 +101,32 @@ if (ExpectV 'отчёты: расписание' $sc 'id') {
 # 12. dashboard
 Step 'дашборд: KPI' "select v from (select count(*)::text as v from public.app_dashboard_kpis('$t')) z" | Out-Null
 
+# 13. read-only аналитика/дашборды/расширения/отчёты
+Step 'аналитика: APS' "select v from (select count(*)::text as v from public.app_aps_optimize('$t')) z" | Out-Null
+Step 'аналитика: предиктив ТОиР' "select v from (select count(*)::text as v from public.app_mnt_predictive('$t')) z" | Out-Null
+Step 'аналитика: SPC' "select v from (select count(*)::text as v from public.app_spc_signals('$t',null)) z" | Out-Null
+Step 'мониторинг: тренд' "select v from (select count(*)::text as v from public.app_health_trend('$t',14)) z" | Out-Null
+Step 'мониторинг: алерты' "select v from (select count(*)::text as v from public.app_health_alerts_list('$t','open')) z" | Out-Null
+Step 'расширения: каталог' "select v from (select count(*)::text as v from public.app_ext_list('$t')) z" | Out-Null
+Step 'отчёты: модуль' "select v from (select jsonb_array_length(rows)::text as v from public.app_module_report('$t','orders',null,null)) z" | Out-Null
+
+# 14. записывающие сценарии (с маркерами SCN-)
+Step 'поставщики: сохранение' "select * from public.app_suppliers_save('$t',null,'SCN-SUP','1234567890','Иван','+70000000000','sup@scn.io','materials',4,'active')" | Out-Null
+Step 'кадры: сотрудник' "select * from public.app_employee_save('$t',null,'SCN-EMP','мастер','цех','','',null,'true')" | Out-Null
+$emp = Step 'кадры: сотрудник id' "select id as v from public.app_employees where full_name='SCN-EMP' order by created_at desc limit 1"
+if (ExpectV 'кадры: сотрудник id' $emp 'id') {
+  Step 'кадры: смена' "select * from public.app_shift_add('$t','$($emp[0].v)','2026-10-10','day',8,'SCN')" | Out-Null
+  Step 'кадры: обучение' "select * from public.app_training_add('$t','$($emp[0].v)','SCN обучение','planned','2026-11-01','')" | Out-Null
+}
+Step 'СМК: средство измерений' "select * from public.app_tool_save('$t',null,'SCN-СИ','SCN-SN','Штангенциркуль','цех',null,null)" | Out-Null
+Step 'трассируемость: запись' "select * from public.app_trace_add('$t','SCN-ITEM','SCN-SN',null,null,'сталь','admin','SCN')" | Out-Null
+$clm = Step 'претензии: создание' "select id as v from public.app_claim_save('$t',null,'SCN клиент','SCN изделие','задир',1,'major','SCN описание','')"
+if (ExpectV 'претензии: создание' $clm 'id') { Step 'претензии: CAPA' "select * from public.app_capa_save('$t',null,'$($clm[0].v)','corrective','SCN CAPA','manager','2026-11-01','open','')" | Out-Null }
+Step 'закупки: тендер' "select * from public.app_tender_create('$t','SCN-TND','','materials','сталь',1,'шт',null,null,null,null)" | Out-Null
+Step 'НСИ: позиция' "select * from public.app_master_item_save('$t',null,'SCN-MDM','SCN позиция','material','шт',null,null,'active','')" | Out-Null
+$life = Step 'инструмент: ресурс' "select (select id from public.app_tool_life limit 1) as v"
+if ($life -and $life[0].v) { Step 'инструмент: экземпляр' "select * from public.app_tool_item_save('$t',null,'$($life[0].v)','SCN-TOOL',null,100,'SCN')" | Out-Null }
+
 # --- cleanup ---
 $cleanup = @'
 delete from public.app_order_items where order_id in (select id from public.app_orders where title like 'SCN-%');
@@ -126,7 +152,44 @@ delete from public.app_notifications where title like '%SCN%' and created_at >= 
 delete from public.app_events where (detail like '%SCN%' or action in ('Рассылка отчёта','Вложение добавлено','Смена пароля')) and created_at >= now() - interval '30 minutes';
 delete from public.app_qc_measures where param='Ra' and value=1.5 and ts >= now() - interval '30 minutes' and created_login='admin';
 '@
-try { Sql $cleanup | Out-Null; Write-Host 'scenario-check: очистка выполнена' } catch { Add-F 'C' 'Minor' 'Oчистка сценарных данных не удалась' ($_.Exception.Message) 'cleanup' 2 1 }
+$del = @(
+  "delete from public.app_traceability where item like 'SCN-%'",
+  "delete from public.app_trainings where title like 'SCN-%'",
+  "delete from public.app_training_plan where employee_id in (select id from public.app_employees where full_name like 'SCN-%')",
+  "delete from public.app_shifts where employee_id in (select id from public.app_employees where full_name like 'SCN-%')",
+  "delete from public.app_employees where full_name like 'SCN-%'",
+  "delete from public.app_suppliers where name='SCN-SUP'",
+  "delete from public.app_measuring_tools where name like 'SCN-%'",
+  "delete from public.app_capa_actions where title like 'SCN-%'",
+  "delete from public.app_claims where customer like 'SCN-%'",
+  "delete from public.tenders where title like 'SCN-%'",
+  "delete from public.app_master_items where code like 'SCN-%'",
+  "delete from public.app_tool_items where serial like 'SCN-%'",
+  "delete from public.app_order_items where order_id in (select id from public.app_orders where title like 'SCN-%')",
+  "delete from public.app_orders where title like 'SCN-%'",
+  "delete from public.app_naryads where title like 'SCN-%'",
+  "delete from public.app_passports where product like 'SCN-%'",
+  "delete from public.app_stock_moves where lot_id in (select id from public.app_material_lots where lot='SCN-LOT')",
+  "delete from public.app_wh_stock where lot_id in (select id from public.app_material_lots where lot='SCN-LOT')",
+  "delete from public.app_material_lots where lot='SCN-LOT'",
+  "delete from public.app_transport_orders where note='SCN-TMS'",
+  "delete from public.app_process_tasks where instance_id in (select id from public.app_process_instances where entity_title='SCN-WF')",
+  "delete from public.app_process_actions where instance_id in (select id from public.app_process_instances where entity_title='SCN-WF')",
+  "delete from public.app_process_instances where entity_title='SCN-WF'",
+  "delete from public.app_hr_docs where title like 'SCN-%'",
+  "delete from public.app_doc_resolutions where doc_id in (select id from public.app_doc_flows where title like 'SCN-%')",
+  "delete from public.app_doc_links where doc_id in (select id from public.app_doc_flows where title like 'SCN-%')",
+  "delete from public.app_doc_flows where title like 'SCN-%'",
+  "delete from public.app_attachments where entity_type='scn_test'",
+  "delete from public.app_report_schedules where name like 'SCN-%'",
+  "delete from public.app_qc_measures where param='Ra' and value=1.5 and created_login='admin' and ts >= now() - interval '30 minutes'",
+  "delete from public.app_notifications where title like '%SCN%' and created_at >= now() - interval '30 minutes'",
+  "delete from public.app_events where (detail like '%SCN%' or action='Рассылка отчёта') and created_at >= now() - interval '30 minutes'"
+)
+$cleanFail = 0
+foreach ($d in $del) { try { Sql $d | Out-Null } catch { $cleanFail++ } }
+if ($cleanFail -gt 0) { Add-F 'C' 'Minor' "Очистка сценарных данных: не выполнено шагов $cleanFail" 'Проверить таблицы/колонки очистки.' 'cleanup' 2 1 }
+Write-Host ("scenario-check: очистка выполнена (ошибок " + $cleanFail + ')')
 
 Write-Out
 Write-Host ("scenario-check: pass=" + $script:pass + ' fail=' + $script:fail + ' findings=' + $findings.Count)
