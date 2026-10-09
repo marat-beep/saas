@@ -5,7 +5,7 @@
    ============================================================ */
 (function () {
   'use strict';
-  var ui = window.AppUI, $ = ui.qs, C = window.AppCatalog;
+  var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa, C = window.AppCatalog;
 
   var AUD = {
     guest: 'гость', user: 'пользователь', client_admin: 'админ клиента',
@@ -21,16 +21,17 @@
       if (!t) return '<span class="chip">↔ ' + esc(id) + '</span>';
       return '<a class="chip" href="../../' + t.href + '">↔ ' + esc(t.title) + '</a>';
     }).join('');
-    return '<div class="mod">' +
-      '<h3>' + a.icon + ' ' + esc(a.title) +
-        '<a class="chip" href="../../' + a.href + '">открыть</a>' +
-        '<span class="aud" style="margin-left:auto;">' + (AUD[a.audience] || a.audience || '') + '</span></h3>' +
-      '<div class="note">' + esc(a.desc) + '</div>' +
-      (a.purpose ? '<div class="purp"><b>Зачем:</b> ' + esc(a.purpose) + '</div>' : '') +
-      (feats ? '<ul>' + feats + '</ul>' : '') +
-      (conn ? '<div class="chips">' + conn + '</div>' : '') +
-      ((a.in_ || a.out) ? '<div class="io">Вход: ' + esc(a.in_ || '—') + ' · Результат: ' + esc(a.out || '—') + '</div>' : '') +
-      '</div>';
+    return '<details class="mod">' +
+      '<summary><span class="mod-t">' + a.icon + ' ' + esc(a.title) + '</span>' +
+        '<span class="aud">' + (AUD[a.audience] || a.audience || '') + '</span></summary>' +
+      '<div class="mod-body">' +
+        '<div class="note">' + esc(a.desc) + '</div>' +
+        (a.purpose ? '<div class="purp"><b>Зачем:</b> ' + esc(a.purpose) + '</div>' : '') +
+        (feats ? '<ul>' + feats + '</ul>' : '') +
+        (conn ? '<div class="chips">' + conn + '</div>' : '') +
+        ((a.in_ || a.out) ? '<div class="io">Вход: ' + esc(a.in_ || '—') + ' · Результат: ' + esc(a.out || '—') + '</div>' : '') +
+        '<div class="links"><a class="chip" href="../../' + a.href + '">Открыть модуль</a></div>' +
+      '</div></details>';
   }
 
   // Описание контуров (для «Гида контура»)
@@ -135,9 +136,21 @@
       $('#gfSel').addEventListener('change', function () { renderGf(this.value); });
       renderGf('__generic');
     }
+    if (q) { $$('.mod').forEach(function (d) { d.open = true; }); }
   }
 
   $('#q').addEventListener('input', function () { render(this.value); });
+
+  var ca = $('#collapseAll');
+  if (ca) {
+    ca.addEventListener('click', function () {
+      var ds = $$('.mod');
+      if (!ds.length) return;
+      var openAll = ds.some(function (d) { return !d.open; });
+      ds.forEach(function (d) { d.open = openAll; });
+      ca.textContent = openAll ? '⇕ Свернуть всё' : '⇕ Развернуть всё';
+    });
+  }
 
   var s = window.Auth && window.Auth.session ? window.Auth.session() : null;
   if (s) {

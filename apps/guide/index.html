@@ -8,8 +8,16 @@
 <style>
   .guide-grp { margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; align-items: start; }
   .guide-grp > h2 { grid-column: 1 / -1; font-size: 1rem; margin: 2px 0; }
-  .mod { border: 1px solid var(--border); border-radius: var(--r); background: #fff; padding: 12px 14px; margin: 0; display: flex; flex-direction: column; height: 100%; }
+  .mod { border: 1px solid var(--border); border-radius: var(--r); background: #fff; padding: 10px 14px; margin: 0; }
+  .mod summary { display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none; font-weight: 700; font-size: .92rem; }
+  .mod summary::-webkit-details-marker { display: none; }
+  .mod summary::after { content: '▾'; margin-left: 8px; color: var(--muted); font-weight: 400; transition: transform .15s; }
+  .mod[open] summary::after { transform: rotate(180deg); }
+  .mod .mod-t { flex: 1; min-width: 0; }
+  .mod .mod-body { padding-top: 8px; }
   .mod h3 { font-size: .92rem; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .g-tools { display: flex; gap: 10px; align-items: center; }
+  .g-tools .searchbar { flex: 1; }
   .mod .purp { font-size: .82rem; color: #334155; margin: 6px 0; }
   .mod ul { margin: 6px 0 8px 18px; padding: 0; font-size: .76rem; color: var(--muted); }
   .mod .chips, .mod .io { margin-top: auto; }
@@ -46,7 +54,12 @@
     <div class="sv-actions" style="margin:10px 0;"><button class="btn secondary" data-report="knowledge" data-title="База знаний">Отчёт PDF</button></div>
 
     <div class="hero"><h1>Гид по системе</h1><p>Какой модуль за что отвечает, как связан с другими и кому доступен. Данные — из единого каталога.</p></div>
-    <div class="card"><input type="search" class="searchbar" id="q" placeholder="Поиск: модуль, функция, связь…"></div>
+    <div class="card">
+      <div class="g-tools">
+        <input type="search" class="searchbar" id="q" placeholder="Поиск: модуль, функция, связь…">
+        <button class="btn secondary" id="collapseAll" type="button" style="width:auto;padding:11px 16px;white-space:nowrap;">⇕ Свернуть всё</button>
+      </div>
+    </div>
     <div id="guide"></div>
   </main>
 
@@ -64,7 +77,7 @@
   <script src="../../assets/js/shell.js?v=73"></script>
   <script src="../../assets/js/module-report.js?v=3"></script>
   <script src="fields.js?v=2"></script>
-  <script src="guide.js?v=6"></script>
+  <script src="guide.js?v=7"></script>
   <script src="../../assets/js/module-info.js?v=2"></script>
 </body>
 </html>
