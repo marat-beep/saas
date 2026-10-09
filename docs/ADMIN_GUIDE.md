@@ -1,6 +1,6 @@
 # ADMIN_GUIDE — руководство администратора 3DMP Service
 
-> Черновик. Полное наполнение — волна **W37**. Секреты (service_role/sb_secret/Management-токен) — **не** в клиенте и **не** в git.
+> Актуально на план **v3** (W29–W37). Секреты (service_role/sb_secret/Management-токен) — **не** в клиенте и **не** в git.
 
 ## 1. Роли и доступ
 - **admin** (платформенный) — все организации, тарифы/биллинг, админка, аудит.
@@ -27,10 +27,13 @@
 - «Интеграции» (`apps/integrations`) — каналы e-mail/Telegram/SMS/ЭДО/webhook; очередь `app_integrations`, воркер `backend-example`.
 - «API и интеграции» (`apps/api`) — API-ключи, вебхуки, лог вызовов, подписи, проверка контрагентов.
 
-## 6. Эксплуатация и мониторинг
+## 6. Эксплуатация и мониторинг (W33)
 - Проверки БД: `app_smoke_test` (10), `app_smoke_test_ext` (14); волновые RPC и перегрузки — `tools/db-smoke.ps1`.
-- Доступность: `app_health_scan` → `app_health_checks`; срез — `app_health_board`. UI — «Диагностика»/«Биллинг».
-- Регулярный прогон и алерты — волна **W33** (`tools/run-checks.ps1`, Task Scheduler/CI, `docs/RUNBOOK.md`).
+- Регулярный прогон: `tools/run-checks.ps1` (audit+db-smoke, лог `dist/checks/`, exit-код) по расписанию — Task Scheduler или CI `.github/workflows/checks.yml`.
+- Доступность: `app_health_scan` (пишет `app_health_checks`, проверяет «свежесть данных» и пинги, открывает алерты `app_health_alerts` с дедупом и уведомлением админов), срез — `app_health_board`, тренд — `app_health_trend`. Внешний uptime — `app_health_ping(API-ключ)`. UI — «Диагностика» (блок «Мониторинг доступности»).
+
+## 6a. Расширения (W35)
+- «Маркетплейс» → «Расширения»: каталог манифестов (`app_extensions`), установка по тенанту (`app_extension_installs`). Установка/включение/удаление — администратор/владелец организации; включение коннектора подтягивает точку интеграции в `app_integrations`. Правка манифеста — администратор платформы. Все действия — в журнале.
 
 ## 7. Деплой
 - Сборка: `powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1` → `dist\saas-<дата>.zip`.

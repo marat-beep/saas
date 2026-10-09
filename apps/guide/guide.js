@@ -65,7 +65,16 @@
         '<div class="links"><a href="../panel/index.html">🎛 Открыть пульт</a><a href="index.html">📖 Все модули</a><a href="../modules/index.html">🧩 Функции модулей</a></div>' +
         '</div>';
     }
-    var html = head + groups.map(function (g) {
+    var man = '';
+    if (!only && !q) {
+      man = '<div class="guide-hero"><h2>📚 Справка и мануалы</h2>' +
+        '<p>Руководство пользователя и администратора — в базе знаний (категории «Справка» и «Администрирование»).</p>' +
+        '<div class="links"><a href="../assistant/index.html">🔎 Поиск по базе знаний</a>' +
+        '<a href="../modules/index.html">🧩 Функции модулей</a>' +
+        '<a href="../adoption/index.html">🚀 Карта внедрения</a>' +
+        '<a href="../../index.html">🏠 Хаб</a></div></div>';
+    }
+    var html = man + head + groups.map(function (g) {
       var items = (C.apps || []).filter(function (a) { return a.group === g.id && match(a); });
       if (!items.length) return '';
       return '<div class="guide-grp"><h2>' + g.icon + ' ' + esc(g.title) + '</h2>' + items.map(moduleCard).join('') + '</div>';

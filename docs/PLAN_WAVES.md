@@ -143,6 +143,6 @@
 - **W34 — ☑ (v238, `0178`)** Отчёты/BI на новые модули: `app_module_report` +16 веток (tooling/mdm/plm/edo/kedo/eam/safety/holding/projbudget/pmo/logistics/itsm/elearning/accounting/tasks/crm_reminders), `module-report.js` v2 (метки + авто-кнопка) в 15 модулях, `reports.js` — 16 DATASETS + дашборд новых модулей.
 - **W35 — ☑ (v241, `0179`)** Маркетплейс-расширения: `app_extensions`/`app_extension_installs` + 6 RPC; вкладка «Расширения» в `apps/marketplace`; включение коннектора подтягивает интеграцию; аудит.
 - **W36** Мобильное офлайн-приложение (IndexedDB, синхронизация).
-- **W37** Документация экосистемы и мануалы (пользователь/админ/справочник/runbook).
+- **W37 — ☑ (v242, `0180`)** Документация и мануалы: актуализированы `docs/USER_GUIDE/ADMIN_GUIDE/RUNBOOK/ECOSYSTEM/MODULE_REFERENCE`; паки БЗ «Справка»/«Администрирование» (0180); раздел «Справка и мануалы» в `apps/guide` v4.
 
 Пакеты: **П1** W29→W30→W33 · **П2** W34→W32→W31 · **П3** W35→W37→W36.

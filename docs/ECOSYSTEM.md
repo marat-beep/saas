@@ -1,6 +1,6 @@
 # ECOSYSTEM — экосистема 3DMP Service
 
-> Черновик. Полное наполнение — в волне **W37** (`PLAN_UPDATE_V3.md`). Источник плана — `BACKLOG.md`.
+> Актуально на план **v3** (волны W29–W37, `PLAN_UPDATE_V3.md`). Источник плана — `BACKLOG.md`. Встроенная справка — база знаний (категории «Справка»/«Администрирование») и «Гид по системе».
 
 ## 1. Что это
 **3DMP Service** — облачный веб-сервис для производственной компании: заявки/КП, производство (MES/APS), качество/СМК, ТОиР/EAM, склад/WMS, снабжение, экономика/финансы, документооборот (ЭДО/КЭДО), ИИ, аналитика (BI), платформа и администрирование. Весь сервис — внутри папки **`SAAS/`** → **https://sapfir.eu/saas/**.
@@ -9,7 +9,7 @@
 - Клиент: **vanilla HTML/CSS/JS** (без сборки и фреймворков), PWA (`manifest.webmanifest`, `sw.js`, `offline-queue.js`).
 - Бэкенд: **Supabase** (PostgreSQL + RLS), доступ к данным — только через **RPC**.
 - Аутентификация: **собственная** — логин/пароль (bcrypt в Postgres), сессионные токены (`app_login`, `app_session_user`), **не** Supabase Auth.
-- Ассеты: `assets/css/app.css`, `assets/js/{config,supabase-client,api,ui,auth,notify,shell,nav,export,module-report,module-info,realtime,offline-queue,support-widget}.js`.
+- Ассеты: `assets/css/app.css`, `assets/js/{config,supabase-client,api,ui,auth,notify,shell,nav,export,module-report,module-info,realtime,offline-queue,support-widget,wizard,wizards,mobile}.js`.
 - Деплой: FTP в `sapfir.eu\saas` (строчными). БД: Management API (UTF-8) или SQL Editor (`apply_all.sql`).
 
 ## 3. Структура
@@ -25,7 +25,7 @@ SAAS/
   web.config, manifest.webmanifest, sw.js
 ```
 
-## 4. Группы модулей (каталог `assets/js/catalog.js`, v10.29)
+## 4. Группы модулей (каталог `assets/js/catalog.js`, v10.31)
 Каталог — единый источник модулей; содержит id, иконку, название, `href`, `roles`, `group`, `audience`, `connects` (валидные id), `features`, `purpose`.
 
 | Группа | Кол-во | Назначение |
@@ -54,8 +54,14 @@ SAAS/
 
 ## 7. Эксплуатация (кратко)
 - Сборка: `powershell -File tools/build-release.ps1` → `dist/saas-<дата>.zip`.
-- Автотесты: `tools/audit.ps1` (локально), `tools/db-smoke.ps1 -Token sbp_...` (БД).
-- Регулярный прогон и мониторинг — волна **W33** (план v3). Детали: `RUNBOOK.md`, `RELEASE.md`.
+- Автотесты: `tools/audit.ps1` (локально), `tools/db-smoke.ps1 -Token sbp_...` (БД), регулярно — `tools/run-checks.ps1` (W33).
+- Мониторинг доступности/алерты/тренд (W33): `app_health_scan/ping/alerts_list/trend`; UI — «Диагностика».
+- Расширения (W35): «Маркетплейс» → «Расширения». Детали: `RUNBOOK.md`, `RELEASE.md`.
+
+## 8. План v3 (сделано)
+- **П1:** W29 хаб/каталог, W30 навигация/возврат, W33 эксплуатация/мониторинг.
+- **П2:** W34 отчёты/BI, W32 мастера, W31 мини-мобильные приложения.
+- **П3:** W35 маркетплейс-расширения, W37 документация/справка, W36 мобильный офлайн (расширенный).
 
 ## 8. Демо-доступ (логин/пароль)
 admin/admin · owner/owner · manager/manager · master/master · qc/otk · supply/supply · support/support · client2/client2.

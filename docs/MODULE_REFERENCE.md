@@ -1,6 +1,6 @@
 # MODULE_REFERENCE — справочник модулей 3DMP Service
 
-> Черновик. Автогенерируемый перечень из `assets/js/catalog.js` (наполнение — W37). Роли `*` — доступно всем авторизованным (staff/роль-специфично).
+> Актуально на план **v3** (W37). Перечень из `assets/js/catalog.js` v10.31. Роли `*` — доступно всем авторизованным (staff/роль-специфично).
 
 ## Обзор по группам
 - **core (7):** auth, dashboard, panel, guide, remarks, adoption, modules
