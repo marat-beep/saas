@@ -10,7 +10,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 **Не льётся:** `supabase/`, `docs/`, `tools/`, `dist/`, `.git`, `README.md`, `AGENTS.md`.
 
 ## 2. База данных
-- Миграции `supabase/migrations/0001…0171` + пересобранный `supabase/apply_all.sql`.
+- Миграции `supabase/migrations/0001…0172` + пересобранный `supabase/apply_all.sql`.
 - Инструменты: `tools/build-release.ps1` (сборка dist), `tools/audit.ps1` (локальный автотест), `tools/db-smoke.ps1` (смоук БД через Management API).
 - Применение — Supabase → SQL Editor → вставить `apply_all.sql` → Run (либо Management API, UTF-8).
 - Смоук: `select * from app_smoke_test(:token);` (10/10) и `app_smoke_test_ext(:token)` (14/14).
@@ -35,6 +35,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 - [ ] Отметки в `BACKLOG.md`, `PLAN_WAVES.md`, `STATUS.md`, `NOTES.md`, `PROMPTS.md`.
 
 ## 6. Журнал релизов (последнее)
+- **v229 (миграция `0172`)** — W23 TMS/логистика: перевозчики, рейсы, KPI; модуль `apps/logistics`; каталог v10.26, nav v105/shell v67. Пакет 5 закрыт.
 - **v228 (миграция `0171`)** — W25 PMO: портфели, вехи, риски; модуль `apps/pmo`; каталог v10.25, nav v104/shell v66.
 - **v227 (миграция `0170`)** — W28 бюджет проектов: смета, план-факт, освоение EVM; модуль `apps/projbudget`; каталог v10.24, nav v103/shell v65.
 - **v226 (миграция `0169`)** — W22 холдинг/CPM: площадки, снимки KPI, консолидация с долей; модуль `apps/holding`; каталог v10.23, nav v102/shell v64. Пакет 4 закрыт.
