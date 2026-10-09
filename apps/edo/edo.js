@@ -31,7 +31,7 @@
   function loadNomsRef() { return rpc('app_doc_nomenclature_list', { p_token: token }).then(function (r) { noms = r || []; }).catch(function () { noms = []; }); }
 
   function loadList() {
-    return rpc('app_doc_list', { p_token: token, p_kind: $('#kind').value || null, p_status: $('#status').value || null, p_q: $('#q').value || null }).then(function (r) {
+    return rpc('app_doc_flow_list', { p_token: token, p_kind: $('#kind').value || null, p_status: $('#status').value || null, p_q: $('#q').value || null }).then(function (r) {
       docs = r || [];
       $('#list').innerHTML = docs.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Вид</th><th>Тип</th><th>Заголовок</th><th>№</th><th>Корреспондент</th><th>Статус</th><th>Ответств.</th><th>Срок</th><th></th></tr></thead><tbody>' +
         docs.map(function (d) {
@@ -84,7 +84,7 @@
         back.querySelectorAll('[data-act]').forEach(function (b) { b.addEventListener('click', function () {
           var a = b.dataset.act;
           if (a === 'register') rpc('app_doc_register', { p_token: token, p_id: d.id }).then(function () { back.querySelector('[data-ok]').click(); });
-          else rpc('app_doc_set_status', { p_token: token, p_id: d.id, p_status: a, p_comment: null }).then(function () { back.querySelector('[data-ok]').click(); });
+          else rpc('app_doc_flow_set_status', { p_token: token, p_id: d.id, p_status: a, p_comment: null }).then(function () { back.querySelector('[data-ok]').click(); });
         }); });
         back.querySelectorAll('[data-ldel]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_doc_link_delete', { p_token: token, p_id: b.dataset.ldel }).then(function () { back.querySelector('[data-ok]').click(); }); }); });
         back.querySelectorAll('[data-rdone]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_doc_resolution_set_status', { p_token: token, p_id: b.dataset.rdone, p_status: 'done' }).then(function () { back.querySelector('[data-ok]').click(); }); }); });

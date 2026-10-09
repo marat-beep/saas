@@ -59,7 +59,34 @@ $waveChecks = @(
   @{ n = 'crm_reminders';    q = "select count(*) as n from public.app_crm_reminders_list('$admin', null)" },
   @{ n = 'lot_list';         q = "select count(*) as n from public.app_lot_list('$admin', null)" },
   @{ n = 'dept_scope';       q = "select public.app_dept_scope_get('$admin') as n" },
-  @{ n = 'my_department';    q = "select count(*) as n from public.app_my_department('$admin')" }
+  @{ n = 'my_department';    q = "select count(*) as n from public.app_my_department('$admin')" },
+  @{ n = 'tool_items';       q = "select count(*) as n from public.app_tool_items_kpi('$admin')" },
+  @{ n = 'tool_catalog';     q = "select count(*) as n from public.app_tool_catalog_list('$admin', null, null)" },
+  @{ n = 'crm_reminders2';   q = "select count(*) as n from public.app_crm_reminders_list('$admin', null)" },
+  @{ n = 'lot_list';         q = "select count(*) as n from public.app_lot_list('$admin', null)" },
+  @{ n = 'dept_scope';       q = "select public.app_dept_scope_get('$admin') as n" },
+  @{ n = 'workflow_defs';    q = "select count(*) as n from public.app_process_defs_list('$admin')" },
+  @{ n = 'workflow_my';      q = "select count(*) as n from public.app_process_my('$admin')" },
+  @{ n = 'workflow_rules';   q = "select count(*) as n from public.app_rules_list('$admin')" },
+  @{ n = 'workflow_forms';   q = "select count(*) as n from public.app_form_defs_list('$admin')" },
+  @{ n = 'mdm_kpi';          q = "select count(*) as n from public.app_mdm_kpi('$admin')" },
+  @{ n = 'plm_kpi';          q = "select count(*) as n from public.app_plm_kpi('$admin')" },
+  @{ n = 'edo_list';         q = "select count(*) as n from public.app_doc_flow_list('$admin', null, null, null)" },
+  @{ n = 'collab_kpi';       q = "select count(*) as n from public.app_collab_kpi('$admin')" },
+  @{ n = 'kedo_kpi';         q = "select count(*) as n from public.app_kedo_kpi('$admin')" },
+  @{ n = 'eam_kpi';          q = "select count(*) as n from public.app_eam_kpi('$admin')" },
+  @{ n = 'ehs_kpi';          q = "select count(*) as n from public.app_ehs_kpi('$admin')" },
+  @{ n = 'holding_kpi';      q = "select count(*) as n from public.app_holding_kpi('$admin')" },
+  @{ n = 'projbudget_kpi';   q = "select count(*) as n from public.app_proj_budget_kpi('$admin')" },
+  @{ n = 'pmo_kpi';          q = "select count(*) as n from public.app_pmo_kpi('$admin')" },
+  @{ n = 'tms_kpi';          q = "select count(*) as n from public.app_tms_kpi('$admin')" },
+  @{ n = 'itsm_kpi';         q = "select count(*) as n from public.app_itsm_kpi('$admin')" },
+  @{ n = 'elearning_kpi';    q = "select count(*) as n from public.app_elearning_kpi('$admin')" },
+  @{ n = 'accounting_kpi';   q = "select count(*) as n from public.app_accounting_kpi('$admin')" },
+  @{ n = 'finance_budgets';  q = "select count(*) as n from public.app_budgets_list('$admin')" },
+  @{ n = 'finance_cash';     q = "select count(*) as n from public.app_cash_kpi('$admin')" },
+  @{ n = 'kb_articles';      q = "select count(*) as n from public.app_kb_articles('$admin', null, null)" },
+  @{ n = 'overloads';        q = "select count(*) as n from (select proname from pg_proc p join pg_namespace ns on ns.oid=p.pronamespace where ns.nspname='public' group by proname having count(*)>1) x" }
 )
 $waveFail = @()
 foreach ($c in $waveChecks) {
@@ -67,6 +94,10 @@ foreach ($c in $waveChecks) {
 }
 Write-Host ("Волновые RPC: {0}/{1} ок{2}" -f ($waveChecks.Count - $waveFail.Count), $waveChecks.Count, $(if ($waveFail.Count) { ' [' + ($waveFail -join ', ') + ']' } else { '' }))
 
-$ok = ([int]$r1.ok -eq [int]$r1.total -and [int]$r2.ok -eq [int]$r2.total -and [int]$enc.answers_q -eq 0 -and [int]$enc.plans_q -eq 0 -and $waveFail.Count -eq 0)
+# Перегрузки функций (должно быть 0)
+$ovl = Row (Sql "select count(*) as n from (select proname from pg_proc p join pg_namespace ns on ns.oid=p.pronamespace where ns.nspname='public' group by proname having count(*)>1) x")
+Write-Host ("Перегрузки функций: {0}" -f $ovl.n)
+
+$ok = ([int]$r1.ok -eq [int]$r1.total -and [int]$r2.ok -eq [int]$r2.total -and [int]$enc.answers_q -eq 0 -and [int]$enc.plans_q -eq 0 -and $waveFail.Count -eq 0 -and [int]$ovl.n -eq 0)
 if ($ok) { Write-Host 'Смоук пройден ✅' -ForegroundColor Green; exit 0 }
 else { Write-Host 'Смоук не пройден ❌' -ForegroundColor Red; exit 1 }

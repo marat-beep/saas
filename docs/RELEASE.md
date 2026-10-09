@@ -10,7 +10,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 **Не льётся:** `supabase/`, `docs/`, `tools/`, `dist/`, `.git`, `README.md`, `AGENTS.md`.
 
 ## 2. База данных
-- Миграции `supabase/migrations/0001…0175` + пересобранный `supabase/apply_all.sql`.
+- Миграции `supabase/migrations/0001…0176` + пересобранный `supabase/apply_all.sql`.
 - Инструменты: `tools/build-release.ps1` (сборка dist), `tools/audit.ps1` (локальный автотест), `tools/db-smoke.ps1` (смоук БД через Management API).
 - Применение — Supabase → SQL Editor → вставить `apply_all.sql` → Run (либо Management API, UTF-8).
 - Смоук: `select * from app_smoke_test(:token);` (10/10) и `app_smoke_test_ext(:token)` (14/14).
@@ -35,6 +35,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 - [ ] Отметки в `BACKLOG.md`, `PLAN_WAVES.md`, `STATUS.md`, `NOTES.md`, `PROMPTS.md`.
 
 ## 6. Журнал релизов (последнее)
+- **v233 (миграция `0176`)** — приёмка волн v2: устранены перегрузки (переименования), `db-smoke` 44/44 + перегрузки 0; релиз `dist/saas-20261009-1301.zip`.
 - **v232 (миграция `0175`)** — W27 бухгалтерия (задел): план счетов, проводки, ОСВ; модуль `apps/accounting`; каталог v10.29, nav v108/shell v70. План обновления v2 (0158–0175) закрыт.
 - **v231 (миграция `0174`)** — W26 e-Learning: курсы, назначения, тесты; модуль `apps/elearning`; каталог v10.28, nav v107/shell v69.
 - **v230 (миграция `0173`)** — W24 ITSM/ITIL: каталог услуг, заявки со SLA; модуль `apps/itsm`; каталог v10.27, nav v106/shell v68.

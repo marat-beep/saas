@@ -28566,7 +28566,7 @@ alter table public.app_doc_nomenclature enable row level security;
 alter table public.app_doc_flows add column if not exists nomenclature_id uuid references public.app_doc_nomenclature (id);
 
 -- ---------- RPC: реестр ----------
-create or replace function public.app_doc_list(p_token uuid, p_kind text default null, p_status text default null, p_q text default null)
+create or replace function public.app_doc_flow_list(p_token uuid, p_kind text default null, p_status text default null, p_q text default null)
 returns table (id uuid, kind text, doc_type text, title text, reg_number text, reg_date date, correspondent text, status text,
                responsible_login text, due_date date, created_at timestamptz, links bigint, resolutions_open bigint)
 language plpgsql security definer set search_path = public
@@ -28636,7 +28636,7 @@ begin
   return query select true, 'Зарегистрирован: ' || num, num;
 end $$;
 
-create or replace function public.app_doc_set_status(p_token uuid, p_id uuid, p_status text, p_comment text)
+create or replace function public.app_doc_flow_set_status(p_token uuid, p_id uuid, p_status text, p_comment text)
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
@@ -28897,10 +28897,10 @@ where not exists (
 );
 
 -- ---------- Права ----------
-grant execute on function public.app_doc_list(uuid,text,text,text) to anon, authenticated;
+grant execute on function public.app_doc_flow_list(uuid,text,text,text) to anon, authenticated;
 grant execute on function public.app_doc_save(uuid,uuid,text,text,text,text,text,text,date,date) to anon, authenticated;
 grant execute on function public.app_doc_register(uuid,uuid) to anon, authenticated;
-grant execute on function public.app_doc_set_status(uuid,uuid,text,text) to anon, authenticated;
+grant execute on function public.app_doc_flow_set_status(uuid,uuid,text,text) to anon, authenticated;
 grant execute on function public.app_doc_delete(uuid,uuid) to anon, authenticated;
 grant execute on function public.app_doc_links_list(uuid,uuid) to anon, authenticated;
 grant execute on function public.app_doc_link_save(uuid,uuid,uuid,text,uuid,text) to anon, authenticated;
@@ -29337,7 +29337,7 @@ begin
     from public.app_knowledge k where (adm or k.tenant_id = ten) group by coalesce(k.section,'Без раздела') order by 1;
 end $$;
 
-create or replace function public.app_kb_list(p_token uuid, p_section text default null, p_q text default null)
+create or replace function public.app_kb_articles(p_token uuid, p_section text default null, p_q text default null)
 returns table (id uuid, section text, category text, question text, answer text, tags text)
 language plpgsql security definer set search_path = public
 as $$
@@ -29394,7 +29394,7 @@ insert into public.app_knowledge (tenant_id, category, question, answer, tags, s
 select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags, v.section
 from (values
   ('Платформа','Совместная работа: задачи, проекты, обсуждения, контакт-центр',
-   'W16: проекты (app_projects) и задачи (app_tasks: канбан todo/in_progress/done, приоритет, исполнитель, срок, оценка/факт часов, связь с объектом) с доской app_task_board и «моими задачами» app_my_tasks; учёт времени app_task_time; обсуждения объектов (app_messages с упоминаниями @login → уведомления); контакт-центр (app_inbox: каналы email/chat/sms/call, статусы new/assigned/closed); БЗ 2.0 — разделы (app_kb_sections/app_kb_list, поле section у app_knowledge). Модуль «Задачи и проекты» (apps/tasks).',
+   'W16: проекты (app_projects) и задачи (app_tasks: канбан todo/in_progress/done, приоритет, исполнитель, срок, оценка/факт часов, связь с объектом) с доской app_task_board и «моими задачами» app_my_tasks; учёт времени app_task_time; обсуждения объектов (app_messages с упоминаниями @login → уведомления); контакт-центр (app_inbox: каналы email/chat/sms/call, статусы new/assigned/closed); БЗ 2.0 — разделы (app_kb_sections/app_kb_articles, поле section у app_knowledge). Модуль «Задачи и проекты» (apps/tasks).',
    'совместная работа задачи проекты канбан обсуждения упоминания контакт-центр inbox база знаний разделы', 'Совместная работа'),
   ('Платформа','Задачи и проекты: как работать',
    'Раздел «Задачи и проекты»: создайте проект, добавьте задачи и перетаскивайте их по статусам (todo→in_progress→done), отмечайте время, обсуждайте в карточке (упоминания @логин дают уведомление). Обращения из контакт-центра (inbox) распределяются на исполнителей. Поиск по базе знаний — по разделам и ключевым словам.',
@@ -29423,7 +29423,7 @@ grant execute on function public.app_inbox_list(uuid,text) to anon, authenticate
 grant execute on function public.app_inbox_save(uuid,uuid,text,text,text,text,text) to anon, authenticated;
 grant execute on function public.app_inbox_set_status(uuid,uuid,text,text) to anon, authenticated;
 grant execute on function public.app_kb_sections(uuid) to anon, authenticated;
-grant execute on function public.app_kb_list(uuid,text,text) to anon, authenticated;
+grant execute on function public.app_kb_articles(uuid,text,text) to anon, authenticated;
 grant execute on function public.app_collab_kpi(uuid) to anon, authenticated;
 -- <<<<<<<<<< 0164_collab.sql <<<<<<<<<<
 
@@ -32086,3 +32086,17 @@ grant execute on function public.app_posting_delete(uuid,uuid) to anon, authenti
 grant execute on function public.app_trial_balance(uuid,date,date) to anon, authenticated;
 grant execute on function public.app_accounting_kpi(uuid) to anon, authenticated;
 -- <<<<<<<<<< 0175_accounting.sql <<<<<<<<<<
+
+-- >>>>>>>>>> 0176_overload_fix.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0176_overload_fix.sql  (финальная приёмка волн v2)
+-- Устранение перегрузок: удаляем конфликтующие сигнатуры, оставшиеся от ранних применений.
+-- Функции переименованы: app_doc_list → app_doc_flow_list, app_doc_set_status → app_doc_flow_set_status,
+-- app_kb_list → app_kb_search (создаются в 0163/0164). Идемпотентно. Зависит от 0001..0175.
+-- ============================================================
+
+drop function if exists public.app_doc_list(uuid, text, text, text);
+drop function if exists public.app_doc_set_status(uuid, uuid, text, text);
+drop function if exists public.app_kb_list(uuid, text, text);
+drop function if exists public.app_kb_search(uuid, text, text);
+-- <<<<<<<<<< 0176_overload_fix.sql <<<<<<<<<<

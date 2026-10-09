@@ -71,7 +71,7 @@ alter table public.app_doc_nomenclature enable row level security;
 alter table public.app_doc_flows add column if not exists nomenclature_id uuid references public.app_doc_nomenclature (id);
 
 -- ---------- RPC: реестр ----------
-create or replace function public.app_doc_list(p_token uuid, p_kind text default null, p_status text default null, p_q text default null)
+create or replace function public.app_doc_flow_list(p_token uuid, p_kind text default null, p_status text default null, p_q text default null)
 returns table (id uuid, kind text, doc_type text, title text, reg_number text, reg_date date, correspondent text, status text,
                responsible_login text, due_date date, created_at timestamptz, links bigint, resolutions_open bigint)
 language plpgsql security definer set search_path = public
@@ -141,7 +141,7 @@ begin
   return query select true, 'Зарегистрирован: ' || num, num;
 end $$;
 
-create or replace function public.app_doc_set_status(p_token uuid, p_id uuid, p_status text, p_comment text)
+create or replace function public.app_doc_flow_set_status(p_token uuid, p_id uuid, p_status text, p_comment text)
 returns table (ok boolean, message text)
 language plpgsql security definer set search_path = public
 as $$
@@ -402,10 +402,10 @@ where not exists (
 );
 
 -- ---------- Права ----------
-grant execute on function public.app_doc_list(uuid,text,text,text) to anon, authenticated;
+grant execute on function public.app_doc_flow_list(uuid,text,text,text) to anon, authenticated;
 grant execute on function public.app_doc_save(uuid,uuid,text,text,text,text,text,text,date,date) to anon, authenticated;
 grant execute on function public.app_doc_register(uuid,uuid) to anon, authenticated;
-grant execute on function public.app_doc_set_status(uuid,uuid,text,text) to anon, authenticated;
+grant execute on function public.app_doc_flow_set_status(uuid,uuid,text,text) to anon, authenticated;
 grant execute on function public.app_doc_delete(uuid,uuid) to anon, authenticated;
 grant execute on function public.app_doc_links_list(uuid,uuid) to anon, authenticated;
 grant execute on function public.app_doc_link_save(uuid,uuid,uuid,text,uuid,text) to anon, authenticated;

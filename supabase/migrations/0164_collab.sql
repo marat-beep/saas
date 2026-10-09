@@ -419,7 +419,7 @@ begin
     from public.app_knowledge k where (adm or k.tenant_id = ten) group by coalesce(k.section,'Без раздела') order by 1;
 end $$;
 
-create or replace function public.app_kb_list(p_token uuid, p_section text default null, p_q text default null)
+create or replace function public.app_kb_articles(p_token uuid, p_section text default null, p_q text default null)
 returns table (id uuid, section text, category text, question text, answer text, tags text)
 language plpgsql security definer set search_path = public
 as $$
@@ -476,7 +476,7 @@ insert into public.app_knowledge (tenant_id, category, question, answer, tags, s
 select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags, v.section
 from (values
   ('Платформа','Совместная работа: задачи, проекты, обсуждения, контакт-центр',
-   'W16: проекты (app_projects) и задачи (app_tasks: канбан todo/in_progress/done, приоритет, исполнитель, срок, оценка/факт часов, связь с объектом) с доской app_task_board и «моими задачами» app_my_tasks; учёт времени app_task_time; обсуждения объектов (app_messages с упоминаниями @login → уведомления); контакт-центр (app_inbox: каналы email/chat/sms/call, статусы new/assigned/closed); БЗ 2.0 — разделы (app_kb_sections/app_kb_list, поле section у app_knowledge). Модуль «Задачи и проекты» (apps/tasks).',
+   'W16: проекты (app_projects) и задачи (app_tasks: канбан todo/in_progress/done, приоритет, исполнитель, срок, оценка/факт часов, связь с объектом) с доской app_task_board и «моими задачами» app_my_tasks; учёт времени app_task_time; обсуждения объектов (app_messages с упоминаниями @login → уведомления); контакт-центр (app_inbox: каналы email/chat/sms/call, статусы new/assigned/closed); БЗ 2.0 — разделы (app_kb_sections/app_kb_articles, поле section у app_knowledge). Модуль «Задачи и проекты» (apps/tasks).',
    'совместная работа задачи проекты канбан обсуждения упоминания контакт-центр inbox база знаний разделы', 'Совместная работа'),
   ('Платформа','Задачи и проекты: как работать',
    'Раздел «Задачи и проекты»: создайте проект, добавьте задачи и перетаскивайте их по статусам (todo→in_progress→done), отмечайте время, обсуждайте в карточке (упоминания @логин дают уведомление). Обращения из контакт-центра (inbox) распределяются на исполнителей. Поиск по базе знаний — по разделам и ключевым словам.',
@@ -505,5 +505,5 @@ grant execute on function public.app_inbox_list(uuid,text) to anon, authenticate
 grant execute on function public.app_inbox_save(uuid,uuid,text,text,text,text,text) to anon, authenticated;
 grant execute on function public.app_inbox_set_status(uuid,uuid,text,text) to anon, authenticated;
 grant execute on function public.app_kb_sections(uuid) to anon, authenticated;
-grant execute on function public.app_kb_list(uuid,text,text) to anon, authenticated;
+grant execute on function public.app_kb_articles(uuid,text,text) to anon, authenticated;
 grant execute on function public.app_collab_kpi(uuid) to anon, authenticated;
