@@ -23,6 +23,7 @@
   .sched { display:grid; grid-template-columns:1fr 140px 140px 40px; gap:8px; align-items:center; padding:8px 0; border-top:1px solid var(--border); font-size:.82rem; }
   .sched:first-child{border-top:none}
   .sched input { padding:6px 8px; font-size:.8rem; }
+  .atbl{width:100%;border-collapse:collapse}.atbl th,.atbl td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--border);font-size:.82rem}.atbl th{color:var(--muted);font-size:.72rem;text-transform:uppercase}
   @media(max-width:680px){ .grow,.scale{grid-template-columns:120px 1fr} .sched{grid-template-columns:1fr 1fr} }
 </style>
 </head>
@@ -56,6 +57,7 @@
       <button class="active" data-t="gantt">Диаграмма Ганта</button>
       <button data-t="cap">Загрузка центров</button>
       <button data-t="aps">APS-автоплан</button>
+      <button data-t="ana">Аналитика</button>
     </div>
 
     <section class="tab" id="t-gantt">
@@ -91,6 +93,19 @@
         <div id="apsPlan" class="mt"></div>
       </div>
     </section>
+
+    <section class="tab" id="t-ana" style="display:none;">
+      <div class="card">
+        <div class="toolbar">
+          <button class="btn secondary" id="anaAps" style="width:auto;padding:8px 14px;">APS-очередь</button>
+          <button class="btn secondary" id="anaMnt" style="width:auto;padding:8px 14px;">Предиктив ТОиР</button>
+          <button class="btn secondary" id="anaSpc" style="width:auto;padding:8px 14px;">SPC-сигналы</button>
+          <span class="note" style="margin-left:auto;">Аналитика производства (W42): очередь с приоритетами, риск оборудования, сигналы ОТК.</span>
+        </div>
+        <div class="msg" id="anaMsg"></div>
+        <div id="anaOut" class="mt"><span class="note">Выберите анализ.</span></div>
+      </div>
+    </section>
   </main>
 
   <footer class="foot">3DMP Service · планирование</footer>
@@ -105,7 +120,8 @@
   <script src="../../assets/js/nav.js?v=108"></script>
   <script src="../../assets/js/shell.js?v=73"></script>
   <script src="../../assets/js/module-report.js?v=3"></script>
-  <script src="planning.js?v=3"></script>
+  <script src="planning.js?v=4"></script>
+  <script src="analytics.js?v=1"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=1"></script>
 </body>

@@ -132,7 +132,9 @@
     $('#t-gantt').style.display = (b.dataset.t === 'gantt') ? '' : 'none';
     $('#t-cap').style.display = (b.dataset.t === 'cap') ? '' : 'none';
     $('#t-aps').style.display = (b.dataset.t === 'aps') ? '' : 'none';
+    var tan = $('#t-ana'); if (tan) tan.style.display = (b.dataset.t === 'ana') ? '' : 'none';
     if (b.dataset.t === 'aps') loadAps();
+    if (b.dataset.t === 'ana' && window.AppProdAnalytics) window.AppProdAnalytics.load();
   });
   $('#apsBuild').addEventListener('click', loadAps);
   $('#apsApply').addEventListener('click', applyAps);
