@@ -1,18 +1,7 @@
 {
     "tool":  "trace",
-    "at":  "2026-10-09T17:14:22",
+    "at":  "2026-10-09T17:24:48",
     "findings":  [
-                     {
-                         "area":  "B",
-                         "sev":  "Minor",
-                         "title":  "apps без каталога (3)",
-                         "detail":  "engraving, product, templates",
-                         "evidence":  "apps/",
-                         "method":  "trace",
-                         "effort":  1,
-                         "impact":  1,
-                         "status":  "open"
-                     },
                      {
                          "area":  "A",
                          "sev":  "Info",

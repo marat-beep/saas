@@ -6,36 +6,36 @@
                                         {
                                             "value":  [
                                                           {
-                                                              "value":  "",
-                                                              "Count":  1
+                                                              "value":  " ",
+                                                              "Count":  2
                                                           },
                                                           {
-                                                              "at":  "2026-10-09T17:11:22",
-                                                              "findings":  39,
-                                                              "counts":  "@{Blocker=0; Info=3; Minor=4; Major=32; Critical=0}",
-                                                              "areaPct":  "@{E=100; D=100; G=100; F=75; B=0; I=100; K=100; H=100; C=100; J=100; A=100}",
-                                                              "overall":  82,
-                                                              "rag":  "yellow"
+                                                              "at":  "2026-10-09T17:15:00",
+                                                              "findings":  8,
+                                                              "counts":  "@{Blocker=0; Info=4; Minor=4; Major=0; Critical=0}",
+                                                              "areaPct":  "@{E=100; D=100; G=100; F=100; B=75; I=100; K=100; H=100; C=100; J=100; A=100}",
+                                                              "overall":  96.2,
+                                                              "rag":  "green"
                                                           }
                                                       ],
                                             "Count":  2
                                         },
                                         {
-                                            "at":  "2026-10-09T17:12:16",
-                                            "findings":  11,
+                                            "at":  "2026-10-09T17:23:11",
+                                            "findings":  8,
                                             "counts":  {
                                                            "Blocker":  0,
-                                                           "Info":  3,
-                                                           "Minor":  5,
-                                                           "Major":  3,
+                                                           "Info":  5,
+                                                           "Minor":  3,
+                                                           "Major":  0,
                                                            "Critical":  0
                                                        },
                                             "areaPct":  {
                                                             "E":  100,
                                                             "D":  100,
                                                             "G":  100,
-                                                            "F":  75,
-                                                            "B":  25,
+                                                            "F":  100,
+                                                            "B":  75,
                                                             "I":  100,
                                                             "K":  100,
                                                             "H":  100,
@@ -43,19 +43,19 @@
                                                             "J":  100,
                                                             "A":  100
                                                         },
-                                            "overall":  85.8,
+                                            "overall":  96.2,
                                             "rag":  "green"
                                         }
                                     ],
                           "Count":  2
                       },
                       {
-                          "at":  "2026-10-09T17:13:52",
-                          "findings":  9,
+                          "at":  "2026-10-09T17:24:18",
+                          "findings":  5,
                           "counts":  {
                                          "Blocker":  0,
                                          "Info":  5,
-                                         "Minor":  4,
+                                         "Minor":  0,
                                          "Major":  0,
                                          "Critical":  0
                                      },
@@ -64,7 +64,7 @@
                                           "D":  100,
                                           "G":  100,
                                           "F":  100,
-                                          "B":  75,
+                                          "B":  100,
                                           "I":  100,
                                           "K":  100,
                                           "H":  100,
@@ -72,19 +72,19 @@
                                           "J":  100,
                                           "A":  100
                                       },
-                          "overall":  96.2,
+                          "overall":  100,
                           "rag":  "green"
                       }
                   ],
         "Count":  2
     },
     {
-        "at":  "2026-10-09T17:15:00",
-        "findings":  8,
+        "at":  "2026-10-09T17:25:23",
+        "findings":  4,
         "counts":  {
                        "Blocker":  0,
                        "Info":  4,
-                       "Minor":  4,
+                       "Minor":  0,
                        "Major":  0,
                        "Critical":  0
                    },
@@ -93,7 +93,7 @@
                         "D":  100,
                         "G":  100,
                         "F":  100,
-                        "B":  75,
+                        "B":  100,
                         "I":  100,
                         "K":  100,
                         "H":  100,
@@ -101,7 +101,7 @@
                         "J":  100,
                         "A":  100
                     },
-        "overall":  96.2,
+        "overall":  100,
         "rag":  "green"
     }
 ]

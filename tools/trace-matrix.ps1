@@ -14,7 +14,7 @@ function Add-F($area, $sev, $title, $detail, $evidence, $effort, $impact) {
 
 $cat = Get-Content (Join-Path $Root 'assets\js\catalog.js') -Raw -Encoding UTF8
 $catMap = @{}
-foreach ($m in [regex]::Matches($cat, "\{[^{}]*\bid:\s*'([a-z0-9_]+)'[^{}]*\bhref:\s*'([^']*)'[^{}]*\}")) { $catMap[$m.Groups[1].Value] = $m.Groups[2].Value }
+foreach ($m in [regex]::Matches($cat, "(?m)^\s*id:\s*'([a-z0-9_]+)',[^\r\n]*href:\s*'([^']+)'")) { $catMap[$m.Groups[1].Value] = $m.Groups[2].Value }
 $catIds = New-Object System.Collections.Generic.List[string]
 foreach ($k in $catMap.Keys) { [void]$catIds.Add($k) }
 $appsDirs = @(Get-ChildItem (Join-Path $Root 'apps') -Directory | Select-Object -ExpandProperty Name)
