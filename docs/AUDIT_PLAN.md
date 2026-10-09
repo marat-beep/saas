@@ -49,7 +49,8 @@
 | `audit/update-plan.json` | сгенерированный план (машиночитаемо) |
 | `audit/state.json` | история прогонов и метрики тренда |
 | `audit/checks/*.json` | вывод отдельных проверок |
-| `tools/audit-run.ps1` | оркестратор L0–L2 |
+| `tools/audit-run.ps1` | оркестратор L0–L3 |
+| `tools/scenario-check.ps1` | L3: авто-прогон сквозных сценариев (с очисткой) |
 | `tools/update-plan.ps1` | генератор плана |
 | `.github/workflows/audit.yml` | непрерывный прогон в CI |
 

@@ -38,7 +38,8 @@ Run-Child 'perf-check.ps1' @('-Root', $Root) | Out-Null
 if ((-not $SkipDb) -and $Token) {
   $dc = Run-Child 'db-smoke.ps1' @('-Token', $Token)
   if ($dc -ne 0) { Add-X 'E' 'Major' "db-smoke.ps1 вернул код $dc" 'Проблемы БД/перегрузки/кодировка.' 'tools/db-smoke.ps1' 2 3 }
-} else { Add-X 'I' 'Info' 'db-smoke пропущен (нет токена)' 'L1 не выполнялся; задайте -Token или env SUPABASE_ACCESS_TOKEN.' 'tools/audit-run.ps1' 1 1 }
+  Run-Child 'scenario-check.ps1' @('-Root', $Root, '-Token', $Token) | Out-Null
+} else { Add-X 'I' 'Info' 'db-smoke/сценарии пропущены (нет токена)' 'L1/L3 не выполнялись; задайте -Token или env SUPABASE_ACCESS_TOKEN.' 'tools/audit-run.ps1' 1 1 }
 
 # --- merge ---
 $all = New-Object System.Collections.ArrayList
