@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Обучение (e-Learning) — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=35">
+<style>.num{text-align:right;font-variant-numeric:tabular-nums}</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🎓</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+  <main class="wrap fluid">
+    <div class="hero"><h1>Обучение (e-Learning)</h1><p>Курсы и уроки, назначения с прогрессом, тесты и попытки. Роли: staff.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+    <div class="tabs2" id="tabs"><button data-scr="cr" class="active">Курсы</button><button data-scr="en">Назначения</button><button data-scr="ts">Тесты</button></div>
+    <div class="msg" id="m"></div>
+    <section class="screen active" id="scr-cr"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addCr" style="width:auto;padding:8px 14px;">＋ Курс</button></div><div id="cr" class="mt"></div><div id="crPanel" class="mt"></div></div></section>
+    <section class="screen" id="scr-en"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addEn" style="width:auto;padding:8px 14px;">＋ Назначить</button></div><div id="en" class="mt"></div></div></section>
+    <section class="screen" id="scr-ts"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addTs" style="width:auto;padding:8px 14px;">＋ Тест</button></div><div id="ts" class="mt"></div></div></section>
+  </main>
+  <footer class="foot">3DMP Service · обучение</footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=4"></script>
+  <script src="../../assets/js/auth.js?v=6"></script>
+  <script src="../../assets/js/notify.js?v=3"></script>
+  <script src="../../assets/js/support-widget.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=107"></script>
+  <script src="../../assets/js/shell.js?v=69"></script>
+  <script src="elearning.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=2"></script>
+  <script src="../../assets/js/module-info.js?v=1"></script>
+</body>
+</html>
