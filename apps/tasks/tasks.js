@@ -11,6 +11,7 @@
   function esc(v) { return ui.esc(v); }
   function msg(t, k) { var e = $('#m'); e.className = 'msg show ' + (k || 'info'); e.textContent = t; if (!t) e.className = 'msg'; }
   function rpc(n, a) { return SB.rpc(n, a).then(function (r) { if (r.error) throw new Error(r.error.message); return r.data; }); }
+  function rpcCached(key, n, a) { return window.AppOfflineCache ? window.AppOfflineCache.cached(key, function () { return rpc(n, a); }) : rpc(n, a); }
   function cell(l, v) { return '<div class="kpi"><small>' + l + '</small><b>' + v + '</b></div>'; }
   function dd(v) { return v ? new Date(v).toLocaleDateString('ru-RU') : '—'; }
 
@@ -63,7 +64,7 @@
   function loadBoard() {
     var id = $('#prjSel').value; prj = projects.filter(function (p) { return p.id === id; })[0] || prj;
     if (!id) { $('#board').innerHTML = '<span class="note">Нет проектов.</span>'; return; }
-    return rpc('app_tasks_list', { p_token: token, p_project_id: id, p_status: null, p_assignee: null }).then(function (r) {
+    return rpcCached('tasks:list:' + (id || 'all'), 'app_tasks_list', { p_token: token, p_project_id: id, p_status: null, p_assignee: null }).then(function (r) {
       tasks = r || [];
       $('#board').innerHTML = COLS.map(function (c) {
         var list = tasks.filter(function (t) { return t.status === c.s; });

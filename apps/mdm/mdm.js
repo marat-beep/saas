@@ -10,6 +10,8 @@
   function esc(v) { return ui.esc(v); }
   function msg(t, k) { var e = $('#m'); e.className = 'msg show ' + (k || 'info'); e.textContent = t; if (!t) e.className = 'msg'; }
   function rpc(n, a) { return SB.rpc(n, a).then(function (r) { if (r.error) throw new Error(r.error.message); return r.data; }); }
+  /* W43: офлайн-кэш чтения (при отсутствии сети — из кэша) */
+  function rpcCached(key, n, a) { return window.AppOfflineCache ? window.AppOfflineCache.cached(key, function () { return rpc(n, a); }) : rpc(n, a); }
   function cell(l, v) { return '<div class="kpi"><small>' + l + '</small><b>' + v + '</b></div>'; }
 
   function showTab(scr) {
@@ -27,7 +29,7 @@
     });
   }
   function loadList() {
-    return rpc('app_master_items_list', { p_token: token, p_q: $('#q').value || null, p_type: $('#type').value || null, p_group: null }).then(function (r) {
+    return rpcCached('mdm:items', 'app_master_items_list', { p_token: token, p_q: $('#q').value || null, p_type: $('#type').value || null, p_group: null }).then(function (r) {
       items = r || [];
       $('#list').innerHTML = items.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Код</th><th>Наименование</th><th>Тип</th><th>Ед.</th><th>Группа</th><th class="num">Коды</th><th>Статус</th><th>Действия</th></tr></thead><tbody>' +
         items.map(function (i) {

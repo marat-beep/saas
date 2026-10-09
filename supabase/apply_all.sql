@@ -33417,3 +33417,118 @@ select 'aaaaaaaa-0000-0000-0000-000000000001','Производство','Ана
 where not exists (select 1 from public.app_knowledge where tenant_id='aaaaaaaa-0000-0000-0000-000000000001' and question='Аналитика производства: APS-очередь, предиктив ТОиР, SPC-сигналы');
 
 -- <<<<<<<<<< 0184_prod_analytics.sql <<<<<<<<<<
+
+-- >>>>>>>>>> 0185_offline2.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0185_offline2.sql  (план v4, W43 «Офлайн 2.0»)
+-- Вложения (фото/скан/файл) к сущностям модулей для мобильного офлайна:
+-- app_attachments + RPC add/list. Идемпотентно. Зависит от 0001..0184.
+-- ============================================================
+
+create table if not exists public.app_attachments (
+  id            uuid primary key default gen_random_uuid(),
+  tenant_id     uuid,
+  entity_type   text not null,
+  entity_id     uuid,
+  kind          text not null default 'photo',   -- photo|scan|file
+  data_url      text,
+  note          text,
+  created_by    uuid,
+  created_login text,
+  created_at    timestamptz not null default now()
+);
+-- дополняем существующую таблицу вложений полями W43 (idempotent)
+alter table public.app_attachments
+  add column if not exists kind text not null default 'photo',
+  add column if not exists note text,
+  add column if not exists data_url text,
+  add column if not exists created_by uuid,
+  add column if not exists created_login text;
+create index if not exists app_attachments_entity_idx on public.app_attachments (entity_type, entity_id, created_at desc);
+alter table public.app_attachments enable row level security;
+
+create or replace function public.app_attach_add(p_token uuid, p_entity_type text, p_entity_id uuid, p_kind text, p_data_url text, p_note text)
+returns table (ok boolean, message text, id uuid)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare uid uuid; ulogin text; ten uuid; nid uuid;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён',null::uuid; return; end if;
+  if coalesce(trim(p_entity_type),'')='' then return query select false,'Не указан тип сущности',null::uuid; return; end if;
+  if p_data_url is not null and length(p_data_url) > 4000000 then return query select false,'Файл слишком большой (>4 МБ)',null::uuid; return; end if;
+  select s.uid, s.ulogin into uid, ulogin from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token);
+  insert into public.app_attachments (tenant_id, entity_type, entity_id, name, kind, data_url, note, created_by, created_login)
+  values (ten, trim(p_entity_type), p_entity_id, coalesce(nullif(trim(p_note),''), trim(p_entity_type) || ' ' || coalesce(nullif(trim(p_kind),''),'photo')), coalesce(nullif(trim(p_kind),''),'photo'), p_data_url, nullif(trim(p_note),''), uid, ulogin)
+  returning app_attachments.id into nid;
+  perform public.app_log_event(p_token, 'Вложение добавлено', trim(p_entity_type) || ' (' || coalesce(nullif(trim(p_kind),''),'photo') || ')');
+  return query select true, 'Вложение добавлено', nid;
+end $$;
+
+create or replace function public.app_attach_list(p_token uuid, p_entity_type text, p_entity_id uuid)
+returns table (id uuid, kind text, note text, created_login text, created_at timestamptz, data_url text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  ten := public.app_my_tenant(p_token);
+  return query
+    select a.id, a.kind, a.note, a.created_login, a.created_at, a.data_url
+      from public.app_attachments a
+     where a.entity_type = trim(p_entity_type) and (p_entity_id is null or a.entity_id = p_entity_id)
+       and (a.tenant_id is null or a.tenant_id = ten)
+     order by a.created_at desc limit 200;
+end $$;
+
+grant execute on function public.app_attach_add(uuid,text,uuid,text,text,text) to anon, authenticated;
+grant execute on function public.app_attach_list(uuid,text,uuid) to anon, authenticated;
+
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001','Платформа','Офлайн 2.0: фото и скан к сущностям модулей',
+ 'W43: с телефона можно приложить фото/скан к сущности модуля (например, к паспорту, ОТК-проверке, позиции склада). Функции: app_attach_add(entity_type, entity_id, kind, data_url, note) и app_attach_list. Вложения хранятся в app_attachments; сбор — AppScan.photo (capture) и AppScan.scan (QR/ШК). Надёжность офлайна: идемпотентная очередь (AppOffline, ключ idem) и кэш чтения (AppOfflineCache). В мобильной панели модулей — действия «Фото»/«Скан ШК».',
+ 'офлайн фото скан вложение app_attach_add app_attachments камера паспорт отк склад idem кэш'
+where not exists (select 1 from public.app_knowledge where tenant_id='aaaaaaaa-0000-0000-0000-000000000001' and question='Офлайн 2.0: фото и скан к сущностям модулей');
+
+-- <<<<<<<<<< 0185_offline2.sql <<<<<<<<<<
+
+-- >>>>>>>>>> 0186_perf.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0186_perf.sql  (план v4, W44 «Производительность и масштаб»)
+-- Индексы по горячим запросам (списки/фильтры/сортировки) для больших объёмов.
+-- Идемпотентно. Зависит от 0001..0185.
+-- ============================================================
+
+-- Сессии и входы
+create index if not exists app_sessions_token_user_idx on public.app_sessions (user_id, expires_at desc);
+create index if not exists app_login_attempts_login_idx on public.app_login_attempts (login, created_at desc);
+create index if not exists app_events_created_idx on public.app_events (created_at desc);
+
+-- Заказы / наряды / производство
+create index if not exists app_orders_tenant_status_idx on public.app_orders (tenant_id, status);
+create index if not exists app_orders_created_idx on public.app_orders (created_at desc);
+create index if not exists app_naryads_tenant_status_idx on public.app_naryads (tenant_id, status);
+create index if not exists app_naryads_due_idx on public.app_naryads (due_date);
+create index if not exists app_qc_checks_tenant_idx on public.app_qc_checks (tenant_id, created_at desc);
+create index if not exists app_qc_measures_param_idx on public.app_qc_measures (param, ts desc);
+
+-- Сервис / ИТ / логистика / задачи
+create index if not exists app_service_req_tenant_status_idx on public.app_service_requests (tenant_id, status);
+create index if not exists app_it_tickets_tenant_status_idx on public.app_it_tickets (tenant_id, status);
+create index if not exists app_transport_tenant_status_idx on public.app_transport_orders (tenant_id, status);
+create index if not exists app_tasks_tenant_status_idx on public.app_tasks (tenant_id, status);
+
+-- Материалы / склад / интеграции
+create index if not exists app_materials_tenant_idx on public.app_materials (tenant_id);
+create index if not exists app_integration_log_status_idx on public.app_integration_log (status, created_at desc);
+
+-- ---------- База знаний ----------
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001','Администрирование','Производительность: индексы по горячим запросам',
+ 'W44: добавлены индексы для ускорения списков и фильтров больших объёмов — сессии/входы (app_sessions, app_login_attempts, app_events), заказы/наряды/ОТК (app_orders, app_naryads, app_qc_checks, app_qc_measures), сервис/ИТ/логистика/задачи (app_service_requests, app_it_tickets, app_transport_orders, app_tasks), материалы/интеграции (app_materials, app_integration_log). При росте данных пересматривать планы (EXPLAIN ANALYZE) и добавлять составные индексы.',
+ 'производительность индексы производительность масштаб большие списки explain'
+where not exists (select 1 from public.app_knowledge where tenant_id='aaaaaaaa-0000-0000-0000-000000000001' and question='Производительность: индексы по горячим запросам');
+
+-- <<<<<<<<<< 0186_perf.sql <<<<<<<<<<

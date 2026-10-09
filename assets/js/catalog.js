@@ -8,7 +8,7 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '10.32',
+  version: '10.33',
   updated: '09.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
@@ -111,11 +111,11 @@ window.AppCatalog = {
     production:  [{ label: 'Наряды', icon: '📋', href: 'apps/production/index.html' }, { label: 'MES', icon: '🖥', href: 'apps/mes/index.html' }, { label: 'Терминал', icon: '📱', href: 'apps/terminal/index.html' }],
     mes:         [{ label: 'Диспетчерская', icon: '🖥', href: 'apps/mes/index.html' }, { label: 'Наряды', icon: '📋', href: 'apps/production/index.html' }, { label: 'Терминал', icon: '📱', href: 'apps/terminal/index.html' }],
     terminal:    [{ label: 'Мои операции', icon: '📱', href: 'apps/terminal/index.html' }, { label: 'Скан ШК', icon: '📷', scan: true }, { label: 'Наряды', icon: '📋', href: 'apps/production/index.html' }],
-    qc:          [{ label: 'Измерение', icon: '📏', rpc: 'app_qc_measure_add', offline: true, static: { p_position_id: null }, map: { check_id: 'p_check_id', param: 'p_param', value: 'p_value' }, fields: [{ name: 'check_id', label: 'Чек-лист (ID)', type: 'text', req: true }, { name: 'param', label: 'Параметр', type: 'text', req: true }, { name: 'value', label: 'Значение', type: 'number', req: true }] }, { label: 'ОТК', icon: '✅', href: 'apps/qc/index.html' }],
-    warehouse:   [{ label: 'Склад', icon: '📦', href: 'apps/warehouse/index.html' }, { label: 'Скан ШК', icon: '📷', scan: true }, { label: 'Приёмка', icon: '＋', wizard: 'warehouse' }],
+    qc:          [{ label: 'Измерение', icon: '📏', rpc: 'app_qc_measure_add', offline: true, static: { p_position_id: null }, map: { check_id: 'p_check_id', param: 'p_param', value: 'p_value' }, fields: [{ name: 'check_id', label: 'Чек-лист (ID)', type: 'text', req: true }, { name: 'param', label: 'Параметр', type: 'text', req: true }, { name: 'value', label: 'Значение', type: 'number', req: true }] }, { label: 'Фото', icon: '📷', photo: true }, { label: 'ОТК', icon: '✅', href: 'apps/qc/index.html' }],
+    warehouse:   [{ label: 'Склад', icon: '📦', href: 'apps/warehouse/index.html' }, { label: 'Скан ШК', icon: '📷', scan: true }, { label: 'Фото', icon: '🖼', photo: true }, { label: 'Приёмка', icon: '＋', wizard: 'warehouse' }],
     maintenance: [{ label: 'Заявки ТОиР', icon: '🔩', href: 'apps/maintenance/index.html' }, { label: 'Оборудование', icon: '⚙️', href: 'apps/registry/index.html' }],
     tooling:     [{ label: 'Инструмент', icon: '🪚', href: 'apps/tooling/index.html' }, { label: '＋ Экземпляр', icon: '＋', wizard: 'tooling' }],
-    mdm:         [{ label: 'НСИ', icon: '🌐', href: 'apps/mdm/index.html' }, { label: '＋ Позиция', icon: '＋', wizard: 'mdm' }],
+    mdm:         [{ label: 'НСИ', icon: '🌐', href: 'apps/mdm/index.html' }, { label: 'Фото', icon: '📷', photo: true }, { label: '＋ Позиция', icon: '＋', wizard: 'mdm' }],
     logistics:   [{ label: 'Рейсы', icon: '🚚', href: 'apps/logistics/index.html' }, { label: '＋ Перевозка', icon: '＋', wizard: 'logistics' }],
     workflow:    [{ label: 'Процессы', icon: '⚙️', href: 'apps/workflow/index.html' }, { label: '＋ Запуск', icon: '＋', wizard: 'workflow' }],
     kedo:        [{ label: 'Документы', icon: '🧑‍💼', href: 'apps/kedo/index.html' }, { label: '＋ Документ', icon: '＋', wizard: 'kedo' }],

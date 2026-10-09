@@ -10,7 +10,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 **Не льётся:** `supabase/`, `docs/`, `tools/`, `dist/`, `.git`, `README.md`, `AGENTS.md`.
 
 ## 2. База данных
-- Миграции `supabase/migrations/0001…0184` + пересобранный `supabase/apply_all.sql`.
+- Миграции `supabase/migrations/0001…0186` + пересобранный `supabase/apply_all.sql`.
 - Инструменты: `tools/build-release.ps1` (сборка dist), `tools/audit.ps1` (локальный автотест), `tools/db-smoke.ps1` (смоук БД через Management API), `tools/run-checks.ps1` (обёртка audit+db-smoke, лог в `dist/checks/`, код возврата).
 - Применение — Supabase → SQL Editor → вставить `apply_all.sql` → Run (либо Management API, UTF-8).
 - Смоук: `select * from app_smoke_test(:token);` (10/10) и `app_smoke_test_ext(:token)` (14/14).
@@ -45,6 +45,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 - [ ] Отметки в `BACKLOG.md`, `PLAN_WAVES.md`, `STATUS.md`, `NOTES.md`, `PROMPTS.md`.
 
 ## 6. Журнал релизов (последнее)
+- **v252 (миграция `0186`)** — W44 производительность: индексы по горячим запросам; план v4 (W38–W44) закрыт.
+- **v251 (миграция `0185`)** — W43 офлайн 2.0: вложения фото/скан (app_attachments, app_attach_add/list), моб. «Фото», офлайн-кэш в НСИ/Задачи.
 - **v250 (миграция `0184`)** — W42 аналитика производства: APS-очередь, предиктив ТОиР, SPC-сигналы; вкладка «Аналитика» в apps/planning.
 - **v249 (миграция `0183`)** — W41 отчётность/BI 2.0: дашборд KPI по контурам, расписание рассылки (очередь интеграций), XLS(X) экспорт; UI `apps/reports` v5.
 - **v248 (миграция `0182`)** — W40 расширения 2.0: приватные (`tenant_id`), проверка зависимостей, `app_ext_detail`/`app_ext_save`(область)/`app_my_tenant_id`; редактор манифеста в `apps/marketplace`.

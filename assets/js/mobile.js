@@ -74,6 +74,33 @@
     });
   }
 
+  function photoAction(spec) {
+    ensureScan().then(function () {
+      if (!g.AppScan || !g.AppScan.photo) { toast('Камера недоступна'); return; }
+      g.AppScan.photo().then(function (p) {
+        if (!p || !p.dataUrl) return;
+        var args = {
+          p_token: (g.Auth && g.Auth.token) ? g.Auth.token() : null,
+          p_entity_type: moduleId(), p_entity_id: (spec && spec.entity_id) || null,
+          p_kind: 'photo', p_data_url: p.dataUrl, p_note: (spec && spec.note) || null
+        };
+        var send = function () {
+          if (g.AppOffline && !g.AppOffline.online()) {
+            g.AppOffline.add({ rpc: 'app_attach_add', args: args, label: 'Фото' }).then(function () { toast('Фото сохранено офлайн — отправится при связи'); });
+            return;
+          }
+          if (!g.SB) { toast('Нет подключения'); return; }
+          g.SB.rpc('app_attach_add', args).then(function (r) {
+            var x = Array.isArray(r.data) ? r.data[0] : r.data;
+            if (r.error || (x && x.ok === false)) { toast('Не удалось приложить фото'); return; }
+            toast('Фото добавлено'); if (g.AppOffline) g.AppOffline.flush();
+          }).catch(function () { if (g.AppOffline) g.AppOffline.add({ rpc: 'app_attach_add', args: args, label: 'Фото' }).then(function () { toast('Фото сохранено офлайн'); }); });
+        };
+        ensureOffline().then(send);
+      });
+    });
+  }
+
   function argsFrom(spec, vals) {
     var a = { p_token: (g.Auth && g.Auth.token) ? g.Auth.token() : null };
     if (spec.static) for (var k in spec.static) a[k] = spec.static[k];
@@ -121,6 +148,7 @@
       var ic = a.icon || '⚡';
       if (a.wizard) return '<button class="mb-btn" type="button" data-mb="wiz" data-mod="' + a.wizard + '"><span class="mb-ic">' + ic + '</span>' + esc(a.label) + '</button>';
       if (a.scan) return '<button class="mb-btn" type="button" data-mb="scan" data-i="' + idx + '"><span class="mb-ic">' + ic + '</span>' + esc(a.label) + '</button>';
+      if (a.photo) return '<button class="mb-btn" type="button" data-mb="photo" data-i="' + idx + '"><span class="mb-ic">' + ic + '</span>' + esc(a.label) + '</button>';
       if (a.rpc) return '<button class="mb-btn" type="button" data-mb="rpc" data-i="' + idx + '"><span class="mb-ic">' + ic + '</span>' + esc(a.label) + '</button>';
       var href = a.href || (rootPrefix() + 'index.html');
       return '<a class="mb-btn" href="' + href + '"><span class="mb-ic">' + ic + '</span>' + esc(a.label) + '</a>';
@@ -134,6 +162,9 @@
     });
     Array.prototype.forEach.call(bar.querySelectorAll('[data-mb="scan"]'), function (b) {
       b.addEventListener('click', function () { scanAction(actions[Number(b.getAttribute('data-i'))]); });
+    });
+    Array.prototype.forEach.call(bar.querySelectorAll('[data-mb="photo"]'), function (b) {
+      b.addEventListener('click', function () { photoAction(actions[Number(b.getAttribute('data-i'))]); });
     });
     var off = bar.querySelector('[data-mb="off"]');
     if (off) off.addEventListener('click', function () { disable(); });

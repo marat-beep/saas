@@ -6,7 +6,7 @@
 (function (g) {
   'use strict';
   var SELF = document.currentScript;
-  var CATALOG_V = '108'; // версия каталога для внешних страниц
+  var CATALOG_V = '109'; // версия каталога для внешних страниц
 
   function esc(v) { return (g.AppUI && g.AppUI.esc) ? g.AppUI.esc(v) : String(v == null ? '' : v); }
   function ready(fn) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn); else fn(); }
@@ -233,7 +233,7 @@
     } catch (e) {}
 
     /* W31: мини-мобильный режим модулей (нижняя панель быстрых действий) */
-    if (!g.AppMobile) { var mjs = document.createElement('script'); mjs.src = ROOT + 'assets/js/mobile.js?v=2'; document.head.appendChild(mjs); }
+    if (!g.AppMobile) { var mjs = document.createElement('script'); mjs.src = ROOT + 'assets/js/mobile.js?v=3'; document.head.appendChild(mjs); }
     /* W36: офлайн-кэш чтения (справочники/списки) */
     if (!g.AppOfflineCache) { var ojs = document.createElement('script'); ojs.src = ROOT + 'assets/js/offline-cache.js?v=1'; document.head.appendChild(ojs); }
 
