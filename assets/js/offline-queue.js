@@ -7,7 +7,12 @@
 (function (g) {
   'use strict';
   var DB = '3dmp-offline', STORE = 'queue', VERSION = 1, LS = '3dmp:offlineq', CID = '3dmp:clientId';
+  var APPLIED = '3dmp:offlineq:applied', SEQ = '3dmp:offlineq:seq';
   var dbp = null;
+  function appliedRead() { try { return JSON.parse(localStorage.getItem(APPLIED) || '[]'); } catch (e) { return []; } }
+  function appliedHas(idem) { return idem && appliedRead().indexOf(idem) >= 0; }
+  function appliedAdd(idem) { if (!idem) return; var a = appliedRead(); if (a.indexOf(idem) < 0) { a.push(idem); if (a.length > 500) a = a.slice(-500); try { localStorage.setItem(APPLIED, JSON.stringify(a)); } catch (e) {} } }
+  function nextSeq() { var n = 0; try { n = parseInt(localStorage.getItem(SEQ) || '0', 10) || 0; } catch (e) {} n++; try { localStorage.setItem(SEQ, String(n)); } catch (e) {} return n; }
 
   function idbOK() { try { return !!g.indexedDB; } catch (e) { return false; } }
   function open() {
@@ -26,6 +31,7 @@
 
   function add(item) {
     item = item || {}; item.id = item.id || genId(); item.ts = item.ts || Date.now();
+    item.idem = item.idem || (clientId() + '#' + nextSeq()); // идемпотентность: ключ операции
     if (!idbOK()) { var a = lsRead(); a.push(item); lsWrite(a); updateBadge(); return Promise.resolve(); }
     return open().then(function (db) {
       return new Promise(function (res) {
@@ -72,8 +78,11 @@
       function step() {
         if (i >= items.length || acc.stop) return Promise.resolve();
         var it = items[i++];
+        // идемпотентность: если операция уже применялась (сбой между отправкой и удалением) — не повторяем
+        if (appliedHas(it.idem)) { acc.done++; return remove(it.id).then(step); }
         return g.SB.rpc(it.rpc, it.args || {}).then(function (r) {
-          if (r && r.error) acc.failed++; else acc.done++;
+          if (r && r.error) { acc.failed++; acc.conflicts = (acc.conflicts || 0) + 1; }
+          else { acc.done++; appliedAdd(it.idem); }
           acc.labels.push(it.label || it.rpc);
           return remove(it.id).then(step);
         }).catch(function () { acc.stop = true; });

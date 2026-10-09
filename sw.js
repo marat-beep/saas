@@ -1,12 +1,15 @@
 /* ============================================================
-   3DMP Service · sw.js v2 — service worker (PWA, консервативный).
-   Стратегия: network-first (данные всегда свежие), офлайн-фолбэк для
-   навигаций и статики. Не мешает деплою на FTP (кэш — только фолбэк).
-   Требуется HTTPS.
+   3DMP Service · sw.js v3 — service worker (PWA).
+   Стратегии по маршрутам:
+     • навигации/HTML — network-first (свежие данные), фолбэк — кэш/OFFLINE;
+     • статика (js/css/img/manifest, в т.ч. ?v=N) — stale-while-revalidate
+       (мгновенно из кэша, фон обновляет; версии ?v=N исключают устаревание);
+     • прочее same-origin GET — network-first с фолбэк-кэшем.
+   Не мешает деплою на FTP. Требуется HTTPS.
    ============================================================ */
 'use strict';
 
-var CACHE = '3dmp-offline-v2';
+var CACHE = '3dmp-offline-v3';
 var OFFLINE = './index.html';
 var SHELL = [
   './index.html',
@@ -16,8 +19,10 @@ var SHELL = [
   './assets/js/supabase-client.js',
   './assets/js/ui.js',
   './assets/js/auth.js',
-  './assets/js/offline-queue.js'
+  './assets/js/offline-queue.js',
+  './assets/js/offline-cache.js'
 ];
+var STATIC_RE = /\.(?:css|js|mjs|svg|png|jpg|jpeg|gif|webp|ico|woff2?|ttf|webmanifest)$/;
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) {
@@ -32,6 +37,10 @@ self.addEventListener('activate', function (e) {
   }).then(function () { return self.clients.claim(); }));
 });
 
+function put(req, resp) {
+  if (resp && resp.ok) { var copy = resp.clone(); caches.open(CACHE).then(function (c) { c.put(req, copy).catch(function () {}); }); }
+}
+
 self.addEventListener('fetch', function (e) {
   var req = e.request;
   if (req.method !== 'GET') return;
@@ -39,17 +48,24 @@ self.addEventListener('fetch', function (e) {
   try { url = new URL(req.url); } catch (err) { return; }
   if (url.origin !== self.location.origin) return;
 
+  var isNav = req.mode === 'navigate';
+  var isStatic = STATIC_RE.test(url.pathname) || /[?&]v=\d+/.test(url.search);
+
+  if (isStatic && !isNav) {
+    // stale-while-revalidate
+    e.respondWith(caches.match(req).then(function (cached) {
+      var net = fetch(req).then(function (resp) { put(req, resp); return resp; }).catch(function () { return cached; });
+      return cached || net;
+    }));
+    return;
+  }
+
+  // network-first (+ offline fallback)
   e.respondWith(
-    fetch(req).then(function (resp) {
-      // кэшируем статику и навигации для офлайн-фолбэка
-      if (resp && resp.ok && (req.mode === 'navigate' || /\.(?:css|js|svg|png|webmanifest)$/.test(url.pathname))) {
-        var copy = resp.clone();
-        caches.open(CACHE).then(function (c) { c.put(req, copy).catch(function () {}); });
-      }
-      return resp;
-    }).catch(function () {
-      if (req.mode === 'navigate') return caches.match(OFFLINE).then(function (r) { return r || caches.match(req); });
-      return caches.match(req);
-    })
+    fetch(req).then(function (resp) { put(req, resp); return resp; })
+      .catch(function () {
+        if (isNav) return caches.match(OFFLINE).then(function (r) { return r || caches.match(req); });
+        return caches.match(req);
+      })
   );
 });

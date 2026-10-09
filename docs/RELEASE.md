@@ -30,6 +30,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 - Роли — `data-cap` + карта `CAPS` в JS модуля.
 - `wizard.js` + `wizards.js` — пошаговые мастера (W32): кнопка `data-wizard`/авто-подстановка; черновик в localStorage.
 - `mobile.js` — мини-мобильный режим (W31): нижняя панель быстрых действий из `AppCatalog.quick`, `?mobile=1`, офлайн-действия (`AppOffline`), PWA-установка.
+- `offline-queue.js` (v2, идемпотентность) + `offline-cache.js` (IndexedDB-кэш чтения) + `scan.js` (QR/ШК, фото, геометка) — офлайн (W36); `sw.js` v3 — кэш-стратегии по маршрутам.
 
 ## 4. Волны апгрейда (сделано)
 - **W-S (сервис ЧПУ по ТЗ):** заявки/SLA/гарантии/контракты, выезды, паспорт станка, отчёты, IIoT/ППР, матрица ролей, процесс, печать.
@@ -44,6 +45,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\build-release.ps1
 - [ ] Отметки в `BACKLOG.md`, `PLAN_WAVES.md`, `STATUS.md`, `NOTES.md`, `PROMPTS.md`.
 
 ## 6. Журнал релизов (последнее)
+- **v243** — W36 мобильный офлайн (план v3 закрыт): `offline-queue.js` v2 (идемпотентность), `offline-cache.js` (IndexedDB-кэш чтения), `scan.js` (QR/ШК/фото/геометка), `sw.js` v3 (кэш по маршрутам); офлайн-склад, скан в моб. панели. Каталог v10.32, shell v73, CATALOG_V 108.
 - **v242 (миграция `0180`)** — W37 документация/мануалы: актуализированы USER/ADMIN/RUNBOOK/ECOSYSTEM/MODULE_REFERENCE; паки БЗ «Справка»/«Администрирование»; раздел «Справка и мануалы» в `apps/guide` v4.
 - **v241 (миграция `0179`)** — W35 маркетплейс-расширения: `app_extensions`/`app_extension_installs` + RPC (каталог/установка/включение/удаление/манифест), включение коннектора подтягивает `app_integrations`, аудит; вкладка «Расширения» в `apps/marketplace`.
 - **v240** — W31 мини-мобильные приложения модулей: `assets/js/mobile.js` (нижняя панель быстрых действий, `?mobile=1`, PWA-установка) + `quick` в `catalog.js` (15 модулей; переходы/мастера/RPC с офлайн-очередью). Каталог v10.31, shell v72, CATALOG_V 107. Пакет П2 закрыт.

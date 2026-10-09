@@ -14,6 +14,11 @@
   function msg(id, t, k) { var e = $(id); e.className = 'msg show ' + (k || 'info'); e.textContent = t; }
   function clearMsg(id) { var e = $(id); e.className = 'msg'; e.textContent = ''; }
   function rpc(n, a) { return SB.rpc(n, a).then(function (r) { if (r.error) throw new Error(r.error.message); return r.data; }); }
+  /* W36: офлайн-чтение справочников/списков (кэш при отсутствии сети) */
+  function rpcCached(key, n, a) {
+    if (window.AppOfflineCache) return window.AppOfflineCache.cached(key, function () { return rpc(n, a); });
+    return rpc(n, a);
+  }
   var screens = AppRouter.create({ onShow: function () { window.scrollTo(0, 0); }, onBackEmpty: function () { location.href = '../../index.html'; } });
 
   /* ---------- Роли (data-cap) ---------- */
@@ -24,9 +29,9 @@
 
   function load() {
     return Promise.all([
-      rpc('app_material_list', { p_token: token }),
-      rpc('app_stock_low', { p_token: token }).catch(function () { return []; }),
-      rpc('app_order_list', { p_token: token }).catch(function () { return []; })
+      rpcCached('wh:materials', 'app_material_list', { p_token: token }),
+      rpcCached('wh:low', 'app_stock_low', { p_token: token }).catch(function () { return []; }),
+      rpcCached('wh:orders', 'app_order_list', { p_token: token }).catch(function () { return []; })
     ]).then(function (r) {
       mats = r[0] || []; low = r[1] || []; orders = r[2] || [];
       $('#mvOrder').innerHTML = '<option value="">— нет —</option>' + orders.map(function (o) { return '<option value="' + o.id + '">' + esc(o.number) + '</option>'; }).join('');

@@ -49,9 +49,28 @@
   function ensureOffline() {
     if (g.AppOffline) return Promise.resolve();
     return new Promise(function (res) {
-      var sc = document.createElement('script'); sc.src = rootPrefix() + 'assets/js/offline-queue.js?v=1';
+      var sc = document.createElement('script'); sc.src = rootPrefix() + 'assets/js/offline-queue.js?v=2';
       sc.onload = function () { res(); }; sc.onerror = function () { res(); };
       document.head.appendChild(sc);
+    });
+  }
+
+  function ensureScan() {
+    if (g.AppScan) return Promise.resolve();
+    return new Promise(function (res) {
+      var sc = document.createElement('script'); sc.src = rootPrefix() + 'assets/js/scan.js?v=1';
+      sc.onload = function () { res(); }; sc.onerror = function () { res(); };
+      document.head.appendChild(sc);
+    });
+  }
+  function scanAction(spec) {
+    ensureScan().then(function () {
+      if (!g.AppScan) { toast('Скан недоступен'); return; }
+      g.AppScan.scan().then(function (code) {
+        if (!code) return;
+        try { if (navigator.clipboard) navigator.clipboard.writeText(code); } catch (e) {}
+        toast('Код: ' + code);
+      });
     });
   }
 
@@ -101,6 +120,7 @@
     var list = actions.map(function (a, idx) {
       var ic = a.icon || '⚡';
       if (a.wizard) return '<button class="mb-btn" type="button" data-mb="wiz" data-mod="' + a.wizard + '"><span class="mb-ic">' + ic + '</span>' + esc(a.label) + '</button>';
+      if (a.scan) return '<button class="mb-btn" type="button" data-mb="scan" data-i="' + idx + '"><span class="mb-ic">' + ic + '</span>' + esc(a.label) + '</button>';
       if (a.rpc) return '<button class="mb-btn" type="button" data-mb="rpc" data-i="' + idx + '"><span class="mb-ic">' + ic + '</span>' + esc(a.label) + '</button>';
       var href = a.href || (rootPrefix() + 'index.html');
       return '<a class="mb-btn" href="' + href + '"><span class="mb-ic">' + ic + '</span>' + esc(a.label) + '</a>';
@@ -111,6 +131,9 @@
     });
     Array.prototype.forEach.call(bar.querySelectorAll('[data-mb="rpc"]'), function (b) {
       b.addEventListener('click', function () { runRpcAction(actions[Number(b.getAttribute('data-i'))]); });
+    });
+    Array.prototype.forEach.call(bar.querySelectorAll('[data-mb="scan"]'), function (b) {
+      b.addEventListener('click', function () { scanAction(actions[Number(b.getAttribute('data-i'))]); });
     });
     var off = bar.querySelector('[data-mb="off"]');
     if (off) off.addEventListener('click', function () { disable(); });
