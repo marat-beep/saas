@@ -75,6 +75,8 @@
   .hub-view { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; background: #fff; flex: 0 0 auto; }
   .vbtn { border: 0; background: transparent; padding: 7px 14px; font: 600 .78rem/1 inherit; cursor: pointer; color: var(--muted); }
   .vbtn.on { background: var(--accent-100); color: var(--accent-700); }
+  .vbtn.hub-collapse { flex: 0 0 auto; border: 1px solid var(--border); border-radius: 999px; background: #fff; white-space: nowrap; }
+  .vbtn.hub-collapse:hover { border-color: var(--accent); color: var(--accent-700); }
   .hub-note { margin: 0 0 12px; }
   .grp-card { padding: 14px 14px 12px; }
   .grp-head { display: flex; align-items: center; gap: 10px; margin: 0 0 4px; cursor: pointer; font-size: 1rem; user-select: none; }
@@ -359,7 +361,9 @@
           '<div class="hub-view" role="group" aria-label="Вид">' +
           '<button class="vbtn' + (compact ? '' : ' on') + '" type="button" data-view="normal">Обычный</button>' +
           '<button class="vbtn' + (compact ? ' on' : '') + '" type="button" data-view="compact">Компактно</button>' +
-          '</div></div>';
+          '</div>' +
+          '<button class="vbtn hub-collapse" type="button" data-collapse-all>' + (allCollapsed() ? '⇕ Развернуть всё' : '⇕ Свернуть всё') + '</button>' +
+          '</div>';
 
         if (q) {
           var res = list.filter(function (a) { return hubMatch(a, q); });
@@ -412,6 +416,9 @@
         ui.qsa('#apps [data-filter]').forEach(function (b) {
           b.addEventListener('click', function () { hubState.filter = b.getAttribute('data-filter'); renderApps(user); scrollToFilter(); });
         });
+        ui.qsa('#apps [data-collapse-all]').forEach(function (b) {
+          b.addEventListener('click', function () { toggleAllGroups(user); });
+        });
         ui.qsa('#apps .grp-head[data-toggle]').forEach(function (h) {
           h.addEventListener('click', function () { toggleGroup(h.getAttribute('data-toggle'), user); });
           h.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGroup(h.getAttribute('data-toggle'), user); } });
@@ -430,6 +437,18 @@
       function toggleGroup(gid, user) {
         var on = isCollapsed(gid);
         try { localStorage.setItem('3dmp:hub:collapsed:' + gid, on ? '0' : '1'); } catch (e) {}
+        renderApps(user);
+      }
+      function allCollapsed() {
+        var ids = (C.groups || []).map(function (g) { return g.id; });
+        if (hubState.filter && hubState.filter !== 'fav') ids = [hubState.filter];
+        return ids.length > 0 && ids.every(function (id) { return isCollapsed(id); });
+      }
+      function toggleAllGroups(user) {
+        var ids = (C.groups || []).map(function (g) { return g.id; });
+        if (hubState.filter && hubState.filter !== 'fav') ids = [hubState.filter];
+        var collapse = !allCollapsed();
+        ids.forEach(function (id) { try { localStorage.setItem('3dmp:hub:collapsed:' + id, collapse ? '1' : '0'); } catch (e) {} });
         renderApps(user);
       }
       function scrollToFilter() {
