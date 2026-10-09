@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Бюджет проектов — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=35">
+<style>.num{text-align:right;font-variant-numeric:tabular-nums}</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">💰</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap fluid">
+    <div class="hero"><h1>Бюджет проектов</h1><p>Смета проекта: план-факт по статьям, освоение (EVM: PV/AC/EV, CPI/SPI, EAC). Роли: staff.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+    <div class="msg" id="m"></div>
+
+    <div class="card">
+      <div class="toolbar"><button class="btn" data-cap="edit" id="addBud" style="width:auto;padding:8px 14px;">＋ Смета</button>
+        <span class="note" style="margin-left:auto;">Дашборды по бюджету — в «Отчёты/BI».</span></div>
+      <div id="budgets" class="mt"><span class="note">Загрузка…</span></div>
+    </div>
+    <div class="card" id="detailCard" style="display:none;">
+      <div id="detail"></div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · бюджет проектов</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=4"></script>
+  <script src="../../assets/js/auth.js?v=6"></script>
+  <script src="../../assets/js/notify.js?v=3"></script>
+  <script src="../../assets/js/support-widget.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=103"></script>
+  <script src="../../assets/js/shell.js?v=65"></script>
+  <script src="projbudget.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=2"></script>
+  <script src="../../assets/js/module-info.js?v=1"></script>
+</body>
+</html>
