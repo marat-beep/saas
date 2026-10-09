@@ -6,12 +6,13 @@
 <title>Гид по системе — 3DMP Service</title>
 <link rel="stylesheet" href="../../assets/css/app.css?v=35">
 <style>
-  .guide-grp { margin-bottom: 22px; }
-  .guide-grp > h2 { font-size: 1rem; margin: 0 0 10px; }
-  .mod { border: 1px solid var(--border); border-radius: var(--r); background: #fff; padding: 14px 16px; margin-bottom: 10px; }
-  .mod h3 { font-size: .94rem; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
+  .guide-grp { margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; align-items: start; }
+  .guide-grp > h2 { grid-column: 1 / -1; font-size: 1rem; margin: 2px 0; }
+  .mod { border: 1px solid var(--border); border-radius: var(--r); background: #fff; padding: 12px 14px; margin: 0; display: flex; flex-direction: column; height: 100%; }
+  .mod h3 { font-size: .92rem; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .mod .purp { font-size: .82rem; color: #334155; margin: 6px 0; }
-  .mod ul { margin: 6px 0 8px 18px; padding: 0; font-size: .78rem; color: var(--muted); }
+  .mod ul { margin: 6px 0 8px 18px; padding: 0; font-size: .76rem; color: var(--muted); }
+  .mod .chips, .mod .io { margin-top: auto; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
   .chip { font-size: .7rem; border: 1px solid var(--border); border-radius: 999px; padding: 3px 9px; text-decoration: none; color: #475569; background: #f8fafc; }
   .chip:hover { border-color: var(--accent); color: var(--accent-700); }
@@ -43,7 +44,7 @@
   <script src="../../assets/js/supabase-client.js?v=1"></script>
   <script src="../../assets/js/ui.js?v=4"></script>
   <script src="../../assets/js/auth.js?v=6"></script>
-  <script src="../../assets/js/catalog.js?v=105"></script>
+  <script src="../../assets/js/catalog.js?v=108"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=108"></script>

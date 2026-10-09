@@ -64,6 +64,10 @@ $cv = (Get-Content 'assets/js/nav.js' -Encoding UTF8 | Select-String "CATALOG_V 
 $cv2 = (Get-Content 'assets/js/shell.js' -Encoding UTF8 | Select-String "CATALOG_V = '(\d+)'").Matches.Groups[1].Value
 Write-Host "  CATALOG_V: nav=$cv shell=$cv2"
 if ($cv -ne $cv2) { $fail++; Write-Host "!! CATALOG_V в nav.js и shell.js различаются" -ForegroundColor Red }
+$catVP = Versions 'catalog\.js\?v=(\d+)'
+Write-Host "  catalog.js версии на страницах: $($catVP -join ',')"
+$catBad = @($catVP | Where-Object { $_ -ne $cv2 })
+if ($catBad.Count) { $fail++; Write-Host "!! catalog.js на страницах не совпадает с CATALOG_V=${cv2}: $($catBad -join ',')" -ForegroundColor Red }
 
 # --- 3b. Дубли id (#who/#logout/#tabs) и единая версия notify.js ---
 $dupPages = @()
