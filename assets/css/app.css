@@ -225,17 +225,16 @@ body.sh-collapsed .sh-side { width: 60px; }
 /* формы */
 .field { margin-bottom: 12px; }
 .field label { display: block; font-size: .78rem; font-weight: 600; margin-bottom: 5px; color: #334155; }
-input[type="text"], input[type="email"], input[type="password"],
-input[type="number"], input[type="date"], input[type="search"],
-input[type="tel"], input[type="url"], input[type="time"], textarea {
-  width: 100%; padding: 11px 12px; border: 2px solid var(--border); border-radius: 10px;
-  font-size: .9rem; background: #fff; color: var(--text);
+/* текстовые поля: покрываем и <input> без атрибута type (частая причина «некрасивых» полей) */
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="range"]):not([type="color"]):not([type="image"]),
+select, textarea {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px;
+  font-size: .9rem; background: #fff; color: var(--text); min-height: 42px; box-sizing: border-box;
 }
-.field select {
-  width: 100%; padding: 11px 12px; border: 2px solid var(--border); border-radius: 10px;
-  font-size: .9rem; background: #fff; color: var(--text);
-}
-input:focus { outline: none; border-color: var(--accent); }
+.field select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: .9rem; background: #fff; color: var(--text); }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(16,185,129,.18); }
+input:disabled, select:disabled, textarea:disabled { background: #f1f5f9; color: var(--muted); }
+input::placeholder, textarea::placeholder { color: #94a3b8; }
 .btn {
   width: 100%; padding: 12px 16px; border-radius: 10px; border: none; cursor: pointer;
   font-size: .88rem; font-weight: 700; background: var(--accent); color: #fff;
