@@ -52,24 +52,39 @@
   function loadModules() {
     return Promise.all([
       rpc('app_tenant_modules_list', { p_token: token }).catch(function () { return []; }),
-      rpc('app_setup_readiness', { p_token: token }).catch(function () { return []; })
+      rpc('app_org_profiles_list', { p_token: token }).catch(function () { return []; })
     ]).then(function (r) {
       (r[0] || []).forEach(function (m) { enabledMap[m.module] = m.enabled !== false; });
+      var profiles = r[1] || [];
       var c = cat();
-      var groups = (c.groups || []).slice();
       var q = (($('#modFilter') && $('#modFilter').value) || '').trim().toLowerCase();
-      var apps = (c.apps || []).filter(function (a) { return a.href && a.href.indexOf('apps/') === 0; });
+      var appsAll = (c.apps || []).filter(function (a) { return a.href && a.href.indexOf('apps/') === 0; });
+      var apps = appsAll.slice();
       if (q) apps = apps.filter(function (a) { return ((a.title || '') + ' ' + (a.desc || '') + ' ' + (a.purpose || '') + ' ' + (a.id || '')).toLowerCase().indexOf(q) >= 0; });
       var byGroup = {};
       apps.forEach(function (a) { var g = a.group || '_'; (byGroup[g] = byGroup[g] || []).push(a); });
-      var order = groups.map(function (g) { return g.id; }).filter(function (id) { return byGroup[id]; });
+      var order = (c.groups || []).map(function (g) { return g.id; }).filter(function (id) { return byGroup[id]; });
       if (byGroup['_']) order.push('_');
-      var html = '';
+
+      var profBar = '<div class="toolbar" style="gap:8px;flex-wrap:wrap;margin-bottom:6px;">' +
+        '<span class="note">Профиль организации:</span>' +
+        '<select id="modProfile" style="padding:8px;border:1px solid var(--border);border-radius:9px;">' +
+        (profiles.length ? profiles.map(function (p) { return '<option value="' + esc(p.code) + '">' + esc(p.name) + '</option>'; }).join('') : '<option value="">— нет профилей —</option>') +
+        '</select>' +
+        '<select id="modMode" style="padding:8px;border:1px solid var(--border);border-radius:9px;"><option value="set">Набор (выключить лишнее)</option><option value="add">Добавить к текущим</option></select>' +
+        '<button class="btn" id="applyProfile" style="width:auto;padding:8px 14px;">Применить профиль</button>' +
+        '<span class="note" id="modMsg"></span></div>';
+
+      var html = profBar;
       order.forEach(function (gid) {
         var g = groupById(gid) || { icon: '🗂', title: 'Прочее' };
         var items = byGroup[gid] || [];
         var onCount = items.filter(function (a) { return enabledMap[a.id] !== false; }).length;
-        html += '<div class="note" style="margin:14px 0 4px;font-weight:700;">' + g.icon + ' ' + esc(g.title) + ' <span class="badge">' + onCount + ' / ' + items.length + '</span></div>';
+        var allOn = onCount === items.length && items.length > 0;
+        html += '<div class="note" style="margin:14px 0 4px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' + g.icon + ' ' + esc(g.title) +
+          ' <span class="badge">' + onCount + ' / ' + items.length + '</span>' +
+          '<button class="act" data-grp-on="' + esc(gid) + '">Весь контур: вкл</button>' +
+          '<button class="act" data-grp-off="' + esc(gid) + '">выкл</button></div>';
         html += items.map(function (a) {
           var on = enabledMap[a.id] !== false;
           return '<div class="kvr" style="align-items:flex-start;"><span style="font-size:1.35rem;line-height:1.2;">' + a.icon + '</span>' +
@@ -81,6 +96,7 @@
         }).join('');
       });
       $('#modules').innerHTML = html || '<span class="note">Каталог не загружен.</span>';
+      var allIds = appsAll.map(function (a) { return a.id; });
       $$('#modules [data-cfg]').forEach(function (b) { b.addEventListener('click', function () { if (window.AppSetupWizard) window.AppSetupWizard.open(token, { module: b.dataset.cfg, onDone: loadModules }); }); });
       $$('#modules [data-mod]').forEach(function (b) {
         b.addEventListener('click', function () {
@@ -88,6 +104,20 @@
             .then(function () { ui.toast('Модуль обновлён'); enabledMap[b.dataset.mod] = b.dataset.on === 'true'; loadModules(); })
             .catch(function (e) { ui.toast('Ошибка: ' + e.message); });
         });
+      });
+      function groupIds(gid) { return (byGroup[gid] || []).map(function (a) { return a.id; }); }
+      $$('#modules [data-grp-on]').forEach(function (b) { b.addEventListener('click', function () { bulk(groupIds(b.dataset.grpOn), true); }); });
+      $$('#modules [data-grp-off]').forEach(function (b) { b.addEventListener('click', function () { bulk(groupIds(b.dataset.grpOff), false); }); });
+      function bulk(ids, en) { rpc('app_modules_set_bulk', { p_token: token, p_modules: ids, p_enabled: en }).then(function (rr) { var x = rr && rr[0]; ui.toast((x && x.message) || 'Готово', x && x.ok ? 'ok' : 'err'); loadModules(); }).catch(function (e) { ui.toast('Ошибка: ' + e.message); }); }
+      var apb = $('#applyProfile');
+      if (apb) apb.addEventListener('click', function () {
+        var code = ($('#modProfile') && $('#modProfile').value) || '';
+        if (!code) { ui.toast('Нет профилей'); return; }
+        var mode = ($('#modMode') && $('#modMode').value) || 'set';
+        if (mode === 'set' && !window.confirm('Применить профиль «' + code + '»? Модули вне профиля будут отключены.')) return;
+        rpc('app_org_profile_apply', { p_token: token, p_code: code, p_all: mode === 'set' ? allIds : null })
+          .then(function (rr) { var x = rr && rr[0]; ui.toast((x && x.message) || 'Профиль применён', x && x.ok ? 'ok' : 'err'); loadModules(); })
+          .catch(function (e) { ui.toast('Ошибка: ' + e.message); });
       });
     }).catch(function (e) { $('#modules').innerHTML = '<span class="note">' + esc(e.message) + '</span>'; });
   }
