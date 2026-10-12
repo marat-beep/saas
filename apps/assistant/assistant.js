@@ -90,4 +90,8 @@
       if (cur) { var ok = Array.prototype.some.call(sel.options, function (o) { return o.value === cur; }); if (ok) sel.value = cur; }
     }).catch(function () {});
   }
+  var _af = document.getElementById('afBtn');
+  if (_af) _af.addEventListener('click', function () {
+    rpc('app_tech_rules_autofill', { p_token: token }).then(function (r) { var x = r && r[0]; ui.toast((x && x.message) || 'Готово', x && x.ok ? 'ok' : 'err'); if (x && x.ok) recommend(); }).catch(function (e) { ui.toast('Ошибка: ' + e.message); });
+  });
 })();
