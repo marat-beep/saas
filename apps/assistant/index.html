@@ -25,6 +25,9 @@
   .ac-item .g{color:var(--muted);font-size:.72rem;white-space:nowrap}
   .ac-item:hover,.ac-item.on{background:#f0fdf4}
   .ac-empty{padding:10px 12px;color:var(--muted);font-size:.8rem}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{padding:5px 11px;border:1px solid var(--border);border-radius:999px;background:#fff;font-size:.74rem;color:#334155;cursor:pointer}
+  .chip:hover{border-color:var(--accent);color:var(--accent-700)}
   @media(max-width:680px){}
 </style>
 </head>
@@ -51,7 +54,19 @@
           <input type="text" id="q" placeholder="Например: допуск на отверстие 12H7 / hole tolerance / grinding wheel">
           <button class="btn" id="askBtn" style="width:auto;padding:11px 18px;">Найти</button>
         </div>
+        <div class="chips mt" id="qChips">
+          <button class="chip" data-q="режим фрезерования стали">режим фрезерования стали</button>
+          <button class="chip" data-q="латунь точение">латунь точение</button>
+          <button class="chip" data-q="хонингование сталь">хонингование сталь</button>
+          <button class="chip" data-q="допуск на отверстие 12H7">допуск 12H7</button>
+          <button class="chip" data-q="grinding wheel">grinding wheel</button>
+        </div>
+        <div class="btn-row mt">
+          <button class="btn secondary" id="cutBtn">📐 Режимы резания по запросу</button>
+          <button class="btn secondary" id="toPick">🔧 Подобрать технологию</button>
+        </div>
         <div id="results" class="mt"></div>
+        <div id="cutRes" class="mt"></div>
       </div>
       <div class="card">
         <h2>Подбор технологии</h2>
@@ -98,7 +113,7 @@
   <script src="../../assets/js/support-widget.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=108"></script>
   <script src="../../assets/js/shell.js?v=75"></script>
-  <script src="assistant.js?v=4"></script>
+  <script src="assistant.js?v=5"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=2"></script>
 </body>

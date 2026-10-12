@@ -54,6 +54,21 @@
     }).catch(function (e) { $('#rec').innerHTML = '<span class="note">Ошибка: ' + esc(e.message) + '</span>'; });
   }
 
+  function renderCutting(rows) {
+    var host = document.getElementById('cutRes'); if (!host) return;
+    rows = rows || [];
+    if (!rows.length) { host.innerHTML = '<div class="ans"><p>Режимы не найдены. Уточните материал/операцию (напр. «сталь фрезерование»).</p></div>'; return; }
+    host.innerHTML = '<div class="ans"><b>📐 Режимы резания (' + rows.length + ')</b>' +
+      '<div style="overflow:auto;margin-top:8px;"><table class="mini"><thead><tr><th>Материал</th><th>Операция</th><th>Инструмент</th><th class="num">Vc</th><th class="num">Подача</th><th class="num">ap</th><th>СОЖ</th></tr></thead><tbody>' +
+      rows.map(function (r) {
+        return '<tr><td>' + esc(GRP[r.material_group] || r.material_group || '') + '</td><td><b>' + esc(r.operation || '') + '</b></td>' +
+          '<td>' + esc((r.tool_type || '') + (r.tool_material ? ' · ' + r.tool_material : '')) + '</td>' +
+          '<td class="num">' + (r.vc == null ? '—' : r.vc) + '</td><td class="num">' + (r.feed == null ? '—' : r.feed) + '</td>' +
+          '<td class="num">' + (r.ap == null ? '—' : r.ap) + '</td><td>' + esc(r.cooling || '') + '</td></tr>';
+      }).join('') + '</tbody></table></div><div class="note" style="margin-top:6px;">Источник: справочник режимов резания (реестр «Справочники»).</div></div>';
+    window.Auth.log('Помощник: режимы', ($('#q').value || ''));
+  }
+
   $('#tabs').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     $$('#tabs button').forEach(function (x) { x.classList.toggle('active', x === b); });
@@ -62,6 +77,20 @@
   });
   $('#askBtn').addEventListener('click', ask);
   $('#q').addEventListener('keydown', function (e) { if (e.key === 'Enter') ask(); });
+  $('#cutBtn').addEventListener('click', function () {
+    var v = $('#q').value.trim();
+    if (!v) { $('#cutRes').innerHTML = '<span class="note">Введите материал и/или операцию.</span>'; return; }
+    $('#cutRes').innerHTML = '<span class="note">Подбор режимов…</span>';
+    rpc('app_ref_cutting_find', { p_token: token, p_material: v, p_operation: null, p_limit: 30 })
+      .then(renderCutting).catch(function (e) { $('#cutRes').innerHTML = '<span class="note">Ошибка: ' + esc(e.message) + '</span>'; });
+  });
+  $('#toPick').addEventListener('click', function () {
+    var v = $('#q').value.trim(), inp = document.getElementById('rMat');
+    if (v && inp) { inp.value = v; acIdx = -1; acRender(); inp.focus(); inp.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    ui.toast('Запрос перенесён в «Подбор технологии»');
+  });
+  var _chips = document.getElementById('qChips');
+  if (_chips) _chips.addEventListener('click', function (e) { var b = e.target.closest('.chip'); if (!b) return; $('#q').value = b.dataset.q; ask(); });
   $('#recBtn').addEventListener('click', recommend);
   $('#kAdd').addEventListener('click', function () {
     var q = $('#kQ').value.trim(), a = $('#kA').value.trim();
