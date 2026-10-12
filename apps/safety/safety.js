@@ -71,4 +71,10 @@
     if (!SB) { msg('Supabase не подключён.', 'err'); return; }
     loadKpi(); loadBr();
   });
+  $('#ehsScanBtn').addEventListener('click', function () {
+    rpc('app_safety_scan', { p_token: token, p_days: 30 }).then(function (r) {
+      var y = r && r[0]; var el = $('#ehsMsg'); if (el) el.textContent = (y && y.message) || '';
+      if (window.AppUI) AppUI.toast((y && y.message) || 'Проверено', 'ok');
+    }).catch(function (e) { if (window.AppUI) AppUI.toast('Ошибка: ' + e.message); });
+  });
 })();

@@ -93,4 +93,40 @@
     if (!SB) { msg('#skMsg', 'Supabase не подключён.', 'err'); return; }
     loadSkills().then(loadMatrix).then(loadPlan);
   });
+  function _esc(v){ return ui.esc(v); }
+  $('#profBtn').addEventListener('click', function () {
+    rpc('app_job_profile_list', { p_token: token }).then(function (rows) {
+      rows = rows || [];
+      var html = '<div class="toolbar"><button class="btn" id="pNew" style="width:auto;padding:8px 14px;">＋ Профиль должности</button></div><div class="tbl-wrap mt"><table class="tbl"><thead><tr><th>Должность</th><th>Требования</th></tr></thead><tbody>' +
+        (rows.length ? rows.map(function (p) { return '<tr><td><b>' + _esc(p.title) + '</b></td><td>' + (p.requirements || []).map(function (r) { return _esc(r.code) + ':' + r.level; }).join(', ') + '</td></tr>'; }).join('') : '<tr><td colspan="2" class="note">Нет профилей</td></tr>') + '</tbody></table></div>';
+      ui.dialog({ title: 'Профили должностей', body: html, html: true, cancelText: 'Закрыть', onOpen: function (back) {
+        back.querySelector('#pNew').addEventListener('click', function () {
+          ui.formDialog({ title: 'Профиль должности', okText: 'Сохранить', fields: [
+            { name: 'title', label: 'Должность', type: 'text', required: true },
+            { name: 'dept', label: 'Подразделение', type: 'text' },
+            { name: 'reqs', label: 'Требования JSON [{code,level}]', type: 'textarea', rows: 2, value: '[{"code":"cnc","level":4}]' }
+          ] }).then(function (v) { if (!v) return; var req; try { req = JSON.parse(v.reqs || '[]'); } catch (e) { ui.toast('Некорректный JSON'); return; }
+            rpc('app_job_profile_save', { p_token: token, p_id: null, p_title: v.title, p_dept: v.dept, p_role: null, p_requirements: req }).then(function (r) { var x = r && r[0]; ui.toast((x && x.message) || '', x && x.ok ? 'ok' : 'err'); if (x && x.ok) back.querySelector('[data-cancel]').click(); }); });
+        });
+      } });
+    });
+  });
+  $('#gapBtn').addEventListener('click', function () {
+    rpc('app_skill_gap_scan', { p_token: token }).then(function (rows) {
+      rows = rows || [];
+      var html = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Сотрудник</th><th>Профиль</th><th>Навык</th><th class="num">Треб.</th><th class="num">Факт</th><th class="num">Дефицит</th></tr></thead><tbody>' +
+        (rows.length ? rows.map(function (g) { return '<tr><td>' + _esc(g.full_name) + '</td><td>' + _esc(g.profile_title) + '</td><td>' + _esc(g.skill_name) + '</td><td class="num">' + g.required + '</td><td class="num">' + g.actual + '</td><td class="num"><b>' + g.gap + '</b></td></tr>'; }).join('') : '<tr><td colspan="6" class="note">Дефицита нет</td></tr>') + '</tbody></table></div>';
+      ui.dialog({ title: 'Дефицит навыков', body: html, html: true, cancelText: 'Закрыть' });
+    });
+  });
+  $('#certBtn').addEventListener('click', function () {
+    rpc('app_cert_list', { p_token: token, p_employee_id: null }).then(function (rows) {
+      rows = rows || [];
+      var html = '<div class="toolbar"><button class="btn secondary" id="cScan" style="width:auto;padding:8px 14px;">🔔 Проверить сроки</button></div><div class="tbl-wrap mt"><table class="tbl"><thead><tr><th>Сотрудник</th><th>Сертификат</th><th>Действует до</th><th class="num">Дней</th></tr></thead><tbody>' +
+        (rows.length ? rows.map(function (c) { return '<tr><td>' + _esc(c.employee || '') + '</td><td>' + _esc(c.name) + '</td><td>' + (c.expires_at || '') + '</td><td class="num">' + (c.days_left == null ? '—' : c.days_left) + '</td></tr>'; }).join('') : '<tr><td colspan="4" class="note">Нет сертификатов</td></tr>') + '</tbody></table></div>';
+      ui.dialog({ title: 'Сертификаты', body: html, html: true, cancelText: 'Закрыть', onOpen: function (back) {
+        var s = back.querySelector('#cScan'); if (s) s.addEventListener('click', function () { rpc('app_cert_scan', { p_token: token, p_days: 30 }).then(function (r) { var x = r && r[0]; ui.toast((x && x.message) || '', 'ok'); }); });
+      } });
+    });
+  });
 })();

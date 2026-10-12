@@ -5,7 +5,7 @@
 > **Конец сессии:** обнови статусы пунктов (и краткий журнал в §5), затем `PLAN.md`/`PROMPTS.md` при необходимости.
 
 ## 1. Состояние (кратко)
-- Миграции `0001…0198`, `apply_all.sql` идемпотентен; смоук `app_smoke_test` 10/10, `app_smoke_test_ext` 14/14, волновые RPC 44/44, перегрузок 0 (автотест `tools/db-smoke.ps1`). Эксплуатация — `tools/run-checks.ps1` (audit+db-smoke, лог `dist/checks/`).
+- Миграции `0001…0202`, `apply_all.sql` идемпотентен; смоук `app_smoke_test` 10/10, `app_smoke_test_ext` 14/14, волновые RPC 44/44, перегрузок 0 (автотест `tools/db-smoke.ps1`). Эксплуатация — `tools/run-checks.ps1` (audit+db-smoke, лог `dist/checks/`).
 - Приложений 97 (`apps/`), прототипов 72 (`eco/apps`); каталог `catalog.js` v10.35 — единый источник модулей. Локальный автотест `tools/audit.ps1`. Новые модули помечены 🆕 в каталоге.
 - Методика типового апгрейда модуля — `docs/MODULE_BLUEPRINT.md`.
 - **Релиз:** `tools/build-release.ps1` → `dist/saas-YYYYMMDD-HHmm.zip` (деплой-артефакты для FTP; `dist/` в .gitignore).
@@ -151,14 +151,14 @@ _Автогенерация `tools/update-plan.ps1` от 2026-10-09T17:43:24. П
 | ID | Направление | Модули | Приоритет | Статус |
 |---|---|---|---|---|
 | X1 | Кадры: штат/графики/отсутствия | `hr` | высокий | 🔄 (код готов, миграция `0187`) |
-| X2 | Компетенции/обучение: профили/дефицит/сертификаты | `competences`, `elearning` | средний | ☐ |
-| X3 | CRM сотрудников: онбординг/оценка 360/текучесть | `staff` | средний | ☐ |
+| X2 | Компетенции/обучение: профили/дефицит/сертификаты | `competences`, `elearning` | средний | 🔄 (миграция `0199`) |
+| X3 | CRM сотрудников: онбординг/оценка 360/текучесть | `staff` | средний | 🔄 (миграция `0200`) |
 | X4 | КЭДО 2.0: маршруты/массовые ознакомления/провайдер ЭП | `kedo` | высокий | 🔄 (код готов, миграция `0188`) |
 | X5 | Доступ: сквозной гейтинг по подразделению, роль×действие | `departments`, `org`, `roles`, `access` | высокий | 🔄 (код готов, миграция `0189`) |
-| X6 | EHS 2.0: сроки/допуски-задачи/СИЗ-склад | `safety` | средний | ☐ |
+| X6 | EHS 2.0: сроки/допуски-задачи/СИЗ-склад | `safety` | средний | 🔄 (миграция `0201`) |
 | X7 | ЭДО 2.0: внешний обмен/SLA поручений/подписи/дела | `edo` | высокий | 🔄 (код готов, миграция `0190`) |
 | X8 | Документы 2.0: единый хаб, формулы, версии, экспорт в ЭДО | `docs`, `docbuilder`, `templates` | высокий | 🔄 (код готов, миграция `0191`) |
-| X9 | Общий слой документов/подписей/маршрутов | `docs`/`edo`/`kedo`/`access`/`workflow` | средний | ☐ |
+| X9 | Общий слой документов/подписей/маршрутов | `docs`/`edo`/`kedo`/`access`/`workflow` | средний | 🔄 (миграция `0202` + `documents.js`) |
 | X10 | Производство 2.0: маршрутные карты, таймеры, брак, ССЗ | `production` | высокий | 🔄 (код готов, миграция `0192`) |
 | X11 | MES/терминал 2.0: realtime, drag&drop, аварийные сигналы | `mes`, `terminal` | высокий | 🔄 (код готов, миграция `0193`) |
 | X12 | Планирование 2.0: APS+переналадки, сценарии, Gantt-зависимости | `planning`, `slots`, `forecast` | высокий | 🔄 (ёмкость+APS-слоты+Гант; миграция `0194`) |
@@ -240,6 +240,18 @@ _Автогенерация `tools/update-plan.ps1` от 2026-10-09T17:43:24. П
 **Артефакты (реализовано, `0198_maintenance2.sql`):** RPC `app_mnt_predictive_autoplan` (вибрация > ср.+σ → план ППР + уведомление, без дублей), `app_equipment_card` (паспорт+планы+сервис+вибрация), `app_naryad_op_tools` (инструмент по шагу маршрута). UI `apps/maintenance` v6 («🤖 Автоплан по предиктиву»).
 **Остаток X13:** единая вкладка-дашборд в `equipment`/`oee` и авто-списание инструмента по операциям — частично (RPC готовы).
 
+#### X2 (П5, волна 13) — Компетенции/обучение 2.0 (`competences`/`elearning`) — детализация
+**Артефакты (реализовано, `0199_competences2.sql`):** `app_job_profiles`, `app_certificates`; RPC `app_job_profile_list/save`, `app_skill_gap_scan` (матрица−профиль по должности/роли), `app_cert_list/save/scan`, `app_training_auto_assign`. UI `competences` v2 (Профили/Дефицит/Сертификаты), `elearning` v2 (Авто-назначение по дефициту). `catalog.js` v10.44.
+
+#### X3 (П5, волна 14) — CRM сотрудников 2.0 (`staff`) — детализация
+**Артефакты (реализовано, `0200_staff2.sql`):** `app_onboarding_tasks`, `app_reviews`, поле `app_staff_crm.fired_at`; RPC `app_onboard_start/list/item_set_status/scan` (создаёт `app_tasks`), `app_review_save/list/kpi` (авто-итог, обновляет рейтинг), `app_staff_turnover`. UI `staff` v2 (Онбординг/Оценки/Текучесть).
+
+#### X6 (П5, волна 15) — EHS 2.0 (`safety`) — детализация
+**Артефакты (реализовано, `0201_safety2.sql`):** поля `app_work_permits.task_id/naryad_id`; RPC `app_safety_scan` (сроки инструктаж/СИЗ/медосмотр + уведомления), `app_permit_to_task` (→ `app_tasks`), `app_ppe_issue` (списание СИЗ через `app_stock_move`). UI `safety` v2 (⏱ Сроки EHS).
+
+#### X9 (П5, волна 16) — Общий слой документов/подписей/маршрутов — детализация
+**Артефакты (реализовано, `0202_docs_layer.sql` + `assets/js/documents.js`):** единые `app_document_sign` (любой entity_type → `app_signatures` W17; синхронизация статуса hr_doc/doc_flow), `app_document_signatures`, `app_document_route_start` (reuse W10), `app_document_routes`; JS-слой `window.AppDocuments` (sign/signatures/routes/startRoute/signDialog), подключён на `docs`/`edo`/`kedo`. Модули переключаются на слой итеративно (без дублей RPC).
+
 ## 4. Мелкие пункты (быстрые) — ☑ автоматизировано (v209)
 - [x] Панель (Тема/Сервер/Вход/Пользователь) единообразна; `#who`/`#logout`/`#tabs` без дублей — проверяется `tools/audit.ps1`.
 - [x] Боковое меню закрыто по умолчанию (`shell.js`, `sh-open` по клику «☰»).
@@ -248,6 +260,7 @@ _Автогенерация `tools/update-plan.ps1` от 2026-10-09T17:43:24. П
 - [x] Ревизия `AUDIT_BACKLOG §3` (контуры) — выполнена (v211): контурные работы закрыты волнами W2–W12, остаток вынесен в R1–R4 (см. `AUDIT_BACKLOG §7`).
 
 ## 5. Журнал (последние версии, кратко)
+- v276 — **План v5, пакет П5 (X2→X3→X6→X9).** X2 `0199_competences2.sql` (профили должностей, дефицит навыков, сертификаты+scan, авто-назначение курса; UI competences v2/elearning v2). X3 `0200_staff2.sql` (онбординг→задачи, оценка 360, текучесть; UI staff v2). X6 `0201_safety2.sql` (сроки EHS, допуск→задача, выдача СИЗ со склада; UI safety v2). X9 `0202_docs_layer.sql` + `assets/js/documents.js` (единый слой подписи/маршрутов; подключён на docs/edo/kedo). `catalog.js` v10.44, `CATALOG_V` 120. Смоук 10/10, 14/14, волновые 44/44, перегрузок 0; функц. тесты с очисткой ✅. Далее — П6 (X16→X18→X19→X20).
 - v275 — **План v5, пакет П4 (X17→X14→X13).** X17 `0196_service2.sql` (портал дилера `app_dealer_links/_requests` + новый модуль `apps/dealer` и роль `dealer`; маршрут выездов `app_service_route_plan`; счёт по контракту; акт→ЭДО). X14 `0197_supply2.sql` (заявки на закупку `app_purchase_requests`, автозаявка по минимуму, закупка из BOM, штрихкод-перемещение; UI procurement v4/warehouse v6). X13 `0198_maintenance2.sql` (автоплан ТОиР по предиктиву, карточка-дашборд оборудования, инструмент по операции; UI maintenance v6). `catalog.js` v10.43 (+, CATALOG_APPS 98), `CATALOG_V` 119, `auth.js` v7. Смоук 10/10, 14/14, волновые 44/44, перегрузок 0; функц. тесты с очисткой ✅. Далее — П5 (X2→X3→X6→X9) либо FTP-заливка.
 - v274 — **План v5, пакет П3 (X11→X12→X15).** X11 `0193_mes2.sql` (живая доска/Realtime, drag&drop, переназначение, аварийный сигнал; UI mes v3/terminal v3; устранена перегрузка `app_mes_board`). X12 `0194_planning2.sql` (ёмкость РЦ, APS-солвер, слоты, Гант, загрузка; UI planning v5). X15 `0195_sales2.sql` (конвейер заявки, онлайн-оплата идемпотентно, скоринг лидов; UI orders v7/crm v3/client v2). `catalog.js` v10.41, `CATALOG_V` 117. Смоук 10/10, 14/14, волновые 44/44, перегрузок 0. Далее — П4 (X17→X14→X13).
 - v273 — **План v5, пакет П2 (X7→X8→X10).** X7 `0190_edo2.sql` (внешний обмен `app_edo_exchange`, SLA поручений, подписи `app_signatures`, маршруты W10, папки, `app_edo_dashboard`; UI edo v4). X8 `0191_docs2.sql` (версии шаблонов `app_template_versions`, печатные шаблоны `app_doc_print_templates`, формулы `app_doc_formula_eval`, экспорт `app_doc_to_edo`; UI docs v5 / templates v2). X10 `0192_prod2.sql` (таймеры операций, брак `app_defects`, ССЗ `app_daily_jobs`, маршрутная карта; UI production v5). `catalog.js` v10.39, `CATALOG_V` 115. Смоук 10/10, 14/14, волновые 44/44, перегрузок 0; функц. тесты с очисткой ✅. Далее — П3 (X11→X12→X15).

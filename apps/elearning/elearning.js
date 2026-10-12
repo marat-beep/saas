@@ -73,4 +73,13 @@
     if (!SB) { msg('Supabase не подключён.', 'err'); return; }
     loadKpi(); loadCr();
   });
+  $('#autoAssBtn').addEventListener('click', function () {
+    rpc('app_courses_list', { p_token: token }).then(function (list) {
+      list = list || []; if (!list.length) { ui.toast('Курсов нет'); return; }
+      ui.formDialog({ title: 'Авто-назначение по дефициту', okText: 'Назначить', fields: [
+        { name: 'course_id', label: 'Курс', type: 'select', required: true, options: list.map(function (c) { return { value: c.id, label: (c.title || c.name || c.code || '') }; }) },
+        { name: 'min_gap', label: 'Мин. дефицит', type: 'number', value: 1 }
+      ] }).then(function (v) { if (!v) return; rpc('app_training_auto_assign', { p_token: token, p_course_id: v.course_id, p_min_gap: Number(v.min_gap) || 1 }).then(function (r) { var x = r && r[0]; ui.toast((x && x.message) || '', x && x.ok ? 'ok' : 'err'); }); });
+    });
+  });
 })();
