@@ -9,7 +9,8 @@
   var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa, SB = window.SB;
   var token = null, me = null, eq = [], mats = [], ops = [], tps = [], routes = [], orders = [], wcs = [], refs = [];
   var curTp = null, curRoute = null, refGroup = '', refQ = '';
-  var tech = { cutting: [], tools: [], machines: [], fits: [], fasteners: [], heat: [], fluids: [], processes: [] };
+  var tech = { cutting: [], tools: [], machines: [], fits: [], fasteners: [], heat: [], fluids: [], processes: [], techdata: [] };
+  var TECHDATA_KIND = { casting: 1, forging: 1, welding: 1 };
   var techCat = 'cutting', techQ = '';
 
   var KIND = { frezerny: 'Фрезерный', tokarny: 'Токарный', lazer: 'Лазер', sverlilny: 'Сверлильный', shlifovalny: 'Шлифовальный', edm: 'Электроэрозия', sborka: 'Сборка' };
@@ -42,13 +43,21 @@
       rpc('app_ref_fluids_list', { p_token: token, p_q: null }).catch(function () { return []; }),
       rpc('app_ref_processes_list', { p_token: token, p_category: null, p_q: null }).catch(function () { return []; }),
       rpc('app_ref_tolerances_list', { p_token: token, p_grade: null }).catch(function () { return []; }),
-      rpc('app_ref_threads_list', { p_token: token, p_q: null }).catch(function () { return []; })
+      rpc('app_ref_threads_list', { p_token: token, p_q: null }).catch(function () { return []; }),
+      rpc('app_ref_roughness_list', { p_token: token }).catch(function () { return []; }),
+      rpc('app_ref_hardness_list', { p_token: token }).catch(function () { return []; }),
+      rpc('app_ref_coatings_list', { p_token: token }).catch(function () { return []; }),
+      rpc('app_ref_estd_list', { p_token: token, p_q: null }).catch(function () { return []; }),
+      rpc('app_ref_tech_routes_list', { p_token: token }).catch(function () { return []; }),
+      rpc('app_ref_edm_list', { p_token: token, p_category: null }).catch(function () { return []; }),
+      rpc('app_ref_fixtures_list', { p_token: token, p_category: null }).catch(function () { return []; }),
+      rpc('app_ref_techdata_list', { p_token: token, p_kind: null, p_q: null }).catch(function () { return []; })
     ]).then(function (r) {
       eq = r[0] || []; mats = r[1] || []; ops = r[2] || []; tps = r[3] || []; routes = r[4] || []; orders = r[5] || []; wcs = r[6] || []; refs = r[7] || [];
       tech.cutting = r[8] || []; tech.tools = r[9] || []; tech.machines = r[10] || []; tech.fits = r[11] || [];
       tech.fasteners = r[12] || []; tech.heat = r[13] || []; tech.fluids = r[14] || []; tech.processes = r[15] || [];
       tech.tolerances = r[16] || []; tech.threads = r[17] || []; tech.roughness = r[18] || []; tech.hardness = r[19] || []; tech.coatings = r[20] || [];
-      tech.estd = r[21] || []; tech.tech_routes = r[22] || []; tech.edm = r[23] || []; tech.fixtures = r[24] || [];
+      tech.estd = r[21] || []; tech.tech_routes = r[22] || []; tech.edm = r[23] || []; tech.fixtures = r[24] || []; tech.techdata = r[25] || [];
       renderEq(); renderMat(); renderOp(); renderTp(); renderRt(); renderRef(); renderTech();
       $('#tpMat').innerHTML = opt('— нет —', '') + mats.map(function (m) { return opt(m.name, m.id); }).join('');
       $('#stOp').innerHTML = ops.map(function (o) { return opt(o.name + ' (' + kLabel(o.kind) + ')', o.id); }).join('');
@@ -144,12 +153,16 @@
     estd: [['code', 'ГОСТ'], ['title', 'Название'], ['scope', 'Область'], ['note', '']],
     tech_routes: [['code', 'Код'], ['name', 'Маршрут'], ['shape', 'Форма'], ['material', 'Материал'], ['heat', 'ТО'], ['note', '']],
     edm: [['category', 'Категория'], ['name', 'Наименование'], ['value', 'Значение'], ['note', '']],
-    fixtures: [['category', 'Категория'], ['name', 'Наименование'], ['purpose', 'Назначение'], ['material', 'Материал'], ['standard', 'ГОСТ'], ['note', '']]
+    fixtures: [['category', 'Категория'], ['name', 'Наименование'], ['purpose', 'Назначение'], ['material', 'Материал'], ['standard', 'ГОСТ'], ['note', '']],
+    casting: [['category', 'Раздел'], ['name', 'Наименование'], ['value', 'Значение'], ['note', 'Примечание']],
+    forging: [['category', 'Раздел'], ['name', 'Наименование'], ['value', 'Значение'], ['note', 'Примечание']],
+    welding: [['category', 'Раздел'], ['name', 'Наименование'], ['value', 'Значение'], ['note', 'Примечание']]
   };
   function cellV(v) { if (v == null || v === '') return ''; if (typeof v === 'number') return fmt(v); return esc(String(v)); }
   function renderTech() {
     var cols = TCOL[techCat] || [];
-    var rows = (tech[techCat] || []).filter(function (row) {
+    var src = TECHDATA_KIND[techCat] ? (tech.techdata || []).filter(function (t) { return t.kind === techCat; }) : (tech[techCat] || []);
+    var rows = src.filter(function (row) {
       if (!techQ) return true; var s = techQ.toLowerCase();
       return cols.map(function (c) { var v = row[c[0]]; return v == null ? '' : String(v); }).join(' ').toLowerCase().indexOf(s) >= 0;
     });
