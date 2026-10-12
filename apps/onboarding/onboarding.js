@@ -84,29 +84,10 @@
     demoOp('app_demo_reset', 'all', 'Демо удалены');
   });
 
-  /* ---------- Мастер настройки ---------- */
-  function runWizard() {
-    var steps = [
-      { key: 'org', title: '1. Организация', hint: 'Проверьте профиль предприятия и тариф (модуль «Организации»/«Биллинг»).', html: function () { return '<a class="btn secondary" href="../org/index.html">Открыть «Организации» ↗</a> <a class="btn secondary" href="../billing/index.html">Тариф ↗</a>'; } },
-      { key: 'departments', title: '2. Подразделения', hint: 'Создайте структуру цехов/отделов.', html: function () { return '<a class="btn secondary" href="../departments/index.html">Подразделения ↗</a>'; } },
-      { key: 'users', title: '3. Пользователи и роли', hint: 'Заведите пользователей и матрицу прав.', html: function () { return '<a class="btn secondary" href="../org/index.html">Пользователи ↗</a> <a class="btn secondary" href="../roles/index.html">Роли ↗</a>'; } },
-      { key: 'refs', title: '4. Справочники', hint: 'Заказчики, поставщики, материалы, оборудование, рабочие центры.', html: function () { return '<a class="btn secondary" href="../crm/index.html">Заказчики ↗</a> <a class="btn secondary" href="../suppliers/index.html">Поставщики ↗</a> <a class="btn secondary" href="../warehouse/index.html">Материалы ↗</a> <a class="btn secondary" href="../equipment/index.html">Оборудование ↗</a>'; } },
-      { key: 'modules', title: '5. Включение модулей', hint: 'Включите нужные модули в «Карте внедрения».', html: function () { return '<a class="btn secondary" href="../adoption/index.html">Карта внедрения ↗</a>'; } },
-      { key: 'demo', title: '6. Демо-данные', hint: 'При желании загрузите демо-данные для демонстрации.', html: function (d) { return '<label><input type="checkbox" name="load_demo"' + (d.load_demo ? ' checked' : '') + '> Загрузить демо-данные по всем модулям</label>'; } }
-    ];
-    window.AppWizard.open({
-      id: 'setup', title: 'Мастер настройки', icon: '🚀', submitText: 'Завершить',
-      steps: steps,
-      onSubmit: function (draft) {
-        var chain = Promise.resolve();
-        steps.forEach(function (s) { chain = chain.then(function () { return rpc('app_setup_step_set', { p_token: token, p_key: s.key, p_status: 'done', p_note: null }).catch(function () {}); }); });
-        if (draft.load_demo) chain = chain.then(function () { return rpc('app_demo_seed', { p_token: token, p_module: 'all' }).catch(function () {}); });
-        return chain.then(function () { ui.toast('Мастер завершён'); loadReady(); loadDemo(); })
-          .then(function () { return null; }, function (e) { return 'Ошибка: ' + e.message; });
-      }
-    });
-  }
+    /* ---------- Мастер настройки (отдельная процедура) ---------- */
+  function runWizard() { window.AppSetupWizard.open(token, { onDone: function () { loadReady(); loadDemo(); } }); }
   $('#wizBtn').addEventListener('click', runWizard);
+  if (/[?#].*wizard/i.test(location.href)) setTimeout(runWizard, 400);
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
   window.Auth.guard('../auth/index.html').then(function (s) {

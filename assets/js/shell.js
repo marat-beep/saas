@@ -101,6 +101,52 @@
       document.addEventListener('click', function (e) { if (!box.contains(e.target)) hide(); });
     })();
 
+    /* ---------- Мастер настройки (отдельная процедура) + подсказки модулей ---------- */
+    (function wizardAndTips() {
+      function loadWizard(cb) { if (g.AppSetupWizard) { cb(); return; } if (document.getElementById('shWizLd')) { var t = setInterval(function () { if (g.AppSetupWizard) { clearInterval(t); cb(); } }, 80); return; } var s = document.createElement('script'); s.id = 'shWizLd'; s.src = ROOT + 'assets/js/setup-wizard.js?v=1'; s.onload = function () { cb(); }; s.onerror = function () {}; document.head.appendChild(s); }
+      if ((role === 'admin' || role === 'owner') && bar && !document.getElementById('shWizBtn')) {
+        var wb = document.createElement('button'); wb.id = 'shWizBtn'; wb.className = 'tbtn'; wb.type = 'button'; wb.title = 'Мастер настройки'; wb.textContent = '🧭';
+        wb.addEventListener('click', function () { loadWizard(function () { if (g.AppSetupWizard) g.AppSetupWizard.start(); }); });
+        var sp = bar.querySelector('.spacer'); if (sp) bar.insertBefore(wb, sp); else bar.appendChild(wb);
+      }
+      var here = location.href.substring(ROOT.length).split(/[?#]/)[0];
+      var seg = (here.match(/^apps\/([\w-]+)\//) || [])[1];
+      if (!seg || (role !== 'admin' && role !== 'owner')) return;
+      var TIPS = {
+        orders: 'Заполните заказчиков и создайте первую заявку.',
+        production: 'Заведите рабочие центры и маршруты, затем наряды.',
+        hr: 'Добавьте сотрудников и штатное расписание.',
+        qc: 'Создайте чек-лист и внесите измерения (SPC).',
+        warehouse: 'Пополните материалы и назначьте адреса хранения.',
+        procurement: 'Добавьте поставщиков и создайте закупку.',
+        crm: 'Заведите заказчиков и сделки воронки.',
+        service: 'Оформите сервисную заявку и выезд.',
+        finance: 'Проверьте счета и платёжный календарь.',
+        maintenance: 'Настройте планы ТОиР и нормы наработки.',
+        docs: 'Добавьте шаблоны документов и виды.',
+        planning: 'Задайте ёмкость рабочих центров.',
+        mes: 'Доска обновляется в реальном времени; запускайте операции.',
+        kedo: 'Создайте кадровые документы и ознакомления.',
+        edo: 'Зарегистрируйте документ и поручения.',
+        equipment: 'Заведите оборудование и паспорт.',
+        competences: 'Создайте навыки и профили должностей.',
+        safety: 'Ведите инструктажи и наряды-допуски.',
+        adoption: 'Включите нужные модули и следите за прогрессом внедрения.'
+      };
+      var tip = TIPS[seg]; if (!tip) return;
+      var key = '3dmp:tip:' + seg;
+      try { if (localStorage.getItem(key) === '1') return; } catch (e) {}
+      var tipEl = document.createElement('div'); tipEl.className = 'sh-tip';
+      tipEl.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 16px;font-size:.8rem;background:#ecfdf5;border-bottom:1px solid var(--border);color:#065f46;';
+      tipEl.innerHTML = '<span>💡 <b>С чего начать:</b> ' + esc(tip) + '</span>' +
+        '<a href="' + ROOT + 'apps/onboarding/index.html" style="color:#065f46;text-decoration:underline;">Мастер настройки ↗</a>' +
+        '<button type="button" style="margin-left:auto;background:none;border:0;cursor:pointer;font-size:1rem;color:#065f46;" aria-label="Закрыть">✕</button>';
+      tipEl.querySelector('button').addEventListener('click', function () { try { localStorage.setItem(key, '1'); } catch (e) {} tipEl.remove(); });
+      var anchor = document.querySelector('.sh-crumbs');
+      if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(tipEl, anchor.nextSibling);
+      else if (bar && bar.parentNode) bar.parentNode.insertBefore(tipEl, bar.nextSibling);
+    })();
+
     /* Тема: светлая/тёмная (светлая палитра не меняется; тёмная — доп. режим) */
     function applyTheme(t) { document.documentElement.setAttribute('data-theme', t); try { localStorage.setItem('3dmp:theme', t); } catch (e) {} }
     var saved = ''; try { saved = localStorage.getItem('3dmp:theme') || ''; } catch (e) {}
@@ -128,6 +174,7 @@
       out += link('index.html', '🏠', 'Хаб', here === '' || here === 'index.html');
       out += link('apps/panel/index.html', '🎛', 'Пульт управления', here.indexOf('apps/panel') === 0);
       out += link('apps/adoption/index.html', '🚀', 'Карта внедрения', here.indexOf('apps/adoption') === 0);
+      if (role === 'admin' || role === 'owner') out += link('apps/onboarding/index.html', '🧭', 'Мастер настройки', here.indexOf('apps/onboarding') === 0);
       (cat.groups || []).forEach(function (grp) {
         var items = list.filter(function (a) { return a.group === grp.id; });
         if (!items.length) return;
