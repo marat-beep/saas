@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мастер настройки — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<style>.bar{height:8px;background:#e5e7eb;border-radius:6px;overflow:hidden}.bar>i{display:block;height:100%;background:var(--accent,#10b981)}</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🧭</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap fluid">
+    <div class="hero"><h1>Мастер настройки</h1><p>Пошаговая настройка системы и модулей: справочники, роли, включение модулей, демо-данные. Роли: владелец/администратор.</p></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="sv-actions" style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;">
+      <button class="btn" id="wizBtn" style="width:auto;padding:9px 14px;">🚀 Запустить мастер настройки</button>
+      <span class="note" id="msg" style="align-self:center;"></span>
+    </div>
+
+    <div class="tabs2" id="tabs">
+      <button data-scr="ready" class="active">Готовность</button>
+      <button data-scr="modules">Модули</button>
+      <button data-scr="demo">Демо-данные</button>
+    </div>
+
+    <section class="screen active" id="scr-ready">
+      <div class="card"><h2>Готовность справочников</h2>
+        <p class="note">Заполненность ключевых справочников (без учёта демо-строк). Клик по строке — переход в модуль.</p>
+        <div id="ready"><span class="note">Загрузка…</span></div></div>
+    </section>
+
+    <section class="screen" id="scr-modules">
+      <div class="card"><h2>Модули организации</h2>
+        <p class="note">Включение/отключение модулей для текущей организации.</p>
+        <div id="modules"><span class="note">Загрузка…</span></div></div>
+    </section>
+
+    <section class="screen" id="scr-demo">
+      <div class="card"><h2>Демо-данные</h2>
+        <p class="note">Демо-строки помечаются флагом <b>is_demo</b> и удаляются только по этому флагу — реальные данные не затрагиваются.</p>
+        <div class="toolbar" style="gap:8px;">
+          <button class="btn" id="seedAll" style="width:auto;padding:8px 14px;">Заполнить всё демо</button>
+          <button class="btn secondary" id="resetAll" style="width:auto;padding:8px 14px;">Удалить все демо-данные</button>
+        </div>
+        <div id="demo" class="mt"><span class="note">Загрузка…</span></div></div>
+    </section>
+  </main>
+
+  <footer class="foot">3DMP Service · мастер настройки</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=4"></script>
+  <script src="../../assets/js/auth.js?v=7"></script>
+  <script src="../../assets/js/notify.js?v=3"></script>
+  <script src="../../assets/js/support-widget.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=108"></script>
+  <script src="../../assets/js/shell.js?v=73"></script>
+  <script src="../../assets/js/wizard.js?v=1"></script>
+  <script src="onboarding.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=2"></script>
+  <script src="../../assets/js/module-info.js?v=2"></script>
+</body>
+</html>
