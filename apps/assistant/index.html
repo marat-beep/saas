@@ -48,14 +48,17 @@
       </div>
       <div class="card">
         <h2>Подбор технологии</h2>
-        <div class="grid3">
-          <div class="field"><label>Материал</label><input type="text" id="rMat" list="matList" placeholder="Сталь 40Х / steel 40X / aluminum"><datalist id="matList"></datalist><span class="hint">Можно на русском или английском; выберите из списка или введите.</span></div>
+        <div class="grid2">
+          <div class="field"><label>Материал</label><input type="text" id="rMat" list="matList" placeholder="Сталь 40Х / steel 40X"><datalist id="matList"></datalist><span class="hint">Русский или английский; выберите из списка или введите.</span></div>
           <div class="field"><label>Признак</label><select id="rFeat">
             <option value="отверстие">Отверстие (hole)</option><option value="паз">Паз (slot)</option>
             <option value="резьба">Резьба (thread)</option><option value="плоскость">Плоскость (face)</option>
             <option value="шлифование">Шлифование (grinding)</option><option value="точение">Точение (turning)</option>
-            <option value="фрезерование">Фрезерование (milling)</option></select></div>
-          <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="recBtn">Рекомендовать</button> <button class="btn secondary" id="afBtn" style="width:auto;padding:11px 14px;">✨ Автонаполнить правила</button></div>
+            <option value="фрезерование">Фрезерование (milling)</option></select><span class="hint">Какие правила подбирать.</span></div>
+        </div>
+        <div class="btn-row mt">
+          <button class="btn" id="recBtn">Рекомендовать</button>
+          <button class="btn secondary" id="afBtn">✨ Автонаполнить правила</button>
         </div>
         <div id="rec" class="mt"></div>
       </div>
