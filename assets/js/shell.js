@@ -6,7 +6,7 @@
 (function (g) {
   'use strict';
   var SELF = document.currentScript;
-  var CATALOG_V = '122'; // версия каталога для внешних страниц
+  var CATALOG_V = '123'; // версия каталога для внешних страниц
 
   function esc(v) { return (g.AppUI && g.AppUI.esc) ? g.AppUI.esc(v) : String(v == null ? '' : v); }
   function ready(fn) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn); else fn(); }
@@ -103,7 +103,7 @@
 
     /* ---------- Мастер настройки (отдельная процедура) + подсказки модулей ---------- */
     (function wizardAndTips() {
-      function loadWizard(cb) { if (g.AppSetupWizard) { cb(); return; } if (document.getElementById('shWizLd')) { var t = setInterval(function () { if (g.AppSetupWizard) { clearInterval(t); cb(); } }, 80); return; } var s = document.createElement('script'); s.id = 'shWizLd'; s.src = ROOT + 'assets/js/setup-wizard.js?v=1'; s.onload = function () { cb(); }; s.onerror = function () {}; document.head.appendChild(s); }
+      function loadWizard(cb) { if (g.AppSetupWizard) { cb(); return; } if (document.getElementById('shWizLd')) { var t = setInterval(function () { if (g.AppSetupWizard) { clearInterval(t); cb(); } }, 80); return; } var s = document.createElement('script'); s.id = 'shWizLd'; s.src = ROOT + 'assets/js/setup-wizard.js?v=2'; s.onload = function () { cb(); }; s.onerror = function () {}; document.head.appendChild(s); }
       if ((role === 'admin' || role === 'owner') && bar && !document.getElementById('shWizBtn')) {
         var wb = document.createElement('button'); wb.id = 'shWizBtn'; wb.className = 'tbtn'; wb.type = 'button'; wb.title = 'Мастер настройки'; wb.textContent = '🧭';
         wb.addEventListener('click', function () { loadWizard(function () { if (g.AppSetupWizard) g.AppSetupWizard.start(); }); });
@@ -140,7 +140,9 @@
       tipEl.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 16px;font-size:.8rem;background:#ecfdf5;border-bottom:1px solid var(--border);color:#065f46;';
       tipEl.innerHTML = '<span>💡 <b>С чего начать:</b> ' + esc(tip) + '</span>' +
         '<a href="' + ROOT + 'apps/onboarding/index.html" style="color:#065f46;text-decoration:underline;">Мастер настройки ↗</a>' +
+        '<a href="#" data-configure="1" style="color:#065f46;text-decoration:underline;">Настроить модуль</a>' +
         '<button type="button" style="margin-left:auto;background:none;border:0;cursor:pointer;font-size:1rem;color:#065f46;" aria-label="Закрыть">✕</button>';
+      tipEl.querySelector('[data-configure]').addEventListener('click', function (e) { e.preventDefault(); loadWizard(function () { if (g.AppSetupWizard) g.AppSetupWizard.start({ module: seg }); }); });
       tipEl.querySelector('button').addEventListener('click', function () { try { localStorage.setItem(key, '1'); } catch (e) {} tipEl.remove(); });
       var anchor = document.querySelector('.sh-crumbs');
       if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(tipEl, anchor.nextSibling);
@@ -274,6 +276,30 @@
     if (g.AppCatalog && g.AppCatalog.apps) build(g.AppCatalog);
     else { var s = document.createElement('script'); s.src = ROOT + 'assets/js/catalog.js?v=' + CATALOG_V; s.onload = function () { build(g.AppCatalog); }; document.head.appendChild(s); }
     resolveBrand();
+
+    /* ---------- Модульный гейтинг: скрыть отключённые, закрыть доступ ---------- */
+    (function moduleGate() {
+      if (!g.SB || !g.Auth || !g.Auth.token()) return;
+      g.SB.rpc('app_tenant_modules_list', { p_token: g.Auth.token() }).then(function (r) {
+        if (r.error) return;
+        var rows = r.data || [], map = {};
+        rows.forEach(function (m) { map[m.module] = m.enabled !== false; });
+        Array.prototype.forEach.call(wrap.querySelectorAll('a.sh-item'), function (a) {
+          var mm = (a.getAttribute('href') || '').match(/^apps\/([\w-]+)\//);
+          if (mm && map[mm[1]] === false) a.style.display = 'none';
+        });
+        var here2 = location.href.substring(ROOT.length).split(/[?#]/)[0];
+        var seg2 = (here2.match(/^apps\/([\w-]+)\//) || [])[1];
+        if (seg2 && map[seg2] === false) {
+          var w = document.createElement('div');
+          w.style.cssText = 'margin:20px auto;max-width:640px;padding:22px;border:1px solid var(--border);border-radius:12px;text-align:center;background:var(--surface,#fff);';
+          w.innerHTML = '<h2>Модуль отключён</h2><p class="note">Модуль «' + seg2 + '» отключён для организации. Включите его в «Мастере настройки» или «Карте внедрения».</p>' +
+            '<p><a class="btn" href="' + ROOT + 'apps/onboarding/index.html">Мастер настройки</a> <a class="btn secondary" href="' + ROOT + 'index.html">В хаб</a></p>';
+          var main = document.querySelector('main');
+          if (main) { main.innerHTML = ''; main.appendChild(w); } else document.body.appendChild(w);
+        }
+      }).catch(function () {});
+    })();
     try {
       if (!document.querySelector('link[rel="manifest"]')) { var lk = document.createElement('link'); lk.rel = 'manifest'; lk.href = ROOT + 'manifest.webmanifest'; document.head.appendChild(lk); }
       if ('serviceWorker' in navigator && location.protocol === 'https:') { navigator.serviceWorker.register(ROOT + 'sw.js', { scope: ROOT }).catch(function () {}); }

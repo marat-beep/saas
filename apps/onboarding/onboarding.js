@@ -20,6 +20,7 @@
     if (s === 'ready') loadReady();
     if (s === 'modules') loadModules();
     if (s === 'demo') loadDemo();
+    if (s === 'config') loadConfig();
   }
   $$('#tabs button').forEach(function (b) { b.addEventListener('click', function () { showTab(b.dataset.scr); }); });
 
@@ -45,7 +46,7 @@
       $('#modules').innerHTML = rows.map(function (m) {
         var on = m.enabled !== false && m.enabled !== 'false';
         return '<div class="kvr"><b>' + esc(m.title || m.module || m.id) + '</b>' +
-          '<span class="m"><button class="act ' + (on ? '' : '') + '" data-mod="' + esc(m.module || m.id) + '" data-on="' + (on ? 'false' : 'true') + '">' + (on ? 'Отключить' : 'Включить') + '</button>' +
+          '<span class="m"><button class="act" data-cfg="' + esc(m.module || m.id) + '">Настроить</button><button class="act ' + (on ? '' : '') + '" data-mod="' + esc(m.module || m.id) + '" data-on="' + (on ? 'false' : 'true') + '">' + (on ? 'Отключить' : 'Включить') + '</button>' +
           '<span class="badge ' + (on ? 'done' : 'cancelled') + '">' + (on ? 'включён' : 'выключен') + '</span></span></div>';
       }).join('');
       $$('#modules [data-mod]').forEach(function (b) {
@@ -88,6 +89,27 @@
   function runWizard() { window.AppSetupWizard.open(token, { onDone: function () { loadReady(); loadDemo(); } }); }
   $('#wizBtn').addEventListener('click', runWizard);
   if (/[?#].*wizard/i.test(location.href)) setTimeout(runWizard, 400);
+
+  /* ---------- Конфигурация: экспорт/импорт ---------- */
+  function loadConfig() { var m = $('#cfgMsg'); if (m) m.textContent = ''; }
+  $('#cfgExport').addEventListener('click', function () {
+    rpc('app_config_export', { p_token: token }).then(function (r) {
+      var cfg = r && r[0] && r[0].config; if (!cfg) { ui.toast('Нет данных'); return; }
+      var blob = new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' });
+      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '3dmp-config-' + new Date().toISOString().slice(0, 10) + '.json';
+      document.body.appendChild(a); a.click(); a.remove(); ui.toast('Конфигурация выгружена');
+    }).catch(function (e) { ui.toast('Ошибка: ' + e.message); });
+  });
+  $('#cfgFile').addEventListener('change', function () {
+    var f = this.files && this.files[0]; if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () {
+      var cfg; try { cfg = JSON.parse(rd.result); } catch (e) { ui.toast('Некорректный JSON'); return; }
+      rpc('app_config_import', { p_token: token, p_config: cfg }).then(function (r) { var x = r && r[0]; ui.toast((x && x.message) || '', x && x.ok ? 'ok' : 'err'); loadModules(); loadReady(); loadConfig(); })
+        .catch(function (e) { ui.toast('Ошибка: ' + e.message); });
+    };
+    rd.readAsText(f); this.value = '';
+  });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
   window.Auth.guard('../auth/index.html').then(function (s) {

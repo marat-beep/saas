@@ -28,6 +28,7 @@
       <button data-scr="ready" class="active">Готовность</button>
       <button data-scr="modules">Модули</button>
       <button data-scr="demo">Демо-данные</button>
+      <button data-scr="config">Конфигурация</button>
     </div>
 
     <section class="screen active" id="scr-ready">
@@ -51,6 +52,17 @@
         </div>
         <div id="demo" class="mt"><span class="note">Загрузка…</span></div></div>
     </section>
+
+    <section class="screen" id="scr-config">
+      <div class="card"><h2>Конфигурация организации</h2>
+        <p class="note">Экспорт/импорт настроек модулей, включённости модулей и шагов мастера (формат <b>3dmp-config</b>, без секретов).</p>
+        <div class="toolbar" style="gap:10px;align-items:center;">
+          <button class="btn" id="cfgExport" style="width:auto;padding:8px 14px;">⬇ Выгрузить конфигурацию</button>
+          <label class="btn secondary" style="width:auto;padding:8px 14px;cursor:pointer;">⬆ Загрузить из файла<input type="file" id="cfgFile" accept="application/json,.json" style="display:none;"></label>
+          <span class="note" id="cfgMsg"></span>
+        </div>
+      </div>
+    </section>
   </main>
 
   <footer class="foot">3DMP Service · мастер настройки</footer>
@@ -63,10 +75,10 @@
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=108"></script>
-  <script src="../../assets/js/shell.js?v=74"></script>
+  <script src="../../assets/js/shell.js?v=75"></script>
   <script src="../../assets/js/wizard.js?v=1"></script>
-  <script src="../../assets/js/setup-wizard.js?v=1"></script>
-  <script src="onboarding.js?v=1"></script>
+  <script src="../../assets/js/setup-wizard.js?v=2"></script>
+  <script src="onboarding.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=2"></script>
 </body>
