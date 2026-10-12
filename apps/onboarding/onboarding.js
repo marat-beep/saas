@@ -26,6 +26,8 @@
     if (s === 'config') loadConfig();
   }
   $$('#tabs button').forEach(function (b) { b.addEventListener('click', function () { showTab(b.dataset.scr); }); });
+  var modTimer = null;
+  if ($('#modFilter')) $('#modFilter').addEventListener('input', function () { if (modTimer) clearTimeout(modTimer); modTimer = setTimeout(loadModules, 250); });
 
   function loadReady() {
     return rpc('app_setup_readiness', { p_token: token }).then(function (rows) {
@@ -34,11 +36,15 @@
       $('#kpis').innerHTML = cell('Пунктов', rows.length) + cell('Готово', ready) + cell('Прогресс', rows.length ? Math.round(100 * ready / rows.length) + '%' : '0%');
       $('#ready').innerHTML = rows.length ? rows.map(function (r) {
         var pct = r.target ? Math.min(100, Math.round(100 * r.cnt / r.target)) : (r.cnt ? 100 : 0);
-        return '<div class="kvr"><span style="font-size:1.2rem;">' + iconOf(r.module) + '</span><b>' + esc(r.label) + '</b>' +
-          '<span class="note">' + esc(r.module) + (hintOf(r.module) ? ' · ' + esc(hintOf(r.module)) : '') + '</span>' +
-          '<span style="flex:1;max-width:220px;height:8px;background:#e5e7eb;border-radius:6px;overflow:hidden;"><i style="display:block;height:100%;width:' + pct + '%;background:var(--accent,#10b981);"></i></span>' +
-          '<span class="badge ' + (r.ready ? 'done' : 'in_progress') + '">' + r.cnt + ' / ' + r.target + (r.ready ? ' ✔' : '') + '</span>' +
-          '<a class="act" href="../../' + esc(r.link) + '">Перейти ↗</a></div>';
+        var hint = hintOf(r.module);
+        return '<div class="kvr" style="display:flex;flex-wrap:nowrap;align-items:center;gap:10px;">' +
+          '<span style="flex:0 0 24px;text-align:center;font-size:1.15rem;">' + iconOf(r.module) + '</span>' +
+          '<div style="flex:1 1 auto;min-width:0;overflow:hidden;">' +
+          '<b>' + esc(r.label) + '</b>' +
+          '<div class="note" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(r.module) + (hint ? ' · ' + esc(hint) : '') + '</div></div>' +
+          '<span style="flex:0 0 170px;height:8px;background:#e5e7eb;border-radius:6px;overflow:hidden;"><i style="display:block;height:100%;width:' + pct + '%;background:var(--accent,#10b981);"></i></span>' +
+          '<span class="badge ' + (r.ready ? 'done' : 'in_progress') + '" style="flex:0 0 auto;">' + r.cnt + ' / ' + r.target + (r.ready ? ' ✔' : '') + '</span>' +
+          '<a class="act" href="../../' + esc(r.link) + '" style="flex:0 0 auto;">Перейти ↗</a></div>';
       }).join('') : '<span class="note">—</span>';
     }).catch(function (e) { $('#ready').innerHTML = '<span class="note">' + esc(e.message) + '</span>'; });
   }
@@ -51,7 +57,9 @@
       (r[0] || []).forEach(function (m) { enabledMap[m.module] = m.enabled !== false; });
       var c = cat();
       var groups = (c.groups || []).slice();
+      var q = (($('#modFilter') && $('#modFilter').value) || '').trim().toLowerCase();
       var apps = (c.apps || []).filter(function (a) { return a.href && a.href.indexOf('apps/') === 0; });
+      if (q) apps = apps.filter(function (a) { return ((a.title || '') + ' ' + (a.desc || '') + ' ' + (a.purpose || '') + ' ' + (a.id || '')).toLowerCase().indexOf(q) >= 0; });
       var byGroup = {};
       apps.forEach(function (a) { var g = a.group || '_'; (byGroup[g] = byGroup[g] || []).push(a); });
       var order = groups.map(function (g) { return g.id; }).filter(function (id) { return byGroup[id]; });
