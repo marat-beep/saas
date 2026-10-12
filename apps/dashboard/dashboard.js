@@ -330,4 +330,17 @@
         .catch(function (e) { tfaMsg('Ошибка: ' + e.message, 'err'); });
     });
   });
+  /* Лента активности (0213) */
+  function loadFeed() {
+    var el = document.getElementById('feed'); if (!el) return;
+    rpc('app_activity_feed', { p_token: window.Auth.token(), p_limit: 30 }).then(function (rows) {
+      rows = rows || [];
+      el.innerHTML = rows.length ? rows.map(function (x) {
+        var ic = x.kind === 'notif' ? '\uD83D\uDD14' : '\u2022';
+        return '<div class="kvr"><span>' + ic + '</span><div style="flex:1;min-width:0;"><b>' + ui.esc(x.title || '') + '</b><div class="note">' + ui.esc(x.subtitle || '') + '</div></div><span class="note" style="flex:0 0 auto;">' + (x.at ? new Date(x.at).toLocaleString('ru-RU') : '') + '</span></div>';
+      }).join('') : '<span class="note">Нет событий.</span>';
+    }).catch(function (e) { el.innerHTML = '<span class="note">' + ui.esc(e.message) + '</span>'; });
+  }
+  var _fr = document.getElementById('feedRefresh'); if (_fr) _fr.addEventListener('click', loadFeed);
+  loadFeed();
 })();

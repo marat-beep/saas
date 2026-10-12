@@ -147,6 +147,38 @@
   $('#wizBtn').addEventListener('click', runWizard);
   if (/[?#].*wizard/i.test(location.href)) setTimeout(runWizard, 400);
 
+  /* ---------- Импорт пользователей (CSV) ---------- */
+  $('#usersTpl').addEventListener('click', function (e) {
+    e.preventDefault();
+    var tpl = 'login,password,full_name,role\nivanov,Passw0rd,Иванов И.И.,manager\npetrov,Passw0rd,Петров П.П.,master\n';
+    var blob = new Blob([tpl], { type: 'text/csv' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'users-template.csv'; document.body.appendChild(a); a.click(); a.remove();
+  });
+  $('#usersCsv').addEventListener('change', function () {
+    var f = this.files && this.files[0]; if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () {
+      var lines = String(rd.result || '').replace(/\r/g, '').split('\n').filter(function (x) { return x.trim(); });
+      if (!lines.length) { ui.toast('Пустой файл'); return; }
+      var head = lines[0].toLowerCase();
+      if (head.indexOf('login') >= 0 && head.indexOf('password') >= 0) lines = lines.slice(1);
+      var rows = lines.map(function (ln) {
+        var p = ln.split(',');
+        return { login: (p[0] || '').trim(), password: (p[1] || '').trim(), full_name: (p[2] || '').trim(), role: (p[3] || 'manager').trim() };
+      }).filter(function (r) { return r.login; });
+      if (!rows.length) { ui.toast('Не найдено строк'); return; }
+      rpc('app_tenant_users_import', { p_token: token, p_rows: rows }).then(function (r) {
+        var x = r && r[0] || {};
+        var errs = x.errors || [];
+        var html = '<div class="note">' + esc(x.message || '') + '</div>' +
+          (errs.length ? '<div class="tbl-wrap mt"><table class="tbl"><thead><tr><th>Ошибки</th></tr></thead><tbody>' + errs.map(function (e) { return '<tr><td>' + esc(e) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '');
+        ui.dialog({ title: 'Импорт пользователей', body: html, html: true, cancelText: 'Закрыть' });
+        if (x.created) loadReady();
+      }).catch(function (e) { ui.toast('Ошибка: ' + e.message); });
+    };
+    rd.readAsText(f); this.value = '';
+  });
+
   /* ---------- Конфигурация: экспорт/импорт ---------- */
   function loadConfig() { var m = $('#cfgMsg'); if (m) m.textContent = ''; }
   $('#cfgExport').addEventListener('click', function () {
