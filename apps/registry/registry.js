@@ -335,4 +335,29 @@
     if (!SB) { msg('#eqMsg', 'Supabase не подключён.', 'err'); return; }
     load();
   });
+  var _ft = document.getElementById('rtFromTyp');
+  if (_ft) _ft.addEventListener('click', function () {
+    rpc('app_ref_tech_routes_list', { p_token: token }).then(function (rows) {
+      rows = rows || [];
+      if (!rows.length) { ui.toast('Нет типовых маршрутов'); return; }
+      ui.formDialog({ title: 'Маршрут из типового (ЕСТД)', okText: 'Создать', fields: [
+        { name: 'code', label: 'Типовой маршрут', type: 'select', required: true, options: rows.map(function (r) { return { value: r.code, label: r.code + ' — ' + r.name }; }) },
+        { name: 'title', label: 'Название маршрута', type: 'text' }
+      ] }).then(function (v) { if (!v) return;
+        rpc('app_route_from_typical', { p_token: token, p_code: v.code, p_title: v.title || null }).then(function (r) { var x = r && r[0]; ui.toast((x && x.message) || '', x && x.ok ? 'ok' : 'err'); if (x && x.ok) load(); });
+      });
+    });
+  });
+  var _pr = document.getElementById('rtPrint');
+  if (_pr) _pr.addEventListener('click', function () {
+    if (!curRoute) return;
+    rpc('app_route_mk', { p_token: token, p_id: curRoute.id }).then(function (rows) {
+      rows = rows || [];
+      var body = 'МАРШРУТНАЯ КАРТА (ГОСТ 3.1118-82)\n' + (curRoute.name || '') + ' · ' + (curRoute.number || '') + '\n\n' +
+        rows.map(function (s) { return s.seq + '. ' + s.operation + ' | ' + (s.equipment || '—') + ' | ' + (s.plan_min || 0) + ' мин' + (s.note ? ' | ' + s.note : ''); }).join('\n');
+      var w = window.open('', '_blank'); if (!w) { ui.toast('Разрешите всплывающие окна'); return; }
+      w.document.write('<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>МК</title></head><body style="font:13px/1.5 Consolas,monospace;white-space:pre-wrap;padding:24px;">' + esc(body) + '</body></html>');
+      w.document.close(); w.focus(); w.print();
+    });
+  });
 })();
