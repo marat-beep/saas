@@ -63,10 +63,11 @@
         <div class="grid3">
           <div class="field"><label>Код</label><input type="text" id="oCode" placeholder="MILL3"></div>
           <div class="field"><label>Название</label><input type="text" id="oName"></div>
-          <div class="field"><label>Категория</label><input type="text" id="oCat" placeholder="milling"></div>
+          <div class="field"><label>Категория</label><input type="text" id="oCat" list="catList" placeholder="milling"><datalist id="catList"></datalist></div>
           <div class="field"><label>Оборудование</label><input type="text" id="oMt"></div>
           <div class="field" style="display:flex;align-items:flex-end;gap:8px;"><button class="btn" id="oSave">Сохранить операцию</button><button class="btn secondary" id="oClear">Очистить</button></div>
         </div>
+        <div class="field mt" style="max-width:340px;"><label>Поиск операции</label><input type="text" id="oQ" placeholder="Код или название…" autocomplete="off"></div>
         <div class="olist mt" id="oList"></div>
       </section>
 
@@ -139,7 +140,7 @@
   <script src="../../assets/js/support-widget.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=108"></script>
   <script src="../../assets/js/shell.js?v=75"></script>
-  <script src="norms.js?v=1"></script>
+  <script src="norms.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=2"></script>
 </body>

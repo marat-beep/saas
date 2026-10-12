@@ -348,16 +348,51 @@
       });
     });
   });
+  function printDoc(title, body) {
+    var w = window.open('', '_blank'); if (!w) { ui.toast('Разрешите всплывающие окна'); return; }
+    w.document.write('<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>' + esc(title) + '</title></head><body style="font:13px/1.5 Consolas,monospace;white-space:pre-wrap;padding:24px;">' + esc(body) + '</body></html>');
+    w.document.close(); w.focus(); w.print();
+  }
+  function routeHead() {
+    return (curRoute.name || '') + ' · ' + (curRoute.number || '') +
+      (curRoute.order_number ? ' · заказ ' + curRoute.order_number : '') +
+      (curRoute.qty ? ' · ' + num(curRoute.qty) + ' шт' : '');
+  }
   var _pr = document.getElementById('rtPrint');
   if (_pr) _pr.addEventListener('click', function () {
     if (!curRoute) return;
     rpc('app_route_mk', { p_token: token, p_id: curRoute.id }).then(function (rows) {
       rows = rows || [];
-      var body = 'МАРШРУТНАЯ КАРТА (ГОСТ 3.1118-82)\n' + (curRoute.name || '') + ' · ' + (curRoute.number || '') + '\n\n' +
-        rows.map(function (s) { return s.seq + '. ' + s.operation + ' | ' + (s.equipment || '—') + ' | ' + (s.plan_min || 0) + ' мин' + (s.note ? ' | ' + s.note : ''); }).join('\n');
-      var w = window.open('', '_blank'); if (!w) { ui.toast('Разрешите всплывающие окна'); return; }
-      w.document.write('<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>МК</title></head><body style="font:13px/1.5 Consolas,monospace;white-space:pre-wrap;padding:24px;">' + esc(body) + '</body></html>');
-      w.document.close(); w.focus(); w.print();
-    });
+      var body = 'МАРШРУТНАЯ КАРТА (ГОСТ 3.1118-82)\n' + routeHead() + '\n\n' +
+        rows.map(function (s) { return s.seq + '. ' + s.operation + ' | ' + (s.equipment || '—') + ' | ' + num(s.plan_min) + ' мин' + (s.note ? ' | ' + s.note : ''); }).join('\n');
+      printDoc('МК', body);
+    }).catch(function (e) { ui.toast('Ошибка: ' + e.message); });
+  });
+  var _ok = document.getElementById('rtPrintOk');
+  if (_ok) _ok.addEventListener('click', function () {
+    if (!curRoute) return;
+    rpc('app_route_ok', { p_token: token, p_id: curRoute.id }).then(function (rows) {
+      rows = rows || [];
+      var body = 'ОПЕРАЦИОННАЯ КАРТА (ОК, ГОСТ 3.1404-86)\n' + routeHead() + '\n\n' +
+        rows.map(function (s) {
+          return s.seq + '. ' + s.operation + ' | ' + (s.equipment || '—') +
+            ' | Тпз ' + num(s.setup_min) + ' мин | Тшт ' + num(s.unit_min) + ' мин | План ' + num(s.plan_min) + ' мин' +
+            ' | ' + fmt(s.cost) + ' ₽' + (s.note ? ' | ' + s.note : '');
+        }).join('\n');
+      printDoc('ОК', body || 'Шагов нет.');
+    }).catch(function (e) { ui.toast('Ошибка: ' + e.message); });
+  });
+  var _vo = document.getElementById('rtPrintVo');
+  if (_vo) _vo.addEventListener('click', function () {
+    if (!curRoute) return;
+    rpc('app_route_vo', { p_token: token, p_id: curRoute.id }).then(function (rows) {
+      rows = rows || [];
+      var body = 'ВЕДОМОСТЬ ОСНАСТКИ (ВО, ГОСТ 3.1130-93)\n' + routeHead() + '\n\n' +
+        (rows.length ? rows.map(function (s) {
+          return s.seq + '. [' + s.kind + '] ' + s.designation + ' — ' + s.name +
+            (s.standard ? ' (' + s.standard + ')' : '') + ' ×' + num(s.qty) + (s.note ? ' | ' + s.note : '');
+        }).join('\n') : 'Оснастка не назначена (инструмент не привязан к операциям).');
+      printDoc('ВО', body);
+    }).catch(function (e) { ui.toast('Ошибка: ' + e.message); });
   });
 })();

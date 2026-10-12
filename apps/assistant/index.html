@@ -17,7 +17,14 @@
   .ans p{font-size:.84rem;line-height:1.55;margin-top:4px}
   .rec{background:#f0fdf4;border:1px solid #6ee7b7;border-radius:12px;padding:12px 14px;margin-top:8px}
   .rec b{font-size:.9rem}
-  
+  .ac{position:relative}
+  .ac-panel{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:40;background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 10px 26px rgba(15,23,42,.14);max-height:240px;overflow:auto}
+  .ac-panel[hidden]{display:none}
+  .ac-item{padding:8px 12px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-size:.84rem}
+  .ac-item b{font-weight:600}
+  .ac-item .g{color:var(--muted);font-size:.72rem;white-space:nowrap}
+  .ac-item:hover,.ac-item.on{background:#f0fdf4}
+  .ac-empty{padding:10px 12px;color:var(--muted);font-size:.8rem}
   @media(max-width:680px){}
 </style>
 </head>
@@ -49,7 +56,7 @@
       <div class="card">
         <h2>Подбор технологии</h2>
         <div class="grid2">
-          <div class="field"><label>Материал</label><input type="text" id="rMat" list="matList" placeholder="Сталь 40Х / steel 40X"><datalist id="matList"></datalist><span class="hint">Русский или английский; выберите из списка или введите.</span></div>
+          <div class="field"><label>Материал</label><div class="ac" id="acWrap"><input type="text" id="rMat" placeholder="Сталь 40Х / steel 40X" autocomplete="off"><div class="ac-panel" id="acPanel" hidden></div></div><span class="hint">Начните вводить (рус. или англ.) — выберите марку из списка.</span></div>
           <div class="field"><label>Признак</label><select id="rFeat">
             <option value="отверстие">Отверстие (hole)</option><option value="паз">Паз (slot)</option>
             <option value="резьба">Резьба (thread)</option><option value="плоскость">Плоскость (face)</option>
@@ -91,7 +98,7 @@
   <script src="../../assets/js/support-widget.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=108"></script>
   <script src="../../assets/js/shell.js?v=75"></script>
-  <script src="assistant.js?v=3"></script>
+  <script src="assistant.js?v=4"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=2"></script>
 </body>

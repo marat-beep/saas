@@ -5,6 +5,8 @@
   'use strict';
   var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa, SB = window.SB;
   var token = null, ops = [], kfactors = [], serial = [], analogs = [], tab = 'calc', curOp = null, lastCalc = null;
+  var oQ = '';
+  var CAT = { milling: 'Фрезерование', turning: 'Точение', drilling: 'Сверление/резьба', grinding: 'Шлифование', gear: 'Зубообработка', blank: 'Раскрой заготовок', forming: 'Гибка/штамповка', locksmith: 'Слесарные', heat: 'Термообработка/покрытия', welding: 'Сварка', quality: 'Контроль', edm: 'ЭЭО', engraving: 'Гравирование', other: 'Прочее' };
 
   function esc(v) { return ui.esc(v); }
   function msg(id, t, k) { var e = $(id); e.className = 'msg show ' + (k || 'info'); e.textContent = t; if (!t) e.className = 'msg'; }
@@ -31,15 +33,19 @@
     return rpc('app_norms_ops_list', { p_token: token, p_q: null }).then(function (r) {
       ops = r || [];
       $('#cOp').innerHTML = ops.map(function (o) { return '<option value="' + o.id + '">' + esc(o.code) + ' · ' + esc(o.name) + '</option>'; }).join('');
+      var catList = document.getElementById('catList');
+      if (catList) catList.innerHTML = Object.keys(CAT).map(function (k) { return '<option value="' + k + '"></option>'; }).join('');
       renderOps();
     });
   }
 
   function renderOps() {
-    $('#oList').innerHTML = ops.length ? '<div class="olist">' + ops.map(function (o) {
+    var list = ops;
+    if (oQ) { var s = oQ.toLowerCase(); list = ops.filter(function (o) { return ((o.code || '') + ' ' + (o.name || '') + ' ' + (CAT[o.category] || o.category || '')).toLowerCase().indexOf(s) >= 0; }); }
+    $('#oList').innerHTML = list.length ? '<div class="olist">' + list.map(function (o) {
       return '<div class="ocard"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">' +
         '<span class="badge">' + esc(o.code) + '</span><b>' + esc(o.name) + '</b>' +
-        '<span class="note">' + esc(o.category || '') + ' · ' + esc(o.unit || '') + ' · ставок ' + (o.rates || 0) + '</span></div>' +
+        '<span class="note">' + esc(CAT[o.category] || o.category || '') + ' · ' + esc(o.unit || '') + ' · ставок ' + (o.rates || 0) + '</span></div>' +
         '<div class="toolbar mt"><button class="btn secondary" data-oedit="' + o.id + '" style="width:auto;padding:6px 11px;">Править</button>' +
         '<button class="btn secondary" data-rates="' + o.id + '" style="width:auto;padding:6px 11px;">Ставки</button></div>' +
         '<div id="rates_' + o.id + '"></div></div>';
@@ -154,6 +160,7 @@
 
   // Операции
   $('#oClear').addEventListener('click', function () { curOp = null; $('#oCode').value = ''; $('#oName').value = ''; $('#oCat').value = ''; $('#oMt').value = ''; });
+  $('#oQ').addEventListener('input', function () { oQ = this.value; renderOps(); });
   $('#oSave').addEventListener('click', function () {
     rpc('app_norms_op_save', { p_token: token, p_id: curOp ? curOp.id : null, p_code: $('#oCode').value, p_name: $('#oName').value,
       p_category: $('#oCat').value, p_machine_type: $('#oMt').value, p_note: null, p_active: true })
