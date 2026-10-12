@@ -13,6 +13,17 @@
   function toast(t, k) { if (g.AppUI && g.AppUI.toast) g.AppUI.toast(t, k); }
   function rpc(n, a) { return g.SB.rpc(n, a).then(function (r) { if (r.error) throw new Error(r.error.message); return r.data; }); }
 
+  var SELF = document.currentScript, ROOT = '';
+  try { var ss = (SELF && SELF.src) || ''; var ii = ss.indexOf('assets/js/setup-wizard.js'); if (ii >= 0) ROOT = ss.substring(0, ii); } catch (e) {}
+  function catApp(id) { var a = (g.AppCatalog && g.AppCatalog.apps) || []; for (var i = 0; i < a.length; i++) { if (a[i].id === id) return a[i]; } return null; }
+  function ensureCatalog() {
+    return new Promise(function (res) {
+      if (g.AppCatalog && g.AppCatalog.apps) { res(); return; }
+      if (document.getElementById('wzCatLd')) { var t = setInterval(function () { if (g.AppCatalog && g.AppCatalog.apps) { clearInterval(t); res(); } }, 80); return; }
+      var s = document.createElement('script'); s.id = 'wzCatLd'; s.src = ROOT + 'assets/js/catalog.js?v=123'; s.onload = function () { res(); }; s.onerror = function () { res(); }; document.head.appendChild(s);
+    });
+  }
+
   /* Поля настройки по модулям: key/label/hint/type/options/def */
   var MODULE_FIELDS = {
     orders: { title: 'Заявки', fields: [
@@ -101,10 +112,10 @@
     opts = opts || {};
     if (!g.AppWizard) { toast('Мастер недоступен (нет wizard.js)'); return; }
 
-    Promise.all([
+    ensureCatalog().then(function () { return Promise.all([
       rpc('app_tenant_modules_list', { p_token: token }).catch(function () { return []; }),
       rpc('app_tenant_settings_get', { p_token: token, p_module: null }).catch(function () { return []; })
-    ]).then(function (r) {
+    ]); }).then(function (r) {
       var mods = r[0] || [], sets = r[1] || [];
       var enabledMap = {}; mods.forEach(function (m) { enabledMap[m.module] = m.enabled !== false; });
       var settingsMap = {}; sets.forEach(function (s) { settingsMap[s.module] = s.settings || {}; });
@@ -131,14 +142,16 @@
 
       // Шаги по модулям (включённым) — настройки с пояснениями
       moduleKeys.forEach(function (mod) {
-        var def = MODULE_FIELDS[mod];
-        steps.push({ key: 'mod_' + mod, title: '⚙ ' + def.title, hint: 'Параметры модуля. Пояснения — под каждым полем.',
+        var def = MODULE_FIELDS[mod]; var a = catApp(mod);
+        var tt = (a ? a.icon + ' ' + a.title : '⚙ ' + def.title);
+        var hh = (a && (a.desc || a.purpose)) ? (a.desc || a.purpose) : 'Параметры модуля. Пояснения — под каждым полем.';
+        steps.push({ key: 'mod_' + mod, title: tt, hint: hh,
           html: function () { return def.fields.map(function (f) { return fieldHtml(mod, f, (settingsMap[mod] || {})[f.key]); }).join('') + '<div class="note" style="margin-top:6px;">Сохраняется в настройках организации (module: ' + mod + ').</div>'; } });
       });
 
-      steps.push({ key: 'modules', title: 'Включение модулей', hint: 'Доступ к отключённым модулям закрывается (навигация и прямой URL).',
+      steps.push({ key: 'modules', title: '🧩 Включение модулей', hint: 'Доступ к отключённым модулям закрывается (навигация и прямой URL).',
         html: function () { return '<div id="wzMods"><span class="note">Загрузка…</span></div>'; },
-        onShow: function (body) { var box = body.querySelector('#wzMods'); rpc('app_tenant_modules_list', { p_token: token }).then(function (rows) { rows = rows || []; if (!rows.length) { box.innerHTML = '<span class="note">Нет данных.</span>'; return; } box.innerHTML = rows.map(function (m) { var on = m.enabled !== false; return '<div class="kvr"><b>' + esc(m.module) + '</b><span class="m"><label><input type="checkbox" data-mod="' + esc(m.module) + '"' + (on ? ' checked' : '') + '> включён</label></span></div>'; }).join(''); box.querySelectorAll('[data-mod]').forEach(function (ch) { ch.addEventListener('change', function () { rpc('app_tenant_module_set', { p_token: token, p_module: ch.dataset.mod, p_enabled: ch.checked }).then(function () { toast('Обновлено'); }).catch(function (e) { toast('Ошибка: ' + e.message); }); }); }); }).catch(function (e) { box.innerHTML = '<span class="note">' + esc(e.message) + '</span>'; }); } });
+        onShow: function (body) { var box = body.querySelector('#wzMods'); var cat = (g.AppCatalog && g.AppCatalog.apps) ? g.AppCatalog : { apps: [], groups: [] }; rpc('app_tenant_modules_list', { p_token: token }).then(function (rows) { rows = rows || []; var map = {}; rows.forEach(function (m) { map[m.module] = m.enabled !== false; }); var apps = (cat.apps || []).filter(function (a) { return a.href && a.href.indexOf('apps/') === 0; }); var byG = {}; apps.forEach(function (a) { var k = a.group || '_'; (byG[k] = byG[k] || []).push(a); }); var order = (cat.groups || []).map(function (x) { return x.id; }).filter(function (id) { return byG[id]; }); if (byG['_']) order.push('_'); if (!apps.length) { box.innerHTML = '<span class="note">Каталог не загружен.</span>'; return; } box.innerHTML = order.map(function (gid) { var grp = (cat.groups || []).filter(function (x) { return x.id === gid; })[0] || { icon: '🗂', title: 'Прочее' }; var items = byG[gid] || []; return '<div class="note" style="margin:12px 0 2px;font-weight:700;">' + grp.icon + ' ' + esc(grp.title) + '</div>' + items.map(function (a) { var on = map[a.id] !== false; return '<div class="kvr" style="align-items:flex-start;"><span style="font-size:1.25rem;">' + a.icon + '</span><div style="flex:1;min-width:0;"><b>' + esc(a.title) + '</b><div class="note" style="font-size:.74rem;">' + esc(a.desc || a.purpose || '') + '</div></div><label class="m"><input type="checkbox" data-mod="' + esc(a.id) + '"' + (on ? ' checked' : '') + '> включён</label></div>'; }).join(''); }).join(''); box.querySelectorAll('[data-mod]').forEach(function (ch) { ch.addEventListener('change', function () { rpc('app_tenant_module_set', { p_token: token, p_module: ch.dataset.mod, p_enabled: ch.checked }).then(function () { toast('Обновлено'); }).catch(function (e) { toast('Ошибка: ' + e.message); }); }); }); }).catch(function (e) { box.innerHTML = '<span class="note">' + esc(e.message) + '</span>'; }); } });
       steps.push({ key: 'demo', title: 'Демо-данные', hint: 'Демо-строки помечаются флагом is_demo и удаляются отдельно.',
         html: function (d) { return '<label><input type="checkbox" name="load_demo"' + (d.load_demo ? ' checked' : '') + '> Загрузить демо-данные по всем модулям</label>'; } });
 
