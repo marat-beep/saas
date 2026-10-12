@@ -68,6 +68,7 @@ function card(a) {
       <span class="tag">Аудитория: ${esc(AUD[a.audience] || a.audience || 'пользователь')}${a.guest ? ' · доступ: гость' : ''}</span>
       <span class="tag">Роли: ${esc(roles(a))}</span>
       ${an.wave ? '<span class="tag wave" title="Волна плана обновления v5">план v5: ' + esc(an.wave) + '</span>' : ''}
+      ${(an.wave || an.done) ? (an.partial ? '<span class="tag" style="background:#fff7ed;border-color:#fed7aa;color:#9a3412;font-weight:700">◐ частично реализовано</span>' : '<span class="tag" style="background:#ecfdf5;border-color:#a7f3d0;color:#065f46;font-weight:700">✅ реализовано</span>') : ''}
       <a class="tag link" href="${attr(a.href)}" target="_blank" rel="noopener">Открыть модуль →</a>
     </div>
     ${a.purpose ? '<p class="mc-purpose">' + esc(a.purpose) + '</p>' : ''}
