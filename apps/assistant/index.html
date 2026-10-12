@@ -41,7 +41,7 @@
       <div class="card">
         <h2>Спросите</h2>
         <div class="ask">
-          <input type="text" id="q" placeholder="Например: допуск на отверстие 12H7">
+          <input type="text" id="q" placeholder="Например: допуск на отверстие 12H7 / hole tolerance / grinding wheel">
           <button class="btn" id="askBtn" style="width:auto;padding:11px 18px;">Найти</button>
         </div>
         <div id="results" class="mt"></div>
@@ -49,10 +49,12 @@
       <div class="card">
         <h2>Подбор технологии</h2>
         <div class="grid3">
-          <div class="field"><label>Материал</label><input type="text" id="rMat" placeholder="Сталь 40Х / алюминий"><span class="hint">Подбор технологии: укажите материал и признак обработки.</span></div>
+          <div class="field"><label>Материал</label><input type="text" id="rMat" list="matList" placeholder="Сталь 40Х / steel 40X / aluminum"><datalist id="matList"></datalist><span class="hint">Можно на русском или английском; выберите из списка или введите.</span></div>
           <div class="field"><label>Признак</label><select id="rFeat">
-            <option value="отверстие">Отверстие</option><option value="паз">Паз</option>
-            <option value="резьба">Резьба</option><option value="плоскость">Плоскость</option></select></div>
+            <option value="отверстие">Отверстие (hole)</option><option value="паз">Паз (slot)</option>
+            <option value="резьба">Резьба (thread)</option><option value="плоскость">Плоскость (face)</option>
+            <option value="шлифование">Шлифование (grinding)</option><option value="точение">Точение (turning)</option>
+            <option value="фрезерование">Фрезерование (milling)</option></select></div>
           <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="recBtn">Рекомендовать</button></div>
         </div>
         <div id="rec" class="mt"></div>
@@ -86,7 +88,7 @@
   <script src="../../assets/js/support-widget.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=108"></script>
   <script src="../../assets/js/shell.js?v=75"></script>
-  <script src="assistant.js?v=1"></script>
+  <script src="assistant.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=2"></script>
 </body>

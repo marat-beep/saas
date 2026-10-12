@@ -66,7 +66,7 @@
     var q = $('#kQ').value.trim(), a = $('#kA').value.trim();
     if (!q || !a) { msg('#kMsg', 'Заполните вопрос и ответ.', 'err'); return; }
     rpc('app_kb_add', { p_token: token, p_category: $('#kCat').value.trim(), p_question: q, p_answer: a, p_tags: $('#kTags').value.trim() })
-      .then(function (d) { var r = d && d[0]; msg('#kMsg', (r && r.message) || '', r && r.ok ? 'ok' : 'err'); if (r && r.ok) { ['#kCat', '#kQ', '#kA', '#kTags'].forEach(function (s) { $(s).value = ''; }); loadKb(); } });
+      .then(function (d) { var r = d && d[0]; msg('#kMsg', (r && r.message) || '', r && r.ok ? 'ok' : 'err'); if (r && r.ok) { ['#kCat', '#kQ', '#kA', '#kTags'].forEach(function (s) { $(s).value = ''; }); loadKb(); loadRefs(); } });
   });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
@@ -76,6 +76,18 @@
     me = s; token = s.token;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '');
     if (!SB) { msg('#kMsg', 'Supabase не подключён.', 'err'); return; }
-    loadKb();
+    loadKb(); loadRefs();
   });
+  function loadRefs() {
+    rpc('app_ref_material_list', { p_token: token, p_group: null, p_q: null }).then(function (list) {
+      var dl = document.getElementById('matList'); if (!dl) return;
+      dl.innerHTML = (list || []).map(function (m) { return '<option value="' + esc(m.grade) + '">' + esc(m.group_code || '') + '</option>'; }).join('');
+    }).catch(function () {});
+    rpc('app_tech_features_list', { p_token: token }).then(function (rows) {
+      var sel = document.getElementById('rFeat'); if (!sel || !rows || !rows.length) return;
+      var cur = sel.value;
+      sel.innerHTML = rows.map(function (r) { return '<option value="' + esc(r.feature) + '">' + esc(r.feature) + '</option>'; }).join('');
+      if (cur) { var ok = Array.prototype.some.call(sel.options, function (o) { return o.value === cur; }); if (ok) sel.value = cur; }
+    }).catch(function () {});
+  }
 })();
