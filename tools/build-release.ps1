@@ -29,10 +29,14 @@ foreach ($item in $deploy) {
   Write-Host ("+ " + $item)
 }
 
-# исключаем служебные каталоги из staging (на случай вложенности)
-Get-ChildItem -LiteralPath $stage -Recurse -Force -Directory |
-  Where-Object { $_.Name -in @(".git", "supabase", "docs", "tools", "dist") } |
+# исключаем только служебный .git (рекурсивно) и корневые служебные каталоги;
+# ВАЖНО: не трогать вложенные каталоги модулей с такими именами (например apps/docs).
+Get-ChildItem -LiteralPath $stage -Recurse -Force -Directory -Filter ".git" |
   ForEach-Object { Remove-Item -LiteralPath $_.FullName -Recurse -Force }
+foreach ($name in @(".git", ".gitignore", "supabase", "docs", "tools", "dist")) {
+  $p = Join-Path $stage $name
+  if (Test-Path -LiteralPath $p) { Remove-Item -LiteralPath $p -Recurse -Force }
+}
 
 if (Test-Path $zip) { Remove-Item -LiteralPath $zip -Force }
 Add-Type -AssemblyName System.IO.Compression.FileSystem
