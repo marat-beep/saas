@@ -1,16 +1,16 @@
 # Матрица трассируемости (3DMP Service)
 
-Сформировано: 2026-10-12T13:32:49 · tools/trace-matrix.ps1
+Сформировано: 2026-10-12T15:57:57 · tools/trace-matrix.ps1
 
 ## Сводка
-- Модулей в каталоге: 98
-- Приложений на диске: 97
+- Модулей в каталоге: 99
+- Приложений на диске: 98
 - Сироты каталога (нет index.html): 0
 - apps без каталога: 0
-- RPC вызывается в UI: 860
-- RPC определено в миграциях: 1033
+- RPC вызывается в UI: 879
+- RPC определено в миграциях: 1051
 - UI→RPC без определения: 0
-- RPC без UI-вызова (backend): 173
+- RPC без UI-вызова (backend): 172
 
 ## UI→RPC без определения
 | RPC | Вызвано из |
@@ -34,10 +34,7 @@
 | app_audit_write |
 | app_base32_decode |
 | app_base32_encode |
-| app_bid_compare |
-| app_bid_rank |
 | app_billing_mark_paid |
-| app_bpmn_map |
 | app_briefing_delete |
 | app_bug_create |
 | app_calc_cnc |
@@ -52,7 +49,6 @@
 | app_can |
 | app_can_edit |
 | app_can_view |
-| app_capa_start |
 | app_capacity_list |
 | app_cert_save |
 | app_claim_delete |
@@ -61,6 +57,8 @@
 | app_crm_contact_send |
 | app_daily_job_set_status |
 | app_dealer_request_set_status |
+| app_demo_reset |
+| app_demo_seed |
 | app_dept_ok |
 | app_dept_scope_apply |
 | app_dict_delete |
@@ -77,7 +75,6 @@
 | app_document_sign |
 | app_document_signatures |
 | app_employee_link_user |
-| app_equipment_card |
 | app_ext_install |
 | app_ext_installs_list |
 | app_ext_toggle |
@@ -108,6 +105,7 @@
 | app_mes_delete |
 | app_mes_kpi |
 | app_mes_set_status |
+| app_module_enabled |
 | app_my_permissions |
 | app_my_tenant |
 | app_naryad_op_tools |
@@ -118,9 +116,6 @@
 | app_notif_send |
 | app_offline_list |
 | app_offline_log |
-| app_onboard_item_set_status |
-| app_onboard_list |
-| app_onboard_scan |
 | app_order_create_invoice |
 | app_order_create_quote |
 | app_order_flow_list |
@@ -176,6 +171,9 @@
 | app_service_visit_status |
 | app_session_touch |
 | app_session_user |
+| app_setting_get |
+| app_setup_step_set |
+| app_setup_steps_list |
 | app_staff_roles |
 | app_stock_low |
 | app_support_sla_due |
@@ -185,7 +183,8 @@
 | app_task_delete |
 | app_tasks_list |
 | app_tenant_modules |
-| app_tenant_modules_list |
+| app_tenant_settings_get |
+| app_tenant_settings_set |
 | app_teo_total |
 | app_test_attempts_list |
 | app_totp_code |

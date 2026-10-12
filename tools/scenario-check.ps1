@@ -1,4 +1,4 @@
-﻿# ============================================================
+# ============================================================
 # 3DMP · tools/scenario-check.ps1 — L3: сквозные сценарии (область C)
 # Прогоняет золотые цепочки по модулям через Management API, проверяет отсутствие
 # ошибок, затем очищает тестовые данные. Пишет audit/checks/scenario.json.
@@ -22,7 +22,7 @@ if (-not $Token) { Add-F 'C' 'Info' 'Сценарии L3 пропущены (н�
 
 $Uri = "https://api.supabase.com/v1/projects/$Project/database/query"
 # Пейсинг + ретраи на троттлинг Management API (429 / ThrottlerException)
-$script:SqlMinGapMs = 400
+$script:SqlMinGapMs = 600
 $script:SqlLast = [DateTime]::UtcNow
 function Sql([string]$q) {
   $attempt = 0
