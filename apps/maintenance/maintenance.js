@@ -261,4 +261,12 @@
         }).join('') + '</tbody></table>';
     }).catch(function () { $('#runtime').innerHTML = '<span class="note">Недоступно.</span>'; });
   }
+  $('#autoplanBtn').addEventListener('click', function () {
+    rpc('app_mnt_predictive_autoplan', { p_token: token, p_days: 30 }).then(function (r) {
+      var x = r && r[0];
+      var el = $('#apMsg'); if (el) el.textContent = (x && x.message) || '';
+      if (window.AppUI) AppUI.toast((x && x.message) || 'Готово', x && x.ok === false ? 'err' : 'ok');
+      if (x && x.ok) setTimeout(function () { location.reload(); }, 900);
+    }).catch(function (e) { if (window.AppUI) AppUI.toast('Ошибка: ' + e.message); });
+  });
 })();

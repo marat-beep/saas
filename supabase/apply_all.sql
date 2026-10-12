@@ -35385,3 +35385,597 @@ grant execute on function public.app_alert_raise(uuid,uuid,text,text) to anon, a
 grant execute on function public.app_mes_alerts(uuid) to anon, authenticated;
 
 -- <<<<<<<<<< 0193_mes2.sql <<<<<<<<<<
+
+-- >>>>>>>>>> 0196_service2.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0196_service2.sql  (X17 — Сервис 2.0)
+-- Портал дилера (app_dealer_links/_requests), маршрут выездов (app_service_route_plan),
+-- счёт по сервис-контракту, акт работ → ЭДО. Идемпотентно. Зависит от 0001..0195.
+-- ============================================================
+
+create table if not exists public.app_dealer_links (
+  id           uuid primary key default gen_random_uuid(),
+  tenant_id    uuid references public.tenants (id),
+  app_user_id  uuid not null references public.app_users (id) on delete cascade,
+  customer_id  uuid references public.app_customers (id) on delete cascade,
+  created_at   timestamptz not null default now()
+);
+create index if not exists app_dealer_links_idx on public.app_dealer_links (app_user_id);
+alter table public.app_dealer_links enable row level security;
+
+create table if not exists public.app_dealer_requests (
+  id                 uuid primary key default gen_random_uuid(),
+  tenant_id          uuid references public.tenants (id),
+  customer_id        uuid references public.app_customers (id) on delete set null,
+  title              text not null,
+  description        text,
+  priority           text not null default 'normal',
+  status             text not null default 'new',   -- new|accepted|rejected|closed
+  service_request_id uuid references public.app_service_requests (id) on delete set null,
+  created_login      text,
+  created_at         timestamptz not null default now()
+);
+create index if not exists app_dealer_requests_idx on public.app_dealer_requests (tenant_id, status);
+alter table public.app_dealer_requests enable row level security;
+
+create table if not exists public.app_service_route_plan (
+  id            uuid primary key default gen_random_uuid(),
+  tenant_id     uuid references public.tenants (id),
+  plan_date     date not null,
+  request_id    uuid references public.app_service_requests (id) on delete set null,
+  visit_id      uuid references public.app_service_visits (id) on delete set null,
+  seq           integer default 0,
+  engineer      text,
+  place         text,
+  status        text not null default 'planned',  -- planned|done|cancelled
+  note          text,
+  created_login text,
+  created_at    timestamptz not null default now()
+);
+create index if not exists app_service_route_plan_idx on public.app_service_route_plan (tenant_id, plan_date, seq);
+alter table public.app_service_route_plan enable row level security;
+
+-- ================= RPC: портал дилера =================
+create or replace function public.app_dealer_context(p_token uuid)
+returns table (customer_id uuid, customer text, tenant_name text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare uid uuid; urole text;
+begin
+  select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
+  if uid is null then raise exception 'Сессия недействительна'; end if;
+  if urole <> 'dealer' and urole <> 'admin' then raise exception 'Доступ только для дилера'; end if;
+  return query
+    select l.customer_id, c.name, t.name
+      from public.app_dealer_links l join public.app_customers c on c.id = l.customer_id
+      left join public.tenants t on t.id = l.tenant_id
+     where l.app_user_id = uid;
+end $$;
+
+create or replace function public.app_dealer_request_save(p_token uuid, p_id uuid, p_customer_id uuid, p_title text, p_description text, p_priority text)
+returns table (ok boolean, message text, id uuid)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare uid uuid; urole text; ten uuid; cust uuid; newid uuid; pr text;
+begin
+  select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
+  if uid is null then raise exception 'Сессия недействительна'; end if;
+  if urole not in ('dealer','admin') then raise exception 'Доступ только для дилера'; end if;
+  select l.customer_id, l.tenant_id into cust, ten from public.app_dealer_links l where l.app_user_id = uid limit 1;
+  if cust is null then cust := p_customer_id; end if;
+  if cust is null then return query select false,'Не определён заказчик дилера', null::uuid; return; end if;
+  if coalesce(trim(p_title),'') = '' then return query select false,'Укажите тему заявки', null::uuid; return; end if;
+  pr := coalesce(nullif(trim(p_priority),''),'normal');
+  if urole = 'dealer' then ten := coalesce(ten, (select tenant_id from public.app_customers where id = cust)); end if;
+  if p_id is null then
+    insert into public.app_dealer_requests (tenant_id, customer_id, title, description, priority, created_login)
+    values (ten, cust, left(trim(p_title),200), nullif(trim(p_description),''), pr, (select ulogin from public.app_session_user(p_token)))
+    returning app_dealer_requests.id into newid;
+    return query select true,'Заявка дилера создана', newid;
+  else
+    update public.app_dealer_requests r set title = left(trim(p_title),200), description = nullif(trim(p_description),''), priority = pr
+     where r.id = p_id and (public.app_is_platform_admin(p_token) or customer_id = cust)
+     returning r.id into newid;
+    if newid is null then return query select false,'Заявка не найдена', null::uuid; return; end if;
+    return query select true,'Заявка дилера сохранена', newid;
+  end if;
+end $$;
+
+create or replace function public.app_dealer_requests_list(p_token uuid, p_all boolean default false)
+returns table (id uuid, customer text, title text, priority text, status text, service_number text, created_at timestamptz)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare uid uuid; urole text; ten uuid; cust uuid; adm boolean;
+begin
+  select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
+  if uid is null then raise exception 'Сессия недействительна'; end if;
+  adm := public.app_is_platform_admin(p_token);
+  if urole = 'dealer' then
+    select l.customer_id, l.tenant_id into cust, ten from public.app_dealer_links l where l.app_user_id = uid limit 1;
+    return query
+      select r.id, c.name, r.title, r.priority, r.status, sr.number, r.created_at
+        from public.app_dealer_requests r
+        left join public.app_customers c on c.id = r.customer_id
+        left join public.app_service_requests sr on sr.id = r.service_request_id
+       where r.customer_id = cust order by r.created_at desc;
+  else
+    if not (adm or public.app_production_allowed(p_token)) then raise exception 'Доступ запрещён'; end if;
+    ten := public.app_my_tenant(p_token);
+    return query
+      select r.id, c.name, r.title, r.priority, r.status, sr.number, r.created_at
+        from public.app_dealer_requests r
+        left join public.app_customers c on c.id = r.customer_id
+        left join public.app_service_requests sr on sr.id = r.service_request_id
+       where adm or r.tenant_id = ten order by r.created_at desc;
+  end if;
+end $$;
+
+-- Служба сервиса принимает заявку дилера → создаёт сервисную заявку
+create or replace function public.app_dealer_request_link(p_token uuid, p_id uuid)
+returns table (ok boolean, message text, service_number text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; r record; res record;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', null::text; return; end if;
+  if not public.app_can_edit(p_token, 'service') then return query select false,'Нет прав на сервис', null::text; return; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  select * into r from public.app_dealer_requests where id = p_id and (adm or tenant_id = ten);
+  if r.id is null then return query select false,'Заявка дилера не найдена', null::text; return; end if;
+  if r.service_request_id is not null then return query select false,'Уже связано с сервисной заявкой', null::text; return; end if;
+  select * into res from public.app_service_save(p_token, null, r.customer_id, null,
+    'Дилер: ' || r.title, 'service', null, null, r.description, null, 'Из портала дилера') x;
+  update public.app_dealer_requests set status = 'accepted', service_request_id = res.id where id = p_id;
+  return query select true,'Создана сервисная заявка: ' || coalesce(res.number,''), res.number;
+end $$;
+
+create or replace function public.app_dealer_request_set_status(p_token uuid, p_id uuid, p_status text)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; st text; n integer;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  ten := public.app_my_tenant(p_token);
+  st := lower(trim(coalesce(p_status,'')));
+  if st not in ('new','accepted','rejected','closed') then return query select false,'Недопустимый статус'; return; end if;
+  update public.app_dealer_requests r set status = st where r.id = p_id and (public.app_is_platform_admin(p_token) or r.tenant_id = ten);
+  get diagnostics n = row_count;
+  if n = 0 then return query select false,'Заявка не найдена'; return; end if;
+  return query select true,'Статус: ' || st;
+end $$;
+
+-- ================= RPC: маршрут выездов =================
+create or replace function public.app_service_route_build(p_token uuid, p_date date)
+returns table (ok boolean, message text, created integer)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; uname text; d date; cnt integer := 0; rec record;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', 0; return; end if;
+  if not public.app_can_edit(p_token, 'service') then return query select false,'Нет прав на сервис', 0; return; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  select s.ulogin into uname from public.app_session_user(p_token) s;
+  d := coalesce(p_date, current_date);
+  for rec in
+    select v.id as visit_id, v.request_id, v.engineer, v.place
+      from public.app_service_visits v
+      where (adm or v.tenant_id = ten) and v.status <> 'cancelled'
+        and (v.planned_at::date = d or (v.planned_at is null and v.arrived_at::date = d))
+        and not exists (select 1 from public.app_service_route_plan rp where rp.visit_id = v.id and rp.plan_date = d)
+  loop
+    insert into public.app_service_route_plan (tenant_id, plan_date, request_id, visit_id, seq, engineer, place, created_login)
+    values (ten, d, rec.request_id, rec.visit_id,
+            coalesce((select max(rp.seq) from public.app_service_route_plan rp where rp.plan_date = d), 0) + 1,
+            rec.engineer, rec.place, uname);
+    cnt := cnt + 1;
+  end loop;
+  return query select true, 'Маршрут на ' || to_char(d,'DD.MM') || ': выездов ' || cnt, cnt;
+end $$;
+
+create or replace function public.app_service_route_list(p_token uuid, p_date date)
+returns table (id uuid, seq integer, engineer text, place text, request_number text, status text, note text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select rp.id, rp.seq, rp.engineer, rp.place, sr.number, rp.status, rp.note
+      from public.app_service_route_plan rp
+      left join public.app_service_requests sr on sr.id = rp.request_id
+     where (adm or rp.tenant_id = ten) and rp.plan_date = p_date
+     order by rp.seq;
+end $$;
+
+create or replace function public.app_service_route_save(p_token uuid, p_id uuid, p_seq integer, p_engineer text, p_place text, p_status text, p_note text)
+returns table (ok boolean, message text, id uuid)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; st text; newid uuid;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', null::uuid; return; end if;
+  if not public.app_can_edit(p_token, 'service') then return query select false,'Нет прав на сервис', null::uuid; return; end if;
+  ten := public.app_my_tenant(p_token);
+  st := coalesce(nullif(trim(p_status),''),'planned');
+  if st not in ('planned','done','cancelled') then return query select false,'Недопустимый статус', null::uuid; return; end if;
+  update public.app_service_route_plan rp set seq = coalesce(p_seq, rp.seq), engineer = nullif(trim(p_engineer),''),
+         place = nullif(trim(p_place),''), status = st, note = nullif(trim(p_note),'')
+   where rp.id = p_id and (public.app_is_platform_admin(p_token) or rp.tenant_id = ten)
+   returning rp.id into newid;
+  if newid is null then return query select false,'Выезд не найден', null::uuid; return; end if;
+  return query select true,'Выезд обновлён', newid;
+end $$;
+
+-- ================= RPC: сервис ↔ продажи/финансы =================
+create or replace function public.app_service_contract_bill(p_token uuid, p_contract_id uuid, p_amount numeric)
+returns table (ok boolean, message text, id uuid, number text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; c record; cname text; res record; amt numeric;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', null::uuid, null::text; return; end if;
+  if not public.app_can_edit(p_token, 'service') then return query select false,'Нет прав на сервис', null::uuid, null::text; return; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  select * into c from public.app_service_contracts where id = p_contract_id and (adm or tenant_id = ten);
+  if c.id is null then return query select false,'Контракт не найден', null::uuid, null::text; return; end if;
+  select name into cname from public.app_customers where id = c.customer_id;
+  amt := coalesce(p_amount, c.cost, 0);
+  select * into res from public.app_invoice_create(p_token, null, coalesce(cname,'Сервисный контракт'), amt, current_date + 14,
+    'Сервисный контракт ' || coalesce(c.number,'')) x;
+  return query select true, 'Счёт по контракту создан', res.id, res.number;
+end $$;
+
+create or replace function public.app_service_act_to_edo(p_token uuid, p_request_id uuid)
+returns table (ok boolean, message text, id uuid, number text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; r record; cname text; newid uuid; num text;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', null::uuid, null::text; return; end if;
+  if not public.app_can_edit(p_token, 'service') then return query select false,'Нет прав на сервис', null::uuid, null::text; return; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  select * into r from public.app_service_requests where id = p_request_id and (adm or tenant_id = ten);
+  if r.id is null then return query select false,'Заявка не найдена', null::uuid, null::text; return; end if;
+  select name into cname from public.app_customers where id = r.customer_id;
+  num := 'ЭДО-' || to_char(current_date,'YYYY') || '-' || lpad(nextval('public.app_doc_seq')::text, 5, '0');
+  insert into public.app_doc_flows (tenant_id, kind, doc_type, title, correspondent, summary, status, responsible_login, reg_number, reg_date, created_login)
+  values (ten, 'out', 'акт', 'Акт выполненных работ ' || r.number, cname, left(coalesce(r.works,''),500), 'registered', r.engineer, num, current_date, (select ulogin from public.app_session_user(p_token)))
+  returning app_doc_flows.id into newid;
+  insert into public.app_doc_links (tenant_id, doc_id, entity_type, entity_id, note)
+  values (ten, newid, 'service_request', p_request_id, 'Акт по сервисной заявке');
+  return query select true, 'Акт передан в ЭДО: ' || num, newid, num;
+end $$;
+
+-- ================= База знаний =================
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+  ('Сервис','Сервис 2.0: портал дилера, маршрут выездов, счета и акты (X17)',
+   'Сервис 2.0: портал дилера (роль dealer, app_dealer_links + app_dealer_requests; дилер подаёт заявку — app_dealer_request_save/list, служба принимает — app_dealer_request_link создаёт сервисную заявку), маршрут выездов (app_service_route_plan + app_service_route_build/list/save — из запланированных визитов), сервис↔финансы (app_service_contract_bill — счёт по контракту через app_invoice_create), акт работ в ЭДО (app_service_act_to_edo).',
+   'сервис дилер портал заявка маршрут выезд контракт счёт акт ЭДО')
+) as v(category,question,answer,tags)
+where not exists (
+  select 1 from public.app_knowledge
+   where tenant_id = 'aaaaaaaa-0000-0000-0000-000000000001'
+     and question = 'Сервис 2.0: портал дилера, маршрут выездов, счета и акты (X17)'
+);
+
+-- ================= Права =================
+grant execute on function public.app_dealer_context(uuid) to anon, authenticated;
+grant execute on function public.app_dealer_request_save(uuid,uuid,uuid,text,text,text) to anon, authenticated;
+grant execute on function public.app_dealer_requests_list(uuid,boolean) to anon, authenticated;
+grant execute on function public.app_dealer_request_link(uuid,uuid) to anon, authenticated;
+grant execute on function public.app_dealer_request_set_status(uuid,uuid,text) to anon, authenticated;
+grant execute on function public.app_service_route_build(uuid,date) to anon, authenticated;
+grant execute on function public.app_service_route_list(uuid,date) to anon, authenticated;
+grant execute on function public.app_service_route_save(uuid,uuid,integer,text,text,text,text) to anon, authenticated;
+grant execute on function public.app_service_contract_bill(uuid,uuid,numeric) to anon, authenticated;
+grant execute on function public.app_service_act_to_edo(uuid,uuid) to anon, authenticated;
+
+-- <<<<<<<<<< 0196_service2.sql <<<<<<<<<<
+
+-- >>>>>>>>>> 0197_supply2.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0197_supply2.sql  (X14 — Склад/снабжение 2.0)
+-- Заявки на закупку (app_purchase_requests), автозаявка по минимуму (app_reorder_scan),
+-- закупка из BOM (app_procure_from_bom), штрихкод-перемещение (app_wh_scan_move).
+-- Идемпотентно. Зависит от 0001..0196.
+-- ============================================================
+
+create table if not exists public.app_purchase_requests (
+  id            uuid primary key default gen_random_uuid(),
+  tenant_id     uuid references public.tenants (id),
+  source        text not null default 'manual',  -- reorder|bom|service|manual
+  material_id   uuid references public.app_materials (id) on delete set null,
+  title         text not null,
+  qty           numeric not null default 0,
+  unit          text,
+  status        text not null default 'draft',   -- draft|submitted|approved|ordered|closed|cancelled
+  tender_id     uuid references public.tenders (id) on delete set null,
+  note          text,
+  created_login text,
+  created_at    timestamptz not null default now()
+);
+create index if not exists app_purchase_requests_idx on public.app_purchase_requests (tenant_id, status);
+alter table public.app_purchase_requests enable row level security;
+
+-- ================= RPC: заявки на закупку =================
+create or replace function public.app_purchase_request_list(p_token uuid, p_status text default null)
+returns table (id uuid, source text, title text, qty numeric, unit text, status text, material_id uuid, created_at timestamptz)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; st text;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  st := nullif(trim(coalesce(p_status,'')),'');
+  return query
+    select r.id, r.source, r.title, r.qty, r.unit, r.status, r.material_id, r.created_at
+      from public.app_purchase_requests r
+     where (adm or r.tenant_id = ten) and (st is null or r.status = st)
+     order by r.created_at desc;
+end $$;
+
+create or replace function public.app_purchase_request_save(p_token uuid, p_id uuid, p_material_id uuid, p_title text, p_qty numeric, p_unit text, p_note text)
+returns table (ok boolean, message text, id uuid)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; uname text; newid uuid;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', null::uuid; return; end if;
+  if not public.app_can_edit(p_token, 'procurement') then return query select false,'Нет прав на снабжение', null::uuid; return; end if;
+  select u.tenant_id, s.ulogin into ten, uname from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
+  if coalesce(trim(p_title),'') = '' then return query select false,'Укажите наименование', null::uuid; return; end if;
+  if p_id is null then
+    insert into public.app_purchase_requests (tenant_id, source, material_id, title, qty, unit, note, created_login)
+    values (ten, 'manual', p_material_id, left(trim(p_title),200), coalesce(p_qty,0), nullif(trim(p_unit),''), nullif(trim(p_note),''), uname)
+    returning app_purchase_requests.id into newid;
+    return query select true,'Заявка на закупку создана', newid;
+  else
+    update public.app_purchase_requests r set material_id = p_material_id, title = left(trim(p_title),200),
+           qty = coalesce(p_qty,r.qty), unit = nullif(trim(p_unit),''), note = nullif(trim(p_note),'')
+     where r.id = p_id and (public.app_is_platform_admin(p_token) or r.tenant_id = ten)
+     returning r.id into newid;
+    if newid is null then return query select false,'Заявка не найдена', null::uuid; return; end if;
+    return query select true,'Заявка сохранена', newid;
+  end if;
+end $$;
+
+create or replace function public.app_purchase_request_set_status(p_token uuid, p_id uuid, p_status text)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; st text; n integer;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  if not public.app_can_edit(p_token, 'procurement') then return query select false,'Нет прав на снабжение'; return; end if;
+  ten := public.app_my_tenant(p_token);
+  st := lower(trim(coalesce(p_status,'')));
+  if st not in ('draft','submitted','approved','ordered','closed','cancelled') then return query select false,'Недопустимый статус'; return; end if;
+  update public.app_purchase_requests r set status = st where r.id = p_id and (public.app_is_platform_admin(p_token) or r.tenant_id = ten);
+  get diagnostics n = row_count;
+  if n = 0 then return query select false,'Заявка не найдена'; return; end if;
+  return query select true,'Статус: ' || st;
+end $$;
+
+-- ================= RPC: автозаявки =================
+create or replace function public.app_reorder_scan(p_token uuid)
+returns table (ok boolean, message text, created integer)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; uname text; cnt integer := 0; rec record;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', 0; return; end if;
+  if not public.app_can_edit(p_token, 'procurement') then return query select false,'Нет прав на снабжение', 0; return; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  select s.ulogin into uname from public.app_session_user(p_token) s;
+  for rec in
+    select m.id, m.code, m.name, m.unit, round(m.min_qty - m.qty, 2) as deficit
+      from public.app_materials m
+     where (adm or m.tenant_id = ten) and m.active and m.qty < m.min_qty
+       and not exists (select 1 from public.app_purchase_requests r
+                        where r.material_id = m.id and r.source = 'reorder' and r.status in ('draft','submitted','approved','ordered'))
+  loop
+    insert into public.app_purchase_requests (tenant_id, source, material_id, title, qty, unit, note, created_login)
+    values (ten, 'reorder', rec.id, rec.name, rec.deficit, rec.unit, 'Автозаявка по минимуму (' || coalesce(rec.code,'') || ')', uname);
+    cnt := cnt + 1;
+  end loop;
+  return query select true, 'Автозаявок по минимуму: ' || cnt, cnt;
+end $$;
+
+create or replace function public.app_procure_from_bom(p_token uuid, p_bom_id uuid)
+returns table (ok boolean, message text, created integer)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; uname text; cnt integer := 0; rec record;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', 0; return; end if;
+  if not public.app_can_edit(p_token, 'procurement') then return query select false,'Нет прав на снабжение', 0; return; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  if not exists (select 1 from public.app_bom b where b.id = p_bom_id and (adm or b.tenant_id = ten)) then
+    return query select false,'Спецификация не найдена', 0; return;
+  end if;
+  select s.ulogin into uname from public.app_session_user(p_token) s;
+  for rec in
+    select l.material_id, l.name, l.qty, l.unit
+      from public.app_bom_lines l
+     where l.bom_id = p_bom_id and l.item_type = 'material' and coalesce(l.qty,0) > 0
+  loop
+    insert into public.app_purchase_requests (tenant_id, source, material_id, title, qty, unit, note, created_login)
+    values (ten, 'bom', rec.material_id, rec.name, rec.qty, rec.unit, 'Потребность по спецификации', uname);
+    cnt := cnt + 1;
+  end loop;
+  return query select true, 'Заявок из спецификации: ' || cnt, cnt;
+end $$;
+
+-- ================= RPC: штрихкод-перемещение =================
+create or replace function public.app_wh_scan_move(p_token uuid, p_code text, p_to_location_id uuid, p_qty numeric)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; mat record; src record;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  if not public.app_can_edit(p_token, 'warehouse') then return query select false,'Нет прав на склад'; return; end if;
+  ten := public.app_my_tenant(p_token);
+  if p_to_location_id is null then return query select false,'Укажите целевую ячейку (скан)'; return; end if;
+  select m.id, m.name into mat from public.app_materials m
+   where (public.app_is_platform_admin(p_token) or m.tenant_id = ten)
+     and (lower(m.code) = lower(trim(p_code)) or lower(m.name) = lower(trim(p_code))) limit 1;
+  if mat.id is null then return query select false,'Материал по коду не найден: ' || coalesce(p_code,''); return; end if;
+  select w.id, w.qty into src from public.app_wh_stock w
+   where w.material_id = mat.id and (public.app_is_platform_admin(p_token) or w.tenant_id = ten) and w.qty > 0
+   order by w.qty desc limit 1;
+  if src.id is null then return query select false,'Нет остатка на складе для ' || mat.name; return; end if;
+  return query select r.ok, r.message from public.app_wh_move(p_token, src.id, p_to_location_id, coalesce(p_qty, src.qty)) r;
+end $$;
+
+-- ================= База знаний =================
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+  ('Склад','Склад/снабжение 2.0: автозаявки, BOM, штрихкод-склад (X14)',
+   'Склад/снабжение 2.0: заявки на закупку (app_purchase_requests + save/list/set_status, статусы draft→submitted→approved→ordered→closed), автозаявка по минимуму (app_reorder_scan — материалы ниже минимума → черновик закупки, без дублей), закупка из спецификации (app_procure_from_bom — потребность BOM → заявки), штрихкод-перемещение (app_wh_scan_move — скан кода материала → перемещение в целевую ячейку через app_wh_move). Связи: производство (BOM наряда), сервис (запчасти), логистика, финансы.',
+   'склад снабжение закупка автозаявка минимум BOM штрихкод перемещение инвентаризация')
+) as v(category,question,answer,tags)
+where not exists (
+  select 1 from public.app_knowledge
+   where tenant_id = 'aaaaaaaa-0000-0000-0000-000000000001'
+     and question = 'Склад/снабжение 2.0: автозаявки, BOM, штрихкод-склад (X14)'
+);
+
+-- ================= Права =================
+grant execute on function public.app_purchase_request_list(uuid,text) to anon, authenticated;
+grant execute on function public.app_purchase_request_save(uuid,uuid,uuid,text,numeric,text,text) to anon, authenticated;
+grant execute on function public.app_purchase_request_set_status(uuid,uuid,text) to anon, authenticated;
+grant execute on function public.app_reorder_scan(uuid) to anon, authenticated;
+grant execute on function public.app_procure_from_bom(uuid,uuid) to anon, authenticated;
+grant execute on function public.app_wh_scan_move(uuid,text,uuid,numeric) to anon, authenticated;
+
+-- <<<<<<<<<< 0197_supply2.sql <<<<<<<<<<
+
+-- >>>>>>>>>> 0198_maintenance2.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0198_maintenance2.sql  (X13 — Оборудование/ТОиР 2.0)
+-- Авто-наряд по предиктиву (app_mnt_predictive_autoplan), карточка-дашборд
+-- оборудования (app_equipment_card), инструмент по операции (app_naryad_op_tools).
+-- Идемпотентно. Зависит от 0001..0197.
+-- ============================================================
+
+-- ================= RPC: авто-наряд по предиктиву =================
+create or replace function public.app_mnt_predictive_autoplan(p_token uuid, p_days integer default 30)
+returns table (ok boolean, message text, created integer)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; uname text; cnt integer := 0; rec record; due date;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', 0; return; end if;
+  if not public.app_can_edit(p_token, 'maintenance') then return query select false,'Нет прав на ТОиР', 0; return; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  select s.ulogin into uname from public.app_session_user(p_token) s;
+  for rec in
+    with a as (
+      select v.equipment_id, avg(v.value) as avg_v, coalesce(stddev(v.value),0) as sd,
+             (array_agg(v.value order by v.ts desc))[1] as last_v
+        from public.app_vibro_readings v
+       where (adm or v.tenant_id = ten)
+       group by v.equipment_id
+    )
+    select a.equipment_id, e.name, a.last_v, a.avg_v, a.sd
+      from a join public.app_equipment e on e.id = a.equipment_id
+     where a.equipment_id is not null and a.last_v > a.avg_v + greatest(a.sd, 0.01)
+       and not exists (select 1 from public.app_mnt_plans p
+                        where p.equipment_id = a.equipment_id and p.active and p.note like 'Автоплан%')
+  loop
+    due := current_date + greatest(1, least(coalesce(p_days,30), 30));
+    insert into public.app_mnt_plans (tenant_id, equipment_id, kind, title, period_days, next_due, responsible, active, note)
+    values (ten, rec.equipment_id, 'ppr', 'Автоплан ТОиР (вибрация): ' || rec.name, coalesce(p_days,30), due, uname, true,
+            'Автоплан% по вибрации: послед. ' || round(rec.last_v,3) || ' > ср. ' || round(rec.avg_v,3) || ' + σ ' || round(rec.sd,3));
+    perform public.app_notif_roles_t(ten, array['admin','owner','manager','chief','master'], 'ТОиР: автоплан по оборудованию', rec.name || ' — до ' || to_char(due,'DD.MM.YYYY'), 'apps/maintenance/index.html');
+    cnt := cnt + 1;
+  end loop;
+  return query select true, 'Автопланов ТОиР: ' || cnt, cnt;
+end $$;
+
+-- ================= RPC: карточка-дашборд оборудования =================
+create or replace function public.app_equipment_card(p_token uuid, p_equipment_id uuid)
+returns table (id uuid, code text, name text, model text, kind text, cost_hour numeric,
+               plans_active bigint, next_due date, service_total bigint, service_open bigint,
+               vibro_last numeric, vibro_result text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select e.id, e.code, e.name, e.model, e.kind, e.cost_hour,
+           (select count(*) from public.app_mnt_plans p where p.equipment_id = e.id and p.active),
+           (select min(p.next_due) from public.app_mnt_plans p where p.equipment_id = e.id and p.active),
+           (select count(*) from public.app_service_requests s where s.equipment_id = e.id),
+           (select count(*) from public.app_service_requests s where s.equipment_id = e.id and s.status not in ('done','closed','cancelled')),
+           (select v.value from public.app_vibro_readings v where v.equipment_id = e.id order by v.ts desc limit 1),
+           (select v.result from public.app_vibro_readings v where v.equipment_id = e.id order by v.ts desc limit 1)
+      from public.app_equipment e
+     where e.id = p_equipment_id and (adm or e.tenant_id = ten);
+end $$;
+
+-- ================= RPC: инструмент по операции наряда =================
+create or replace function public.app_naryad_op_tools(p_token uuid, p_op_id uuid)
+returns table (tool_life_id uuid, qty numeric, note text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; rsid uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  select op.route_step_id into rsid from public.app_naryad_ops op join public.app_naryads n on n.id = op.naryad_id
+   where op.id = p_op_id and (adm or n.tenant_id = ten);
+  if rsid is null then return; end if;
+  return query
+    select rt.tool_life_id, rt.qty, rt.note
+      from public.app_route_tools rt
+     where rt.route_step_id = rsid and (adm or rt.tenant_id = ten);
+end $$;
+
+-- ================= База знаний =================
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+  ('Производство','Оборудование/ТОиР 2.0: автоплан по предиктиву, карточка станка, инструмент (X13)',
+   'ТОиР 2.0: авто-наряд по предиктиву (app_mnt_predictive_autoplan — вибрация выше среднего+σ → план ППР в app_mnt_plans + уведомление; без дублей), карточка-дашборд оборудования (app_equipment_card — паспорт, активные планы и ближайший срок, сервисные заявки/открытые, последняя вибрация и оценка), инструмент по операции наряда (app_naryad_op_tools — из app_route_tools по шагу маршрута).',
+   'оборудование ТОиР предиктив вибрация автоплан карточка станка инструмент операция')
+) as v(category,question,answer,tags)
+where not exists (
+  select 1 from public.app_knowledge
+   where tenant_id = 'aaaaaaaa-0000-0000-0000-000000000001'
+     and question = 'Оборудование/ТОиР 2.0: автоплан по предиктиву, карточка станка, инструмент (X13)'
+);
+
+-- ================= Права =================
+grant execute on function public.app_mnt_predictive_autoplan(uuid,integer) to anon, authenticated;
+grant execute on function public.app_equipment_card(uuid,uuid) to anon, authenticated;
+grant execute on function public.app_naryad_op_tools(uuid,uuid) to anon, authenticated;
+
+-- <<<<<<<<<< 0198_maintenance2.sql <<<<<<<<<<

@@ -940,4 +940,42 @@
     var land = can('dash') ? 's-dash' : (can('list') ? 's-list' : (can('visits') ? 's-visits' : 's-dash'));
     setActiveTab(land); screens.go(land);
   });
+
+  /* X17: маршрут выездов и заявки дилеров */
+  $('#routeBtn').addEventListener('click', function () {
+    var d0 = window.prompt('Маршрут на дату (ГГГГ-ММ-ДД):', new Date().toISOString().slice(0, 10));
+    if (d0 == null) return;
+    rpc('app_service_route_build', { p_token: token, p_date: d0 }).then(function (r) {
+      var x = r && r[0]; if (window.AppUI) AppUI.toast((x && x.message) || 'Готово');
+      return rpc('app_service_route_list', { p_token: token, p_date: d0 });
+    }).then(function (rows) {
+      rows = rows || [];
+      var html = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Инженер</th><th>Место</th><th>Заявка</th><th>Статус</th></tr></thead><tbody>' +
+        (rows.length ? rows.map(function (v) { return '<tr><td>' + (v.seq || '') + '</td><td>' + AppUI.esc(v.engineer || '') + '</td><td>' + AppUI.esc(v.place || '') + '</td><td>' + AppUI.esc(v.request_number || '') + '</td><td>' + AppUI.esc(v.status) + '</td></tr>'; }).join('') : '<tr><td colspan="5" class="note">Выездов нет</td></tr>') +
+        '</tbody></table></div>';
+      AppUI.dialog({ title: 'Маршрут выездов на ' + d0, body: html, html: true, cancelText: 'Закрыть' });
+    }).catch(function (e) { AppUI.toast('Ошибка: ' + e.message); });
+  });
+  $('#dealerBtn').addEventListener('click', function () {
+    function draw() {
+      rpc('app_dealer_requests_list', { p_token: token, p_all: true }).then(function (rows) {
+        rows = rows || [];
+        var html = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Дилер/заказчик</th><th>Тема</th><th>Приоритет</th><th>Статус</th><th>Заявка</th><th></th></tr></thead><tbody>' +
+          (rows.length ? rows.map(function (r) { return '<tr><td>' + AppUI.esc(r.customer || '') + '</td><td>' + AppUI.esc(r.title) + '</td><td>' + AppUI.esc(r.priority) + '</td><td>' + AppUI.esc(r.status) + '</td><td>' + AppUI.esc(r.service_number || '') + '</td>' +
+            '<td>' + (r.service_number ? '' : '<button class="act" data-link="' + r.id + '">Принять</button>') + '</td></tr>'; }).join('') : '<tr><td colspan="6" class="note">Заявок нет</td></tr>') +
+          '</tbody></table></div>';
+        AppUI.dialog({ title: 'Заявки дилеров', body: html, html: true, cancelText: 'Закрыть', onOpen: function (back) {
+          back.querySelectorAll('[data-link]').forEach(function (b) {
+            b.addEventListener('click', function () {
+              rpc('app_dealer_request_link', { p_token: token, p_id: b.dataset.link }).then(function (r2) {
+                var x = r2 && r2[0]; AppUI.toast((x && x.message) || '', x && x.ok ? 'ok' : 'err');
+                back.querySelector('[data-cancel]').click(); setTimeout(draw, 200);
+              }).catch(function (e) { AppUI.toast('Ошибка: ' + e.message); });
+            });
+          });
+        } });
+      });
+    }
+    draw();
+  });
 })();

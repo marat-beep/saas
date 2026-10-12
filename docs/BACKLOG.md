@@ -5,7 +5,7 @@
 > **Конец сессии:** обнови статусы пунктов (и краткий журнал в §5), затем `PLAN.md`/`PROMPTS.md` при необходимости.
 
 ## 1. Состояние (кратко)
-- Миграции `0001…0195`, `apply_all.sql` идемпотентен; смоук `app_smoke_test` 10/10, `app_smoke_test_ext` 14/14, волновые RPC 44/44, перегрузок 0 (автотест `tools/db-smoke.ps1`). Эксплуатация — `tools/run-checks.ps1` (audit+db-smoke, лог `dist/checks/`).
+- Миграции `0001…0198`, `apply_all.sql` идемпотентен; смоук `app_smoke_test` 10/10, `app_smoke_test_ext` 14/14, волновые RPC 44/44, перегрузок 0 (автотест `tools/db-smoke.ps1`). Эксплуатация — `tools/run-checks.ps1` (audit+db-smoke, лог `dist/checks/`).
 - Приложений 97 (`apps/`), прототипов 72 (`eco/apps`); каталог `catalog.js` v10.35 — единый источник модулей. Локальный автотест `tools/audit.ps1`. Новые модули помечены 🆕 в каталоге.
 - Методика типового апгрейда модуля — `docs/MODULE_BLUEPRINT.md`.
 - **Релиз:** `tools/build-release.ps1` → `dist/saas-YYYYMMDD-HHmm.zip` (деплой-артефакты для FTP; `dist/` в .gitignore).
@@ -162,11 +162,11 @@ _Автогенерация `tools/update-plan.ps1` от 2026-10-09T17:43:24. П
 | X10 | Производство 2.0: маршрутные карты, таймеры, брак, ССЗ | `production` | высокий | 🔄 (код готов, миграция `0192`) |
 | X11 | MES/терминал 2.0: realtime, drag&drop, аварийные сигналы | `mes`, `terminal` | высокий | 🔄 (код готов, миграция `0193`) |
 | X12 | Планирование 2.0: APS+переналадки, сценарии, Gantt-зависимости | `planning`, `slots`, `forecast` | высокий | 🔄 (ёмкость+APS-слоты+Гант; миграция `0194`) |
-| X13 | Оборудование/ТОиР/инструмент: предиктив→наряд, паспорт-дашборд | `maintenance`, `oee`, `eam`, `tooling`, `nc`, `iiot` | средний | ☐ |
-| X14 | Склад/снабжение 2.0: автозаявки (мин./BOM), штрихкод-склад | `warehouse`, `procurement`, `logistics` | высокий | ☐ |
+| X13 | Оборудование/ТОиР: предиктив→наряд, карточка станка, инструмент | `maintenance`, `oee`, `tooling` | средний | 🔄 (автоплан+карточка+инструмент; миграция `0198`) |
+| X14 | Склад/снабжение 2.0: автозаявки (мин./BOM), штрихкод-склад | `warehouse`, `procurement`, `logistics` | высокий | 🔄 (автозаявки+BOM+скан; миграция `0197`) |
 | X15 | Продажи 2.0: конвейер заявка→оплата, онлайн-оплата (R2), скоринг | `orders`, `crm`, `tkp`, `client` | высокий | 🔄 (конвейер+оплата+скоринг; миграция `0195`) |
 | X16 | Закупки/поставщики: сравнение КП, рейтинг, маркетплейс/эскроу | `procurement`, `suppliers`, `supplier`, `marketplace`, `partners` | средний | ☐ |
-| X17 | Сервис 2.0: портал дилера, маршруты выездов, контракт→счета, сервис-склад | `service` | высокий | ☐ |
+| X17 | Сервис 2.0: портал дилера, маршруты выездов, контракт→счета, акт→ЭДО | `service`, `dealer` | высокий | 🔄 (дилер+маршрут+счёт+акт; миграция `0196`) |
 | X18 | Качество: SPC онлайн, фото дефектов, CAPA-маршруты, трассировка | `qc`, `claims`, `passport`, `quality` | средний | ☐ |
 | X19 | Экономика/платформа: факт-план, банк, EVM, дашборды, приём платежей | `economics`, `finance`, `projbudget`, `bi`, `reports`, `billing`, `platform`, `admin` | средний | ☐ |
 | X20 | Платформа/референсы: BPMN, единая НСИ, справка, ИИ-хаб | `workflow`, `builder`, `dicts`, `registry`, `mdm`, `plm`, `ai`, `assistant`, `guide`… | низкий | ☐ |
@@ -229,6 +229,17 @@ _Автогенерация `tools/update-plan.ps1` от 2026-10-09T17:43:24. П
 **Артефакты (реализовано, `0195_sales2.sql`):** `app_order_flow`, `app_payment_links`; RPC `app_order_flow_list`, `app_order_pipeline`, `app_order_flow_advance` (на «счёт» — `app_order_create_invoice`, на «договор» — документ), `app_payment_link_create`, `app_payment_settle` (идемпотентно), `app_payment_links_list`, `app_lead_score`, `app_client_pay`. UI `apps/orders` v7 (кнопка «Конвейер» + продвижение стадий), `apps/crm` v3 («Скоринг лидов»), `apps/client` v2 («💳 Оплатить» счёт).
 **Остаток X15:** ТКП PDF/напоминание об истечении и полный вебхук провайдера — частично (settle идемпотентен; вебхук — задел).
 
+#### X17 (П4, волна 10) — Сервис 2.0 (`service`/`dealer`) — детализация
+**Артефакты (реализовано, `0196_service2.sql`):** `app_dealer_links`/`app_dealer_requests`, `app_service_route_plan`; RPC `app_dealer_context/request_save/requests_list/request_link/request_set_status`, `app_service_route_build/list/save`, `app_service_contract_bill`, `app_service_act_to_edo`. Новый модуль `apps/dealer` (портал дилера, роль `dealer`; `auth.js` добавлен ярлык роли, версия v7). UI `apps/service` v? — кнопки «🗺 Маршрут выездов»/«🏬 Заявки дилеров». `catalog.js` v10.42 (+dealer app).
+**Остаток X17:** единый сервис-склад с общим учётом — частично (RPC запчастей и скан X14).
+
+#### X14 (П4, волна 11) — Склад/снабжение 2.0 (`warehouse`/`procurement`) — детализация
+**Артефакты (реализовано, `0197_supply2.sql`):** `app_purchase_requests`; RPC `app_purchase_request_list/save/set_status`, `app_reorder_scan` (минимум → закупка без дублей), `app_procure_from_bom`, `app_wh_scan_move` (штрихкод → перемещение через `app_wh_move`). UI `apps/procurement` v4 (Автозакупка/Из BOM/Заявки), `apps/warehouse` v6 (Скан-перемещение).
+
+#### X13 (П4, волна 12) — Оборудование/ТОиР 2.0 (`maintenance`) — детализация
+**Артефакты (реализовано, `0198_maintenance2.sql`):** RPC `app_mnt_predictive_autoplan` (вибрация > ср.+σ → план ППР + уведомление, без дублей), `app_equipment_card` (паспорт+планы+сервис+вибрация), `app_naryad_op_tools` (инструмент по шагу маршрута). UI `apps/maintenance` v6 («🤖 Автоплан по предиктиву»).
+**Остаток X13:** единая вкладка-дашборд в `equipment`/`oee` и авто-списание инструмента по операциям — частично (RPC готовы).
+
 ## 4. Мелкие пункты (быстрые) — ☑ автоматизировано (v209)
 - [x] Панель (Тема/Сервер/Вход/Пользователь) единообразна; `#who`/`#logout`/`#tabs` без дублей — проверяется `tools/audit.ps1`.
 - [x] Боковое меню закрыто по умолчанию (`shell.js`, `sh-open` по клику «☰»).
@@ -237,6 +248,7 @@ _Автогенерация `tools/update-plan.ps1` от 2026-10-09T17:43:24. П
 - [x] Ревизия `AUDIT_BACKLOG §3` (контуры) — выполнена (v211): контурные работы закрыты волнами W2–W12, остаток вынесен в R1–R4 (см. `AUDIT_BACKLOG §7`).
 
 ## 5. Журнал (последние версии, кратко)
+- v275 — **План v5, пакет П4 (X17→X14→X13).** X17 `0196_service2.sql` (портал дилера `app_dealer_links/_requests` + новый модуль `apps/dealer` и роль `dealer`; маршрут выездов `app_service_route_plan`; счёт по контракту; акт→ЭДО). X14 `0197_supply2.sql` (заявки на закупку `app_purchase_requests`, автозаявка по минимуму, закупка из BOM, штрихкод-перемещение; UI procurement v4/warehouse v6). X13 `0198_maintenance2.sql` (автоплан ТОиР по предиктиву, карточка-дашборд оборудования, инструмент по операции; UI maintenance v6). `catalog.js` v10.43 (+, CATALOG_APPS 98), `CATALOG_V` 119, `auth.js` v7. Смоук 10/10, 14/14, волновые 44/44, перегрузок 0; функц. тесты с очисткой ✅. Далее — П5 (X2→X3→X6→X9) либо FTP-заливка.
 - v274 — **План v5, пакет П3 (X11→X12→X15).** X11 `0193_mes2.sql` (живая доска/Realtime, drag&drop, переназначение, аварийный сигнал; UI mes v3/terminal v3; устранена перегрузка `app_mes_board`). X12 `0194_planning2.sql` (ёмкость РЦ, APS-солвер, слоты, Гант, загрузка; UI planning v5). X15 `0195_sales2.sql` (конвейер заявки, онлайн-оплата идемпотентно, скоринг лидов; UI orders v7/crm v3/client v2). `catalog.js` v10.41, `CATALOG_V` 117. Смоук 10/10, 14/14, волновые 44/44, перегрузок 0. Далее — П4 (X17→X14→X13).
 - v273 — **План v5, пакет П2 (X7→X8→X10).** X7 `0190_edo2.sql` (внешний обмен `app_edo_exchange`, SLA поручений, подписи `app_signatures`, маршруты W10, папки, `app_edo_dashboard`; UI edo v4). X8 `0191_docs2.sql` (версии шаблонов `app_template_versions`, печатные шаблоны `app_doc_print_templates`, формулы `app_doc_formula_eval`, экспорт `app_doc_to_edo`; UI docs v5 / templates v2). X10 `0192_prod2.sql` (таймеры операций, брак `app_defects`, ССЗ `app_daily_jobs`, маршрутная карта; UI production v5). `catalog.js` v10.39, `CATALOG_V` 115. Смоук 10/10, 14/14, волновые 44/44, перегрузок 0; функц. тесты с очисткой ✅. Далее — П3 (X11→X12→X15).
 - v272 — **План v5, волна X5 «Оргструктура и доступ 2.0».** Миграция `0189_access3.sql`: `app_role_permissions.can_approve`; `app_can` v3 (просмотр/правка/**утверждение**); `app_perms_matrix_get/set`, `app_role_actions_get`, `app_dept_scope_apply`; поля `department_id` к service/tasks/qc/docs/deals (+бэкфилл); сквозной гейтинг `app_dept_ok` в `app_service_list`/`app_tasks_list`. UI `apps/roles` v2 (колонка «Утверждение»). Функц. тест: матрица 641 строк, set/approve, dept_apply, service/tasks списки. Пакет П1 (X1→X4→X5) закрыт: смоук 10/10, 14/14, волновые 44/44, перегрузок 0. Далее — П2 (X7→X8→X10).

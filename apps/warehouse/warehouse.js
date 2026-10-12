@@ -287,4 +287,15 @@
     if (!SB) { msg('#listMsg', 'Supabase не подключён.', 'err'); return; }
     load();
   });
+  $('#scanMoveBtn').addEventListener('click', function () {
+    rpc('app_wh_address_list', { p_token: token }).catch(function () { return []; }).then(function (addrs) {
+      addrs = addrs || [];
+      if (!addrs.length) { ui.toast('Нет ячеек (адресов)'); return; }
+      ui.formDialog({ title: 'Скан-перемещение', okText: 'Переместить', fields: [
+        { name: 'code', label: 'Код/наименование материала', type: 'text', required: true },
+        { name: 'to', label: 'Целевая ячейка', type: 'select', required: true, options: addrs.map(function (a) { return { value: a.id, label: (a.code || '') + ' ' + (a.name || a.path || '') }; }) },
+        { name: 'qty', label: 'Количество (пусто = весь остаток)', type: 'text' }
+      ] }).then(function (v) { if (!v) return; rpc('app_wh_scan_move', { p_token: token, p_code: v.code, p_to_location_id: v.to, p_qty: v.qty ? Number(v.qty) : null }).then(function (r) { var x = r && r[0]; ui.toast((x && x.message) || '', x && x.ok ? 'ok' : 'err'); if (x && x.ok) load(); }); });
+    });
+  });
 })();

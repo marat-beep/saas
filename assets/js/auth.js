@@ -82,7 +82,7 @@
   Auth.STAFF = ['admin', 'owner', 'manager', 'director', 'chief', 'master', 'technologist', 'operator', 'supply', 'qc', 'economist', 'support'];
   Auth.ROLE_LABELS = {
     admin: 'Администратор платформы', owner: 'Владелец организации', manager: 'Менеджер',
-    supplier: 'Поставщик', director: 'Директор', chief: 'Начальник цеха/участка', master: 'Мастер/бригадир',
+    supplier: 'Поставщик', dealer: 'Дилер', director: 'Директор', chief: 'Начальник цеха/участка', master: 'Мастер/бригадир',
     technologist: 'Технолог/инженер', operator: 'Оператор ЧПУ', supply: 'Снабженец',
     qc: 'ОТК/метролог', economist: 'Экономист/бухгалтер', support: 'Служба поддержки'
   };

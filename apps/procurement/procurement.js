@@ -179,4 +179,23 @@
     if (!SB) { msg('#listMsg', 'Supabase не подключён.', 'err'); return; }
     load();
   });
+  function _ok(x) { return x && x.ok ? 'ok' : 'err'; }
+  $('#reorderBtn').addEventListener('click', function () {
+    rpc('app_reorder_scan', { p_token: token }).then(function (r) { var x = r && r[0]; ui.toast((x && x.message) || '', _ok(x)); if (x && x.ok) load(); });
+  });
+  $('#bomBtn').addEventListener('click', function () {
+    rpc('app_bom_list', { p_token: token }).then(function (list) {
+      list = list || []; if (!list.length) { ui.toast('Спецификаций нет'); return; }
+      ui.formDialog({ title: 'Закупка из спецификации', okText: 'Создать заявки', fields: [{ name: 'bom_id', label: 'Спецификация', type: 'select', required: true, options: list.map(function (b) { return { value: b.id, label: (b.product || '') + ' v' + (b.version || '') }; }) }] })
+        .then(function (v) { if (!v) return; rpc('app_procure_from_bom', { p_token: token, p_bom_id: v.bom_id }).then(function (r) { var x = r && r[0]; ui.toast((x && x.message) || '', _ok(x)); if (x && x.ok) load(); }); });
+    });
+  });
+  $('#prBtn').addEventListener('click', function () {
+    rpc('app_purchase_request_list', { p_token: token, p_status: null }).then(function (rows) {
+      rows = rows || [];
+      var html = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Источник</th><th>Наименование</th><th class="num">Кол-во</th><th>Статус</th></tr></thead><tbody>' +
+        (rows.length ? rows.map(function (r) { return '<tr><td>' + ui.esc(r.source) + '</td><td>' + ui.esc(r.title) + '</td><td class="num">' + (Number(r.qty) || 0) + ' ' + ui.esc(r.unit || '') + '</td><td>' + ui.esc(r.status) + '</td></tr>'; }).join('') : '<tr><td colspan="4" class="note">Заявок нет</td></tr>') + '</tbody></table></div>';
+      ui.dialog({ title: 'Заявки на закупку', body: html, html: true, cancelText: 'Закрыть' });
+    });
+  });
 })();

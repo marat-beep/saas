@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Портал дилера — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🏬</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap fluid">
+    <div class="hero"><h1>Портал дилера</h1><p>Заявки на сервис от дилера: подача, статус, связь с сервисной заявкой. Доступ — роль «Дилер».</p></div>
+    <div id="ctx" class="note"></div>
+    <div class="kpi-row" id="kpis"></div>
+    <div class="msg" id="msg"></div>
+
+    <div class="card mt">
+      <h2>Новая заявка</h2>
+      <div class="grid2c">
+        <div class="field"><label>Тема *</label><input type="text" id="fTitle" placeholder="Например: неисправность станка"></div>
+        <div class="field"><label>Приоритет</label><select id="fPriority"><option value="normal">Обычный</option><option value="high">Высокий</option><option value="low">Низкий</option></select></div>
+      </div>
+      <div class="field"><label>Описание</label><textarea id="fDesc" rows="3"></textarea></div>
+      <button class="btn" id="addBtn">Подать заявку</button>
+    </div>
+
+    <div class="card"><h2>Мои заявки</h2><div id="list"><span class="note">Загрузка…</span></div></div>
+  </main>
+
+  <footer class="foot">3DMP Service · портал дилера</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=4"></script>
+  <script src="../../assets/js/auth.js?v=7"></script>
+  <script src="../../assets/js/notify.js?v=3"></script>
+  <script src="../../assets/js/support-widget.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=108"></script>
+  <script src="../../assets/js/shell.js?v=73"></script>
+  <script src="dealer.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=2"></script>
+  <script src="../../assets/js/module-info.js?v=2"></script>
+</body>
+</html>
