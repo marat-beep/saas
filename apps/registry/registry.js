@@ -40,11 +40,14 @@
       rpc('app_ref_fasteners_list', { p_token: token, p_q: null }).catch(function () { return []; }),
       rpc('app_ref_heat_list', { p_token: token, p_q: null }).catch(function () { return []; }),
       rpc('app_ref_fluids_list', { p_token: token, p_q: null }).catch(function () { return []; }),
-      rpc('app_ref_processes_list', { p_token: token, p_category: null, p_q: null }).catch(function () { return []; })
+      rpc('app_ref_processes_list', { p_token: token, p_category: null, p_q: null }).catch(function () { return []; }),
+      rpc('app_ref_tolerances_list', { p_token: token, p_grade: null }).catch(function () { return []; }),
+      rpc('app_ref_threads_list', { p_token: token, p_q: null }).catch(function () { return []; })
     ]).then(function (r) {
       eq = r[0] || []; mats = r[1] || []; ops = r[2] || []; tps = r[3] || []; routes = r[4] || []; orders = r[5] || []; wcs = r[6] || []; refs = r[7] || [];
       tech.cutting = r[8] || []; tech.tools = r[9] || []; tech.machines = r[10] || []; tech.fits = r[11] || [];
       tech.fasteners = r[12] || []; tech.heat = r[13] || []; tech.fluids = r[14] || []; tech.processes = r[15] || [];
+      tech.tolerances = r[16] || []; tech.threads = r[17] || [];
       renderEq(); renderMat(); renderOp(); renderTp(); renderRt(); renderRef(); renderTech();
       $('#tpMat').innerHTML = opt('— нет —', '') + mats.map(function (m) { return opt(m.name, m.id); }).join('');
       $('#stOp').innerHTML = ops.map(function (o) { return opt(o.name + ' (' + kLabel(o.kind) + ')', o.id); }).join('');
@@ -131,7 +134,9 @@
     fasteners: [['kind', 'Тип'], ['standard', 'ГОСТ'], ['size', 'Размер'], ['material', 'Материал'], ['coating', 'Покрытие'], ['note', '']],
     heat: [['kind', 'Вид'], ['material_group', 'Материалы'], ['hardness', 'Твёрдость'], ['depth', 'Глубина'], ['note', '']],
     fluids: [['kind', 'Тип'], ['name', 'Название'], ['purpose', 'Назначение'], ['concentration', 'Концентрация'], ['note', '']],
-    processes: [['code', 'Код'], ['name', 'Процесс'], ['category', 'Категория'], ['stages', 'Этапы'], ['inputs', 'Входы'], ['outputs', 'Выходы'], ['executors', 'Исполнители'], ['tools', 'Инструменты'], ['time_norm', 'Время']]
+    processes: [['code', 'Код'], ['name', 'Процесс'], ['category', 'Категория'], ['stages', 'Этапы'], ['inputs', 'Входы'], ['outputs', 'Выходы'], ['executors', 'Исполнители'], ['tools', 'Инструменты'], ['time_norm', 'Время']],
+    tolerances: [['size_from', 'От, мм'], ['size_to', 'До, мм'], ['it_grade', 'Квалитет'], ['value_um', 'Допуск, мкм']],
+    threads: [['designation', 'Резьба'], ['pitch', 'Шаг'], ['d2', 'd2'], ['d1', 'd1'], ['predrill', 'Сверло'], ['note', 'Примечание']]
   };
   function cellV(v) { if (v == null || v === '') return ''; if (typeof v === 'number') return fmt(v); return esc(String(v)); }
   function renderTech() {
