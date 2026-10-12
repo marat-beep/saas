@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa, SB = window.SB;
-  var token = null, me = null;
+  var token = null, me = null, data = [], q = '';
 
   var PST = { new: 'Новая', accepted: 'Принята', rejected: 'Отклонена', closed: 'Закрыта' };
   var PR = { high: 'Высокий', normal: 'Обычный', low: 'Низкий' };
@@ -23,9 +23,15 @@
       $('#ctx').textContent = ctx ? 'Организация: ' + ctx.customer + (ctx.tenant_name ? ' · ' + ctx.tenant_name : '') : 'Нет привязки дилера — обратитесь к администратору.';
       $('#kpis').innerHTML = cell('Всего', list.length) + cell('Новые', list.filter(function (x) { return x.status === 'new'; }).length) +
         cell('Принятые', list.filter(function (x) { return x.status === 'accepted'; }).length) + cell('Закрытые', list.filter(function (x) { return x.status === 'closed'; }).length);
-      $('#list').innerHTML = list.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Тема</th><th>Приоритет</th><th>Статус</th><th>Сервисная заявка</th><th>Дата</th></tr></thead><tbody>' +
-        list.map(function (x) { return '<tr><td><b>' + esc(x.title) + '</b></td><td>' + esc(PR[x.priority] || x.priority) + '</td><td>' + esc(PST[x.status] || x.status) + '</td><td>' + esc(x.service_number || '—') + '</td><td class="muted">' + fmt(x.created_at) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<span class="note">Заявок нет.</span>';
+      data = list; renderList();
     }).catch(function (e) { msg('Ошибка: ' + e.message, 'err'); });
+  }
+
+  function renderList() {
+    var list = q ? data.filter(function (x) { var s = ((x.title || '') + ' ' + (x.service_number || '') + ' ' + (PST[x.status] || '') + ' ' + (PR[x.priority] || '')).toLowerCase(); return s.indexOf(q) >= 0; }) : data;
+    $('#list').innerHTML = list.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Тема</th><th>Приоритет</th><th>Статус</th><th>Сервисная заявка</th><th>Дата</th></tr></thead><tbody>' +
+      list.map(function (x) { return '<tr><td><b>' + esc(x.title) + '</b></td><td>' + esc(PR[x.priority] || x.priority) + '</td><td>' + esc(PST[x.status] || x.status) + '</td><td>' + esc(x.service_number || '—') + '</td><td class="muted">' + fmt(x.created_at) + '</td></tr>'; }).join('') + '</tbody></table></div>'
+      : '<span class="note">' + (q ? 'Ничего не найдено.' : 'Заявок нет.') + '</span>';
   }
   function cell(l, v) { return '<div class="kpi"><small>' + l + '</small><b>' + v + '</b></div>'; }
 
@@ -38,6 +44,7 @@
       .catch(function (e) { msg('Ошибка: ' + e.message, 'err'); });
   });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
+  var _q = document.getElementById('q'); if (_q) _q.addEventListener('input', function () { q = this.value.trim().toLowerCase(); renderList(); });
 
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;

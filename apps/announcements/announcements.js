@@ -6,7 +6,7 @@
 (function () {
   'use strict';
   var ui = window.AppUI, $ = ui.qs, SB = window.SB;
-  var token = null, me = null, rows = [], tenants = [];
+  var token = null, me = null, rows = [], tenants = [], q = '';
 
   var KINDS = {
     info: { l: 'Информация', c: 'k-info' },
@@ -53,9 +53,10 @@
 
   function render() {
     renderKpi();
-    $('#list').innerHTML = rows.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr>' +
+    var list = q ? rows.filter(function (a) { var s = ((a.title || '') + ' ' + (a.body || '') + ' ' + (a.tenant_name || '') + ' ' + (KINDS[a.kind] ? KINDS[a.kind].l : '')).toLowerCase(); return s.indexOf(q) >= 0; }) : rows;
+    $('#list').innerHTML = list.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr>' +
       '<th>Тип</th><th>Заголовок</th><th>Область</th><th>Период</th><th>Статус</th><th class="num">Прочтений</th><th>Действия</th>' +
-      '</tr></thead><tbody>' + rows.map(function (a) {
+      '</tr></thead><tbody>' + list.map(function (a) {
         var k = KINDS[a.kind] || KINDS.info, st = statusOf(a);
         var period = fmtDT(a.starts_at) + (a.ends_at ? ' — ' + fmtDT(a.ends_at) : '');
         return '<tr><td><span class="an-kind ' + k.c + '">' + esc(k.l) + '</span></td>' +
@@ -70,7 +71,7 @@
             '<button class="act" data-toggle="' + a.id + '" data-active="' + (!a.active) + '">' + (a.active ? 'Скрыть' : 'Включить') + '</button>' +
             '<button class="act danger" data-del="' + a.id + '">Удалить</button>' +
           '</td></tr>';
-      }).join('') + '</tbody></table></div>' : '<span class="note">Объявлений нет. Создайте первое — «＋ Новое объявление».</span>';
+      }).join('') + '</tbody></table></div>' : '<span class="note">' + (q ? 'Ничего не найдено.' : 'Объявлений нет. Создайте первое — «＋ Новое объявление».') + '</span>';
     bind();
   }
 
@@ -156,6 +157,7 @@
   }
 
   $('#newBtn').addEventListener('click', function () { openForm(null); });
+  var _q = document.getElementById('q'); if (_q) _q.addEventListener('input', function () { q = this.value.trim().toLowerCase(); render(); });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
   window.Auth.guard('../auth/index.html').then(function (s) {
