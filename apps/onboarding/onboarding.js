@@ -52,10 +52,12 @@
   function loadModules() {
     return Promise.all([
       rpc('app_tenant_modules_list', { p_token: token }).catch(function () { return []; }),
-      rpc('app_org_profiles_list', { p_token: token }).catch(function () { return []; })
+      rpc('app_org_profiles_list', { p_token: token }).catch(function () { return []; }),
+      rpc('app_org_profile_detect', { p_token: token }).catch(function () { return []; })
     ]).then(function (r) {
       (r[0] || []).forEach(function (m) { enabledMap[m.module] = m.enabled !== false; });
       var profiles = r[1] || [];
+      var det = (r[2] && r[2][0]) || null;
       var c = cat();
       var q = (($('#modFilter') && $('#modFilter').value) || '').trim().toLowerCase();
       var appsAll = (c.apps || []).filter(function (a) { return a.href && a.href.indexOf('apps/') === 0; });
@@ -69,11 +71,11 @@
       var profBar = '<div class="toolbar" style="gap:8px;flex-wrap:wrap;margin-bottom:6px;">' +
         '<span class="note">Профиль организации:</span>' +
         '<select id="modProfile" style="padding:8px;border:1px solid var(--border);border-radius:9px;">' +
-        (profiles.length ? profiles.map(function (p) { return '<option value="' + esc(p.code) + '">' + esc(p.name) + '</option>'; }).join('') : '<option value="">— нет профилей —</option>') +
+        (profiles.length ? profiles.map(function (p) { return '<option value="' + esc(p.code) + '"' + (det && det.code === p.code ? ' selected' : '') + '>' + esc(p.name) + (det && det.code === p.code ? ' ★ текущий' : '') + '</option>'; }).join('') : '<option value="">— нет профилей —</option>') +
         '</select>' +
         '<select id="modMode" style="padding:8px;border:1px solid var(--border);border-radius:9px;"><option value="set">Набор (выключить лишнее)</option><option value="add">Добавить к текущим</option></select>' +
         '<button class="btn" id="applyProfile" style="width:auto;padding:8px 14px;">Применить профиль</button>' +
-        '<span class="note" id="modMsg"></span></div>';
+        '<span class="note" id="modMsg">' + (det ? ('Текущий профиль: ' + esc(det.name) + ' (' + det.match_pct + '%)') : '') + '</span></div>';
 
       var html = profBar;
       order.forEach(function (gid) {

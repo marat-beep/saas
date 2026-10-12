@@ -129,6 +129,26 @@
       var steps = [
         { key: 'org', title: '1. Организация', hint: 'Профиль предприятия, реквизиты и тариф.',
           html: function () { return '<a class="btn secondary" href="../org/index.html">Организации ↗</a> <a class="btn secondary" href="../billing/index.html">Тариф ↗</a>'; } },
+        { key: 'profile', title: '2. Профиль организации', hint: 'Автонабор модулей под тип предприятия. Применяется сразу (без отключения текущих).',
+          html: function () { return '<div id="wzProf"><span class="note">Загрузка…</span></div>'; },
+          onShow: function (body) {
+            var box = body.querySelector('#wzProf');
+            Promise.all([
+              rpc('app_org_profiles_list', { p_token: token }).catch(function () { return []; }),
+              rpc('app_org_profile_detect', { p_token: token }).catch(function () { return []; })
+            ]).then(function (rr) {
+              var ps = rr[0] || [], det = (rr[1] && rr[1][0]) || null;
+              if (!ps.length) { box.innerHTML = '<span class="note">Профили недоступны.</span>'; return; }
+              box.innerHTML = '<div class="field"><label>Профиль</label><select id="wzProfSel">' +
+                ps.map(function (p) { return '<option value="' + esc(p.code) + '"' + (det && det.code === p.code ? ' selected' : '') + '>' + esc(p.name) + (det && det.code === p.code ? ' ★ текущий' : '') + '</option>'; }).join('') +
+                '</select><div class="note">' + ps.map(function (p) { return esc(p.name) + ': ' + esc(p.description || ''); }).join('<br>') + '</div></div>' +
+                '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;"><button type="button" class="btn" id="wzProfApply" style="width:auto;padding:8px 14px;">Применить профиль</button><span class="note" id="wzProfMsg">' + (det ? ('Текущий: ' + esc(det.name) + ' (' + det.match_pct + '%)') : '') + '</span></div>';
+              box.querySelector('#wzProfApply').addEventListener('click', function () {
+                var code = box.querySelector('#wzProfSel').value;
+                rpc('app_org_profile_apply', { p_token: token, p_code: code, p_all: null }).then(function (r2) { var x = r2 && r2[0]; toast((x && x.message) || 'Профиль применён', x && x.ok ? 'ok' : 'err'); box.querySelector('#wzProfMsg').textContent = 'Применён: ' + code; }).catch(function (e) { toast('Ошибка: ' + e.message); });
+              });
+            }).catch(function (e) { box.innerHTML = '<span class="note">' + esc(e.message) + '</span>'; });
+          } },
         { key: 'departments', title: '2. Подразделения', hint: 'Структура цехов/отделов — можно создать сразу.',
           html: function (d) { return '<div class="field"><label>Название</label><input name="dep_name" placeholder="Механообработка"></div><div class="field"><label>Код</label><input name="dep_code" placeholder="MECH"></div><div style="display:flex;gap:10px;align-items:center;"><button type="button" class="btn" data-add="dep" style="width:auto;padding:8px 14px;">＋ Добавить</button><span class="note" data-cnt="dep">добавлено: ' + (d._dep || 0) + '</span></div>'; },
           onShow: function (body, draft) { body.querySelector('[data-add="dep"]').addEventListener('click', function () { var n = body.querySelector('[name="dep_name"]').value.trim(); if (!n) { toast('Укажите название'); return; } rpc('app_department_save', { p_token: token, p_id: null, p_parent_id: null, p_name: n, p_code: body.querySelector('[name="dep_code"]').value || null, p_head: null, p_note: null, p_active: true }).then(function () { draft._dep = (draft._dep || 0) + 1; body.querySelector('[data-cnt="dep"]').textContent = 'добавлено: ' + draft._dep; body.querySelector('[name="dep_name"]').value = ''; toast('Подразделение добавлено'); }).catch(function (e) { toast('Ошибка: ' + e.message); }); }); } },
