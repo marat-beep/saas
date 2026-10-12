@@ -1,6 +1,8 @@
 # MODULE_REFERENCE — справочник модулей 3DMP Service
 
-> Актуально на план **v3** (W37). Перечень из `assets/js/catalog.js` v10.31. Роли `*` — доступно всем авторизованным (staff/роль-специфично).
+> Полный сгруппированный каталог модулей с назначением/возможностями/связями (для анализа на обновление и лендингов) — **`docs/MODULES_CATALOG.md`** (генерируется `node tools/gen-modules.js` из `assets/js/catalog.js`).
+>
+> Актуально на план **v3** (W37). Перечень из `assets/js/catalog.js` v10.34. Роли `*` — доступно всем авторизованным (staff/роль-специфично).
 
 ## Обзор по группам
 - **core (7):** auth, dashboard, panel, guide, remarks, adoption, modules
