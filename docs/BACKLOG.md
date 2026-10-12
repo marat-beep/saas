@@ -5,7 +5,7 @@
 > **Конец сессии:** обнови статусы пунктов (и краткий журнал в §5), затем `PLAN.md`/`PROMPTS.md` при необходимости.
 
 ## 1. Состояние (кратко)
-- Миграции `0001…0189`, `apply_all.sql` идемпотентен; смоук `app_smoke_test` 10/10, `app_smoke_test_ext` 14/14, волновые RPC 44/44, перегрузок 0 (автотест `tools/db-smoke.ps1`). Эксплуатация — `tools/run-checks.ps1` (audit+db-smoke, лог `dist/checks/`).
+- Миграции `0001…0192`, `apply_all.sql` идемпотентен; смоук `app_smoke_test` 10/10, `app_smoke_test_ext` 14/14, волновые RPC 44/44, перегрузок 0 (автотест `tools/db-smoke.ps1`). Эксплуатация — `tools/run-checks.ps1` (audit+db-smoke, лог `dist/checks/`).
 - Приложений 97 (`apps/`), прототипов 72 (`eco/apps`); каталог `catalog.js` v10.35 — единый источник модулей. Локальный автотест `tools/audit.ps1`. Новые модули помечены 🆕 в каталоге.
 - Методика типового апгрейда модуля — `docs/MODULE_BLUEPRINT.md`.
 - **Релиз:** `tools/build-release.ps1` → `dist/saas-YYYYMMDD-HHmm.zip` (деплой-артефакты для FTP; `dist/` в .gitignore).
@@ -156,10 +156,10 @@ _Автогенерация `tools/update-plan.ps1` от 2026-10-09T17:43:24. П
 | X4 | КЭДО 2.0: маршруты/массовые ознакомления/провайдер ЭП | `kedo` | высокий | 🔄 (код готов, миграция `0188`) |
 | X5 | Доступ: сквозной гейтинг по подразделению, роль×действие | `departments`, `org`, `roles`, `access` | высокий | 🔄 (код готов, миграция `0189`) |
 | X6 | EHS 2.0: сроки/допуски-задачи/СИЗ-склад | `safety` | средний | ☐ |
-| X7 | ЭДО 2.0: внешний обмен/SLA поручений/подписи/дела | `edo` | высокий | ☐ |
-| X8 | Документы 2.0: единый хаб, формулы, версии, экспорт в ЭДО | `docs`, `docbuilder`, `templates` | высокий | ☐ |
+| X7 | ЭДО 2.0: внешний обмен/SLA поручений/подписи/дела | `edo` | высокий | 🔄 (код готов, миграция `0190`) |
+| X8 | Документы 2.0: единый хаб, формулы, версии, экспорт в ЭДО | `docs`, `docbuilder`, `templates` | высокий | 🔄 (код готов, миграция `0191`) |
 | X9 | Общий слой документов/подписей/маршрутов | `docs`/`edo`/`kedo`/`access`/`workflow` | средний | ☐ |
-| X10 | Производство 2.0: маршрутные карты, таймеры, брак, ССЗ | `production` | высокий | ☐ |
+| X10 | Производство 2.0: маршрутные карты, таймеры, брак, ССЗ | `production` | высокий | 🔄 (код готов, миграция `0192`) |
 | X11 | MES/терминал 2.0: realtime, drag&drop, аварийные сигналы | `mes`, `terminal` | высокий | ☐ |
 | X12 | Планирование 2.0: APS+переналадки, сценарии, Gantt-зависимости | `planning`, `slots`, `forecast` | высокий | ☐ |
 | X13 | Оборудование/ТОиР/инструмент: предиктив→наряд, паспорт-дашборд | `maintenance`, `oee`, `eam`, `tooling`, `nc`, `iiot` | средний | ☐ |
@@ -208,6 +208,16 @@ _Автогенерация `tools/update-plan.ps1` от 2026-10-09T17:43:24. П
 - **Статус:** 🔄 в работе (код + миграция применены, функц. тест пройден; гейтинг qc/docs/deals — поля добавлены, подключение списков — инкрементально). Далее — пакет П2 (X7).
 **DoD X5:** пользователь видит только своё подразделение в подключённых списках (orders/naryads/hr/service/tasks); матрица различает просмотр/правку/утверждение.
 
+#### X7 (П2, волна 4) — ЭДО 2.0 (`edo`) — детализация
+**Гап:** нет внешнего обмена (контрагентский ЭДО), SLA поручений, ЭП, папок.
+**Артефакты (реализовано, `0190_edo2.sql`):** `app_edo_exchange` (обмен: контрагент/оператор/статус queued→sent→delivered→accepted/rejected/error), `app_doc_folders`, поля `app_doc_resolutions.due_at/sla_minutes`, `app_doc_flows.folder_id/signature_method`; RPC `app_edo_send_ext` (очередь `app_integrations`), `app_edo_exchange_list/set_status`, `app_doc_resolution_set_sla`, `app_edo_resolution_scan`, `app_edo_resolutions_open`, `app_doc_sign`/`app_doc_signatures_list` (reuse `app_signatures` W17; методы ПЭП/УНЭП/УКЭП/Госключ), `app_doc_route_start/act` (reuse W10), `app_doc_folder_list/save`, `app_edo_dashboard`. UI `apps/edo` v4: вкладки «Внешний обмен», «Поручения (SLA)», кнопки «Отправить контрагенту»/«Подписать» в карточке. `catalog` edo += kedo/integrations.
+
+#### X8 (П2, волна 5) — Документы 2.0 (`docs`/`docbuilder`/`templates`) — детализация
+**Артефакты (реализовано, `0191_docs2.sql`):** `app_template_versions`, `app_doc_print_templates`; RPC `app_template_version_save/list`, `app_doc_print_templates_list/save`, `app_doc_formula_eval` (подстановка {переменных} + арифметика), `app_doc_to_edo` (документ → `app_doc_flows` с номером ЭДО-ГГГГ-NNNNN и связью). UI: `apps/docs` v5 — кнопка «📤 В ЭДО», карточка «Печатные шаблоны» (подстановки + печать); `apps/templates` v2 — «Версии» (снимки). `catalog` docs/templates/docbuilder += формулы/EDO-связи.
+
+#### X10 (П2, волна 6) — Производство 2.0 (`production`) — детализация
+**Артефакты (реализовано, `0192_prod2.sql`):** поля `app_naryad_ops.started_at/finished_at`, `app_defects.naryad_op_id/cause/culprit_login/cost`; `app_daily_jobs`; RPC `app_op_start/stop` (таймер + авторасчёт факта), `app_prod_defect_save/list/kpi`, `app_daily_job_build/list/set_status` (ССЗ), `app_route_card`. UI `apps/production` v5: таймеры операций (▶/⏸), карточка «Брак и переделки», кнопки «ССЗ», «Маршрутная карта (печать)», «Брак (KPI)». `catalog` production += таймеры/брак/ССЗ, connects += qc/oee/terminal.
+
 ## 4. Мелкие пункты (быстрые) — ☑ автоматизировано (v209)
 - [x] Панель (Тема/Сервер/Вход/Пользователь) единообразна; `#who`/`#logout`/`#tabs` без дублей — проверяется `tools/audit.ps1`.
 - [x] Боковое меню закрыто по умолчанию (`shell.js`, `sh-open` по клику «☰»).
@@ -216,6 +226,7 @@ _Автогенерация `tools/update-plan.ps1` от 2026-10-09T17:43:24. П
 - [x] Ревизия `AUDIT_BACKLOG §3` (контуры) — выполнена (v211): контурные работы закрыты волнами W2–W12, остаток вынесен в R1–R4 (см. `AUDIT_BACKLOG §7`).
 
 ## 5. Журнал (последние версии, кратко)
+- v273 — **План v5, пакет П2 (X7→X8→X10).** X7 `0190_edo2.sql` (внешний обмен `app_edo_exchange`, SLA поручений, подписи `app_signatures`, маршруты W10, папки, `app_edo_dashboard`; UI edo v4). X8 `0191_docs2.sql` (версии шаблонов `app_template_versions`, печатные шаблоны `app_doc_print_templates`, формулы `app_doc_formula_eval`, экспорт `app_doc_to_edo`; UI docs v5 / templates v2). X10 `0192_prod2.sql` (таймеры операций, брак `app_defects`, ССЗ `app_daily_jobs`, маршрутная карта; UI production v5). `catalog.js` v10.39, `CATALOG_V` 115. Смоук 10/10, 14/14, волновые 44/44, перегрузок 0; функц. тесты с очисткой ✅. Далее — П3 (X11→X12→X15).
 - v272 — **План v5, волна X5 «Оргструктура и доступ 2.0».** Миграция `0189_access3.sql`: `app_role_permissions.can_approve`; `app_can` v3 (просмотр/правка/**утверждение**); `app_perms_matrix_get/set`, `app_role_actions_get`, `app_dept_scope_apply`; поля `department_id` к service/tasks/qc/docs/deals (+бэкфилл); сквозной гейтинг `app_dept_ok` в `app_service_list`/`app_tasks_list`. UI `apps/roles` v2 (колонка «Утверждение»). Функц. тест: матрица 641 строк, set/approve, dept_apply, service/tasks списки. Пакет П1 (X1→X4→X5) закрыт: смоук 10/10, 14/14, волновые 44/44, перегрузок 0. Далее — П2 (X7→X8→X10).
 - v271 — **План v5, волна X4 «КЭДО 2.0» (`kedo`).** Миграция `0188_kedo2.sql`: `app_hr_bulk`/`app_hr_bulk_items` (массовые ознакомления), поля `app_hr_docs.signature_provider`/`route_request_id`; RPC `app_hr_bulk_list/create/items/scan`, `app_hr_routes_list/route_save/route_start/route_act` (reuse движка согласований W10), `app_hr_sign_ext` (очередь `app_integrations` — задел УКЭП/Госключ), `app_kedo_dashboard`. UI `apps/kedo` v2 (вкладки Ознакомления/Маршруты, кнопки «Маршрут»/«ЭП», дашборд). `catalog.js` v10.36 (kedo connects +files/integrations), `CATALOG_V` 112; БЗ «КЭДО 2.0…». Функц. тест: bulk→2, маршрут manager→director → документ signed, sign_ext (нет провайдера — сообщение), очистка. Детали — BACKLOG §3g (X4). Далее — X5.
 - v270 — **План v5, волна X1 «Кадры 2.0» (`hr`).** Миграция `0187_hr2.sql`: `app_staffing` (штат), `app_shift_schedule` (плановый график смен), `app_absences` (отпуск/больничный; статусы), поля `app_employees.fired_at`, `app_shifts.department_id`; RPC `app_staffing_*`, `app_shift_schedule_*`, `app_absence_*`, `app_hr_dashboard`; при утверждении отпуска — приказ в `app_hr_docs` (КЭДО) + уведомление; конфликт смены с утверждённым отсутствием; гейтинг по подразделению (`app_dept_ok`). UI `apps/hr` (дашборд + вкладки Штат/График смен/Отсутствия/Табель/Обучение/Доступ по ролям, formDialog, отчёт «Численность и текучесть»). `catalog.js` v10.35 (`hr` connects +mes/kedo/calendar/competences), `CATALOG_V` 111, `hr.js?v=3`; БЗ «Штатное расписание, график смен и отсутствия». Детали — BACKLOG §3g (X1). Далее — X4→X5 пакета П1.

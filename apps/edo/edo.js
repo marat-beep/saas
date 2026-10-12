@@ -18,14 +18,22 @@
     $$('#tabs button').forEach(function (b) { b.classList.toggle('active', b.dataset.scr === scr); });
     $$('.screen').forEach(function (s) { s.classList.toggle('active', s.id === 'scr-' + scr); });
     if (scr === 'reg') loadList();
+    if (scr === 'exchange') loadExchange();
+    if (scr === 'res') loadRes();
     if (scr === 'nom') loadNom();
   }
   $$('#tabs button').forEach(function (b) { b.addEventListener('click', function () { showTab(b.dataset.scr); }); });
 
   function loadKpi() {
-    return rpc('app_edo_kpi', { p_token: token }).then(function (r) {
+    return rpc('app_edo_dashboard', { p_token: token }).then(function (r) {
       var k = (r && r[0]) || {};
-      $('#kpis').innerHTML = cell('Всего', k.total || 0) + cell('Входящих', k.incoming || 0) + cell('Исходящих', k.outgoing || 0) + cell('ОРД', k.ord || 0) + cell('В работе', k.in_work || 0) + cell('Просрочено', k.overdue || 0) + cell('Поручений откр.', k.open_resolutions || 0);
+      $('#kpis').innerHTML = cell('Всего', k.total || 0) + cell('В работе', k.in_work || 0) + cell('Закрыто', k.closed || 0) + cell('Просрочено', k.overdue || 0) +
+        cell('В обмене', k.exchange_queue || 0) + cell('Отправлено ЭДО', k.exchange_sent || 0) + cell('Принято', k.exchange_accepted || 0) + cell('Поручений откр.', k.resolutions_open || 0);
+    }).catch(function () {
+      return rpc('app_edo_kpi', { p_token: token }).then(function (r) {
+        var k = (r && r[0]) || {};
+        $('#kpis').innerHTML = cell('Всего', k.total || 0) + cell('Входящих', k.incoming || 0) + cell('Исходящих', k.outgoing || 0) + cell('ОРД', k.ord || 0) + cell('В работе', k.in_work || 0) + cell('Просрочено', k.overdue || 0) + cell('Поручений откр.', k.open_resolutions || 0);
+      });
     });
   }
   function loadNomsRef() { return rpc('app_doc_nomenclature_list', { p_token: token }).then(function (r) { noms = r || []; }).catch(function () { noms = []; }); }
@@ -42,6 +50,30 @@
       $$('#list [data-open]').forEach(function (b) { b.addEventListener('click', function () { openDoc(docs.filter(function (x) { return x.id === b.dataset.open; })[0]); }); });
     }).catch(function (e) { msg('Ошибка: ' + e.message, 'err'); });
   }
+  var EXST = { queued: 'В очереди', sent: 'Отправлен', delivered: 'Доставлен', accepted: 'Принят', rejected: 'Отклонён', error: 'Ошибка' };
+  function loadExchange() {
+    return rpc('app_edo_exchange_list', { p_token: token, p_doc_id: null }).then(function (r) {
+      var list = r || [];
+      $('#exchange').innerHTML = list.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Документ</th><th>Контрагент</th><th>Оператор</th><th>Статус</th><th>Отправлен</th><th>Принят</th><th></th></tr></thead><tbody>' +
+        list.map(function (e) {
+          var acts = '';
+          if (e.status !== 'accepted' && e.status !== 'rejected') acts += '<button class="act" data-ex="accepted" data-id="' + e.id + '">Принят</button><button class="act danger" data-ex="rejected" data-id="' + e.id + '">Отклонён</button>';
+          return '<tr><td><b>' + esc(e.doc_number || '—') + '</b> ' + esc(e.doc_title || '') + '</td><td>' + esc(e.counterparty || '') + '</td><td>' + esc(e.operator || '') + '</td><td>' + esc(EXST[e.status] || e.status) + '</td><td class="muted">' + dd(e.sent_at) + '</td><td class="muted">' + dd(e.accepted_at) + '</td><td style="white-space:nowrap;">' + acts + '</td></tr>';
+        }).join('') + '</tbody></table></div>' : '<span class="note">Обменов нет. Отправка — из карточки документа.</span>';
+      $$('#exchange [data-ex]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_edo_exchange_set_status', { p_token: token, p_id: b.dataset.id, p_status: b.dataset.ex, p_note: null }).then(function (r) { var x = r && r[0]; msg(x ? x.message : '', x && x.ok ? 'ok' : 'err'); loadExchange(); loadKpi(); }); }); });
+    }).catch(function (e) { $('#exchange').innerHTML = '<span class="note">—</span>'; });
+  }
+  function loadRes() {
+    return rpc('app_edo_resolutions_open', { p_token: token }).then(function (r) {
+      var list = r || [];
+      $('#res').innerHTML = list.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Документ</th><th>Поручение</th><th>Исполнитель</th><th>Срок</th><th>Состояние</th></tr></thead><tbody>' +
+        list.map(function (x) {
+          return '<tr><td>' + esc(x.doc_number || '—') + ' ' + esc(x.doc_title || '') + '</td><td>' + esc(x.body) + '</td><td>' + esc(x.assignee_login || '') + '</td>' +
+            '<td>' + (x.due_at ? dd(x.due_at) : dd(x.due_date)) + '</td><td>' + (x.overdue ? '<span class="badge cancelled">просрочено</span>' : '<span class="badge in_progress">в сроке</span>') + '</td></tr>';
+        }).join('') + '</tbody></table></div>' : '<span class="note">Открытых поручений нет.</span>';
+    }).catch(function () { $('#res').innerHTML = '<span class="note">—</span>'; });
+  }
+
   function docForm() {
     ui.formDialog({ title: 'Новый документ', okText: 'Создать', size: 'lg', fields: [
       { name: 'kind', label: 'Вид', type: 'select', options: Object.keys(KIND).map(function (k) { return { value: k, label: KIND[k] }; }) },
@@ -62,16 +94,21 @@
     Promise.all([
       rpc('app_doc_links_list', { p_token: token, p_doc_id: d.id }).catch(function () { return []; }),
       rpc('app_doc_resolutions_list', { p_token: token, p_doc_id: d.id }).catch(function () { return []; }),
-      rpc('app_tenant_users', { p_token: token }).catch(function () { return []; })
+      rpc('app_tenant_users', { p_token: token }).catch(function () { return []; }),
+      rpc('app_doc_signatures_list', { p_token: token, p_doc_id: d.id }).catch(function () { return []; })
     ]).then(function (r) {
-      var links = r[0] || [], res = r[1] || [], users = r[2] || [];
+      var links = r[0] || [], res = r[1] || [], users = r[2] || [], sigs = r[3] || [];
       var uOpts = (users || []).map(function (u) { return '<option value="' + esc(u.login) + '">' + esc(u.login + (u.full_name ? ' — ' + u.full_name : '')) + '</option>'; }).join('');
       var nOpts = noms.map(function (n) { return '<option value="' + n.id + '">' + esc(n.idx + ' ' + n.title) + '</option>'; }).join('');
       var html =
         '<div class="note"><b>' + esc(KIND[d.kind] || d.kind) + '</b> · ' + esc(d.title) + ' · ' + esc(d.reg_number || 'черновик') + '</div>' +
         '<div class="toolbar mt"><button class="btn" data-act="register" style="width:auto;padding:6px 10px;">Зарегистрировать</button>' +
         '<button class="btn secondary" data-act="in_work" style="width:auto;padding:6px 10px;">В работу</button>' +
-        '<button class="btn secondary" data-act="closed" style="width:auto;padding:6px 10px;">Закрыть</button></div>' +
+        '<button class="btn secondary" data-act="closed" style="width:auto;padding:6px 10px;">Закрыть</button>' +
+        '<button class="btn secondary" id="exBtn" style="width:auto;padding:6px 10px;">📤 Отправить контрагенту</button>' +
+        '<button class="btn secondary" id="signBtn" style="width:auto;padding:6px 10px;">✍ Подписать</button>' +
+        (sigs.length ? '<span class="badge done" style="margin-left:6px;">подпись: ' + esc(sigs[0].method) + '</span>' : '') + '</div>' +
+        '<div class="note mt">Подписи: ' + (sigs.length ? sigs.map(function (s) { return esc(s.method) + ' (' + esc(s.signer_login || '') + ')'; }).join(', ') : '—') + '</div>' +
         '<div class="form-grid mt"><div class="field"><label>Связь: тип</label><input id="lType" placeholder="order / invoice / customer"></div>' +
         '<div class="field"><label>Примечание</label><input id="lNote"></div><div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="lAdd" style="width:auto;padding:6px 10px;">Добавить связь</button></div></div>' +
         '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Тип связи</th><th>Примечание</th><th></th></tr></thead><tbody>' +
@@ -108,6 +145,25 @@
           rpc('app_doc_archive', { p_token: token, p_doc_id: d.id, p_nomenclature_id: nid })
             .then(function (r) { var x = r && r[0]; if (x && x.ok === false) { ui.toast(x.message || 'Ошибка'); return; } ui.toast('Документ в архиве'); back.querySelector('[data-ok]').click(); }).catch(fail);
         });
+        back.querySelector('#signBtn').addEventListener('click', function () {
+          ui.formDialog({ title: 'Подписать документ', okText: 'Подписать', fields: [
+            { name: 'method', label: 'Метод подписи', type: 'select', options: [{ value: 'ПЭП', label: 'ПЭП' }, { value: 'УНЭП', label: 'УНЭП' }, { value: 'УКЭП', label: 'УКЭП' }, { value: 'Госключ', label: 'Госключ' }] }
+          ] }).then(function (v) {
+            if (!v) return;
+            rpc('app_doc_sign', { p_token: token, p_doc_id: d.id, p_method: v.method, p_note: null })
+              .then(function (r) { var x = r && r[0]; ui.toast((x && x.message) || 'Подписано'); refreshDoc(); }).catch(fail);
+          });
+        });
+        back.querySelector('#exBtn').addEventListener('click', function () {
+          ui.formDialog({ title: 'Отправить контрагенту', okText: 'Отправить', fields: [
+            { name: 'counterparty', label: 'Контрагент', type: 'text', value: d.correspondent || '' },
+            { name: 'operator', label: 'ЭДО-оператор', type: 'text', value: 'Диадок' }
+          ] }).then(function (v) {
+            if (!v) return;
+            rpc('app_edo_send_ext', { p_token: token, p_doc_id: d.id, p_counterparty: v.counterparty || null, p_operator: v.operator || null })
+              .then(function (r) { var x = r && r[0]; ui.toast((x && x.message) || 'Отправлено'); refreshDoc(); }).catch(fail);
+          });
+        });
       } }).then(function () { loadList(); loadKpi(); });
     });
   }
@@ -133,6 +189,9 @@
 
   $('#add').addEventListener('click', docForm);
   $('#addNom').addEventListener('click', nomForm);
+  $('#exReload').addEventListener('click', loadExchange);
+  $('#resReload').addEventListener('click', loadRes);
+  $('#scanBtn').addEventListener('click', function () { rpc('app_edo_resolution_scan', { p_token: token }).then(function (r) { var x = r && r[0]; msg(x ? x.message : 'Проверено', 'ok'); loadRes(); loadKpi(); }); });
   $('#q').addEventListener('input', loadList);
   $('#kind').addEventListener('change', loadList);
   $('#status').addEventListener('change', loadList);

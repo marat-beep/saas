@@ -36,6 +36,7 @@
         '<div class="toolbar mt">' +
         '<button class="btn secondary" data-edit="' + t.id + '" style="width:auto;padding:8px 14px;">Редактировать</button>' +
         '<button class="btn secondary" data-dup="' + t.id + '" style="width:auto;padding:8px 14px;">Дублировать</button>' +
+        '<button class="btn secondary" data-vers="' + t.id + '" style="width:auto;padding:8px 14px;">Версии</button>' +
         '<button class="btn" data-make="' + t.id + '" style="width:auto;padding:8px 14px;">Создать документ из шаблона</button>' +
         '</div></div>';
     }).join('') : '<span class="note">Шаблонов нет.</span>';
@@ -61,7 +62,29 @@
           .catch(function (e) { msg('#mMsg', 'Ошибка: ' + e.message, 'err'); });
       });
     });
+    $$('#list [data-vers]').forEach(function (b) {
+      b.addEventListener('click', function () { versionsDialog(list.filter(function (t) { return t.id === b.dataset.vers; })[0]); });
+    });
   }
+
+  function fmtD(ts) { var d = new Date(ts); return isNaN(d.getTime()) ? '' : d.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }); }
+  function versionsDialog(t) {
+    if (!t) return;
+    rpc('app_template_versions_list', { p_token: token, p_template_id: t.id }).then(function (listV) {
+      listV = listV || [];
+      var html = '<div class="toolbar"><button class="btn" id="vsave" style="width:auto;padding:8px 14px;">Сохранить текущую версию</button></div>' +
+        '<div class="tbl-wrap mt"><table class="tbl"><thead><tr><th>Версия</th><th>Название</th><th>Дата</th><th>Автор</th></tr></thead><tbody>' +
+        (listV.length ? listV.map(function (v) { return '<tr><td>v' + v.version + '</td><td>' + esc(v.name || '') + '</td><td class="muted">' + fmtD(v.created_at) + '</td><td>' + esc(v.created_login || '') + '</td></tr>'; }).join('') : '<tr><td colspan="4" class="note">Версий нет</td></tr>') +
+        '</tbody></table></div>';
+      ui.dialog({ title: 'Версии шаблона: ' + t.name, body: html, html: true, cancelText: 'Закрыть', onOpen: function (back) {
+        back.querySelector('#vsave').addEventListener('click', function () {
+          rpc('app_template_version_save', { p_token: token, p_template_id: t.id, p_note: 'снимок' })
+            .then(function (d) { var r = d && d[0]; ui.toast(r ? r.message : '', r && r.ok ? 'ok' : 'err'); back.querySelector('[data-cancel]').click(); setTimeout(function () { versionsDialog(t); }, 200); });
+        });
+      } });
+    });
+  }
+
   function loadDict() {
     return rpc('app_dict_items_by_code', { p_token: token, p_code: 'doc_type' }).then(function (r) {
       if (!r || !r.length) return;

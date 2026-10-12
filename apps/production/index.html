@@ -27,6 +27,9 @@
       <div class="kpi-row" id="kpis"></div>
     <div class="sv-actions" style="margin-top:10px;">
       <button class="btn secondary" data-cap="reports" id="repBtn">📄 Отчёт PDF</button>
+      <button class="btn secondary" data-cap="reports" id="rcBtn">🖨 Маршрутная карта</button>
+      <button class="btn secondary" data-cap="edit" id="sszBtn">🗓 ССЗ</button>
+      <button class="btn secondary" data-cap="reports" id="defectKpiBtn">🧯 Брак (KPI)</button>
       <a class="btn secondary" href="../orders/index.html">📥 Заказы ↗</a>
       <a class="btn secondary" href="../registry/index.html">🧭 Маршруты ↗</a>
       <a class="btn secondary" href="../mes/index.html">🌀 MES ↗</a>
@@ -85,6 +88,12 @@
         <div class="msg" id="opMsg"></div>
       </div>
       <div class="card">
+        <h2>Брак и переделки</h2>
+        <div class="toolbar"><button class="btn secondary" data-cap="edit" id="addDefect" style="width:auto;padding:8px 14px;">＋ Зафиксировать брак</button>
+          <span class="note" style="margin-left:auto;">По операции: причина, виновник, количество, стоимость.</span></div>
+        <div id="defects"><span class="note">—</span></div>
+      </div>
+      <div class="card">
         <h2>Параметры наряда</h2>
         <div class="msg" id="uMsg"></div>
         <div class="grid2c">
@@ -118,7 +127,7 @@
   <script src="../../assets/js/nav.js?v=108"></script>
   <script src="../../assets/js/shell.js?v=73"></script>
   <script src="../../assets/js/export.js?v=2"></script>
-  <script src="production.js?v=4"></script>
+  <script src="production.js?v=5"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=2"></script>
 </body>

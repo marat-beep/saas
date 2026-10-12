@@ -118,7 +118,7 @@
       $('#uValid').value = d.valid_until || ''; $('#uAssignee').value = d.assignee || '';
       fillCustomers('#uCustomerSel'); $('#uCustomerSel').value = d.customer_id || '';
       clearMsg('#uMsg');
-      loadVersions(id);
+      loadVersions(id); loadPrints(d);
       if (window.AppFiles) window.AppFiles.mount({ token: token, entityType: 'document', entityId: id, el: '#filesBox' });
       screens.go('s-item');
     }).catch(function (e) { msg('#listMsg', 'Ошибка: ' + e.message, 'err'); });
@@ -130,6 +130,27 @@
           '<span class="note" style="margin-left:auto;">' + fmt(v.created_at) + ' · ' + esc(v.by_login || '') + '</span></div>';
       }).join('') || '<span class="note">—</span>';
     });
+  }
+  function loadPrints(d) {
+    return rpc('app_doc_print_templates_list', { p_token: token, p_doc_type: d.doc_type || null }).then(function (list) {
+      list = list || [];
+      $('#prints').innerHTML = list.length ? list.map(function (p) {
+        return '<div class="kvr"><b>' + esc(p.name) + '</b><span class="note">' + esc(T[p.doc_type] || p.doc_type || '') + '</span>' +
+          '<span class="note" style="margin-left:auto;">' + esc((p.body || '').slice(0, 60)) + '</span>' +
+          '<button class="act" data-print="' + p.id + '">🖨 Печать</button></div>';
+      }).join('') : '<span class="note">Печатных шаблонов нет.</span>';
+      $$('#prints [data-print]').forEach(function (b) { b.addEventListener('click', function () { printDoc(d, list.filter(function (x) { return x.id === b.dataset.print; })[0]); }); });
+    }).catch(function () { $('#prints').innerHTML = '<span class="note">—</span>'; });
+  }
+  function printDoc(d, p) {
+    if (!p) return;
+    var body = (p.body || '').replace(/\{number\}/g, d.number || '').replace(/\{date\}/g, d.created_at ? fmt(d.created_at) : '')
+      .replace(/\{customer\}/g, d.customer_name || d.counterparty || '').replace(/\{amount\}/g, d.amount != null ? String(d.amount) : '')
+      .replace(/\{title\}/g, d.title || '');
+    var w = window.open('', '_blank');
+    if (!w) { ui.toast('Разрешите всплывающие окна'); return; }
+    w.document.write('<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>' + esc(p.name) + '</title></head><body style="font:14px/1.5 system-ui,Segoe UI,Arial;white-space:pre-wrap;padding:24px;">' + esc(body) + '</body></html>');
+    w.document.close(); w.focus(); w.print();
   }
 
   $('#toNew').addEventListener('click', function () { clearMsg('#nMsg'); fillCustomers('#fCustomerSel'); screens.go('s-new'); });
@@ -172,6 +193,13 @@
   });
   $('#activeBtn').addEventListener('click', function () { setStatus('active'); });
   $('#archBtn').addEventListener('click', function () { setStatus('archived'); });
+  $('#toEdoBtn').addEventListener('click', function () {
+    if (!cur) return;
+    rpc('app_doc_to_edo', { p_token: token, p_id: cur.id }).then(function (d) {
+      var r = d && d[0]; ui.toast((r && r.message) || 'Готово', r && r.ok ? 'ok' : 'err');
+      if (r && r.ok) window.Auth.log('Документ в ЭДО', cur.number);
+    }).catch(function (e) { ui.toast('Ошибка: ' + e.message); });
+  });
   function setStatus(st) {
     if (!cur) return;
     rpc('app_doc_set_status', { p_token: token, p_id: cur.id, p_status: st })

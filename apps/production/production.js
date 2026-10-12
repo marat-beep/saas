@@ -6,7 +6,7 @@
 (function () {
   'use strict';
   var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa, SB = window.SB;
-  var token = null, me = null, naryads = [], wcs = [], orders = [], ops = [], cur = null, filter = '', q = '';
+  var token = null, me = null, naryads = [], wcs = [], orders = [], ops = [], curOps = [], cur = null, filter = '', q = '';
 
   var ST = { open: 'Открыт', in_progress: 'В работе', closed: 'Закрыт' };
   var PR = { high: 'Высокий', normal: 'Обычный', low: 'Низкий' };
@@ -93,21 +93,38 @@
       $('#uDue').value = (n.due_date || '').slice ? (n.due_date || '').slice(0, 10) : ''; $('#uNote').value = n.note || '';
       $('#closeBtn').disabled = n.status === 'closed';
       clearMsg('#opMsg'); clearMsg('#uMsg');
-      renderOps(r[1] || []);
+      curOps = r[1] || [];
+      renderOps(curOps);
+      renderDefects(id);
       screens.go('s-detail');
     }).catch(function (e) { msg('#listMsg', 'Ошибка: ' + e.message, 'err'); });
   }
   function renderOps(ops) {
     if (!ops.length) { $('#ops').innerHTML = '<span class="note">Операций нет.</span>'; return; }
     $('#ops').innerHTML = ops.map(function (o) {
+      var running = o.started_at && !o.finished_at;
       return '<div class="opline" data-op="' + o.id + '">' +
         '<div class="n">' + o.seq + '</div>' +
-        '<div>' + esc(o.operation) + (o.route_step_id ? ' <span class="badge">из маршрута</span>' : '') + (o.done ? ' <span class="badge done">готово</span>' : '') + '</div>' +
+        '<div>' + esc(o.operation) + (o.route_step_id ? ' <span class="badge">из маршрута</span>' : '') + (o.done ? ' <span class="badge done">готово</span>' : '') + (running ? ' <span class="badge in_progress">▶ таймер</span>' : '') + '</div>' +
         '<div>' + num(o.plan_hours) + '</div>' +
         '<input type="text" data-fact="' + o.id + '" inputmode="decimal" value="' + num(o.fact_hours) + '">' +
-        '<button class="chip" data-done="' + o.id + '" title="Отметить выполненной">✓</button>' +
+        '<div style="white-space:nowrap;"><button class="chip" data-start="' + o.id + '" title="Запустить таймер">▶</button><button class="chip" data-stop="' + o.id + '" title="Остановить таймер">⏸</button><button class="chip" data-done="' + o.id + '" title="Отметить выполненной">✓</button></div>' +
         '</div>';
     }).join('');
+    $$('#ops [data-start]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        rpc('app_op_start', { p_token: token, p_op_id: b.dataset.start })
+          .then(function (r) { var x = r && r[0]; msg('#opMsg', (x && x.message) || '', x && x.ok ? 'ok' : 'err'); openDetail(cur.id); })
+          .catch(function (e) { msg('#opMsg', 'Ошибка: ' + e.message, 'err'); });
+      });
+    });
+    $$('#ops [data-stop]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        rpc('app_op_stop', { p_token: token, p_op_id: b.dataset.stop })
+          .then(function (r) { var x = r && r[0]; msg('#opMsg', (x && x.message) || '', x && x.ok ? 'ok' : 'err'); openDetail(cur.id); })
+          .catch(function (e) { msg('#opMsg', 'Ошибка: ' + e.message, 'err'); });
+      });
+    });
     $$('#ops [data-done]').forEach(function (b) {
       b.addEventListener('click', function () {
         var fid = b.dataset.done, el = $('#ops [data-fact="' + fid + '"]');
@@ -115,6 +132,65 @@
         rpc('app_naryad_op_done', { p_token: token, p_op_id: fid, p_fact_hours: isNaN(fv) ? 0 : fv, p_done: true })
           .then(function () { window.Auth.log('Операция выполнена', cur && cur.number); openDetail(cur.id); })
           .catch(function (e) { msg('#opMsg', 'Ошибка: ' + e.message, 'err'); });
+      });
+    });
+  }
+
+  /* ---------- Брак и переделки ---------- */
+  var SEV = { minor: 'Незначительный', major: 'Значительный', critical: 'Критический' };
+  function renderDefects(id) {
+    return rpc('app_prod_defect_list', { p_token: token, p_naryad_id: id }).then(function (list) {
+      list = list || [];
+      $('#defects').innerHTML = list.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Операция</th><th>Причина</th><th class="num">Кол-во</th><th>Виновник</th><th class="num">Стоимость</th><th>Крит.</th></tr></thead><tbody>' +
+        list.map(function (d) { return '<tr><td>' + esc(d.operation || '') + '</td><td>' + esc(d.cause || d.title || '') + '</td><td class="num">' + num(d.qty) + '</td><td>' + esc(d.culprit_login || '') + '</td><td class="num">' + (d.cost != null ? num(d.cost).toLocaleString('ru-RU') + ' ₽' : '—') + '</td><td>' + esc(SEV[d.severity] || d.severity) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<span class="note">Брака нет.</span>';
+    }).catch(function () { $('#defects').innerHTML = '<span class="note">—</span>'; });
+  }
+  function defectForm() {
+    if (!curOps.length) { ui.toast('Нет операций'); return; }
+    ui.formDialog({ title: 'Фиксация брака/переделки', okText: 'Зафиксировать', fields: [
+      { name: 'op_id', label: 'Операция', type: 'select', required: true, options: curOps.map(function (o) { return { value: o.id, label: o.seq + '. ' + o.operation }; }) },
+      { name: 'qty', label: 'Количество', type: 'number', value: 1 },
+      { name: 'cause', label: 'Причина', type: 'text', required: true, placeholder: 'Например: отклонение размера' },
+      { name: 'culprit', label: 'Виновник (логин)', type: 'text' },
+      { name: 'cost', label: 'Стоимость, ₽', type: 'number' },
+      { name: 'severity', label: 'Критичность', type: 'select', options: [{ value: 'minor', label: 'Незначительный' }, { value: 'major', label: 'Значительный' }, { value: 'critical', label: 'Критический' }] }
+    ] }).then(function (v) {
+      if (!v) return;
+      rpc('app_prod_defect_save', { p_token: token, p_id: null, p_naryad_op_id: v.op_id, p_qty: v.qty ? num(v.qty) : 1, p_cause: v.cause, p_culprit: v.culprit, p_cost: v.cost ? num(v.cost) : null, p_severity: v.severity, p_note: null })
+        .then(function (r) { var x = r && r[0]; ui.toast((x && x.message) || '', x && x.ok ? 'ok' : 'err'); if (x && x.ok) renderDefects(cur.id); });
+    });
+  }
+  function defectKpi() {
+    rpc('app_prod_defect_kpi', { p_token: token }).then(function (r) {
+      var k = (r && r[0]) || {};
+      ui.dialog({ title: 'Брак и переделки — KPI', body: '<div class="kpi-row"><div class="kpi"><small>Записей</small><b>' + num(k.total) + '</b></div><div class="kpi"><small>Кол-во</small><b>' + num(k.qty) + '</b></div><div class="kpi"><small>Стоимость</small><b>' + num(k.cost).toLocaleString('ru-RU') + ' ₽</b></div><div class="kpi"><small>Критичных</small><b>' + num(k.critical) + '</b></div><div class="kpi"><small>Открытых</small><b>' + num(k.open_count) + '</b></div></div>', html: true, cancelText: 'Закрыть' });
+    });
+  }
+  function routeCard() {
+    if (!cur) { ui.toast('Откройте наряд'); return; }
+    rpc('app_route_card', { p_token: token, p_naryad_id: cur.id }).then(function (rows) {
+      rows = rows || [];
+      var body = 'МАРШРУТНАЯ КАРТА · ' + esc(cur.number) + ' · ' + esc(cur.title) + '\n\n' +
+        rows.map(function (o) { return o.seq + '. ' + o.operation + ' — план ' + num(o.plan_hours) + ' ч, факт ' + num(o.fact_hours) + ' ч' + (o.done ? ' (готово)' : ''); }).join('\n');
+      var w = window.open('', '_blank');
+      if (!w) { ui.toast('Разрешите всплывающие окна'); return; }
+      w.document.write('<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Маршрутная карта</title></head><body style="font:14px/1.6 system-ui,Segoe UI,Arial;white-space:pre-wrap;padding:24px;">' + body + '</body></html>');
+      w.document.close(); w.focus(); w.print();
+    });
+  }
+  function sszDialog() {
+    ui.formDialog({ title: 'Сменно-суточное задание', okText: 'Сформировать', fields: [
+      { name: 'date', label: 'Дата', type: 'date', value: new Date().toISOString().slice(0, 10) }
+    ] }).then(function (v) {
+      if (!v) return;
+      rpc('app_daily_job_build', { p_token: token, p_date: v.date }).then(function (r) {
+        var x = r && r[0]; ui.toast((x && x.message) || '', x && x.ok ? 'ok' : 'err');
+        return rpc('app_daily_job_list', { p_token: token, p_date: v.date });
+      }).then(function (list) {
+        list = list || [];
+        var html = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Наряд</th><th>Операция</th><th class="num">План, ч</th><th>Исполнитель</th><th>Статус</th></tr></thead><tbody>' +
+          (list.length ? list.map(function (j) { return '<tr><td>' + esc(j.naryad_number || '') + '</td><td>' + esc(j.operation || '') + '</td><td class="num">' + num(j.plan_hours) + '</td><td>' + esc(j.assignee || '') + '</td><td>' + esc(j.status) + '</td></tr>'; }).join('') : '<tr><td colspan="5" class="note">Пусто</td></tr>') + '</tbody></table></div>';
+        ui.dialog({ title: 'ССЗ на ' + v.date, body: html, html: true, cancelText: 'Закрыть' });
       });
     });
   }
@@ -141,6 +217,10 @@
     }));
   }
   $('#repBtn').addEventListener('click', reportPdf);
+  $('#rcBtn').addEventListener('click', routeCard);
+  $('#defectKpiBtn').addEventListener('click', defectKpi);
+  $('#sszBtn').addEventListener('click', sszDialog);
+  $('#addDefect').addEventListener('click', defectForm);
 
   $('#toCreate').addEventListener('click', function () { clearMsg('#cMsg'); screens.go('s-create'); });
   $('#back1').addEventListener('click', function () { screens.go('s-list'); });

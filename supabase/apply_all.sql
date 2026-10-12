@@ -34472,3 +34472,788 @@ grant execute on function public.app_service_list(uuid,text) to anon, authentica
 grant execute on function public.app_tasks_list(uuid,uuid,text,text) to anon, authenticated;
 
 -- <<<<<<<<<< 0189_access3.sql <<<<<<<<<<
+
+-- >>>>>>>>>> 0190_edo2.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0190_edo2.sql  (X7 — ЭДО 2.0)
+-- Внешний обмен (app_edo_exchange), SLA поручений, папки/дела (app_doc_folders),
+-- подписи документов (reuse app_signatures W17), маршруты документов (reuse W10),
+-- дашборд ЭДО. Идемпотентно. Зависит от 0001..0189.
+-- ============================================================
+
+create table if not exists public.app_edo_exchange (
+  id            uuid primary key default gen_random_uuid(),
+  tenant_id     uuid references public.tenants (id),
+  doc_id        uuid references public.app_doc_flows (id) on delete cascade,
+  counterparty  text,
+  operator      text,                        -- ЭДО-оператор (Диадок/СБИС/…)
+  incoming_ref  text,
+  status        text not null default 'queued',  -- queued|sent|delivered|accepted|rejected|error
+  sent_at       timestamptz,
+  accepted_at   timestamptz,
+  note          text,
+  created_login text,
+  created_at    timestamptz not null default now()
+);
+create index if not exists app_edo_exchange_idx on public.app_edo_exchange (tenant_id, status);
+alter table public.app_edo_exchange enable row level security;
+
+create table if not exists public.app_doc_folders (
+  id          uuid primary key default gen_random_uuid(),
+  tenant_id   uuid references public.tenants (id),
+  parent_id   uuid references public.app_doc_folders (id) on delete set null,
+  name        text not null,
+  code        text,
+  note        text,
+  created_at  timestamptz not null default now()
+);
+create index if not exists app_doc_folders_idx on public.app_doc_folders (tenant_id, parent_id);
+alter table public.app_doc_folders enable row level security;
+
+alter table public.app_doc_resolutions add column if not exists due_at timestamptz;
+alter table public.app_doc_resolutions add column if not exists sla_minutes integer;
+alter table public.app_doc_flows       add column if not exists folder_id uuid references public.app_doc_folders (id) on delete set null;
+alter table public.app_doc_flows       add column if not exists signature_method text;
+
+-- ================= RPC: внешний обмен =================
+create or replace function public.app_edo_send_ext(p_token uuid, p_doc_id uuid, p_counterparty text, p_operator text)
+returns table (ok boolean, message text, id uuid)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; uname text; d record; iid uuid; newid uuid; op text;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', null::uuid; return; end if;
+  if not public.app_can_edit(p_token, 'edo') then return query select false,'Нет прав на ЭДО', null::uuid; return; end if;
+  select u.tenant_id, s.ulogin into ten, uname from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
+  select * into d from public.app_doc_flows where id = p_doc_id and (public.app_is_platform_admin(p_token) or tenant_id = ten);
+  if d.id is null then return query select false,'Документ не найден', null::uuid; return; end if;
+  op := coalesce(nullif(trim(p_operator),''), 'ЭДО-оператор');
+  insert into public.app_edo_exchange (tenant_id, doc_id, counterparty, operator, status, created_login)
+  values (ten, p_doc_id, nullif(trim(p_counterparty),''), op, 'queued', uname)
+  returning app_edo_exchange.id into newid;
+  select i.id into iid from public.app_integrations i
+   where i.tenant_id = ten and coalesce(i.active,true) and i.kind = 'edo' order by i.created_at limit 1;
+  if iid is not null then
+    perform public.app_integration_enqueue(p_token, iid, 'out', jsonb_build_object(
+      'kind','edo','doc_id',p_doc_id,'reg_number',d.reg_number,'title',d.title,
+      'counterparty',coalesce(p_counterparty, d.correspondent),'operator',op));
+    update public.app_edo_exchange set status='sent', sent_at=now() where id = newid;
+    return query select true,'Документ поставлен в очередь ЭДО-оператора (' || op || ')', newid;
+  end if;
+  return query select true,'Обмен создан (интеграция ЭДО не настроена — статус queued)', newid;
+end $$;
+
+create or replace function public.app_edo_exchange_list(p_token uuid, p_doc_id uuid default null)
+returns table (id uuid, doc_number text, doc_title text, counterparty text, operator text, status text, sent_at timestamptz, accepted_at timestamptz, note text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select e.id, d.reg_number, d.title, e.counterparty, e.operator, e.status, e.sent_at, e.accepted_at, e.note
+      from public.app_edo_exchange e left join public.app_doc_flows d on d.id = e.doc_id
+     where (adm or e.tenant_id = ten) and (p_doc_id is null or e.doc_id = p_doc_id)
+     order by e.created_at desc;
+end $$;
+
+create or replace function public.app_edo_exchange_set_status(p_token uuid, p_id uuid, p_status text, p_note text)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; st text; n integer;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  if not public.app_can_edit(p_token, 'edo') then return query select false,'Нет прав на ЭДО'; return; end if;
+  ten := public.app_my_tenant(p_token);
+  st := lower(trim(coalesce(p_status,'')));
+  if st not in ('queued','sent','delivered','accepted','rejected','error') then return query select false,'Недопустимый статус'; return; end if;
+  update public.app_edo_exchange e set status = st,
+         accepted_at = case when st='accepted' then now() else e.accepted_at end,
+         note = coalesce(nullif(trim(p_note),''), e.note)
+   where e.id = p_id and (public.app_is_platform_admin(p_token) or e.tenant_id = ten);
+  get diagnostics n = row_count;
+  if n = 0 then return query select false,'Обмен не найден'; return; end if;
+  return query select true,'Статус обмена: ' || st;
+end $$;
+
+-- ================= RPC: SLA поручений =================
+create or replace function public.app_doc_resolution_set_sla(p_token uuid, p_id uuid, p_due_at timestamptz, p_sla_minutes integer)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; n integer;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  if not public.app_can_edit(p_token, 'edo') then return query select false,'Нет прав на ЭДО'; return; end if;
+  ten := public.app_my_tenant(p_token);
+  update public.app_doc_resolutions r set due_at = p_due_at, sla_minutes = p_sla_minutes
+   where r.id = p_id and (public.app_is_platform_admin(p_token) or r.tenant_id = ten);
+  get diagnostics n = row_count;
+  if n = 0 then return query select false,'Поручение не найдено'; return; end if;
+  return query select true,'SLA поручения обновлён';
+end $$;
+
+create or replace function public.app_edo_resolution_scan(p_token uuid)
+returns table (notified integer, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; rec record; cnt integer := 0; au uuid;
+begin
+  if not public.app_production_allowed(p_token) then return query select 0,'Доступ запрещён'; return; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  for rec in
+    select r.id, r.text, r.assignee_login, r.author_login, r.due_at, r.due_date, d.reg_number, d.title
+      from public.app_doc_resolutions r join public.app_doc_flows d on d.id = r.doc_id
+     where (adm or r.tenant_id = ten) and r.status = 'open'
+       and ((r.due_at is not null and r.due_at < now())
+         or (r.due_at is null and r.due_date is not null and r.due_date < current_date))
+  loop
+    au := null;
+    if rec.assignee_login is not null then
+      select u.id into au from public.app_users u where u.login = rec.assignee_login and u.tenant_id = ten limit 1;
+    end if;
+    if au is not null then
+      perform public.app_notif_send(au, 'Просрочено поручение', left(rec.text,180) || ' (док. ' || coalesce(rec.reg_number,'—') || ')', 'apps/edo/index.html');
+    end if;
+    perform public.app_notif_roles_t(ten, array['admin','owner','manager'], 'ЭДО: просрочено поручение', left(rec.text,180), 'apps/edo/index.html');
+    cnt := cnt + 1;
+  end loop;
+  return query select cnt, 'Просроченных поручений: ' || cnt;
+end $$;
+
+-- ================= RPC: подписи документа =================
+create or replace function public.app_doc_sign(p_token uuid, p_doc_id uuid, p_method text, p_note text)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; uname text; meth text; d record;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  select u.tenant_id, s.ulogin into ten, uname from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
+  select * into d from public.app_doc_flows where id = p_doc_id and (public.app_is_platform_admin(p_token) or tenant_id = ten);
+  if d.id is null then return query select false,'Документ не найден'; return; end if;
+  meth := coalesce(nullif(trim(p_method),''),'ПЭП');
+  if meth not in ('ПЭП','УНЭП','УКЭП','Госключ') then return query select false,'Метод: ПЭП/УНЭП/УКЭП/Госключ'; return; end if;
+  insert into public.app_signatures (tenant_id, entity_type, entity_id, signer_login, method, status, note)
+  values (ten, 'doc_flow', p_doc_id, uname, meth, 'signed', nullif(trim(p_note),''));
+  update public.app_doc_flows set signature_method = meth, updated_at = now() where id = p_doc_id;
+  return query select true,'Документ подписан (' || meth || ')';
+end $$;
+
+create or replace function public.app_doc_signatures_list(p_token uuid, p_doc_id uuid)
+returns table (id uuid, signer_login text, method text, status text, signed_at timestamptz, note text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select s.id, s.signer_login, s.method, s.status, s.signed_at, s.note
+      from public.app_signatures s
+     where s.entity_type = 'doc_flow' and s.entity_id = p_doc_id and (adm or s.tenant_id = ten)
+     order by s.signed_at desc;
+end $$;
+
+-- ================= RPC: маршруты документов (reuse W10) =================
+create or replace function public.app_doc_route_start(p_token uuid, p_doc_id uuid, p_route_id uuid)
+returns table (ok boolean, message text, id uuid)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; d record; r record;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', null::uuid; return; end if;
+  if not public.app_can_edit(p_token, 'edo') then return query select false,'Нет прав на ЭДО', null::uuid; return; end if;
+  ten := public.app_my_tenant(p_token);
+  select * into d from public.app_doc_flows where id = p_doc_id and (public.app_is_platform_admin(p_token) or tenant_id = ten);
+  if d.id is null then return query select false,'Документ не найден', null::uuid; return; end if;
+  select * into r from public.app_approval_request_create(p_token, p_route_id, 'doc_flow', p_doc_id, d.title) x;
+  if not r.ok then return query select false, r.message, null::uuid; return; end if;
+  return query select true, 'Документ запущен по маршруту', r.id;
+end $$;
+
+create or replace function public.app_doc_route_act(p_token uuid, p_request_id uuid, p_action text, p_comment text)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; r record; req record;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  ten := public.app_my_tenant(p_token);
+  select * into req from public.app_approval_requests where id = p_request_id and (public.app_is_platform_admin(p_token) or tenant_id = ten);
+  if req.id is null then return query select false,'Заявка не найдена'; return; end if;
+  select * into r from public.app_approval_act(p_token, p_request_id, p_action, p_comment) x;
+  if not r.ok then return query select false, r.message; return; end if;
+  if req.entity_type = 'doc_flow' and req.entity_id is not null and r.message like '%Заявка согласована%' then
+    update public.app_doc_flows set status = case when status in ('closed','cancelled') then status else 'in_work' end, updated_at = now() where id = req.entity_id;
+  end if;
+  return query select true, r.message;
+end $$;
+
+-- ================= RPC: папки/дела =================
+create or replace function public.app_doc_folder_list(p_token uuid)
+returns table (id uuid, parent_id uuid, name text, code text, docs bigint)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select f.id, f.parent_id, f.name, f.code,
+           (select count(*) from public.app_doc_flows d where d.folder_id = f.id)
+      from public.app_doc_folders f where adm or f.tenant_id = ten order by f.name;
+end $$;
+
+create or replace function public.app_doc_folder_save(p_token uuid, p_id uuid, p_name text, p_code text, p_parent_id uuid)
+returns table (ok boolean, message text, id uuid)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; newid uuid;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', null::uuid; return; end if;
+  if not public.app_can_edit(p_token, 'edo') then return query select false,'Нет прав на ЭДО', null::uuid; return; end if;
+  select u.tenant_id into ten from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
+  if coalesce(trim(p_name),'') = '' then return query select false,'Укажите название папки', null::uuid; return; end if;
+  if p_id is null then
+    insert into public.app_doc_folders (tenant_id, parent_id, name, code)
+    values (ten, p_parent_id, left(trim(p_name),160), nullif(trim(p_code),''))
+    returning app_doc_folders.id into newid;
+    return query select true,'Папка создана', newid;
+  else
+    update public.app_doc_folders f set parent_id = p_parent_id, name = left(trim(p_name),160), code = nullif(trim(p_code),'')
+     where f.id = p_id and (public.app_is_platform_admin(p_token) or f.tenant_id = ten)
+     returning f.id into newid;
+    if newid is null then return query select false,'Папка не найдена', null::uuid; return; end if;
+    return query select true,'Папка сохранена', newid;
+  end if;
+end $$;
+
+create or replace function public.app_edo_resolutions_open(p_token uuid)
+returns table (id uuid, doc_number text, doc_title text, body text, assignee_login text, due_at timestamptz, due_date date, overdue boolean, status text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select r.id, d.reg_number, d.title, r.text, r.assignee_login, r.due_at, r.due_date,
+           ((r.due_at is not null and r.due_at < now()) or (r.due_at is null and r.due_date is not null and r.due_date < current_date)),
+           r.status
+      from public.app_doc_resolutions r join public.app_doc_flows d on d.id = r.doc_id
+     where (adm or r.tenant_id = ten) and r.status = 'open'
+     order by r.due_at nulls last, r.due_date nulls last;
+end $$;
+
+create or replace function public.app_edo_dashboard(p_token uuid)
+returns table (total bigint, registered bigint, in_work bigint, closed bigint, overdue bigint,
+               exchange_queue bigint, exchange_sent bigint, exchange_accepted bigint, resolutions_open bigint, resolutions_overdue bigint)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query select
+    (select count(*) from public.app_doc_flows d where adm or d.tenant_id=ten),
+    (select count(*) from public.app_doc_flows d where (adm or d.tenant_id=ten) and d.status='registered'),
+    (select count(*) from public.app_doc_flows d where (adm or d.tenant_id=ten) and d.status='in_work'),
+    (select count(*) from public.app_doc_flows d where (adm or d.tenant_id=ten) and d.status='closed'),
+    (select count(*) from public.app_doc_flows d where (adm or d.tenant_id=ten) and d.due_date < current_date and d.status not in ('closed','cancelled')),
+    (select count(*) from public.app_edo_exchange e where (adm or e.tenant_id=ten) and e.status='queued'),
+    (select count(*) from public.app_edo_exchange e where (adm or e.tenant_id=ten) and e.status='sent'),
+    (select count(*) from public.app_edo_exchange e where (adm or e.tenant_id=ten) and e.status='accepted'),
+    (select count(*) from public.app_doc_resolutions r where (adm or r.tenant_id=ten) and r.status='open'),
+    (select count(*) from public.app_doc_resolutions r where (adm or r.tenant_id=ten) and r.status='open'
+       and ((r.due_at is not null and r.due_at < now()) or (r.due_at is null and r.due_date < current_date)));
+end $$;
+
+-- ================= Демо =================
+insert into public.app_approval_routes (tenant_id, name, doc_type, steps, active, created_login)
+select 'aaaaaaaa-0000-0000-0000-000000000001', 'Согласование документа: юрист → директор', 'doc_flow',
+       '[{"ord":1,"role":"manager","name":"Юрист"},{"ord":2,"role":"director","name":"Директор"}]'::jsonb, true, 'owner'
+where not exists (select 1 from public.app_approval_routes where tenant_id='aaaaaaaa-0000-0000-0000-000000000001' and doc_type='doc_flow');
+
+-- ================= База знаний =================
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+  ('Платформа','ЭДО 2.0: внешний обмен, SLA поручений, подписи, папки (X7)',
+   'ЭДО 2.0: внешний обмен с контрагентами (app_edo_exchange — статусы queued→sent→delivered→accepted/rejected/error; app_edo_send_ext ставит документ в очередь активной интеграции ЭДО-оператора, app_edo_exchange_list/set_status), SLA поручений (app_doc_resolutions.due_at/sla_minutes, app_doc_resolution_set_sla, app_edo_resolution_scan — уведомления о просрочке), подписи документов (app_doc_sign/документ подписывается методом ПЭП/УНЭП/УКЭП/Госключ, запись в app_signatures W17; app_doc_signatures_list), маршруты документов (app_doc_route_start/route_act — reuse движка согласований W10), папки/дела (app_doc_folders + app_doc_flows.folder_id; app_doc_folder_list/save), дашборд app_edo_dashboard.',
+   'ЭДО внешний обмен контрагент оператор SLA поручение подпись УКЭП Госключ маршрут папка дело')
+) as v(category,question,answer,tags)
+where not exists (
+  select 1 from public.app_knowledge
+   where tenant_id = 'aaaaaaaa-0000-0000-0000-000000000001'
+     and question = 'ЭДО 2.0: внешний обмен, SLA поручений, подписи, папки (X7)'
+);
+
+-- ================= Права =================
+grant execute on function public.app_edo_send_ext(uuid,uuid,text,text) to anon, authenticated;
+grant execute on function public.app_edo_exchange_list(uuid,uuid) to anon, authenticated;
+grant execute on function public.app_edo_exchange_set_status(uuid,uuid,text,text) to anon, authenticated;
+grant execute on function public.app_doc_resolution_set_sla(uuid,uuid,timestamptz,integer) to anon, authenticated;
+grant execute on function public.app_edo_resolution_scan(uuid) to anon, authenticated;
+grant execute on function public.app_edo_resolutions_open(uuid) to anon, authenticated;
+grant execute on function public.app_doc_sign(uuid,uuid,text,text) to anon, authenticated;
+grant execute on function public.app_doc_signatures_list(uuid,uuid) to anon, authenticated;
+grant execute on function public.app_doc_route_start(uuid,uuid,uuid) to anon, authenticated;
+grant execute on function public.app_doc_route_act(uuid,uuid,text,text) to anon, authenticated;
+grant execute on function public.app_doc_folder_list(uuid) to anon, authenticated;
+grant execute on function public.app_doc_folder_save(uuid,uuid,text,text,uuid) to anon, authenticated;
+grant execute on function public.app_edo_dashboard(uuid) to anon, authenticated;
+
+-- <<<<<<<<<< 0190_edo2.sql <<<<<<<<<<
+
+-- >>>>>>>>>> 0191_docs2.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0191_docs2.sql  (X8 — Документы 2.0)
+-- Версии шаблонов (app_template_versions), печатные шаблоны (app_doc_print_templates),
+-- вычисляемые формулы (app_doc_formula_eval), экспорт документа в ЭДО (app_doc_to_edo).
+-- Идемпотентно. Зависит от 0001..0190.
+-- ============================================================
+
+create table if not exists public.app_template_versions (
+  id            uuid primary key default gen_random_uuid(),
+  tenant_id     uuid references public.tenants (id),
+  template_id   uuid references public.app_doc_templates (id) on delete cascade,
+  version       integer not null default 1,
+  name          text,
+  doc_type      text,
+  body          text,
+  note          text,
+  created_login text,
+  created_at    timestamptz not null default now()
+);
+create index if not exists app_template_versions_idx on public.app_template_versions (template_id, version desc);
+alter table public.app_template_versions enable row level security;
+
+create table if not exists public.app_doc_print_templates (
+  id            uuid primary key default gen_random_uuid(),
+  tenant_id     uuid references public.tenants (id),
+  code          text,
+  name          text not null,
+  doc_type      text,
+  body          text,
+  created_login text,
+  created_at    timestamptz not null default now()
+);
+create index if not exists app_doc_print_templates_idx on public.app_doc_print_templates (tenant_id, doc_type);
+alter table public.app_doc_print_templates enable row level security;
+
+-- ================= RPC: версии шаблонов =================
+create or replace function public.app_template_versions_list(p_token uuid, p_template_id uuid)
+returns table (id uuid, version integer, name text, doc_type text, body text, note text, created_login text, created_at timestamptz)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select v.id, v.version, v.name, v.doc_type, v.body, v.note, v.created_login, v.created_at
+      from public.app_template_versions v
+     where v.template_id = p_template_id and (adm or v.tenant_id = ten)
+     order by v.version desc;
+end $$;
+
+create or replace function public.app_template_version_save(p_token uuid, p_template_id uuid, p_note text)
+returns table (ok boolean, message text, version integer)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; uname text; t record; vnum integer;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', null::integer; return; end if;
+  if not public.app_can_edit(p_token, 'templates') then return query select false,'Нет прав на шаблоны', null::integer; return; end if;
+  select u.tenant_id, s.ulogin into ten, uname from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
+  select * into t from public.app_doc_templates where id = p_template_id and (public.app_is_platform_admin(p_token) or tenant_id = ten);
+  if t.id is null then return query select false,'Шаблон не найден', null::integer; return; end if;
+  select coalesce(max(version),0) + 1 into vnum from public.app_template_versions where template_id = p_template_id;
+  insert into public.app_template_versions (tenant_id, template_id, version, name, doc_type, body, note, created_login)
+  values (ten, p_template_id, vnum, t.name, t.doc_type, t.body, nullif(trim(p_note),''), uname);
+  return query select true,'Версия ' || vnum || ' сохранена', vnum;
+end $$;
+
+-- ================= RPC: печатные шаблоны =================
+create or replace function public.app_doc_print_templates_list(p_token uuid, p_doc_type text default null)
+returns table (id uuid, code text, name text, doc_type text, body text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select p.id, p.code, p.name, p.doc_type, p.body
+      from public.app_doc_print_templates p
+     where (adm or p.tenant_id = ten) and (p_doc_type is null or p_doc_type = '' or p.doc_type = p_doc_type)
+     order by p.name;
+end $$;
+
+create or replace function public.app_doc_print_template_save(p_token uuid, p_id uuid, p_code text, p_name text, p_doc_type text, p_body text)
+returns table (ok boolean, message text, id uuid)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; uname text; newid uuid;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', null::uuid; return; end if;
+  if not public.app_can_edit(p_token, 'docs') then return query select false,'Нет прав на документы', null::uuid; return; end if;
+  select u.tenant_id, s.ulogin into ten, uname from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
+  if coalesce(trim(p_name),'') = '' then return query select false,'Укажите название шаблона', null::uuid; return; end if;
+  if p_id is null then
+    insert into public.app_doc_print_templates (tenant_id, code, name, doc_type, body, created_login)
+    values (ten, nullif(trim(p_code),''), left(trim(p_name),160), nullif(trim(p_doc_type),''), p_body, uname)
+    returning app_doc_print_templates.id into newid;
+    return query select true,'Печатный шаблон создан', newid;
+  else
+    update public.app_doc_print_templates p set code = nullif(trim(p_code),''), name = left(trim(p_name),160),
+           doc_type = nullif(trim(p_doc_type),''), body = p_body
+     where p.id = p_id and (public.app_is_platform_admin(p_token) or p.tenant_id = ten)
+     returning p.id into newid;
+    if newid is null then return query select false,'Шаблон не найден', null::uuid; return; end if;
+    return query select true,'Печатный шаблон сохранён', newid;
+  end if;
+end $$;
+
+-- ================= RPC: вычисляемые формулы =================
+-- Подстановка {переменных} из p_values (jsonb) и вычисление арифметики (+, -, *, /, скобки).
+create or replace function public.app_doc_formula_eval(p_token uuid, p_expr text, p_values jsonb)
+returns table (ok boolean, result numeric, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; k text; v text; expr text; safe text; res numeric;
+begin
+  if not public.app_production_allowed(p_token) then return query select false, null::numeric,'Доступ запрещён'; return; end if;
+  ten := public.app_my_tenant(p_token);
+  expr := coalesce(p_expr,'');
+  if coalesce(trim(expr),'') = '' then return query select false, null::numeric,'Пустая формула'; return; end if;
+  for k, v in select key, value from jsonb_each_text(coalesce(p_values,'{}'::jsonb)) loop
+    expr := replace(expr, '{' || k || '}', regexp_replace(coalesce(v,'0'), '[^0-9.\-]', '', 'g'));
+  end loop;
+  safe := regexp_replace(expr, '[^0-9+\-*/(). ]', '', 'g');
+  if coalesce(trim(safe),'') = '' then return query select false, null::numeric,'Некорректная формула'; return; end if;
+  begin
+    execute 'select (' || safe || ')::numeric' into res;
+  exception when others then
+    return query select false, null::numeric,'Ошибка вычисления'; return;
+  end;
+  return query select true, res, 'Результат: ' || res::text;
+end $$;
+
+-- ================= RPC: экспорт документа в ЭДО =================
+create or replace function public.app_doc_to_edo(p_token uuid, p_doc_id uuid)
+returns table (ok boolean, message text, id uuid)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; uname text; d record; newid uuid; num text;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', null::uuid; return; end if;
+  if not public.app_can_edit(p_token, 'edo') then return query select false,'Нет прав на ЭДО', null::uuid; return; end if;
+  select u.tenant_id, s.ulogin into ten, uname from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
+  select * into d from public.app_documents where id = p_doc_id and (public.app_is_platform_admin(p_token) or tenant_id = ten);
+  if d.id is null then return query select false,'Документ не найден', null::uuid; return; end if;
+  if exists (select 1 from public.app_doc_links l where l.entity_type = 'document' and l.entity_id = p_doc_id) then
+    return query select false,'Документ уже зарегистрирован в ЭДО', null::uuid; return;
+  end if;
+  num := 'ЭДО-' || to_char(current_date,'YYYY') || '-' || lpad(nextval('public.app_doc_seq')::text, 5, '0');
+  insert into public.app_doc_flows (tenant_id, kind, doc_type, title, correspondent, summary, status, responsible_login, reg_number, reg_date, created_login)
+  values (ten, 'out', d.doc_type, left(d.number || ' ' || d.title, 200), d.counterparty, left(coalesce(d.content,''),500), 'registered', uname, num, current_date, uname)
+  returning app_doc_flows.id into newid;
+  insert into public.app_doc_links (tenant_id, doc_id, entity_type, entity_id, note)
+  values (ten, newid, 'document', p_doc_id, 'Экспорт из реестра документов');
+  return query select true,'Документ передан в ЭДО: ' || num, newid;
+end $$;
+
+-- ================= Демо =================
+insert into public.app_doc_print_templates (tenant_id, code, name, doc_type, body, created_login)
+select 'aaaaaaaa-0000-0000-0000-000000000001', 'kp_print', 'Печать КП', 'kp',
+       'Коммерческое предложение № {number} от {date}' || chr(10) || 'Заказчик: {customer}' || chr(10) || 'Сумма: {amount} ₽', 'owner'
+where not exists (select 1 from public.app_doc_print_templates where tenant_id='aaaaaaaa-0000-0000-0000-000000000001' and code='kp_print');
+
+-- ================= База знаний =================
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+  ('Продажи','Документы 2.0: версии шаблонов, печатные шаблоны, формулы, экспорт в ЭДО (X8)',
+   'Документы 2.0: версии шаблонов (app_template_versions + app_template_version_save/list — снимок шаблона на каждую правку), печатные шаблоны (app_doc_print_templates + app_doc_print_templates_list/save — подстановки {number}/{date}/{customer}/{amount}), вычисляемые формулы (app_doc_formula_eval — подстановка {переменных} из jsonb и арифметика +,-,*,/), экспорт готового документа в ЭДО (app_doc_to_edo — создаёт запись в app_doc_flows с номером ЭДО-ГГГГ-NNNNN и связью). Единый контур: docs ↔ templates ↔ docbuilder ↔ edo/kedo.',
+   'документы версии шаблон печать формула экспорт ЭДО подстановки')
+) as v(category,question,answer,tags)
+where not exists (
+  select 1 from public.app_knowledge
+   where tenant_id = 'aaaaaaaa-0000-0000-0000-000000000001'
+     and question = 'Документы 2.0: версии шаблонов, печатные шаблоны, формулы, экспорт в ЭДО (X8)'
+);
+
+-- ================= Права =================
+grant execute on function public.app_template_versions_list(uuid,uuid) to anon, authenticated;
+grant execute on function public.app_template_version_save(uuid,uuid,text) to anon, authenticated;
+grant execute on function public.app_doc_print_templates_list(uuid,text) to anon, authenticated;
+grant execute on function public.app_doc_print_template_save(uuid,uuid,text,text,text,text) to anon, authenticated;
+grant execute on function public.app_doc_formula_eval(uuid,text,jsonb) to anon, authenticated;
+grant execute on function public.app_doc_to_edo(uuid,uuid) to anon, authenticated;
+
+-- <<<<<<<<<< 0191_docs2.sql <<<<<<<<<<
+
+-- >>>>>>>>>> 0192_prod2.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0192_prod2.sql  (X10 — Производство 2.0)
+-- Таймеры операций (started_at/finished_at), брак/переделки (app_defects + поля),
+-- сменно-суточные задания (app_daily_jobs), маршрутная карта (app_route_card).
+-- Идемпотентно. Зависит от 0001..0191.
+-- ============================================================
+
+alter table public.app_naryad_ops add column if not exists started_at  timestamptz;
+alter table public.app_naryad_ops add column if not exists finished_at timestamptz;
+
+alter table public.app_defects add column if not exists naryad_op_id uuid references public.app_naryad_ops (id) on delete set null;
+alter table public.app_defects add column if not exists cause        text;
+alter table public.app_defects add column if not exists culprit_login text;
+alter table public.app_defects add column if not exists cost        numeric;
+
+create table if not exists public.app_daily_jobs (
+  id            uuid primary key default gen_random_uuid(),
+  tenant_id     uuid references public.tenants (id),
+  job_date      date not null,
+  wc_id         uuid,
+  naryad_id     uuid references public.app_naryads (id) on delete cascade,
+  op_id         uuid references public.app_naryad_ops (id) on delete cascade,
+  title         text,
+  plan_hours    numeric default 0,
+  assignee      text,
+  status        text not null default 'planned',  -- planned|in_work|done
+  note          text,
+  created_login text,
+  created_at    timestamptz not null default now()
+);
+create index if not exists app_daily_jobs_idx on public.app_daily_jobs (tenant_id, job_date);
+alter table public.app_daily_jobs enable row level security;
+
+-- ================= RPC: таймер операции =================
+create or replace function public.app_op_start(p_token uuid, p_op_id uuid)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare n integer;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  update public.app_naryad_ops op set started_at = now(), finished_at = null where op.id = p_op_id and not op.done;
+  get diagnostics n = row_count;
+  if n = 0 then return query select false,'Операция не найдена или выполнена'; return; end if;
+  return query select true,'Таймер запущен';
+end $$;
+
+create or replace function public.app_op_stop(p_token uuid, p_op_id uuid)
+returns table (ok boolean, message text, hours numeric)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare st timestamptz; hrs numeric;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', null::numeric; return; end if;
+  select started_at into st from public.app_naryad_ops where id = p_op_id;
+  if st is null then return query select false,'Таймер не запущен', null::numeric; return; end if;
+  hrs := round((extract(epoch from (now() - st)) / 3600.0)::numeric, 3);
+  update public.app_naryad_ops op set finished_at = now(), fact_hours = coalesce(op.fact_hours,0) + hrs where op.id = p_op_id;
+  update public.app_naryads n set fact_hours = (select coalesce(sum(op.fact_hours),0) from public.app_naryad_ops op where op.naryad_id = n.id), updated_at = now()
+   where n.id = (select op.naryad_id from public.app_naryad_ops op where op.id = p_op_id);
+  return query select true,'Таймер остановлен (+' || hrs || ' ч)', hrs;
+end $$;
+
+-- ================= RPC: брак/переделки =================
+create or replace function public.app_prod_defect_save(p_token uuid, p_id uuid, p_naryad_op_id uuid, p_qty numeric, p_cause text,
+  p_culprit text, p_cost numeric, p_severity text, p_note text)
+returns table (ok boolean, message text, id uuid)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; uname text; newid uuid; opr record; sev text; ttl text;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', null::uuid; return; end if;
+  select u.tenant_id, s.ulogin into ten, uname from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
+  select o.id, o.naryad_id, o.operation into opr from public.app_naryad_ops o where o.id = p_naryad_op_id;
+  if opr.id is null then return query select false,'Операция не найдена', null::uuid; return; end if;
+  if not exists (select 1 from public.app_naryads n where n.id = opr.naryad_id and (public.app_is_platform_admin(p_token) or n.tenant_id = ten)) then
+    return query select false,'Наряд не найден', null::uuid; return;
+  end if;
+  sev := coalesce(nullif(trim(p_severity),''),'minor');
+  ttl := coalesce(nullif(trim(p_cause),''), 'Брак: ' || opr.operation);
+  if p_id is null then
+    insert into public.app_defects (tenant_id, naryad_op_id, title, qty, severity, cause, culprit_login, cost, note, by_login)
+    values (ten, p_naryad_op_id, left(ttl,200), coalesce(p_qty,1), sev, nullif(trim(p_cause),''), nullif(trim(p_culprit),''), p_cost, nullif(trim(p_note),''), uname)
+    returning app_defects.id into newid;
+  else
+    update public.app_defects d set naryad_op_id = p_naryad_op_id, title = left(ttl,200), qty = coalesce(p_qty,d.qty), severity = sev,
+           cause = nullif(trim(p_cause),''), culprit_login = nullif(trim(p_culprit),''), cost = p_cost, note = nullif(trim(p_note),'')
+     where d.id = p_id and (public.app_is_platform_admin(p_token) or d.tenant_id = ten)
+     returning d.id into newid;
+    if newid is null then return query select false,'Запись брака не найдена', null::uuid; return; end if;
+  end if;
+  perform public.app_notif_roles_t(ten, array['admin','owner','manager','chief','master','qc'], 'Производство: брак', left(ttl,180), 'apps/production/index.html');
+  return query select true,'Брак зафиксирован', newid;
+end $$;
+
+create or replace function public.app_prod_defect_list(p_token uuid, p_naryad_id uuid default null)
+returns table (id uuid, naryad_number text, operation text, title text, qty numeric, severity text, cause text, culprit_login text, cost numeric, status text, created_at timestamptz)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select d.id, n.number, op.operation, d.title, d.qty, d.severity, d.cause, d.culprit_login, d.cost, d.status, d.created_at
+      from public.app_defects d
+      left join public.app_naryad_ops op on op.id = d.naryad_op_id
+      left join public.app_naryads n on n.id = op.naryad_id
+     where (adm or d.tenant_id = ten) and d.naryad_op_id is not null
+       and (p_naryad_id is null or op.naryad_id = p_naryad_id)
+     order by d.created_at desc;
+end $$;
+
+create or replace function public.app_prod_defect_kpi(p_token uuid)
+returns table (total bigint, qty numeric, cost numeric, critical bigint, open_count bigint)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query select
+    (select count(*) from public.app_defects d where (adm or d.tenant_id=ten) and d.naryad_op_id is not null),
+    (select coalesce(sum(d.qty),0) from public.app_defects d where (adm or d.tenant_id=ten) and d.naryad_op_id is not null),
+    (select coalesce(sum(d.cost),0) from public.app_defects d where (adm or d.tenant_id=ten) and d.naryad_op_id is not null),
+    (select count(*) from public.app_defects d where (adm or d.tenant_id=ten) and d.naryad_op_id is not null and d.severity='critical'),
+    (select count(*) from public.app_defects d where (adm or d.tenant_id=ten) and d.naryad_op_id is not null and d.status='open');
+end $$;
+
+-- ================= RPC: сменно-суточное задание =================
+create or replace function public.app_daily_job_build(p_token uuid, p_date date)
+returns table (ok boolean, message text, created integer)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; uname text; cnt integer := 0; d date; rec record;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', 0; return; end if;
+  if not public.app_can_edit(p_token, 'production') then return query select false,'Нет прав на производство', 0; return; end if;
+  select u.tenant_id, s.ulogin into ten, uname from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
+  d := coalesce(p_date, current_date);
+  for rec in
+    select n.id as naryad_id, n.number, n.wc_id, n.assignee, op.id as op_id, op.operation, op.plan_hours, op.seq
+      from public.app_naryads n join public.app_naryad_ops op on op.naryad_id = n.id
+     where (public.app_is_platform_admin(p_token) or n.tenant_id = ten)
+       and n.status <> 'closed' and not op.done
+       and not exists (select 1 from public.app_daily_jobs j where j.job_date = d and j.op_id = op.id)
+     order by n.number, op.seq
+  loop
+    insert into public.app_daily_jobs (tenant_id, job_date, wc_id, naryad_id, op_id, title, plan_hours, assignee, created_login)
+    values (ten, d, rec.wc_id, rec.naryad_id, rec.op_id, rec.number || ' · ' || rec.operation, coalesce(rec.plan_hours,0), rec.assignee, uname);
+    cnt := cnt + 1;
+  end loop;
+  return query select true, 'ССЗ на ' || to_char(d,'DD.MM.YYYY') || ': создано позиций ' || cnt, cnt;
+end $$;
+
+create or replace function public.app_daily_job_list(p_token uuid, p_date date default null)
+returns table (id uuid, job_date date, naryad_number text, operation text, wc_id uuid, plan_hours numeric, assignee text, status text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; d date;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  d := coalesce(p_date, current_date);
+  return query
+    select j.id, j.job_date, n.number, op.operation, j.wc_id, j.plan_hours, j.assignee, j.status
+      from public.app_daily_jobs j
+      left join public.app_naryads n on n.id = j.naryad_id
+      left join public.app_naryad_ops op on op.id = j.op_id
+     where (adm or j.tenant_id = ten) and j.job_date = d
+     order by n.number, op.seq;
+end $$;
+
+create or replace function public.app_daily_job_set_status(p_token uuid, p_id uuid, p_status text)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; st text; n integer;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  ten := public.app_my_tenant(p_token);
+  st := lower(trim(coalesce(p_status,'')));
+  if st not in ('planned','in_work','done') then return query select false,'Недопустимый статус'; return; end if;
+  update public.app_daily_jobs j set status = st where j.id = p_id and (public.app_is_platform_admin(p_token) or j.tenant_id = ten);
+  get diagnostics n = row_count;
+  if n = 0 then return query select false,'Позиция не найдена'; return; end if;
+  return query select true,'Статус: ' || st;
+end $$;
+
+-- ================= RPC: маршрутная карта =================
+create or replace function public.app_route_card(p_token uuid, p_naryad_id uuid)
+returns table (seq integer, operation text, worker text, plan_hours numeric, fact_hours numeric, done boolean, started_at timestamptz, finished_at timestamptz)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; adm boolean;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select op.seq, op.operation, op.worker, op.plan_hours, op.fact_hours, op.done, op.started_at, op.finished_at
+      from public.app_naryad_ops op join public.app_naryads n on n.id = op.naryad_id
+     where op.naryad_id = p_naryad_id and (adm or n.tenant_id = ten)
+     order by op.seq;
+end $$;
+
+-- ================= База знаний =================
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+  ('Производство','Производство 2.0: таймеры операций, брак, ССЗ, маршрутная карта (X10)',
+   'Производство 2.0: таймер операций — app_op_start/app_op_stop (started_at/finished_at, авторасчёт fact_hours по факту), учёт брака/переделок — app_prod_defect_save/list/kpi (по операции: причина, виновник, количество, стоимость; запись в app_defects, уведомление), сменно-суточное задание — app_daily_job_build/list/set_status (формируется из открытых операций нарядов, app_daily_jobs), маршрутная карта — app_route_card (для печати). Связи: MES/терминал (real-time), ОТК (брак), экономика (стоимость брака), OEE (простои).',
+   'производство таймер операция брак переделки ССЗ сменно-суточное задание маршрутная карта')
+) as v(category,question,answer,tags)
+where not exists (
+  select 1 from public.app_knowledge
+   where tenant_id = 'aaaaaaaa-0000-0000-0000-000000000001'
+     and question = 'Производство 2.0: таймеры операций, брак, ССЗ, маршрутная карта (X10)'
+);
+
+-- ================= Права =================
+grant execute on function public.app_op_start(uuid,uuid) to anon, authenticated;
+grant execute on function public.app_op_stop(uuid,uuid) to anon, authenticated;
+grant execute on function public.app_prod_defect_save(uuid,uuid,uuid,numeric,text,text,numeric,text,text) to anon, authenticated;
+grant execute on function public.app_prod_defect_list(uuid,uuid) to anon, authenticated;
+grant execute on function public.app_prod_defect_kpi(uuid) to anon, authenticated;
+grant execute on function public.app_daily_job_build(uuid,date) to anon, authenticated;
+grant execute on function public.app_daily_job_list(uuid,date) to anon, authenticated;
+grant execute on function public.app_daily_job_set_status(uuid,uuid,text) to anon, authenticated;
+grant execute on function public.app_route_card(uuid,uuid) to anon, authenticated;
+
+-- <<<<<<<<<< 0192_prod2.sql <<<<<<<<<<
