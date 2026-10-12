@@ -48,6 +48,7 @@
       tech.cutting = r[8] || []; tech.tools = r[9] || []; tech.machines = r[10] || []; tech.fits = r[11] || [];
       tech.fasteners = r[12] || []; tech.heat = r[13] || []; tech.fluids = r[14] || []; tech.processes = r[15] || [];
       tech.tolerances = r[16] || []; tech.threads = r[17] || []; tech.roughness = r[18] || []; tech.hardness = r[19] || []; tech.coatings = r[20] || [];
+      tech.estd = r[21] || []; tech.tech_routes = r[22] || []; tech.edm = r[23] || []; tech.fixtures = r[24] || [];
       renderEq(); renderMat(); renderOp(); renderTp(); renderRt(); renderRef(); renderTech();
       $('#tpMat').innerHTML = opt('— нет —', '') + mats.map(function (m) { return opt(m.name, m.id); }).join('');
       $('#stOp').innerHTML = ops.map(function (o) { return opt(o.name + ' (' + kLabel(o.kind) + ')', o.id); }).join('');
@@ -139,7 +140,11 @@
     threads: [['designation', 'Резьба'], ['pitch', 'Шаг'], ['d2', 'd2'], ['d1', 'd1'], ['predrill', 'Сверло'], ['note', 'Примечание']],
     roughness: [['ra', 'Ra'], ['rz', 'Rz'], ['method', 'Метод'], ['note', '']],
     hardness: [['hrc', 'HRC'], ['hb', 'HB'], ['hv', 'HV'], ['note', '']],
-    coatings: [['code', 'Код'], ['name', 'Название'], ['hardness_hv', 'Твёрд., HV'], ['max_temp', 't°, C'], ['application', 'Применение'], ['note', '']]
+    coatings: [['code', 'Код'], ['name', 'Название'], ['hardness_hv', 'Твёрд., HV'], ['max_temp', 't°, C'], ['application', 'Применение'], ['note', '']],
+    estd: [['code', 'ГОСТ'], ['title', 'Название'], ['scope', 'Область'], ['note', '']],
+    tech_routes: [['code', 'Код'], ['name', 'Маршрут'], ['shape', 'Форма'], ['material', 'Материал'], ['heat', 'ТО'], ['note', '']],
+    edm: [['category', 'Категория'], ['name', 'Наименование'], ['value', 'Значение'], ['note', '']],
+    fixtures: [['category', 'Категория'], ['name', 'Наименование'], ['purpose', 'Назначение'], ['material', 'Материал'], ['standard', 'ГОСТ'], ['note', '']]
   };
   function cellV(v) { if (v == null || v === '') return ''; if (typeof v === 'number') return fmt(v); return esc(String(v)); }
   function renderTech() {
