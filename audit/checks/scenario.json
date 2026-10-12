@@ -1,19 +1,9 @@
 {
     "tool":  "scenario",
-    "at":  "2026-10-12T13:33:41",
+    "at":  "2026-10-12T13:46:20",
     "pass":  45,
     "fail":  0,
     "findings":  [
-                     {
-                         "area":  "C",
-                         "sev":  "Minor",
-                         "title":  "Очистка сценарных данных: не выполнено шагов 7",
-                         "detail":  "{\"message\":\"ThrottlerException: Too Many Requests\"} || {\"message\":\"ThrottlerException: Too Many Requests\"} || {\"message\":\"ThrottlerException: Too Many Requests\"} || {\"message\":\"ThrottlerException: Too Many Requests\"}",
-                         "evidence":  "cleanup",
-                         "method":  "scenario",
-                         "effort":  2,
-                         "impact":  1,
-                         "status":  "open"
-                     }
+
                  ]
 }

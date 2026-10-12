@@ -269,4 +269,14 @@
       if (x && x.ok) setTimeout(function () { location.reload(); }, 900);
     }).catch(function (e) { if (window.AppUI) AppUI.toast('Ошибка: ' + e.message); });
   });
+  $('#cardBtn').addEventListener('click', function () {
+    rpc('app_equipment_list', { p_token: token }).catch(function () { return []; }).then(function (list) { list = list || [];
+      if (!list.length) { ui.toast('Оборудования нет'); return; }
+      ui.formDialog({ title: 'Карточка станка', okText: 'Показать', fields: [{ name: 'eid', label: 'Оборудование', type: 'select', required: true, options: list.map(function (e) { return { value: e.id, label: (e.name || '') + (e.code ? ' · ' + e.code : '') }; }) }] }).then(function (v) { if (!v) return;
+        rpc('app_equipment_card', { p_token: token, p_equipment_id: v.eid }).then(function (r) { var k = r && r[0]; if (!k) { ui.toast('Нет данных'); return; }
+          ui.dialog({ title: 'Карточка: ' + (k.name||''), body: '<div class="kpi-row"><div class="kpi"><small>Планов активно</small><b>'+(k.plans_active||0)+'</b></div><div class="kpi"><small>Ближайший ТО</small><b>'+(k.next_due||'—')+'</b></div><div class="kpi"><small>Заявок сервиса</small><b>'+(k.service_total||0)+'</b></div><div class="kpi"><small>Открытых</small><b>'+(k.service_open||0)+'</b></div><div class="kpi"><small>Вибрация</small><b>'+(k.vibro_last==null?'—':k.vibro_last)+'</b></div><div class="kpi"><small>Оценка</small><b>'+(k.vibro_result||'—')+'</b></div></div>', html: true, cancelText: 'Закрыть' });
+        });
+      });
+    });
+  });
 })();

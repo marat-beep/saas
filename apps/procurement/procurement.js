@@ -198,4 +198,26 @@
       ui.dialog({ title: 'Заявки на закупку', body: html, html: true, cancelText: 'Закрыть' });
     });
   });
+  function _tdPick(title, cb) {
+    if (!tenders.length) { ui.toast('Закупок нет'); return; }
+    ui.formDialog({ title: title, okText: 'Показать', fields: [{ name: 'tid', label: 'Закупка', type: 'select', required: true, options: tenders.map(function (t) { return { value: t.id, label: (t.title || '') + ' [' + (t.status || '') + ']' }; }) }] }).then(cb);
+  }
+  $('#cmpBtn').addEventListener('click', function () {
+    _tdPick('Матрица сравнения КП', function (v) { if (!v) return;
+      rpc('app_bid_compare', { p_token: token, p_tender_id: v.tid }).then(function (rows) { rows = rows || [];
+        var html = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Поставщик</th><th class="num">Цена</th><th class="num">Срок, дн</th><th>Статус</th><th class="num">Рейтинг</th></tr></thead><tbody>' +
+          (rows.length ? rows.map(function (b) { return '<tr><td>'+ui.esc(b.supplier||'')+'</td><td class="num">'+money(b.price)+'</td><td class="num">'+(b.term_days==null?'—':b.term_days)+'</td><td>'+ui.esc(b.status)+'</td><td class="num">'+(b.supplier_rating||0)+'</td></tr>'; }).join('') : '<tr><td colspan="5" class="note">КП нет</td></tr>') + '</tbody></table></div>';
+        ui.dialog({ title: 'Матрица сравнения КП', body: html, html: true, cancelText: 'Закрыть' });
+      });
+    });
+  });
+  $('#rankBtn').addEventListener('click', function () {
+    _tdPick('Ранжирование КП', function (v) { if (!v) return;
+      rpc('app_bid_rank', { p_token: token, p_tender_id: v.tid }).then(function (rows) { rows = rows || [];
+        var html = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Поставщик</th><th class="num">Цена</th><th class="num">Срок</th><th class="num">Балл</th></tr></thead><tbody>' +
+          (rows.length ? rows.map(function (b) { return '<tr><td>'+b.rank+'</td><td>'+ui.esc(b.supplier||'')+'</td><td class="num">'+money(b.price)+'</td><td class="num">'+(b.term_days==null?'—':b.term_days)+'</td><td class="num"><b>'+b.score+'</b></td></tr>'; }).join('') : '<tr><td colspan="5" class="note">КП нет</td></tr>') + '</tbody></table></div>';
+        ui.dialog({ title: 'Ранжирование КП (цена 60% · срок 30% · рейтинг 10%)', body: html, html: true, cancelText: 'Закрыть' });
+      });
+    });
+  });
 })();

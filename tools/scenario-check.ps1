@@ -21,10 +21,30 @@ function Write-Out {
 if (-not $Token) { Add-F 'C' 'Info' 'Сценарии L3 пропущены (нет токена)' 'Задайте -Token.' 'tools/scenario-check.ps1' 1 1; $script:pass=0; $script:fail=0; Write-Out; Write-Host 'scenario-check: пропуск (нет токена)'; exit 0 }
 
 $Uri = "https://api.supabase.com/v1/projects/$Project/database/query"
+# Пейсинг + ретраи на троттлинг Management API (429 / ThrottlerException)
+$script:SqlMinGapMs = 400
+$script:SqlLast = [DateTime]::UtcNow
 function Sql([string]$q) {
-  $j = @{ query = $q } | ConvertTo-Json -Compress
-  $b = [System.Text.Encoding]::UTF8.GetBytes($j)
-  return Invoke-RestMethod -Method Post -Uri $Uri -Headers @{ Authorization = "Bearer $Token" } -ContentType 'application/json; charset=utf-8' -Body $b -TimeoutSec 120
+  $attempt = 0
+  while ($true) {
+    $attempt++
+    $gap = [int]([DateTime]::UtcNow - $script:SqlLast).TotalMilliseconds
+    if ($gap -lt $script:SqlMinGapMs) { Start-Sleep -Milliseconds ($script:SqlMinGapMs - $gap) }
+    $script:SqlLast = [DateTime]::UtcNow
+    $j = @{ query = $q } | ConvertTo-Json -Compress
+    $b = [System.Text.Encoding]::UTF8.GetBytes($j)
+    try {
+      return Invoke-RestMethod -Method Post -Uri $Uri -Headers @{ Authorization = "Bearer $Token" } -ContentType 'application/json; charset=utf-8' -Body $b -TimeoutSec 120
+    } catch {
+      $msg = ''
+      try { $msg = [string]$_.ErrorDetails.Message } catch {}
+      if (-not $msg) { try { $msg = [string]$_.Exception.Message } catch {} }
+      if (($msg -match 'ThrottlerException|429|Too Many Requests') -and $attempt -le 5) {
+        Start-Sleep -Seconds ([Math]::Min(2 * $attempt, 10)); continue
+      }
+      throw
+    }
+  }
 }
 function Rows($r) { if ($r -and ($r.PSObject.Properties.Name -contains 'value')) { return @($r.value) } elseif ($r) { return @($r) } else { return @() } }
 

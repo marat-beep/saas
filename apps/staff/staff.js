@@ -118,4 +118,16 @@
       ui.dialog({ title: 'Текучесть по месяцам', body: html, html: true, cancelText: 'Закрыть' });
     });
   });
+  $('#scanOnbBtn').addEventListener('click', function () {
+    Promise.all([ rpc('app_onboard_list', { p_token: token, p_staff_id: null }).catch(function () { return []; }), rpc('app_onboard_scan', { p_token: token }).catch(function () { return []; }) ]).then(function (r) {
+      var items = r[0] || [], scan = (r[1] && r[1][0]) || {};
+      var html = '<div class="note">' + (scan.message || '') + '</div><div class="tbl-wrap mt"><table class="tbl"><thead><tr><th>Сотрудник</th><th>Шаг</th><th>Срок</th><th>Статус</th><th></th></tr></thead><tbody>' +
+        (items.length ? items.map(function (o) { return '<tr><td>'+_esc(o.staff_name||'')+'</td><td>'+_esc(o.step)+'</td><td>'+(o.due_date||'')+'</td><td>'+_esc(o.status)+'</td><td>'+(o.status==='planned'?'<button class="act" data-od="'+o.id+'">Готово</button>':'')+'</td></tr>'; }).join('') : '<tr><td colspan="5" class="note">Нет шагов онбординга</td></tr>') + '</tbody></table></div>';
+      ui.dialog({ title: 'Контроль онбординга', body: html, html: true, cancelText: 'Закрыть', onOpen: function (back) {
+        back.querySelectorAll('[data-od]').forEach(function (b) { b.addEventListener('click', function () {
+          rpc('app_onboard_item_set_status', { p_token: token, p_id: b.dataset.od, p_status: 'done' }).then(function (rr) { var y = rr && rr[0]; ui.toast((y && y.message) || '', y && y.ok ? 'ok' : 'err'); back.querySelector('[data-cancel]').click(); });
+        }); });
+      } });
+    });
+  });
 })();

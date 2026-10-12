@@ -302,4 +302,17 @@
       });
     });
   });
+  $('#capaBtn').addEventListener('click', function () {
+    Promise.all([ rpc('app_defect_list', { p_token: token }), rpc('app_approval_routes_list', { p_token: token }) ]).then(function (r) {
+      var defects = r[0] || [], routes = r[1] || [];
+      if (!defects.length) { ui.toast('Дефектов нет'); return; }
+      ui.formDialog({ title: 'CAPA по дефекту', okText: 'Запустить', fields: [
+        { name: 'defect_id', label: 'Дефект', type: 'select', required: true, options: defects.map(function (d) { return { value: d.id, label: (d.title || '') + (d.severity ? ' · ' + d.severity : '') }; }) },
+        { name: 'route_id', label: 'Маршрут', type: 'select', options: [{ value: '', label: '— без маршрута —' }].concat(routes.map(function (x) { return { value: x.id, label: x.name }; })) }
+      ] }).then(function (v) { if (!v) return;
+        if (!v.route_id) { ui.toast('Выберите маршрут (требуется для CAPA)'); return; }
+        rpc('app_capa_start', { p_token: token, p_defect_id: v.defect_id, p_route_id: v.route_id }).then(function (rr) { var x = rr && rr[0]; ui.toast((x && x.message) || '', x && x.ok ? 'ok' : 'err'); });
+      });
+    });
+  });
 })();

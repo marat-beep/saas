@@ -91,4 +91,16 @@
       ui.dialog({ title: 'Единая НСИ', body: html, html: true, cancelText: 'Закрыть' });
     });
   });
+  $('#bpmnBtn').addEventListener('click', function () {
+    rpc('app_approval_routes_list', { p_token: token }).then(function (routes) { routes = routes || [];
+      if (!routes.length) { ui.toast('Маршрутов нет'); return; }
+      ui.formDialog({ title: 'Карта процесса', okText: 'Показать', fields: [{ name: 'rid', label: 'Маршрут', type: 'select', required: true, options: routes.map(function (x) { return { value: x.id, label: x.name }; }) }] }).then(function (v) { if (!v) return;
+        rpc('app_bpmn_map', { p_token: token, p_route_id: v.rid }).then(function (r) { var k = r && r[0]; if (!k) { ui.toast('Нет данных'); return; }
+          var nodes = k.nodes || [];
+          var nl = nodes.map(function (n) { return '<span class="badge" style="margin:2px;">' + ui.esc(n.label || n.id) + '</span>'; }).join(' → ');
+          ui.dialog({ title: 'Карта процесса (шагов: ' + (k.step_count||0) + ')', body: '<div style="line-height:2.2;">' + nl + '</div>', html: true, cancelText: 'Закрыть' });
+        });
+      });
+    });
+  });
 })();
