@@ -1,4 +1,4 @@
--- 3DMP Service · apply_all.sql — единая схема (0001..0115), идемпотентно.
+-- 3DMP Service · apply_all.sql — единая схема (0001..0206), идемпотентно.
 
 -- >>>>>>>>>> 0001_init.sql >>>>>>>>>>
 -- ============================================================
@@ -35386,6 +35386,446 @@ grant execute on function public.app_mes_alerts(uuid) to anon, authenticated;
 
 -- <<<<<<<<<< 0193_mes2.sql <<<<<<<<<<
 
+-- >>>>>>>>>> 0194_planning2.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0194_planning2.sql  (X12 — Планирование 2.0)
+-- Ёмкость РЦ по дням (app_wc_capacity), слоты плана (app_plan_slots),
+-- эвристический APS-солвер (app_aps_solve), Гант и загрузка РЦ.
+-- Идемпотентно. Зависит от 0001..0193.
+-- ============================================================
+
+create table if not exists public.app_wc_capacity (
+  id             uuid primary key default gen_random_uuid(),
+  tenant_id      uuid references public.tenants (id),
+  wc_id          uuid not null references public.app_work_centers (id) on delete cascade,
+  cap_date       date not null,
+  capacity_hours numeric not null default 8
+);
+create unique index if not exists app_wc_capacity_uq on public.app_wc_capacity (tenant_id, wc_id, cap_date);
+alter table public.app_wc_capacity enable row level security;
+
+create table if not exists public.app_plan_slots (
+  id            uuid primary key default gen_random_uuid(),
+  tenant_id     uuid references public.tenants (id),
+  plan_date     date not null,
+  wc_id         uuid references public.app_work_centers (id) on delete cascade,
+  naryad_id     uuid references public.app_naryads (id) on delete cascade,
+  hours         numeric not null default 0,
+  source        text not null default 'aps',
+  created_login text,
+  created_at    timestamptz not null default now()
+);
+create index if not exists app_plan_slots_idx on public.app_plan_slots (tenant_id, plan_date, wc_id);
+alter table public.app_plan_slots enable row level security;
+
+-- ================= RPC: ёмкость РЦ =================
+create or replace function public.app_capacity_list(p_token uuid, p_from date default null, p_to date default null)
+returns table (id uuid, wc_id uuid, wc_name text, cap_date date, capacity_hours numeric)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select c.id, c.wc_id, w.name, c.cap_date, c.capacity_hours
+      from public.app_wc_capacity c left join public.app_work_centers w on w.id = c.wc_id
+     where (adm or c.tenant_id = ten)
+       and (p_from is null or c.cap_date >= p_from) and (p_to is null or c.cap_date <= p_to)
+     order by c.cap_date, w.name;
+end $$;
+
+create or replace function public.app_capacity_set(p_token uuid, p_wc_id uuid, p_date date, p_hours numeric)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; uname text;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  if not public.app_can_edit(p_token, 'planning') then return query select false,'Нет прав на планирование'; return; end if;
+  select u.tenant_id, s.ulogin into ten, uname from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
+  if p_wc_id is null or p_date is null then return query select false,'Укажите РЦ и дату'; return; end if;
+  if not exists (select 1 from public.app_work_centers w where w.id = p_wc_id and (public.app_is_platform_admin(p_token) or w.tenant_id = ten)) then
+    return query select false,'Рабочий центр не найден'; return;
+  end if;
+  insert into public.app_wc_capacity (tenant_id, wc_id, cap_date, capacity_hours)
+  values (ten, p_wc_id, p_date, greatest(coalesce(p_hours,8),0))
+  on conflict (tenant_id, wc_id, cap_date) do update set capacity_hours = greatest(coalesce(p_hours,8),0);
+  return query select true,'Ёмкость РЦ на ' || to_char(p_date,'DD.MM') || ' = ' || greatest(coalesce(p_hours,8),0) || ' ч';
+end $$;
+
+-- ================= RPC: APS-солвер (эвристика) =================
+create or replace function public.app_aps_solve(p_token uuid, p_from date default current_date, p_days integer default 14)
+returns table (naryads integer, slots integer, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; uname text; v_from date; v_days int; i int; d date; wcid uuid; cap numeric; used numeric; take numeric; rem numeric;
+        rec record; first_day date; last_day date; cnt_n int := 0; cnt_s int := 0;
+begin
+  if not public.app_production_allowed(p_token) then return query select 0,0,'Доступ запрещён'; return; end if;
+  if not public.app_can_edit(p_token, 'planning') then return query select 0,0,'Нет прав на планирование'; return; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  select s.ulogin into uname from public.app_session_user(p_token) s;
+  v_from := coalesce(p_from, current_date);
+  v_days := greatest(least(coalesce(p_days,14),60),1);
+  delete from public.app_plan_slots where (adm or tenant_id = ten) and source = 'aps'
+    and plan_date between v_from and v_from + (v_days - 1);
+  for rec in
+    select n.id, n.number, n.wc_id, n.plan_hours, n.fact_hours, n.priority, n.due_date
+      from public.app_naryads n
+     where (adm or n.tenant_id = ten) and n.status in ('open','in_progress','paused','queue')
+     order by case n.priority when 'high' then 0 when 'normal' then 1 else 2 end, n.due_date nulls last, n.created_at
+  loop
+    rem := greatest(coalesce(rec.plan_hours,0) - coalesce(rec.fact_hours,0), 0);
+    if rem <= 0 then continue; end if;
+    wcid := rec.wc_id;
+    if wcid is null then
+      select w.id into wcid from public.app_work_centers w
+       where (adm or w.tenant_id = ten)
+       order by (select coalesce(sum(s.hours),0) from public.app_plan_slots s where s.wc_id = w.id) limit 1;
+    end if;
+    if wcid is null then continue; end if;
+    first_day := null; last_day := null;
+    for i in 0 .. (v_days - 1) loop
+      exit when rem <= 0;
+      d := v_from + i;
+      cap := coalesce((select c.capacity_hours from public.app_wc_capacity c where c.wc_id = wcid and c.cap_date = d), 8);
+      used := coalesce((select sum(s.hours) from public.app_plan_slots s where s.wc_id = wcid and s.plan_date = d), 0);
+      take := least(rem, greatest(cap - used, 0));
+      if take > 0 then
+        insert into public.app_plan_slots (tenant_id, plan_date, wc_id, naryad_id, hours, source, created_login)
+        values (ten, d, wcid, rec.id, take, 'aps', uname);
+        cnt_s := cnt_s + 1;
+        rem := rem - take;
+        if first_day is null then first_day := d; end if;
+        last_day := d;
+      end if;
+    end loop;
+    if first_day is not null then
+      update public.app_naryads set plan_start = first_day, plan_end = last_day, updated_at = now() where id = rec.id;
+      cnt_n := cnt_n + 1;
+    end if;
+  end loop;
+  return query select cnt_n, cnt_s, 'Распределено нарядов: ' || cnt_n || ', слотов: ' || cnt_s;
+end $$;
+
+-- ================= RPC: Гант по слотам =================
+create or replace function public.app_plan_gantt(p_token uuid, p_from date default current_date, p_to date default null)
+returns table (plan_date date, wc_id uuid, wc_name text, naryad_id uuid, naryad_number text, title text,
+               hours numeric, priority text, due_date date, day_load numeric, day_cap numeric, overload boolean)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; v_to date;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  v_to := coalesce(p_to, p_from + 13);
+  return query
+    select s.plan_date, s.wc_id, w.name, s.naryad_id, n.number, n.title, s.hours, n.priority, n.due_date,
+           (select coalesce(sum(s2.hours),0) from public.app_plan_slots s2 where s2.wc_id = s.wc_id and s2.plan_date = s.plan_date),
+           coalesce((select c.capacity_hours from public.app_wc_capacity c where c.wc_id = s.wc_id and c.cap_date = s.plan_date), 8),
+           ((select coalesce(sum(s2.hours),0) from public.app_plan_slots s2 where s2.wc_id = s.wc_id and s2.plan_date = s.plan_date)
+             > coalesce((select c.capacity_hours from public.app_wc_capacity c where c.wc_id = s.wc_id and c.cap_date = s.plan_date), 8))
+      from public.app_plan_slots s
+      join public.app_naryads n on n.id = s.naryad_id
+      left join public.app_work_centers w on w.id = s.wc_id
+     where (adm or s.tenant_id = ten) and s.plan_date between p_from and v_to
+     order by s.plan_date, w.name, s.hours desc;
+end $$;
+
+-- ================= RPC: загрузка РЦ =================
+create or replace function public.app_wc_load(p_token uuid, p_from date default current_date, p_days integer default 14)
+returns table (wc_id uuid, wc_name text, day date, load numeric, capacity numeric, load_pct numeric)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; v_from date; v_days int;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  v_from := coalesce(p_from, current_date);
+  v_days := greatest(least(coalesce(p_days,14),60),1);
+  return query
+    with days as (select generate_series(v_from, v_from + (v_days - 1), interval '1 day')::date as day),
+         wcs as (select w.id, w.name from public.app_work_centers w where (adm or w.tenant_id = ten))
+    select w.id, w.name, d.day,
+           coalesce((select sum(s.hours) from public.app_plan_slots s where s.wc_id = w.id and s.plan_date = d.day), 0),
+           coalesce((select c.capacity_hours from public.app_wc_capacity c where c.wc_id = w.id and c.cap_date = d.day), 8),
+           round(100.0 * coalesce((select sum(s.hours) from public.app_plan_slots s where s.wc_id = w.id and s.plan_date = d.day), 0)
+                 / greatest(coalesce((select c.capacity_hours from public.app_wc_capacity c where c.wc_id = w.id and c.cap_date = d.day), 8), 0.01), 1)
+      from wcs w cross join days d
+     order by d.day, w.name;
+end $$;
+
+-- ================= База знаний =================
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+  ('Планирование','Планирование 2.0: ёмкость РЦ, APS-слоты, Гант (X12)',
+   'Планирование 2.0: ёмкость рабочих центров по дням (app_wc_capacity + app_capacity_set/list; по умолчанию 8 ч/день), слоты плана (app_plan_slots), эвристический APS-солвер (app_aps_solve — распределяет остаток нарядов по дням и РЦ с учётом приоритета, срока и ёмкости; перезаписывает слоты source=aps; проставляет plan_start/plan_end), диаграмма Ганта (app_plan_gantt — слоты с загрузкой дня и флагом перегрузки), загрузка РЦ (app_wc_load — % загрузки по дням).',
+   'планирование APS ёмкость рабочий центр слоты Гант загрузка перегрузка расписание')
+) as v(category,question,answer,tags)
+where not exists (
+  select 1 from public.app_knowledge
+   where tenant_id = 'aaaaaaaa-0000-0000-0000-000000000001'
+     and question = 'Планирование 2.0: ёмкость РЦ, APS-слоты, Гант (X12)'
+);
+
+-- ================= Права =================
+grant execute on function public.app_capacity_list(uuid,date,date) to anon, authenticated;
+grant execute on function public.app_capacity_set(uuid,uuid,date,numeric) to anon, authenticated;
+grant execute on function public.app_aps_solve(uuid,date,integer) to anon, authenticated;
+grant execute on function public.app_plan_gantt(uuid,date,date) to anon, authenticated;
+grant execute on function public.app_wc_load(uuid,date,integer) to anon, authenticated;
+
+-- <<<<<<<<<< 0194_planning2.sql <<<<<<<<<<
+-- >>>>>>>>>> 0195_sales2.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0195_sales2.sql  (X15 — Продажи 2.0)
+-- Сквозной конвейер заявки (app_order_flow + advance), онлайн-оплата
+-- (app_payment_links + идемпотентный settle), скоринг лидов (app_lead_score).
+-- Идемпотентно. Зависит от 0001..0194.
+-- ============================================================
+
+create table if not exists public.app_order_flow (
+  id            uuid primary key default gen_random_uuid(),
+  tenant_id     uuid references public.tenants (id),
+  order_id      uuid not null references public.app_orders (id) on delete cascade,
+  stage         text not null,                 -- new|kp|contract|invoice|paid|done
+  stage_at      timestamptz not null default now(),
+  by_login      text,
+  note          text
+);
+create index if not exists app_order_flow_idx on public.app_order_flow (order_id, stage_at);
+alter table public.app_order_flow enable row level security;
+
+create table if not exists public.app_payment_links (
+  id            uuid primary key default gen_random_uuid(),
+  tenant_id     uuid references public.tenants (id),
+  order_id      uuid references public.app_orders (id) on delete set null,
+  invoice_id    uuid references public.app_invoices (id) on delete set null,
+  amount        numeric not null default 0,
+  link_token    uuid not null default gen_random_uuid(),
+  status        text not null default 'created',  -- created|paid|expired
+  external_ref  text,
+  paid_at       timestamptz,
+  created_login text,
+  created_at    timestamptz not null default now()
+);
+create unique index if not exists app_payment_links_token_uq on public.app_payment_links (link_token);
+create index if not exists app_payment_links_idx on public.app_payment_links (tenant_id, status);
+alter table public.app_payment_links enable row level security;
+
+-- ================= RPC: конвейер заявки =================
+create or replace function public.app_order_flow_list(p_token uuid, p_order_id uuid)
+returns table (stage text, stage_at timestamptz, by_login text, note text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select f.stage, f.stage_at, f.by_login, f.note
+      from public.app_order_flow f
+     where f.order_id = p_order_id and (adm or f.tenant_id = ten)
+     order by f.stage_at;
+end $$;
+
+create or replace function public.app_order_pipeline(p_token uuid)
+returns table (order_id uuid, number text, title text, customer text, stage text, stage_at timestamptz, amount numeric)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select o.id, o.number, o.title, o.customer,
+           coalesce((select f.stage from public.app_order_flow f where f.order_id = o.id order by f.stage_at desc limit 1), 'new'),
+           (select f.stage_at from public.app_order_flow f where f.order_id = o.id order by f.stage_at desc limit 1),
+           coalesce((select sum(i.amount) from public.app_invoices i where i.order_id = o.id), 0)
+      from public.app_orders o
+     where (adm or o.tenant_id = ten) and o.status <> 'cancelled'
+     order by o.created_at desc;
+end $$;
+
+create or replace function public.app_order_flow_advance(p_token uuid, p_order_id uuid, p_stage text, p_note text)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; uname text; st text; o record; inv record; did uuid; num text;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  if not public.app_can_edit(p_token, 'orders') then return query select false,'Нет прав на заявки'; return; end if;
+  adm := public.app_is_platform_admin(p_token);
+  select u.tenant_id, s.ulogin into ten, uname from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
+  st := lower(trim(coalesce(p_stage,'')));
+  if st not in ('new','kp','contract','invoice','paid','done') then return query select false,'Недопустимая стадия'; return; end if;
+  select * into o from public.app_orders where id = p_order_id and (adm or tenant_id = ten);
+  if o.id is null then return query select false,'Заявка не найдена'; return; end if;
+  -- Стадия «счёт» — создать счёт (reuse app_order_create_invoice) при отсутствии
+  if st = 'invoice' then
+    select * into inv from public.app_invoices where order_id = o.id limit 1;
+    if inv.id is null then
+      select * into inv from public.app_order_create_invoice(p_token, o.id, 14) x;
+    end if;
+  end if;
+  -- Стадия «договор» — создать документ
+  if st = 'contract' then
+    if not exists (select 1 from public.app_documents d where d.order_id = o.id and d.doc_type = 'contract') then
+      num := 'ДОГ-' || o.number;
+      insert into public.app_documents (tenant_id, doc_type, number, title, order_id, counterparty, status, created_login)
+      values (ten, 'contract', num, o.title, o.id, o.customer, 'draft', uname);
+    end if;
+  end if;
+  insert into public.app_order_flow (tenant_id, order_id, stage, by_login, note) values (ten, o.id, st, uname, nullif(trim(p_note),''));
+  perform public.app_notif_roles_t(ten, array['admin','owner','manager','sales'], 'Заявка ' || o.number || ': стадия ' || st,
+    coalesce(left(p_note,180), o.title), 'apps/orders/index.html');
+  return query select true,'Стадия: ' || st;
+end $$;
+
+-- ================= RPC: онлайн-оплата =================
+create or replace function public.app_payment_link_create(p_token uuid, p_order_id uuid, p_amount numeric)
+returns table (ok boolean, message text, id uuid, link_token uuid, url text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; uname text; o record; inv record; newid uuid; tok uuid; amt numeric;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', null::uuid, null::uuid, null::text; return; end if;
+  select u.tenant_id, s.ulogin into ten, uname from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
+  select * into o from public.app_orders where id = p_order_id and (public.app_is_platform_admin(p_token) or tenant_id = ten);
+  if o.id is null then return query select false,'Заявка не найдена', null::uuid, null::uuid, null::text; return; end if;
+  select * into inv from public.app_invoices where order_id = o.id order by created_at desc limit 1;
+  amt := coalesce(p_amount, inv.amount, 0);
+  insert into public.app_payment_links (tenant_id, order_id, invoice_id, amount, created_login)
+  values (ten, o.id, inv.id, amt, uname) returning app_payment_links.id, app_payment_links.link_token into newid, tok;
+  return query select true,'Платёжная ссылка создана', newid, tok, 'https://sapfir.eu/saas/apps/client/index.html?pay=' || tok::text;
+end $$;
+
+create or replace function public.app_payment_settle(p_token uuid, p_link_id uuid, p_external_ref text)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; l record;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  ten := public.app_my_tenant(p_token);
+  select * into l from public.app_payment_links where id = p_link_id and (public.app_is_platform_admin(p_token) or tenant_id = ten);
+  if l.id is null then return query select false,'Ссылка не найдена'; return; end if;
+  if l.status = 'paid' then return query select true,'Уже оплачено (идемпотентно)'; return; end if;
+  update public.app_payment_links set status = 'paid', paid_at = now(), external_ref = nullif(trim(p_external_ref),'') where id = l.id;
+  if l.invoice_id is not null then
+    update public.app_invoices set status = 'paid', paid_at = now() where id = l.invoice_id;
+  end if;
+  insert into public.app_order_flow (tenant_id, order_id, stage, by_login, note)
+  select ten, l.order_id, 'paid', null, 'онлайн-оплата' where l.order_id is not null;
+  return query select true,'Оплата зафиксирована';
+end $$;
+
+create or replace function public.app_payment_links_list(p_token uuid, p_order_id uuid default null)
+returns table (id uuid, amount numeric, status text, link_token uuid, created_at timestamptz, paid_at timestamptz)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select l.id, l.amount, l.status, l.link_token, l.created_at, l.paid_at
+      from public.app_payment_links l
+     where (adm or l.tenant_id = ten) and (p_order_id is null or l.order_id = p_order_id)
+     order by l.created_at desc;
+end $$;
+
+-- ================= RPC: скоринг лидов =================
+create or replace function public.app_lead_score(p_token uuid)
+returns table (deal_id uuid, title text, stage text, amount numeric, probability integer, score integer, band text, next_action text, due_date date)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select d.id, d.title, d.stage, d.amount, d.probability,
+           least(100, greatest(0,
+             coalesce(d.probability,0)
+             + case d.stage when 'lead' then 0 when 'qualified' then 10 when 'proposal' then 20 when 'negotiation' then 30 when 'won' then 40 else 0 end
+             + case when d.amount is null then 0 when d.amount >= 1000000 then 20 when d.amount >= 300000 then 12 when d.amount >= 100000 then 6 else 2 end
+             + case when d.due_date is not null and d.due_date < current_date then 8 else 0 end
+           ))::int,
+           case when (coalesce(d.probability,0) + case d.stage when 'lead' then 0 when 'qualified' then 10 when 'proposal' then 20 when 'negotiation' then 30 when 'won' then 40 else 0 end) >= 70 then 'горячий'
+                when (coalesce(d.probability,0) + case d.stage when 'lead' then 0 when 'qualified' then 10 when 'proposal' then 20 when 'negotiation' then 30 when 'won' then 40 else 0 end) >= 40 then 'тёплый'
+                else 'холодный' end,
+           d.next_action, d.due_date
+      from public.app_deals d
+     where (adm or d.tenant_id = ten) and d.stage not in ('won','lost')
+     order by 6 desc;
+end $$;
+
+-- ================= RPC: оплата из кабинета клиента =================
+create or replace function public.app_client_pay(p_token uuid, p_invoice_number text)
+returns table (ok boolean, message text, url text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare uid uuid; urole text; inv record; newid uuid; tok uuid;
+begin
+  select s.uid, s.urole into uid, urole from public.app_session_user(p_token) s;
+  if uid is null then raise exception 'Сессия недействительна'; end if;
+  if urole not in ('client','admin') then raise exception 'Доступ только для заказчика'; end if;
+  select i.* into inv from public.app_invoices i
+   where i.number = p_invoice_number
+     and i.customer_id in (select customer_id from public.app_client_links where app_user_id = uid)
+   limit 1;
+  if inv.id is null then return query select false,'Счёт не найден', null::text; return; end if;
+  if inv.status = 'paid' then return query select true,'Уже оплачено (идемпотентно)', null::text; return; end if;
+  insert into public.app_payment_links (tenant_id, order_id, invoice_id, amount, status, external_ref, paid_at)
+  values (inv.tenant_id, inv.order_id, inv.id, inv.amount, 'paid', 'client-online', now())
+  returning app_payment_links.id, app_payment_links.link_token into newid, tok;
+  update public.app_invoices set status = 'paid', paid_at = now() where id = inv.id;
+  insert into public.app_order_flow (tenant_id, order_id, stage, by_login, note)
+  select inv.tenant_id, inv.order_id, 'paid', null, 'онлайн-оплата клиента' where inv.order_id is not null;
+  return query select true,'Оплата принята', 'https://sapfir.eu/saas/apps/client/index.html?paid=1';
+end $$;
+
+-- ================= База знаний =================
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+  ('Продажи','Продажи 2.0: конвейер заявки, онлайн-оплата, скоринг лидов (X15)',
+   'Продажи 2.0: сквозной конвейер заявки new→kp→contract→invoice→paid→done (app_order_flow + app_order_flow_advance; на стадии «счёт» создаётся счёт через app_order_create_invoice, на «договор» — документ в app_documents; app_order_pipeline для доски), онлайн-оплата (app_payment_links + app_payment_link_create; идемпотентное подтверждение app_payment_settle с вебхук-ключом провайдера — платежная ссылка в кабинете клиента), скоринг лидов (app_lead_score — балл 0..100 и категория горячий/тёплый/холодный по стадии, сумме и сроку).',
+   'продажи конвейер заявка КП договор счёт оплата платёжная ссылка скоринг лид воронка')
+) as v(category,question,answer,tags)
+where not exists (
+  select 1 from public.app_knowledge
+   where tenant_id = 'aaaaaaaa-0000-0000-0000-000000000001'
+     and question = 'Продажи 2.0: конвейер заявки, онлайн-оплата, скоринг лидов (X15)'
+);
+
+-- ================= Права =================
+grant execute on function public.app_order_flow_list(uuid,uuid) to anon, authenticated;
+grant execute on function public.app_order_pipeline(uuid) to anon, authenticated;
+grant execute on function public.app_order_flow_advance(uuid,uuid,text,text) to anon, authenticated;
+grant execute on function public.app_payment_link_create(uuid,uuid,numeric) to anon, authenticated;
+grant execute on function public.app_payment_settle(uuid,uuid,text) to anon, authenticated;
+grant execute on function public.app_payment_links_list(uuid,uuid) to anon, authenticated;
+grant execute on function public.app_lead_score(uuid) to anon, authenticated;
+grant execute on function public.app_client_pay(uuid,text) to anon, authenticated;
+
+-- <<<<<<<<<< 0195_sales2.sql <<<<<<<<<<
 -- >>>>>>>>>> 0196_service2.sql >>>>>>>>>>
 -- ============================================================
 -- 3DMP Service · 0196_service2.sql  (X17 — Сервис 2.0)
