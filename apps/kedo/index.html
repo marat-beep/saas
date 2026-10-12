@@ -15,11 +15,20 @@
   </header>
 
   <main class="wrap fluid">
-    <div class="hero"><h1>Кадры (КЭДО)</h1><p>Кадровые документы, ознакомления и подпись (ПЭП; задел под УНЭП/УКЭП/Госключ), шаблоны, личный кабинет, МЧД. Роли: staff.</p></div>
+    <div class="hero"><h1>Кадры (КЭДО)</h1><p>Кадровые документы, массовые ознакомления, маршруты согласования, подпись (ПЭП; провайдер ЭП — задел УКЭП/Госключ), личный кабинет, МЧД. Роли: staff.</p></div>
     <div class="kpi-row" id="kpis"></div>
+
+    <div class="sv-actions" style="margin-top:10px;">
+      <button class="btn secondary" data-cap="edit" id="scanBtn">🔔 Проверить ознакомления</button>
+      <a class="btn secondary" href="../hr/index.html">👥 Кадры ↗</a>
+      <a class="btn secondary" href="../access/index.html">🔐 Согласования ↗</a>
+      <a class="btn secondary" href="../integrations/index.html">🔌 Интеграции ↗</a>
+    </div>
 
     <div class="tabs2" id="tabs">
       <button data-scr="docs" class="active">Документы</button>
+      <button data-scr="bulk">Ознакомления</button>
+      <button data-scr="routes">Маршруты</button>
       <button data-scr="me">Мой кабинет</button>
       <button data-scr="tpl">Шаблоны</button>
       <button data-scr="mchd">МЧД</button>
@@ -39,9 +48,31 @@
       </div>
     </section>
 
+    <section class="screen" id="scr-bulk">
+      <div class="card">
+        <div class="toolbar">
+          <span class="note">Массовое ознакомление: по списку сотрудников создаются документы, подпись отслеживается по каждому.</span>
+          <button class="btn" data-cap="edit" id="bulkAdd" style="width:auto;padding:8px 14px;margin-left:auto;">＋ Ознакомление</button>
+        </div>
+        <div id="bulks" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-routes">
+      <div class="card">
+        <div class="toolbar">
+          <span class="note">Маршруты кадровых документов (движок согласований). Мои этапы — ниже.</span>
+          <button class="btn" data-cap="edit" id="routeAdd" style="width:auto;padding:8px 14px;margin-left:auto;">＋ Маршрут</button>
+        </div>
+        <div id="routes" class="mt"><span class="note">Загрузка…</span></div>
+        <h2 class="mt">Мои этапы согласования</h2>
+        <div id="myAppr"><span class="note">—</span></div>
+      </div>
+    </section>
+
     <section class="screen" id="scr-me">
       <div class="card"><div class="toolbar"><button class="btn secondary" id="meBtn" style="width:auto;padding:8px 14px;">Обновить</button>
-        <span class="note" style="margin-left:auto;">Документы, адресованные вам: ознакомление и подпись (ПЭП).</span></div>
+        <span class="note" style="margin-left:auto;">Документы, адресованные вам: ознакомление и подпись.</span></div>
         <div id="my" class="mt"><span class="note">Загрузка…</span></div></div>
     </section>
 
@@ -67,7 +98,7 @@
   <script src="../../assets/js/support-widget.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=108"></script>
   <script src="../../assets/js/shell.js?v=73"></script>
-  <script src="kedo.js?v=1"></script>
+  <script src="kedo.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-report.js?v=3"></script>
   <script src="../../assets/js/wizard.js?v=1"></script>

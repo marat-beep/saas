@@ -9,16 +9,12 @@
   .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
   .kpi{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:14px}
   .kpi .v{font-size:1.4rem;font-weight:800}.kpi .l{font-size:.72rem;color:var(--muted);text-transform:uppercase;margin-top:3px}
-  .tabs2{display:flex;gap:4px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:4px;margin:14px 0;width:fit-content}
-  .tabs2 button{padding:8px 16px;border:none;background:transparent;border-radius:8px;font-weight:600;font-size:.82rem;color:var(--muted);cursor:pointer}
-  .tabs2 button.active{background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(15,23,42,.08)}
-  .line{display:grid;grid-template-columns:1fr 1fr 1fr 100px;gap:8px;align-items:center;padding:7px 0;border-top:1px solid var(--border);font-size:.82rem}
-  .line:first-child{border-top:none}.line input,.line select{padding:6px 8px;font-size:.8rem}
-  .act{background:none;border:1px solid var(--border);border-radius:8px;padding:5px 9px;font-size:.74rem;cursor:pointer}
-  .act:hover{border-color:var(--accent);color:var(--accent-700)}.act.danger:hover{border-color:var(--danger);color:var(--danger)}
-  
-  .row{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--border);font-size:.84rem}.row:first-child{border-top:none}
-  @media(max-width:640px){.line{grid-template-columns:1fr 1fr}}
+  .kvr{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 0;border-top:1px solid var(--border);font-size:.84rem}.kvr:first-child{border-top:none}
+  .kvr .m{margin-left:auto;display:flex;gap:6px;align-items:center}
+  .matrix{width:100%;border-collapse:collapse;font-size:.82rem}
+  .matrix th,.matrix td{border:1px solid var(--border);padding:6px 8px;text-align:left}
+  .matrix th{background:#f8fafc}
+  @media(max-width:640px){.kvr .m{margin-left:0;width:100%}}
 </style>
 </head>
 <body>
@@ -30,80 +26,98 @@
   </header>
 
   <main class="wrap fluid">
-    <div class="hero"><h1>Кадры</h1><p>Сотрудники и их связь с пользователями (роли), смены/табель, обучение.</p></div>
-    <div class="kpi-row" id="kpis"></div>
+    <div class="hero"><h1>Кадры</h1><p>Сотрудники, штатное расписание, график смен, отсутствия и обучение. Отпуск → приказ в КЭДО.</p></div>
+    <div class="kpi-row kpis" id="kpis"></div>
 
     <div class="sv-actions" style="margin-top:10px;">
       <button class="btn secondary" data-cap="reports" id="repBtn">📄 Отчёт PDF</button>
-      <a class="btn secondary" href="../staff/index.html">👔 Сотрудники (реестр) ↗</a>
+      <button class="btn secondary" data-cap="edit" id="scanBtn">🔔 Проверить сроки</button>
+      <a class="btn secondary" href="../staff/index.html">👔 CRM сотрудников ↗</a>
       <a class="btn secondary" href="../departments/index.html">🏢 Подразделения ↗</a>
+      <a class="btn secondary" href="../kedo/index.html">🧑‍💼 КЭДО ↗</a>
+      <a class="btn secondary" href="../calendar/index.html">📅 Календарь ↗</a>
       <a class="btn secondary" href="../roles/index.html">🔐 Роли ↗</a>
     </div>
 
     <div class="tabs2" id="tabs">
-      <button class="active" data-t="emp">Сотрудники</button>
-      <button data-t="shift">Смены</button>
-      <button data-t="train">Обучение</button>
+      <button class="active" data-scr="emp">Сотрудники</button>
+      <button data-scr="staff">Штат</button>
+      <button data-scr="sched">График смен</button>
+      <button data-scr="abs">Отсутствия</button>
+      <button data-scr="tabel">Табель</button>
+      <button data-scr="train">Обучение</button>
+      <button data-scr="cap">Доступ по ролям</button>
     </div>
+    <div class="msg" id="m"></div>
 
-    <section class="tab" id="t-emp">
+    <section class="screen active" id="scr-emp">
       <div class="card">
-        <h2>Новый сотрудник</h2>
-        <div class="msg" id="eMsg"></div>
-        <div class="grid2c">
-          <div class="field"><label>ФИО *</label><input type="text" id="eName" placeholder="Иванов И.И."><span class="hint">Полное имя сотрудника.</span></div>
-          <div class="field"><label>Должность</label><input type="text" id="eJob" placeholder="Оператор ЧПУ"></div>
+        <div class="toolbar">
+          <input type="search" class="search" id="eq" placeholder="Поиск: ФИО, должность, отдел, логин…">
+          <button class="btn" data-cap="edit" id="eAdd" style="width:auto;padding:8px 14px;">＋ Сотрудник</button>
         </div>
-        <div class="grid2c">
-          <div class="field"><label>Отдел/цех</label><input type="text" id="eDept" placeholder="Механообработка"><span class="hint">Подразделение — влияет на оргструктуру и гейтинг.</span></div>
-          <div class="field"><label>Телефон</label><input type="text" id="ePhone" placeholder="+7…"></div>
-        </div>
-        <div class="grid2c">
-          <div class="field"><label>E-mail</label><input type="text" id="eEmail" placeholder="name@…"></div>
-          <div class="field"><label>Дата приёма</label><input type="date" id="eHired"></div>
-        </div>
-        <div class="field"><label>Логин пользователя системы (роль подтянется)</label><input type="text" id="eLogin" placeholder="master / operator / otk…"><span class="hint">Связь сотрудника с учётной записью — роль и доступ подтянутся из системы.</span></div>
-        <button class="btn" data-cap="edit" id="eAdd">Добавить сотрудника</button>
-      </div>
-      <div class="card">
-        <div class="toolbar"><input type="search" class="search" id="eq" placeholder="Поиск: ФИО, должность, отдел, логин…"></div>
         <h2>Сотрудники <span class="note" id="empCount"></span></h2><div id="emps"></div>
       </div>
     </section>
 
-    <section class="tab" id="t-shift" style="display:none;">
+    <section class="screen" id="scr-staff">
       <div class="card">
-        <h2>Добавить смену</h2>
-        <div class="msg" id="sMsg"></div>
-        <div class="line" style="border-top:none;font-size:.72rem;color:var(--muted);"><span>Сотрудник</span><span>Дата</span><span>Тип</span><span>Часы</span></div>
-        <div class="grid2">
-          <div class="field"><label>Сотрудник</label><select id="shEmp"></select></div>
-          <div class="field"><label>Дата</label><input type="date" id="shDate"></div>
+        <div class="toolbar">
+          <span class="note">Штатное расписание: плановая численность по должностям; факт — по активным сотрудникам подразделения.</span>
+          <button class="btn" data-cap="edit" id="stAdd" style="width:auto;padding:8px 14px;margin-left:auto;">＋ Строка штата</button>
         </div>
-        <div class="grid2">
-          <div class="field"><label>Тип</label><select id="shKind"><option value="day">Дневная</option><option value="night">Ночная</option><option value="off">Выходной</option><option value="vacation">Отпуск</option><option value="sick">Больничный</option></select></div>
-          <div class="field"><label>Часы</label><input type="text" id="shHours" inputmode="decimal" placeholder="8"><span class="hint">Отработанные часы в смене (для табеля).</span></div>
-        </div>
-        <button class="btn" data-cap="edit" id="shAdd">Добавить смену</button>
+        <div id="staffing"></div>
       </div>
-      <div class="card"><h2>Смены</h2><div id="shifts"><span class="note">—</span></div></div>
     </section>
 
-    <section class="tab" id="t-train" style="display:none;">
+    <section class="screen" id="scr-sched">
       <div class="card">
-        <h2>Новое обучение</h2>
-        <div class="msg" id="tMsg"></div>
-        <div class="grid2">
-          <div class="field"><label>Сотрудник</label><select id="trEmp"></select></div>
-          <div class="field"><label>Тема *</label><input type="text" id="trTitle" placeholder="Охрана труда"></div>
+        <div class="toolbar">
+          <input type="date" id="scFrom"> <span class="note">—</span> <input type="date" id="scTo">
+          <button class="btn secondary" id="scLoad" style="width:auto;padding:8px 14px;">Показать</button>
+          <button class="btn" data-cap="edit" id="scAdd" style="width:auto;padding:8px 14px;margin-left:auto;">＋ Смена</button>
         </div>
-        <div class="grid2">
-          <div class="field"><label>Статус</label><select id="trStatus"><option value="planned">Запланировано</option><option value="passed">Пройдено</option></select></div>
-          <div class="field"><label>Дата</label><input type="date" id="trDate"></div>
-        </div>
-        <button class="btn" data-cap="edit" id="trAdd">Добавить</button>
+        <div id="sched" class="mt"><span class="note">Загрузка…</span></div>
       </div>
-      <div class="card"><h2>Обучение</h2><div id="trains"><span class="note">—</span></div></div>
+    </section>
+
+    <section class="screen" id="scr-abs">
+      <div class="card">
+        <div class="toolbar">
+          <select id="abStatus" style="padding:9px;border:1px solid var(--border);border-radius:9px;">
+            <option value="">Все</option><option value="requested">Запрошено</option><option value="approved">Утверждено</option><option value="rejected">Отклонено</option><option value="closed">Закрыто</option>
+          </select>
+          <button class="btn" data-cap="edit" id="abAdd" style="width:auto;padding:8px 14px;margin-left:auto;">＋ Отсутствие</button>
+        </div>
+        <div id="abs"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-tabel">
+      <div class="card">
+        <div class="toolbar">
+          <span class="note">Табель — фактически отработанные смены и часы.</span>
+          <button class="btn" data-cap="edit" id="tbAdd" style="width:auto;padding:8px 14px;margin-left:auto;">＋ Запись табеля</button>
+        </div>
+        <div id="tabel"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-train">
+      <div class="card">
+        <div class="toolbar">
+          <span class="note">Обучение (план/пройдено). Профили должностей и сертификаты — в модуле «Компетенции».</span>
+          <button class="btn" data-cap="edit" id="trAdd" style="width:auto;padding:8px 14px;margin-left:auto;">＋ Обучение</button>
+        </div>
+        <div id="train"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-cap">
+      <div class="card"><h2>Доступ по ролям</h2>
+        <p class="note">Права на действия модуля «Кадры». Проверяются на сервере (app_can_edit) и в интерфейсе (data-cap).</p>
+        <div id="caps"></div>
+      </div>
     </section>
   </main>
 
@@ -119,7 +133,7 @@
   <script src="../../assets/js/nav.js?v=108"></script>
   <script src="../../assets/js/shell.js?v=73"></script>
   <script src="../../assets/js/export.js?v=2"></script>
-  <script src="hr.js?v=2"></script>
+  <script src="hr.js?v=3"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=2"></script>
 </body>

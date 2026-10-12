@@ -23,12 +23,12 @@
   function load() {
     return Promise.all([
       rpc('app_roles_list', { p_token: token }),
-      rpc('app_role_matrix', { p_token: token })
+      rpc('app_perms_matrix_get', { p_token: token })
     ]).then(function (r) {
       roles = r[0] || []; matrix = {};
       (r[1] || []).forEach(function (p) {
         matrix[p.role] = matrix[p.role] || {};
-        matrix[p.role][p.module_id] = { view: p.can_view, edit: p.can_edit };
+        matrix[p.role][p.module_id] = { view: p.can_view, edit: p.can_edit, approve: p.can_approve };
       });
       renderRoles();
       sel = sel || (roles[0] && roles[0].role);
@@ -50,13 +50,14 @@
   function renderPerms() {
     $('#roleTitle').textContent = roleLabel(sel);
     var trs = modules().map(function (a) {
-      var p = (matrix[sel] && matrix[sel][a.id]) || { view: false, edit: false };
+      var p = (matrix[sel] && matrix[sel][a.id]) || { view: false, edit: false, approve: false };
       var dis = canEdit ? '' : ' disabled';
       return '<tr><td>' + a.icon + ' <b>' + esc(a.title) + '</b> <span class="note">· ' + esc(groupTitle(a.group)) + '</span></td>' +
         '<td><input type="checkbox" data-m="' + a.id + '" data-k="view"' + (p.view ? ' checked' : '') + dis + '></td>' +
-        '<td><input type="checkbox" data-m="' + a.id + '" data-k="edit"' + (p.edit ? ' checked' : '') + dis + '></td></tr>';
+        '<td><input type="checkbox" data-m="' + a.id + '" data-k="edit"' + (p.edit ? ' checked' : '') + dis + '></td>' +
+        '<td><input type="checkbox" data-m="' + a.id + '" data-k="approve"' + (p.approve ? ' checked' : '') + dis + '></td></tr>';
     }).join('');
-    $('#perms').innerHTML = '<thead><tr><th>Модуль</th><th>Просмотр</th><th>Правка</th></tr></thead><tbody>' + trs + '</tbody>';
+    $('#perms').innerHTML = '<thead><tr><th>Модуль</th><th>Просмотр</th><th>Правка</th><th>Утверждение</th></tr></thead><tbody>' + trs + '</tbody>';
     ui.qsa('#perms input[type=checkbox]').forEach(function (ch) {
       ch.addEventListener('change', function () { save(ch.dataset.m); });
     });
@@ -66,13 +67,14 @@
     if (!canEdit) return;
     var v = ($('#perms input[data-m="' + moduleId + '"][data-k="view"]') || {}).checked;
     var e = ($('#perms input[data-m="' + moduleId + '"][data-k="edit"]') || {}).checked;
+    var a = ($('#perms input[data-m="' + moduleId + '"][data-k="approve"]') || {}).checked;
     if (e && !v) { v = true; var vc = $('#perms input[data-m="' + moduleId + '"][data-k="view"]'); if (vc) vc.checked = true; }
-    rpc('app_role_perm_set', { p_token: token, p_role: sel, p_module: moduleId, p_view: !!v, p_edit: !!e })
+    rpc('app_perms_matrix_set', { p_token: token, p_role: sel, p_module: moduleId, p_view: !!v, p_edit: !!e, p_approve: !!a })
       .then(function (d) {
         var r = d && d[0];
         if (!r || !r.ok) { msg((r && r.message) || 'Ошибка', 'err'); return; }
         matrix[sel] = matrix[sel] || {};
-        matrix[sel][moduleId] = { view: !!v, edit: !!e };
+        matrix[sel][moduleId] = { view: !!v, edit: !!e, approve: !!a };
         window.Auth.log('Права роли', roleLabel(sel) + ' · ' + moduleId);
         msg('Сохранено: ' + roleLabel(sel) + ' · ' + moduleId, 'ok');
       }).catch(function (err) { msg('Ошибка: ' + err.message, 'err'); });

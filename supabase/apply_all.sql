@@ -33532,3 +33532,943 @@ select 'aaaaaaaa-0000-0000-0000-000000000001','Администрировани�
 where not exists (select 1 from public.app_knowledge where tenant_id='aaaaaaaa-0000-0000-0000-000000000001' and question='Производительность: индексы по горячим запросам');
 
 -- <<<<<<<<<< 0186_perf.sql <<<<<<<<<<
+
+-- >>>>>>>>>> 0187_hr2.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0187_hr2.sql  (X1 — Кадры 2.0)
+-- Штатное расписание (app_staffing), плановый график смен (app_shift_schedule),
+-- отсутствия (app_absences), синхронизация отпусков с КЭДО (app_hr_docs),
+-- дашборд кадров (app_hr_dashboard). Идемпотентно. Зависит от 0001..0186.
+-- ============================================================
+
+-- ---------- Данные ----------
+create table if not exists public.app_staffing (
+  id            uuid primary key default gen_random_uuid(),
+  tenant_id     uuid references public.tenants (id),
+  department_id uuid references public.app_departments (id) on delete set null,
+  department    text,
+  position      text not null,
+  rate          numeric default 1,
+  salary        numeric,
+  headcount     integer default 1,
+  note          text,
+  created_login text,
+  created_at    timestamptz not null default now()
+);
+create index if not exists app_staffing_idx on public.app_staffing (tenant_id, department_id);
+alter table public.app_staffing enable row level security;
+
+create table if not exists public.app_shift_schedule (
+  id            uuid primary key default gen_random_uuid(),
+  tenant_id     uuid references public.tenants (id),
+  employee_id   uuid not null references public.app_employees (id) on delete cascade,
+  department_id uuid references public.app_departments (id) on delete set null,
+  shift_date    date not null,
+  shift_type    text not null default '1',   -- 1|2|3|day|night|off
+  hours         numeric default 8,
+  note          text,
+  created_login text,
+  created_at    timestamptz not null default now()
+);
+create index if not exists app_shift_schedule_idx on public.app_shift_schedule (tenant_id, shift_date);
+create unique index if not exists app_shift_schedule_uniq on public.app_shift_schedule (tenant_id, employee_id, shift_date, shift_type);
+alter table public.app_shift_schedule enable row level security;
+
+create table if not exists public.app_absences (
+  id            uuid primary key default gen_random_uuid(),
+  tenant_id     uuid references public.tenants (id),
+  employee_id   uuid not null references public.app_employees (id) on delete cascade,
+  department_id uuid references public.app_departments (id) on delete set null,
+  kind          text not null default 'vacation',  -- vacation|sick|leave|unpaid|other
+  date_from     date not null,
+  date_to       date not null,
+  status        text not null default 'requested', -- requested|approved|rejected|closed
+  hr_doc_id     uuid references public.app_hr_docs (id) on delete set null,
+  note          text,
+  created_login text,
+  created_at    timestamptz not null default now()
+);
+create index if not exists app_absences_idx on public.app_absences (tenant_id, status, date_from);
+alter table public.app_absences enable row level security;
+
+-- ---------- Поля к существующим ----------
+alter table public.app_employees add column if not exists fired_at date;
+alter table public.app_shifts    add column if not exists department_id uuid references public.app_departments (id) on delete set null;
+
+update public.app_shifts s set department_id = e.department_id
+  from public.app_employees e
+ where e.id = s.employee_id and s.department_id is null and e.department_id is not null;
+
+create sequence if not exists public.app_hr_absence_seq;
+
+-- ================= RPC: штатное расписание =================
+create or replace function public.app_staffing_list(p_token uuid)
+returns table (id uuid, department_id uuid, department text, pos_title text, rate numeric, salary numeric,
+               headcount integer, fact bigint, note text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select st.id, st.department_id, coalesce(d.name, st.department), st.position, st.rate, st.salary, st.headcount,
+           (select count(*) from public.app_employees e where e.department_id = st.department_id and e.active and (adm or e.tenant_id = ten)),
+           st.note
+      from public.app_staffing st
+      left join public.app_departments d on d.id = st.department_id
+     where (adm or st.tenant_id = ten)
+       and public.app_dept_ok(p_token, st.department_id)
+     order by coalesce(d.name, st.department), st.position;
+end $$;
+
+create or replace function public.app_staffing_save(p_token uuid, p_id uuid, p_department_id uuid, p_department text,
+  p_position text, p_rate numeric, p_salary numeric, p_count integer, p_note text)
+returns table (ok boolean, message text, id uuid)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; uname text; newid uuid; dep uuid; dname text;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', null::uuid; return; end if;
+  if not public.app_can_edit(p_token, 'hr') then return query select false,'Нет прав на правку кадров', null::uuid; return; end if;
+  select u.tenant_id, s.ulogin into ten, uname from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
+  if coalesce(trim(p_position),'') = '' then return query select false,'Укажите должность', null::uuid; return; end if;
+  dep := p_department_id;
+  if dep is not null then select d.name into dname from public.app_departments d where d.id = dep and (public.app_is_platform_admin(p_token) or d.tenant_id = ten); end if;
+  if p_id is null then
+    insert into public.app_staffing (tenant_id, department_id, department, position, rate, salary, headcount, note, created_login)
+    values (ten, dep, coalesce(dname, nullif(trim(p_department),'')), left(trim(p_position),160),
+            coalesce(p_rate,1), p_salary, coalesce(p_count,1), nullif(trim(p_note),''), uname)
+    returning app_staffing.id into newid;
+    return query select true,'Строка штата добавлена', newid;
+  else
+    update public.app_staffing st set department_id = dep, department = coalesce(dname, nullif(trim(p_department),'')),
+           position = left(trim(p_position),160), rate = coalesce(p_rate,1), salary = p_salary,
+           headcount = coalesce(p_count,1), note = nullif(trim(p_note),'')
+     where st.id = p_id and (public.app_is_platform_admin(p_token) or st.tenant_id = ten)
+     returning st.id into newid;
+    if newid is null then return query select false,'Строка штата не найдена', null::uuid; return; end if;
+    return query select true,'Строка штата сохранена', newid;
+  end if;
+end $$;
+
+create or replace function public.app_staffing_delete(p_token uuid, p_id uuid)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; n integer;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  if not public.app_can_edit(p_token, 'hr') then return query select false,'Нет прав на правку кадров'; return; end if;
+  ten := public.app_my_tenant(p_token);
+  delete from public.app_staffing st where st.id = p_id and (public.app_is_platform_admin(p_token) or st.tenant_id = ten);
+  get diagnostics n = row_count;
+  if n = 0 then return query select false,'Строка штата не найдена'; return; end if;
+  return query select true,'Строка штата удалена';
+end $$;
+
+-- ================= RPC: плановый график смен =================
+create or replace function public.app_shift_schedule_list(p_token uuid, p_from date default null, p_to date default null, p_department uuid default null)
+returns table (id uuid, employee_id uuid, employee text, department text, shift_date date, shift_type text, hours numeric,
+               note text, absence text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select s.id, s.employee_id, e.full_name, coalesce(d.name, e.dept), s.shift_date, s.shift_type, s.hours, s.note,
+           (select a.kind from public.app_absences a
+             where a.employee_id = s.employee_id and a.status = 'approved'
+               and s.shift_date between a.date_from and a.date_to limit 1)
+      from public.app_shift_schedule s
+      join public.app_employees e on e.id = s.employee_id
+      left join public.app_departments d on d.id = s.department_id
+     where (adm or s.tenant_id = ten)
+       and public.app_dept_ok(p_token, s.department_id)
+       and (p_from is null or s.shift_date >= p_from)
+       and (p_to   is null or s.shift_date <= p_to)
+       and (p_department is null or s.department_id = p_department)
+     order by s.shift_date, e.full_name;
+end $$;
+
+create or replace function public.app_shift_schedule_save(p_token uuid, p_id uuid, p_employee_id uuid, p_date date,
+  p_shift_type text, p_hours numeric, p_note text)
+returns table (ok boolean, message text, id uuid)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; uname text; newid uuid; dep uuid; st text; conflict_kind text;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', null::uuid; return; end if;
+  if not public.app_can_edit(p_token, 'hr') then return query select false,'Нет прав на правку графика', null::uuid; return; end if;
+  select u.tenant_id, s.ulogin into ten, uname from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
+  if p_date is null then return query select false,'Укажите дату смены', null::uuid; return; end if;
+  select e.department_id into dep from public.app_employees e where e.id = p_employee_id and (public.app_is_platform_admin(p_token) or e.tenant_id = ten);
+  if not exists (select 1 from public.app_employees e where e.id = p_employee_id and (public.app_is_platform_admin(p_token) or e.tenant_id = ten)) then
+    return query select false,'Сотрудник не найден', null::uuid; return;
+  end if;
+  st := coalesce(nullif(trim(p_shift_type),''),'1');
+  -- Конфликт: сотрудник в утверждённом отсутствии
+  select a.kind into conflict_kind from public.app_absences a
+   where a.employee_id = p_employee_id and a.status = 'approved' and p_date between a.date_from and a.date_to limit 1;
+  if conflict_kind is not null then
+    return query select false, 'Сотрудник в отсутствии (' || conflict_kind || ') — смена не поставлена', null::uuid; return;
+  end if;
+  if p_id is null then
+    if exists (select 1 from public.app_shift_schedule s where s.employee_id = p_employee_id and s.shift_date = p_date and s.shift_type = st and s.tenant_id = ten) then
+      return query select false,'Такая смена уже есть', null::uuid; return;
+    end if;
+    insert into public.app_shift_schedule (tenant_id, employee_id, department_id, shift_date, shift_type, hours, note, created_login)
+    values (ten, p_employee_id, dep, p_date, st, coalesce(p_hours,8), nullif(trim(p_note),''), uname)
+    returning app_shift_schedule.id into newid;
+    return query select true,'Смена поставлена в график', newid;
+  else
+    update public.app_shift_schedule s set employee_id = p_employee_id, department_id = dep, shift_date = p_date,
+           shift_type = st, hours = coalesce(p_hours,8), note = nullif(trim(p_note),'')
+     where s.id = p_id and (public.app_is_platform_admin(p_token) or s.tenant_id = ten)
+     returning s.id into newid;
+    if newid is null then return query select false,'Смена не найдена', null::uuid; return; end if;
+    return query select true,'Смена графика сохранена', newid;
+  end if;
+exception when unique_violation then
+  return query select false,'Такая смена уже есть', null::uuid;
+end $$;
+
+create or replace function public.app_shift_schedule_delete(p_token uuid, p_id uuid)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; n integer;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  if not public.app_can_edit(p_token, 'hr') then return query select false,'Нет прав на правку графика'; return; end if;
+  ten := public.app_my_tenant(p_token);
+  delete from public.app_shift_schedule s where s.id = p_id and (public.app_is_platform_admin(p_token) or s.tenant_id = ten);
+  get diagnostics n = row_count;
+  if n = 0 then return query select false,'Смена не найдена'; return; end if;
+  return query select true,'Смена удалена из графика';
+end $$;
+
+-- ================= RPC: отсутствия =================
+create or replace function public.app_absence_list(p_token uuid, p_status text default null)
+returns table (id uuid, employee_id uuid, employee text, department text, kind text, date_from date, date_to date,
+               days integer, status text, hr_doc_number text, note text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; st text;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  st := nullif(trim(coalesce(p_status,'')),'');
+  return query
+    select a.id, a.employee_id, e.full_name, coalesce(d.name, e.dept), a.kind, a.date_from, a.date_to,
+           (a.date_to - a.date_from + 1)::int, a.status, hd.number, a.note
+      from public.app_absences a
+      join public.app_employees e on e.id = a.employee_id
+      left join public.app_departments d on d.id = a.department_id
+      left join public.app_hr_docs hd on hd.id = a.hr_doc_id
+     where (adm or a.tenant_id = ten)
+       and public.app_dept_ok(p_token, a.department_id)
+       and (st is null or a.status = st)
+     order by a.date_from desc;
+end $$;
+
+create or replace function public.app_absence_save(p_token uuid, p_id uuid, p_employee_id uuid, p_kind text,
+  p_from date, p_to date, p_status text, p_note text)
+returns table (ok boolean, message text, id uuid)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; uname text; newid uuid; dep uuid; kd text; st text; eid uuid;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', null::uuid; return; end if;
+  if not public.app_can_edit(p_token, 'hr') then return query select false,'Нет прав на правку отсутствий', null::uuid; return; end if;
+  select u.tenant_id, s.ulogin into ten, uname from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
+  select e.id, e.department_id into eid, dep from public.app_employees e where e.id = p_employee_id and (public.app_is_platform_admin(p_token) or e.tenant_id = ten);
+  if eid is null then return query select false,'Сотрудник не найден', null::uuid; return; end if;
+  if p_from is null or p_to is null then return query select false,'Укажите период', null::uuid; return; end if;
+  if p_to < p_from then return query select false,'Дата окончания раньше начала', null::uuid; return; end if;
+  kd := coalesce(nullif(trim(p_kind),''),'vacation');
+  if kd not in ('vacation','sick','leave','unpaid','other') then return query select false,'Недопустимый вид отсутствия', null::uuid; return; end if;
+  st := coalesce(nullif(trim(p_status),''),'requested');
+  if st not in ('requested','approved','rejected','closed') then return query select false,'Недопустимый статус', null::uuid; return; end if;
+  -- Пересечение с другим отсутствием
+  if exists (select 1 from public.app_absences a where a.employee_id = p_employee_id and a.tenant_id = ten
+              and a.status in ('requested','approved') and (p_id is null or a.id <> p_id)
+              and daterange(a.date_from, a.date_to, '[]') && daterange(p_from, p_to, '[]')) then
+    return query select false,'Период пересекается с другим отсутствием', null::uuid; return;
+  end if;
+  if p_id is null then
+    insert into public.app_absences (tenant_id, employee_id, department_id, kind, date_from, date_to, status, note, created_login)
+    values (ten, p_employee_id, dep, kd, p_from, p_to, st, nullif(trim(p_note),''), uname)
+    returning app_absences.id into newid;
+    return query select true,'Отсутствие добавлено', newid;
+  else
+    update public.app_absences a set employee_id = p_employee_id, department_id = dep, kind = kd,
+           date_from = p_from, date_to = p_to, status = st, note = nullif(trim(p_note),'')
+     where a.id = p_id and (public.app_is_platform_admin(p_token) or a.tenant_id = ten)
+     returning a.id into newid;
+    if newid is null then return query select false,'Отсутствие не найдено', null::uuid; return; end if;
+    return query select true,'Отсутствие сохранено', newid;
+  end if;
+end $$;
+
+create or replace function public.app_absence_set_status(p_token uuid, p_id uuid, p_status text)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; st text; a record; ulog text; au uuid; num text; did uuid; dtype text; ttl text;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  if not public.app_can_edit(p_token, 'hr') then return query select false,'Нет прав'; return; end if;
+  ten := public.app_my_tenant(p_token);
+  st := lower(trim(coalesce(p_status,'')));
+  if st not in ('requested','approved','rejected','closed') then return query select false,'Недопустимый статус'; return; end if;
+  select * into a from public.app_absences where id = p_id and (public.app_is_platform_admin(p_token) or tenant_id = ten);
+  if a.id is null then return query select false,'Отсутствие не найдено'; return; end if;
+  update public.app_absences set status = st where id = p_id;
+  -- Утверждение отпуска → кадровый приказ в КЭДО (app_hr_docs) + уведомление сотруднику
+  if st = 'approved' and a.hr_doc_id is null then
+    select e.user_login into ulog from public.app_employees e where e.id = a.employee_id;
+    dtype := case a.kind when 'vacation' then 'vacation' when 'sick' then 'sick' else 'order' end;
+    num := 'HR-' || lpad(nextval('public.app_hr_absence_seq')::text, 5, '0');
+    ttl := case a.kind when 'vacation' then 'Приказ об отпуске' when 'sick' then 'Приказ (больничный)'
+                       when 'leave' then 'Приказ (отгул)' when 'unpaid' then 'Приказ (без сохранения ЗП)' else 'Приказ' end;
+    insert into public.app_hr_docs (tenant_id, employee_login, doc_type, title, number, status, payload, created_login)
+    values (ten, ulog, dtype, ttl, num, 'sent',
+            jsonb_build_object('absence_id', p_id, 'from', a.date_from, 'to', a.date_to, 'kind', a.kind), a.created_login)
+    returning app_hr_docs.id into did;
+    update public.app_absences set hr_doc_id = did where id = p_id;
+    if ulog is not null then
+      select u.id into au from public.app_users u where u.login = ulog and u.tenant_id = ten limit 1;
+      if au is not null then perform public.app_notif_send(au, 'Кадровый документ на ознакомление', ttl || ' ' || num, 'apps/kedo/index.html'); end if;
+    end if;
+    return query select true,'Отсутствие утверждено, приказ отправлен в КЭДО (' || num || ')';
+    return;
+  end if;
+  return query select true,'Статус обновлён: ' || st;
+end $$;
+
+create or replace function public.app_absence_scan(p_token uuid)
+returns table (notified integer, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; rec record; uid uuid; cnt integer := 0;
+begin
+  if not public.app_production_allowed(p_token) then return query select 0,'Доступ запрещён'; return; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  -- Окончание отсутствий в ближайшие 3 дня и просроченные заявки на согласование
+  for rec in
+    select a.id, e.full_name, a.kind, a.date_to, a.date_from, a.status, e.user_login
+      from public.app_absences a join public.app_employees e on e.id = a.employee_id
+     where (adm or a.tenant_id = ten)
+       and ((a.status = 'approved' and a.date_to between current_date and current_date + 3)
+         or (a.status = 'requested' and a.date_from <= current_date + 1))
+  loop
+    perform public.app_notif_roles_t(ten, array['admin','owner','manager','hr'],
+      'Кадры: ' || rec.full_name || ' — ' || rec.kind,
+      'Отсутствие ' || to_char(rec.date_from,'DD.MM') || '–' || to_char(rec.date_to,'DD.MM') || ' (' || rec.status || ')',
+      'apps/hr/index.html');
+    cnt := cnt + 1;
+  end loop;
+  return query select cnt, 'Уведомлений по отсутствиям: ' || cnt;
+end $$;
+
+-- ================= RPC: дашборд кадров =================
+create or replace function public.app_hr_dashboard(p_token uuid)
+returns table (employees bigint, active bigint, hired_month bigint, fired_month bigint, fired_year bigint,
+               turnover_pct numeric, on_vacation_now bigint, absences_pending bigint, shifts_plan_month bigint,
+               staffing_positions bigint, staffing_headcount bigint, staffing_fact bigint)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query select
+    (select count(*) from public.app_employees e where adm or e.tenant_id = ten),
+    (select count(*) from public.app_employees e where e.active and (adm or e.tenant_id = ten)),
+    (select count(*) from public.app_employees e where e.hired_at >= date_trunc('month', current_date) and (adm or e.tenant_id = ten)),
+    (select count(*) from public.app_employees e where e.fired_at >= date_trunc('month', current_date) and (adm or e.tenant_id = ten)),
+    (select count(*) from public.app_employees e where e.fired_at >= date_trunc('year', current_date) and (adm or e.tenant_id = ten)),
+    round(100.0 * (select count(*) from public.app_employees e where e.fired_at >= date_trunc('year', current_date) and (adm or e.tenant_id = ten))
+          / greatest(1, (select count(*) from public.app_employees e where (e.active or e.fired_at >= date_trunc('year', current_date)) and (adm or e.tenant_id = ten))), 1),
+    (select count(*) from public.app_absences a where a.status = 'approved' and current_date between a.date_from and a.date_to and (adm or a.tenant_id = ten)),
+    (select count(*) from public.app_absences a where a.status = 'requested' and (adm or a.tenant_id = ten)),
+    (select count(*) from public.app_shift_schedule s where date_trunc('month', s.shift_date) = date_trunc('month', current_date) and (adm or s.tenant_id = ten)),
+    (select count(*) from public.app_staffing st where adm or st.tenant_id = ten),
+    (select coalesce(sum(st.headcount),0) from public.app_staffing st where adm or st.tenant_id = ten),
+    (select count(*) from public.app_employees e where e.active and (adm or e.tenant_id = ten));
+end $$;
+
+-- ================= Демо =================
+insert into public.app_staffing (tenant_id, department, position, rate, salary, headcount, created_login)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.dep, v.pos, v.rate, v.salary, v.cnt, 'owner'
+from (values
+  ('Механообработка','Оператор ЧПУ', 1, 90000, 3),
+  ('Механообработка','Мастер',      1, 120000, 1),
+  ('Механообработка','Начальник цеха', 1, 150000, 1)
+) as v(dep,pos,rate,salary,cnt)
+where not exists (select 1 from public.app_staffing where tenant_id='aaaaaaaa-0000-0000-0000-000000000001');
+
+insert into public.app_shift_schedule (tenant_id, employee_id, shift_date, shift_type, hours, created_login)
+select e.tenant_id, e.id, current_date, '1', 8, 'owner'
+from public.app_employees e
+where e.tenant_id='aaaaaaaa-0000-0000-0000-000000000001' and e.active
+  and not exists (select 1 from public.app_shift_schedule s where s.employee_id = e.id and s.shift_date = current_date)
+limit 2;
+
+insert into public.app_absences (tenant_id, employee_id, kind, date_from, date_to, status, note, created_login)
+select e.tenant_id, e.id, 'vacation', current_date + 30, current_date + 43, 'requested', 'Плановый отпуск', 'owner'
+from public.app_employees e
+where e.tenant_id='aaaaaaaa-0000-0000-0000-000000000001' and e.active
+  and not exists (select 1 from public.app_absences a where a.employee_id = e.id)
+limit 1;
+
+-- ================= База знаний =================
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+  ('Кадры','Штатное расписание, график смен и отсутствия (X1)',
+   'Кадры 2.0: штатное расписание (app_staffing — подразделение/должность/ставка/оклад/плановая численность; факт считается по активным сотрудникам), плановый график смен (app_shift_schedule — сотрудник×дата×смена 1/2/3), отсутствия (app_absences — отпуск/больничный/отгул/без сохранения ЗП, статусы requested→approved/rejected/closed). RPC: app_staffing_list/save/delete, app_shift_schedule_list/save/delete, app_absence_list/save/set_status/scan, app_hr_dashboard. График проверяет конфликт: смена не ставится на период утверждённого отсутствия. При утверждении отпуска автоматически создаётся кадровый приказ в КЭДО (app_hr_docs) и уведомляется сотрудник. Дашборд: численность, приём/увольнение за месяц, текучесть за год, в отпуске сейчас, заявки на согласование.',
+   'кадры штат штатное расписание график смен отпуск больничный отсутствие текучесть КЭДО приказ дашборд')
+) as v(category,question,answer,tags)
+where not exists (
+  select 1 from public.app_knowledge
+   where tenant_id = 'aaaaaaaa-0000-0000-0000-000000000001'
+     and question = 'Штатное расписание, график смен и отсутствия (X1)'
+);
+
+-- ================= Права =================
+grant execute on function public.app_staffing_list(uuid) to anon, authenticated;
+grant execute on function public.app_staffing_save(uuid,uuid,uuid,text,text,numeric,numeric,integer,text) to anon, authenticated;
+grant execute on function public.app_staffing_delete(uuid,uuid) to anon, authenticated;
+grant execute on function public.app_shift_schedule_list(uuid,date,date,uuid) to anon, authenticated;
+grant execute on function public.app_shift_schedule_save(uuid,uuid,uuid,date,text,numeric,text) to anon, authenticated;
+grant execute on function public.app_shift_schedule_delete(uuid,uuid) to anon, authenticated;
+grant execute on function public.app_absence_list(uuid,text) to anon, authenticated;
+grant execute on function public.app_absence_save(uuid,uuid,uuid,text,date,date,text,text) to anon, authenticated;
+grant execute on function public.app_absence_set_status(uuid,uuid,text) to anon, authenticated;
+grant execute on function public.app_absence_scan(uuid) to anon, authenticated;
+grant execute on function public.app_hr_dashboard(uuid) to anon, authenticated;
+
+-- <<<<<<<<<< 0187_hr2.sql <<<<<<<<<<
+
+-- >>>>>>>>>> 0188_kedo2.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0188_kedo2.sql  (X4 — КЭДО 2.0)
+-- Массовые ознакомления (app_hr_bulk/_items), маршруты кадровых документов
+-- (reuse движка согласований W10: app_approval_routes/requests/actions),
+-- провайдер ЭП (signature_provider + app_hr_sign_ext через app_integrations),
+-- дашборд КЭДО. Идемпотентно. Зависит от 0001..0187.
+-- ============================================================
+
+alter table public.app_hr_docs add column if not exists signature_provider text;
+alter table public.app_hr_docs add column if not exists route_request_id uuid;
+
+create table if not exists public.app_hr_bulk (
+  id            uuid primary key default gen_random_uuid(),
+  tenant_id     uuid references public.tenants (id),
+  title         text not null,
+  doc_type      text not null default 'ack',
+  body          text,
+  status        text not null default 'active',   -- active|closed
+  created_login text,
+  created_at    timestamptz not null default now()
+);
+create index if not exists app_hr_bulk_idx on public.app_hr_bulk (tenant_id, created_at desc);
+alter table public.app_hr_bulk enable row level security;
+
+create table if not exists public.app_hr_bulk_items (
+  id             uuid primary key default gen_random_uuid(),
+  tenant_id      uuid references public.tenants (id),
+  bulk_id        uuid not null references public.app_hr_bulk (id) on delete cascade,
+  employee_login text not null,
+  doc_id         uuid references public.app_hr_docs (id) on delete set null,
+  created_at     timestamptz not null default now()
+);
+create index if not exists app_hr_bulk_items_idx on public.app_hr_bulk_items (bulk_id);
+alter table public.app_hr_bulk_items enable row level security;
+
+create sequence if not exists public.app_hr_bulk_doc_seq;
+
+-- ================= RPC: массовые ознакомления =================
+create or replace function public.app_hr_bulk_list(p_token uuid)
+returns table (id uuid, title text, doc_type text, total bigint, signed bigint, status text, created_at timestamptz)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select b.id, b.title, b.doc_type,
+           (select count(*) from public.app_hr_bulk_items i where i.bulk_id = b.id),
+           (select count(*) from public.app_hr_bulk_items i join public.app_hr_docs d on d.id = i.doc_id
+             where i.bulk_id = b.id and d.status = 'signed'),
+           b.status, b.created_at
+      from public.app_hr_bulk b
+     where adm or b.tenant_id = ten
+     order by b.created_at desc;
+end $$;
+
+create or replace function public.app_hr_bulk_create(p_token uuid, p_title text, p_doc_type text, p_body text, p_employees jsonb)
+returns table (ok boolean, message text, id uuid)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; uname text; newid uuid; lg text; did uuid; cnt integer := 0; tp text; ttl text;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', null::uuid; return; end if;
+  if not public.app_can_edit(p_token, 'kedo') then return query select false,'Нет прав на КЭДО', null::uuid; return; end if;
+  select u.tenant_id, s.ulogin into ten, uname from public.app_session_user(p_token) s join public.app_users u on u.id = s.uid;
+  if coalesce(trim(p_title),'') = '' then return query select false,'Укажите название ознакомления', null::uuid; return; end if;
+  if p_employees is null or jsonb_typeof(p_employees) <> 'array' or jsonb_array_length(p_employees) = 0 then
+    return query select false,'Укажите список сотрудников', null::uuid; return;
+  end if;
+  tp := coalesce(nullif(trim(p_doc_type),''),'ack');
+  insert into public.app_hr_bulk (tenant_id, title, doc_type, body, created_login)
+  values (ten, left(trim(p_title),200), tp, nullif(trim(p_body),''), uname)
+  returning app_hr_bulk.id into newid;
+  for lg in select trim(value) from jsonb_array_elements_text(p_employees) as t(value) loop
+    if coalesce(lg,'') = '' then continue; end if;
+    ttl := left(trim(p_title),200);
+    insert into public.app_hr_docs (tenant_id, employee_login, doc_type, title, number, status, payload, created_login)
+    values (ten, lg, tp, ttl, 'ОЗН-' || lpad(nextval('public.app_hr_bulk_doc_seq')::text, 5, '0'), 'sent',
+            jsonb_build_object('bulk_id', newid, 'text', coalesce(p_body,'')), uname)
+    returning app_hr_docs.id into did;
+    insert into public.app_hr_bulk_items (tenant_id, bulk_id, employee_login, doc_id) values (ten, newid, lg, did);
+    cnt := cnt + 1;
+  end loop;
+  return query select true, 'Создано ознакомлений: ' || cnt, newid;
+end $$;
+
+create or replace function public.app_hr_bulk_items(p_token uuid, p_bulk_id uuid)
+returns table (employee_login text, doc_id uuid, status text, signed_at timestamptz)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select i.employee_login, i.doc_id, coalesce(d.status,'—'), d.signed_at
+      from public.app_hr_bulk_items i
+      left join public.app_hr_docs d on d.id = i.doc_id
+      join public.app_hr_bulk b on b.id = i.bulk_id
+     where i.bulk_id = p_bulk_id and (adm or b.tenant_id = ten)
+     order by i.employee_login;
+end $$;
+
+create or replace function public.app_hr_bulk_scan(p_token uuid)
+returns table (notified integer, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; rec record; cnt integer := 0;
+begin
+  if not public.app_production_allowed(p_token) then return query select 0,'Доступ запрещён'; return; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  for rec in
+    select b.title, count(*) as pend
+      from public.app_hr_bulk b
+      join public.app_hr_bulk_items i on i.bulk_id = b.id
+      left join public.app_hr_docs d on d.id = i.doc_id
+     where (adm or b.tenant_id = ten) and b.status = 'active' and coalesce(d.status,'') <> 'signed'
+     group by b.id, b.title
+  loop
+    perform public.app_notif_roles_t(ten, array['admin','owner','manager','hr'],
+      'КЭДО: не ознакомлены', '«' || rec.title || '» — ожидают подписи: ' || rec.pend, 'apps/kedo/index.html');
+    cnt := cnt + 1;
+  end loop;
+  return query select cnt, 'Ознакомлений под контролем: ' || cnt;
+end $$;
+
+-- ================= RPC: маршруты кадровых документов (reuse W10) =================
+create or replace function public.app_hr_routes_list(p_token uuid)
+returns table (id uuid, name text, doc_type text, steps jsonb, active boolean)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select r.id, r.name, r.doc_type, r.steps, r.active
+      from public.app_approval_routes r
+     where (adm or r.tenant_id = ten) and r.doc_type = 'hr_doc'
+     order by r.created_at desc;
+end $$;
+
+create or replace function public.app_hr_route_save(p_token uuid, p_id uuid, p_name text, p_steps jsonb, p_active boolean)
+returns table (ok boolean, message text, id uuid)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare r record;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', null::uuid; return; end if;
+  if not public.app_can_edit(p_token, 'kedo') then return query select false,'Нет прав на КЭДО', null::uuid; return; end if;
+  select * into r from public.app_approval_route_save(p_token, p_id, p_name, 'hr_doc', p_steps, p_active) x;
+  return query select r.ok, r.message, r.id;
+end $$;
+
+create or replace function public.app_hr_route_start(p_token uuid, p_doc_id uuid, p_route_id uuid)
+returns table (ok boolean, message text, id uuid)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; d record; r record;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', null::uuid; return; end if;
+  if not public.app_can_edit(p_token, 'kedo') then return query select false,'Нет прав на КЭДО', null::uuid; return; end if;
+  ten := public.app_my_tenant(p_token);
+  select * into d from public.app_hr_docs where id = p_doc_id and (public.app_is_platform_admin(p_token) or tenant_id = ten);
+  if d.id is null then return query select false,'Документ не найден', null::uuid; return; end if;
+  select * into r from public.app_approval_request_create(p_token, p_route_id, 'hr_doc', p_doc_id, d.title) x;
+  if not r.ok then return query select false, r.message, null::uuid; return; end if;
+  update public.app_hr_docs set route_request_id = r.id, updated_at = now() where id = p_doc_id;
+  return query select true, 'Документ запущен по маршруту', r.id;
+end $$;
+
+create or replace function public.app_hr_route_act(p_token uuid, p_request_id uuid, p_action text, p_comment text)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; r record; req record;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  ten := public.app_my_tenant(p_token);
+  select * into req from public.app_approval_requests where id = p_request_id and (public.app_is_platform_admin(p_token) or tenant_id = ten);
+  if req.id is null then return query select false,'Заявка не найдена'; return; end if;
+  select * into r from public.app_approval_act(p_token, p_request_id, p_action, p_comment) x;
+  if not r.ok then return query select false, r.message; return; end if;
+  if req.entity_type = 'hr_doc' and req.entity_id is not null then
+    if r.message like '%согласован%' and r.message not like '%передан%' then
+      update public.app_hr_docs set status='signed', signed_at=now(), sign_method=coalesce(sign_method,'Маршрут'), updated_at=now() where id = req.entity_id;
+    elsif r.message like '%отклонена%' then
+      update public.app_hr_docs set status='declined', updated_at=now() where id = req.entity_id;
+    end if;
+  end if;
+  return query select true, r.message;
+end $$;
+
+-- ================= RPC: подпись внешним провайдером ЭП =================
+create or replace function public.app_hr_sign_ext(p_token uuid, p_doc_id uuid, p_provider text)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; prov text; iid uuid; d record;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  if not public.app_can_edit(p_token, 'kedo') then return query select false,'Нет прав на КЭДО'; return; end if;
+  ten := public.app_my_tenant(p_token);
+  prov := lower(trim(coalesce(p_provider,'ukep')));
+  select * into d from public.app_hr_docs where id = p_doc_id and (public.app_is_platform_admin(p_token) or tenant_id = ten);
+  if d.id is null then return query select false,'Документ не найден'; return; end if;
+  select i.id into iid from public.app_integrations i
+   where i.tenant_id = ten and coalesce(i.active,true) and i.kind in (prov, 'edo', 'esign', 'webhook')
+   order by i.created_at limit 1;
+  if iid is null then
+    return query select false, 'Нет активной интеграции провайдера ЭП («' || prov || '») — настройте в «Интеграции»';
+    return;
+  end if;
+  perform public.app_integration_enqueue(p_token, iid, 'out', jsonb_build_object(
+    'kind', 'esign', 'provider', prov, 'doc_id', p_doc_id, 'number', d.number,
+    'employee', d.employee_login, 'title', d.title));
+  update public.app_hr_docs set signature_provider = prov, sign_method = prov, updated_at = now() where id = p_doc_id;
+  return query select true, 'Документ отправлен провайдеру ЭП (' || prov || ')';
+end $$;
+
+create or replace function public.app_kedo_dashboard(p_token uuid)
+returns table (total bigint, draft bigint, sent bigint, signed bigint, declined bigint, mchd_active bigint,
+               templates bigint, bulks bigint, bulk_pending bigint, routes_active bigint)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query select
+    (select count(*) from public.app_hr_docs d where adm or d.tenant_id=ten),
+    (select count(*) from public.app_hr_docs d where (adm or d.tenant_id=ten) and d.status='draft'),
+    (select count(*) from public.app_hr_docs d where (adm or d.tenant_id=ten) and d.status='sent'),
+    (select count(*) from public.app_hr_docs d where (adm or d.tenant_id=ten) and d.status='signed'),
+    (select count(*) from public.app_hr_docs d where (adm or d.tenant_id=ten) and d.status='declined'),
+    (select count(*) from public.app_mchd m where (adm or m.tenant_id=ten) and m.status='active'),
+    (select count(*) from public.app_hr_doc_templates t where adm or t.tenant_id=ten),
+    (select count(*) from public.app_hr_bulk b where adm or b.tenant_id=ten),
+    (select count(*) from public.app_hr_bulk_items i join public.app_hr_docs d on d.id = i.doc_id
+      where (adm or i.tenant_id=ten) and coalesce(d.status,'') <> 'signed'),
+    (select count(*) from public.app_approval_routes r where (adm or r.tenant_id=ten) and r.doc_type='hr_doc' and coalesce(r.active,true));
+end $$;
+
+-- ================= Демо =================
+insert into public.app_approval_routes (tenant_id, name, doc_type, steps, active, created_login)
+select 'aaaaaaaa-0000-0000-0000-000000000001', 'Кадровый приказ: руководитель → директор', 'hr_doc',
+       '[{"ord":1,"role":"manager","name":"Кадры"},{"ord":2,"role":"director","name":"Директор"}]'::jsonb, true, 'owner'
+where not exists (select 1 from public.app_approval_routes where tenant_id='aaaaaaaa-0000-0000-0000-000000000001' and doc_type='hr_doc');
+
+-- ================= База знаний =================
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+  ('Платформа','КЭДО 2.0: массовые ознакомления, маршруты, провайдер ЭП (X4)',
+   'КЭДО 2.0: массовые ознакомления (app_hr_bulk + app_hr_bulk_items — по списку сотрудников создаются кадровые документы и отслеживается подпись каждого), маршруты кадровых документов (app_hr_routes_list/route_save/route_start/route_act — переиспользован движок согласований W10: app_approval_routes/requests/actions; при финальном согласовании документ переходит в signed), подпись внешним провайдером ЭП (app_hr_sign_ext — документ ставится в очередь app_integrations для УКЭП/Госключ; поле app_hr_docs.signature_provider). Дашборд app_kedo_dashboard. RPC: app_hr_bulk_list/create/items/scan, app_hr_routes_list, app_hr_route_save/start/act, app_hr_sign_ext, app_kedo_dashboard.',
+   'КЭДО массовое ознакомление маршрут согласование подпись УКЭП Госключ провайдер ЭП')
+) as v(category,question,answer,tags)
+where not exists (
+  select 1 from public.app_knowledge
+   where tenant_id = 'aaaaaaaa-0000-0000-0000-000000000001'
+     and question = 'КЭДО 2.0: массовые ознакомления, маршруты, провайдер ЭП (X4)'
+);
+
+-- ================= Права =================
+grant execute on function public.app_hr_bulk_list(uuid) to anon, authenticated;
+grant execute on function public.app_hr_bulk_create(uuid,text,text,text,jsonb) to anon, authenticated;
+grant execute on function public.app_hr_bulk_items(uuid,uuid) to anon, authenticated;
+grant execute on function public.app_hr_bulk_scan(uuid) to anon, authenticated;
+grant execute on function public.app_hr_routes_list(uuid) to anon, authenticated;
+grant execute on function public.app_hr_route_save(uuid,uuid,text,jsonb,boolean) to anon, authenticated;
+grant execute on function public.app_hr_route_start(uuid,uuid,uuid) to anon, authenticated;
+grant execute on function public.app_hr_route_act(uuid,uuid,text,text) to anon, authenticated;
+grant execute on function public.app_hr_sign_ext(uuid,uuid,text) to anon, authenticated;
+grant execute on function public.app_kedo_dashboard(uuid) to anon, authenticated;
+
+-- <<<<<<<<<< 0188_kedo2.sql <<<<<<<<<<
+
+-- >>>>>>>>>> 0189_access3.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0189_access3.sql  (X5 — Оргструктура и доступ 2.0)
+-- Роль×модуль×ДЕЙСТВИЕ (view/edit/approve): app_can v3 + матрица.
+-- Сквозной гейтинг по подразделению (app_dept_ok) — распространение на рабочие списки.
+-- Идемпотентно. Зависит от 0001..0188.
+-- ============================================================
+
+alter table public.app_role_permissions add column if not exists can_approve boolean not null default false;
+
+-- ---------- app_can v3: просмотр / правка / утверждение ----------
+create or replace function public.app_can(p_token uuid, p_module text, p_action text)
+returns boolean
+language plpgsql stable security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare urole text; ten uuid; vw boolean; ed boolean; ap boolean; act text;
+begin
+  select s.urole into urole from public.app_session_user(p_token) s;
+  if urole is null then return false; end if;
+  if urole in ('admin','owner') then return true; end if;
+  ten := public.app_my_tenant(p_token);
+  select p.can_view, p.can_edit, coalesce(p.can_approve,false) into vw, ed, ap
+    from public.app_role_permissions p
+    where p.role = urole and p.module_id = p_module and (p.tenant_id = ten or p.tenant_id is null)
+    limit 1;
+  act := lower(coalesce(p_action,'view'));
+  if found then
+    if act = 'edit' then return ed;
+    elsif act = 'approve' then return coalesce(ap,false) or coalesce(ed,false);
+    else return vw; end if;
+  end if;
+  return act = 'view';   -- строки нет: просмотр разрешён, правка/утверждение — нет
+end $$;
+
+-- ---------- Матрица прав: получение/запись (роль×модуль×действие) ----------
+create or replace function public.app_perms_matrix_get(p_token uuid)
+returns table (role text, module_id text, can_view boolean, can_edit boolean, can_approve boolean)
+language plpgsql stable security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  if not (adm or public.app_is_owner(p_token) or public.app_can_view(p_token,'roles')) then
+    raise exception 'Доступ запрещён';
+  end if;
+  return query
+    select p.role, p.module_id, p.can_view, p.can_edit, coalesce(p.can_approve,false)
+      from public.app_role_permissions p
+     where (adm or p.tenant_id = ten or p.tenant_id is null)
+     order by p.role, p.module_id;
+end $$;
+
+create or replace function public.app_perms_matrix_set(p_token uuid, p_role text, p_module text, p_view boolean, p_edit boolean, p_approve boolean)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; rl text; vid boolean; eid boolean; aid boolean; n integer;
+begin
+  if not (public.app_is_platform_admin(p_token) or public.app_is_owner(p_token)) then
+    return query select false,'Только владелец/администратор'; return;
+  end if;
+  if coalesce(trim(p_role),'') = '' or coalesce(trim(p_module),'') = '' then
+    return query select false,'Укажите роль и модуль'; return;
+  end if;
+  ten := public.app_my_tenant(p_token);
+  rl := lower(trim(p_role));
+  vid := coalesce(p_view,false); eid := coalesce(p_edit,false); aid := coalesce(p_approve,false);
+  if eid and not vid then vid := true; end if;
+  if aid and not vid then vid := true; end if;
+  update public.app_role_permissions p set can_view = vid, can_edit = eid, can_approve = aid
+   where p.role = rl and p.module_id = p_module and (p.tenant_id = ten or p.tenant_id is null);
+  get diagnostics n = row_count;
+  if n = 0 then
+    insert into public.app_role_permissions (tenant_id, role, module_id, can_view, can_edit, can_approve)
+    values (ten, rl, p_module, vid, eid, aid);
+  end if;
+  return query select true,'Сохранено (просмотр/правка/утверждение)';
+end $$;
+
+-- Действия по одной роли/модулю (для UI ролей и модуля «Доступ»)
+create or replace function public.app_role_actions_get(p_token uuid, p_module text)
+returns table (role text, can_view boolean, can_edit boolean, can_approve boolean)
+language plpgsql stable security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select p.role, p.can_view, p.can_edit, coalesce(p.can_approve,false)
+      from public.app_role_permissions p
+     where (adm or p.tenant_id = ten or p.tenant_id is null) and p.module_id = p_module
+     order by p.role;
+end $$;
+
+-- ---------- Гейтинг по подразделению: массовое включение ----------
+create or replace function public.app_dept_scope_apply(p_token uuid, p_enabled boolean)
+returns table (ok boolean, message text, enabled boolean)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare r record;
+begin
+  select * into r from public.app_dept_scope_set(p_token, p_enabled) x;
+  return query select r.ok, r.message, r.enabled;
+end $$;
+
+-- ---------- Поля подразделения к рабочим таблицам (для сквозного гейтинга) ----------
+alter table public.app_service_requests add column if not exists department_id uuid;
+alter table public.app_tasks            add column if not exists department_id uuid;
+alter table public.app_qc_checks        add column if not exists department_id uuid;
+alter table public.app_documents        add column if not exists department_id uuid;
+alter table public.app_deals            add column if not exists department_id uuid;
+
+update public.app_service_requests r set department_id = e.department_id
+  from public.app_employees e
+ where e.user_login = r.assigned_login and e.tenant_id = r.tenant_id and r.department_id is null and e.department_id is not null;
+update public.app_tasks t set department_id = e.department_id
+  from public.app_employees e
+ where e.user_login = t.assignee_login and e.tenant_id = t.tenant_id and t.department_id is null and e.department_id is not null;
+
+-- ---------- Сквозной гейтинг в списках (service, tasks) ----------
+create or replace function public.app_service_list(p_token uuid, p_q text default null)
+returns table (id uuid, number text, customer text, equipment text, title text, kind text, status text, priority text,
+               channel text, source text, is_warranty boolean, assigned_login text, engineer text,
+               scheduled_date date, reported_at timestamptz, response_due timestamptz, resolve_due timestamptz,
+               first_response_at timestamptz, resolved_at timestamptz, cost numeric, parts_cost numeric,
+               sla_state text, warranty_license text, created_at timestamptz)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare urole text; ten uuid; qq text;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select s.urole into urole from public.app_session_user(p_token) s;
+  ten := public.app_my_tenant(p_token); qq := lower(coalesce(trim(p_q),''));
+  return query
+    select s.id, s.number, c.name, e.name, s.title, s.kind, s.status, s.priority,
+           s.channel, s.source, s.is_warranty, s.assigned_login, s.engineer,
+           s.scheduled_date, s.reported_at, s.response_due, s.resolve_due,
+           s.first_response_at, s.resolved_at, s.cost, s.parts_cost,
+           case when s.status = 'done' then 'closed'
+                when s.resolve_due is not null and s.resolve_due < now() then 'overdue'
+                when s.resolve_due is not null and s.resolve_due < now() + interval '2 hours' then 'warn'
+                else 'ok' end,
+           w.license_no, s.created_at
+    from public.app_service_requests s
+    left join public.app_customers c on c.id = s.customer_id
+    left join public.app_equipment e on e.id = s.equipment_id
+    left join public.app_warranties w on w.id = s.warranty_id
+    where (urole='admin' or s.tenant_id = ten)
+      and public.app_dept_ok(p_token, s.department_id)
+      and (qq=''
+        or lower(s.title) like '%'||qq||'%' or lower(coalesce(s.number,'')) like '%'||qq||'%'
+        or lower(coalesce(c.name,'')) like '%'||qq||'%'
+        or lower(coalesce(e.name,'')) like '%'||qq||'%' or lower(coalesce(e.code,'')) like '%'||qq||'%'
+        or lower(coalesce(s.engineer,'')) like '%'||qq||'%' or lower(coalesce(s.assigned_login,'')) like '%'||qq||'%'
+        or lower(coalesce(s.fault_code,'')) like '%'||qq||'%'
+        or lower(coalesce(w.number,'')) like '%'||qq||'%' or lower(coalesce(w.license_no,'')) like '%'||qq||'%')
+    order by (s.priority='critical') desc, s.created_at desc;
+end $$;
+
+create or replace function public.app_tasks_list(p_token uuid, p_project_id uuid default null, p_status text default null, p_assignee text default null)
+returns table (id uuid, project_id uuid, project text, title text, status text, priority text, assignee_login text, due_date date, est_hours numeric, fact_hours numeric, pos integer, entity_type text, entity_id uuid, comments bigint)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; adm boolean; st text;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  st := nullif(trim(coalesce(p_status,'')),'');
+  return query
+    select t.id, t.project_id, p.name, t.title, t.status, t.priority, t.assignee_login, t.due_date, t.est_hours, t.fact_hours, t.pos, t.entity_type, t.entity_id,
+           (select count(*) from public.app_messages m where m.entity_type='task' and m.entity_id = t.id)
+      from public.app_tasks t left join public.app_projects p on p.id = t.project_id
+     where (adm or t.tenant_id = ten)
+       and public.app_dept_ok(p_token, t.department_id)
+       and (p_project_id is null or t.project_id = p_project_id)
+       and (st is null or t.status = st)
+       and (p_assignee is null or p_assignee = '' or t.assignee_login = p_assignee)
+     order by t.pos, t.created_at;
+end $$;
+
+-- ---------- Сидирование «утверждение» для контрольных ролей ----------
+update public.app_role_permissions set can_approve = true
+ where can_edit and role in ('manager','director','chief','hr');
+
+-- ================= База знаний =================
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+  ('Роли','Доступ 2.0: роль × модуль × действие (просмотр/правка/утверждение)',
+   'X5: матрица прав различает три действия — просмотр (can_view), правка (can_edit), утверждение (can_approve). Серверная проверка app_can(token, модуль, действие): admin/owner — всё; иначе по строке матрицы; если строки нет — только просмотр. Управление — в модуле «Роли» (app_perms_matrix_get/set, app_role_actions_get). Утверждение используется маршрутами согласований (W10) и операциями подтверждения.',
+   'доступ права матрица роль модуль действие просмотр правка утверждение approve'),
+  ('Платформа','Сквозной гейтинг по подразделению (R4/X5)',
+   'Сквозной доступ по подразделению: переключатель app_dept_scope_set/app_dept_scope_apply (владелец/админ), состояние app_dept_scope_get, отдел пользователя app_my_department, предикат app_dept_ok. При включении рабочие списки фильтруются по подразделению записи: заявки и наряды (R4), кадры/график/отсутствия (X1), сервис и задачи (X5). admin/owner/manager и записи без подразделения не ограничиваются.',
+   'доступ подразделение гейтинг department scope фильтр списки service tasks')
+) as v(category,question,answer,tags)
+where not exists (
+  select 1 from public.app_knowledge
+   where tenant_id = 'aaaaaaaa-0000-0000-0000-000000000001'
+     and question = v.question
+);
+
+-- ================= Права =================
+grant execute on function public.app_can(uuid,text,text) to anon, authenticated;
+grant execute on function public.app_perms_matrix_get(uuid) to anon, authenticated;
+grant execute on function public.app_perms_matrix_set(uuid,text,text,boolean,boolean,boolean) to anon, authenticated;
+grant execute on function public.app_role_actions_get(uuid,text) to anon, authenticated;
+grant execute on function public.app_dept_scope_apply(uuid,boolean) to anon, authenticated;
+grant execute on function public.app_service_list(uuid,text) to anon, authenticated;
+grant execute on function public.app_tasks_list(uuid,uuid,text,text) to anon, authenticated;
+
+-- <<<<<<<<<< 0189_access3.sql <<<<<<<<<<
