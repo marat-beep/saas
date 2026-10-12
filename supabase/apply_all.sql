@@ -38977,3 +38977,102 @@ begin
 end $$;
 grant execute on function public.app_kb_list(uuid) to anon, authenticated;
 -- <<<<<<<<<< 0214_ref_machining.sql <<<<<<<<<<
+
+-- >>>>>>>>>> 0215_ref_materials_ext.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0215_ref_materials_ext.sql
+-- Расширение справочника материалов марками из «Нормирование PRO»
+-- (источник: НОРМ_РАЗРАБ/norms-constants.js — MATERIALS + MATERIALS_EXTENDED,
+--  прочитан только на чтение; чужой проект не изменялся).
+-- Поля: группа, марка, аналог DIN, плотность (г/см³), коэффициент обработки.
+-- Идемпотентно. Зависит от 0001..0214.
+-- ============================================================
+
+insert into public.app_ref_material_grades (tenant_id, group_code, grade, standard, density, note)
+select null, v.g, v.grade, v.std, v.dens, v.note
+from (values
+ ('steel','Ст3 / 09Г2С','S235JR / S355JR',7.85,'Коэф. обработки k=1.2'),
+ ('steel','Сталь 20','DIN 1.0402 / C22',7.85,'Коэф. обработки k=1.2'),
+ ('steel','Сталь 45','DIN 1.0503 / C45',7.85,'Коэф. обработки k=1.2'),
+ ('steel','Сталь 40Х','DIN 1.7035 / 41Cr4',7.85,'Коэф. обработки k=1.2'),
+ ('tool_steel','Сталь 1.2379 (D2)','DIN 1.2379',7.7,'Штамповая; k=1.3'),
+ ('tool_steel','Сталь 1.2344 (H13)','DIN 1.2344',7.7,'Горячая деформация; k=1.3'),
+ ('tool_steel','Сталь Р6М5','DIN 1.3343',8.2,'Быстрорежущая; k=1.3'),
+ ('tool_steel','Сталь Х12МФ','DIN 1.2436',7.7,'Штамповая холодной деф.; k=1.3'),
+ ('tool_steel','Сталь ШХ15','DIN 1.3505',7.81,'Подшипниковая; k=1.3'),
+ ('stainless','Нерж. AISI 304','DIN 1.4301',7.9,'Аустенитная; k=1.4'),
+ ('stainless','Нерж. 316L','DIN 1.4404',7.98,'Аустенитная Mo; k=1.4'),
+ ('stainless','Нерж. 321 (12Х18Н10Т)','DIN 1.4541',7.9,'Ti-стабилиз.; k=1.4'),
+ ('stainless','Нерж. 420 (20Х13)','DIN 1.4021',7.67,'Мартенситная; k=1.4'),
+ ('stainless','Нерж. 440C (95Х18)','DIN 1.4125',7.81,'Высокоуглерод.; k=1.45'),
+ ('stainless','Нерж. Duplex','DIN 1.4462',7.8,'Дуплекс; k=1.5'),
+ ('aluminum','Алюминий АД0','EN AW-1050A',2.705,'k=1.0'),
+ ('aluminum','АМг6','EN AW-5083',2.64,'k=1.0'),
+ ('aluminum','6061','EN AW-6061',2.7,'k=1.0'),
+ ('aluminum','6082','EN AW-6082',2.71,'k=1.0'),
+ ('aluminum','7075','EN AW-7075',2.81,'Высокопрочный; k=1.0'),
+ ('aluminum','Д16Т','EN AW-2024',2.78,'k=1.0'),
+ ('aluminum','В95','EN AW-7075',2.85,'k=1.0'),
+ ('copper_alloy','Медь М1','Cu-ETP',8.94,'k=1.1'),
+ ('copper_alloy','Латунь Л63','CuZn37',8.44,'k=1.1'),
+ ('copper_alloy','Латунь ЛС59-1','CuZn39Pb2',8.42,'Автоматная; k=1.1'),
+ ('copper_alloy','БрАЖ9-4','CuAl10Fe3',7.8,'Алюм. бронза; k=1.15'),
+ ('copper_alloy','БрБ2','CuBe2',8.25,'Бериллиевая бронза; k=1.2'),
+ ('titanium','ВТ1-0','Ti Grade 1',4.505,'Техн. титан; k=1.8'),
+ ('titanium','ВТ6','Ti-6Al-4V',4.43,'k=1.8'),
+ ('titanium','Ti Grade 5','Ti-6Al-4V',4.43,'k=1.8'),
+ ('magnesium','Ма1','Mg-Mn',1.74,'k=0.95 (осторожно: стружка горит)'),
+ ('magnesium','AZ31','MgAl3Zn1',1.77,'k=0.95'),
+ ('nickel','Inconel 718','DIN 2.4668',8.19,'Жаропрочный; k=2.2'),
+ ('nickel','Inconel 625','DIN 2.4856',8.44,'Жаропрочный; k=2.2'),
+ ('nickel','Hastelloy C-276','DIN 2.4819',8.89,'Химстойкий; k=2.3'),
+ ('nickel','Никель Ni','Ni',8.9,'k=1.6'),
+ ('plastic','Силикон HTV','VMQ',1.15,'Эластомер; k=0.9'),
+ ('plastic','NBR','NBR',1.2,'Маслостойкая резина; k=0.9'),
+ ('plastic','FKM (витон)','FKM',1.85,'k=0.9'),
+ ('plastic','PTFE (фторопласт)','PTFE',2.2,'k=0.9'),
+ ('plastic','POM (полиацеталь)','POM-C',1.41,'k=0.9'),
+ ('plastic','PA6 (капрон)','PA6',1.13,'k=0.9'),
+ ('plastic','PEEK','PEEK',1.32,'k=1.0'),
+ ('plastic','PVC','PVC-U',1.4,'k=0.9'),
+ ('plastic','HDPE','PE-HD',0.95,'k=0.9'),
+ ('other','Свинец','Pb',11.34,'Мягкий; k=0.8'),
+ ('other','Цинк','Zn',7.14,'k=1.0'),
+ ('other','Вольфрам','W',19.3,'Тугоплавкий; k=2.5'),
+ ('other','Молибден','Mo',10.22,'Тугоплавкий; k=2.2'),
+ ('tool_steel','38ХМЮА','38KhMYuA',7.85,'Азотируемая; k=1.3'),
+ ('tool_steel','4Х5МФС','4Kh5MFS',7.7,'Штамповая горячая; k=1.3'),
+ ('tool_steel','5ХНМ','5KhNM',7.8,'Штамповая; k=1.3'),
+ ('stainless','20Х13','DIN 1.4021',7.68,'k=1.4'),
+ ('stainless','40Х13','DIN 1.4031',7.7,'k=1.4'),
+ ('stainless','95Х18','DIN 1.4125',7.81,'k=1.45'),
+ ('tool_steel','Böhler K110','DIN 1.2379',7.7,'Холодная деформация; k=1.3'),
+ ('aluminum','2017','EN AW-2017A',2.79,'k=1.0'),
+ ('aluminum','5052','EN AW-5052',2.68,'k=1.0')
+) v(g,grade,std,dens,note)
+where not exists (select 1 from public.app_ref_material_grades m where m.tenant_id is null and m.grade = v.grade);
+
+-- ================= БЗ: коэффициенты обрабатываемости =================
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select null, v.category, v.question, v.answer, v.tags
+from (values
+ ('Обработка','Коэффициенты обрабатываемости материалов (k)','Базовый коэффициент относительной обрабатываемости: сталь k=1.2; инструментальная k=1.3; нержавеющая k=1.4-1.5; алюминий k=1.0; медные сплавы k=1.1; титан k=1.8; магний k=0.95; жаропрочные (Inconel/Hastelloy) k=2.2-2.3; тугоплавкие (W/Mo) k=2.2-2.5. Чем выше k — тем труднее обработка (снижайте Vc и подачу).','обрабатываемость коэффициент k сталь титан нержавейка жаропрочные'),
+ ('Обработка','Аналоги марок (ГОСТ ↔ DIN/EN/AISI)','12Х18Н10Т≈AISI 321/1.4541; 20Х13≈420/1.4021; 40Х13≈1.4031; Х12МФ≈1.2436≈D2; 4Х5МФС≈1.2344≈H13; Р6М5≈1.3343≈M2; Д16Т≈2024; В95/7075≈EN AW-7075; ВТ6≈Ti-6Al-4V (Grade 5).','аналоги марок DIN EN AISI ГОСТ соответствие сталь')
+) v(category,question,answer,tags)
+where not exists (select 1 from public.app_knowledge k where k.tenant_id is null and k.question = v.question);
+
+-- ================= Права/запись о наполнении =================
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+ ('Платформа','Материалы из «Нормирование PRO» (0215)',
+   'Справочник материалов расширен марками из проекта «Нормирование PRO» (norms-constants.js, только чтение): ~55 марок с аналогами DIN/EN/AISI и плотностью, плюс коэффициенты обрабатываемости. Источник не изменялся; данные перенесены как seed.',
+   'материалы нормирование PRO марки DIN плотность обрабатываемость')
+) as v(category,question,answer,tags)
+where not exists (
+  select 1 from public.app_knowledge
+   where tenant_id = 'aaaaaaaa-0000-0000-0000-000000000001'
+     and question = 'Материалы из «Нормирование PRO» (0215)'
+);
+
+-- <<<<<<<<<< 0215_ref_materials_ext.sql <<<<<<<<<<
