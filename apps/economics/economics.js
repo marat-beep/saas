@@ -125,4 +125,20 @@
     if (!SB) { msg('#ordersMsg', 'Supabase не подключён.', 'err'); return; }
     load();
   });
+  function _money(v){ return Number(v||0).toLocaleString('ru-RU'); }
+  $('#edBtn').addEventListener('click', function () {
+    rpc('app_economics_dashboard', { p_token: token }).then(function (r) { var k = (r && r[0]) || {};
+      ui.dialog({ title: 'Экономика — сводно', body: '<div class="kpi-row"><div class="kpi"><small>Заказы</small><b>'+(k.orders_count||0)+'</b></div><div class="kpi"><small>Счета</small><b>'+_money(k.invoices_total)+'</b></div><div class="kpi"><small>Оплачено</small><b>'+_money(k.invoices_paid)+'</b></div><div class="kpi"><small>Дебиторка</small><b>'+_money(k.invoices_due)+'</b></div><div class="kpi"><small>Приток план</small><b>'+_money(k.cash_in_plan)+'</b></div><div class="kpi"><small>Отток план</small><b>'+_money(k.cash_out_plan)+'</b></div></div>', html: true, cancelText: 'Закрыть' }); });
+  });
+  $('#mrrBtn').addEventListener('click', function () {
+    rpc('app_mrr_report', { p_token: token }).then(function (r) { var k = (r && r[0]) || {};
+      ui.dialog({ title: 'MRR по подпискам', body: '<div class="kpi-row"><div class="kpi"><small>Активных</small><b>'+(k.active_subs||0)+'</b></div><div class="kpi"><small>MRR</small><b>'+_money(k.mrr)+' ₽</b></div><div class="kpi"><small>ARPU</small><b>'+_money(k.arpu)+' ₽</b></div><div class="kpi"><small>Триал</small><b>'+(k.trial_subs||0)+'</b></div></div>', html: true, cancelText: 'Закрыть' }); });
+  });
+  $('#quotaBtn').addEventListener('click', function () {
+    rpc('app_quota_matrix', { p_token: token }).then(function (rows) { rows = rows || [];
+      var html = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Метрика</th><th class="num">Исп.</th><th class="num">Лимит</th><th class="num">%</th></tr></thead><tbody>' +
+        (rows.length ? rows.map(function (q) { return '<tr><td>'+ui.esc(q.metric)+'</td><td class="num">'+q.used+'</td><td class="num">'+(q.quota==null?'∞':q.quota)+'</td><td class="num">'+(q.pct==null?'—':q.pct)+'</td></tr>'; }).join('') : '<tr><td colspan="4" class="note">Нет данных</td></tr>')+'</tbody></table></div>';
+      ui.dialog({ title: 'Квоты/лимиты', body: html, html: true, cancelText: 'Закрыть' });
+    });
+  });
 })();

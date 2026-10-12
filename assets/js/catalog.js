@@ -8,7 +8,7 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '10.44',
+  version: '10.45',
   updated: '09.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
@@ -221,8 +221,8 @@ window.AppCatalog = {
       id: 'suppliers', icon: '🏭', title: 'Реестр поставщиков', href: 'apps/suppliers/index.html', guest: false, group: 'sales', audience: 'user',
       desc: 'Карточки контрагентов, аккредитация, категории, рейтинг.',
       purpose: 'Реестр поставщиков: единый список контрагентов с реквизитами, категориями и аккредитацией; связь с закупками и порталом.',
-      features: ['Карточка поставщика (наименование, ИНН, контакты)', 'Категория (металл/инструмент/комплектующие/услуги)', 'Рейтинг', 'Аккредитация: на аккредитации/аккредитован/заблокирован', 'KPI: всего/аккредитовано/заблокировано'],
-      connects: ['procurement', 'supplier', 'warehouse'], in_: 'Реквизиты, история поставок', out: 'Аккредитованный поставщик'
+      features: ['Карточка поставщика (наименование, ИНН, контакты)', 'Категория (металл/инструмент/комплектующие/услуги)', 'Рейтинг и аналитика поставщика', 'Аккредитация: на аккредитации/аккредитован/заблокирован', 'KPI: всего/аккредитовано/заблокировано'],
+      connects: ['procurement', 'supplier', 'warehouse', 'marketplace'], in_: 'Реквизиты, история поставок', out: 'Аккредитованный поставщик, рейтинг'
     },
     {
       id: 'marketplace', icon: '🔗', title: 'Маркетплейс мощностей', href: 'apps/marketplace/index.html', guest: false, group: 'sales', audience: 'user',
@@ -493,8 +493,8 @@ window.AppCatalog = {
       id: 'qc', icon: '✅', title: 'ОТК', href: 'apps/qc/index.html', guest: false, group: 'quality', audience: 'user',
       desc: 'Чек-листы контроля, дефекты, решения, SPC (контрольные карты, Cp/Cpk).',
       purpose: 'Контроль качества: чек-листы по изделиям, фиксация дефектов и их закрытие; статистическое управление процессом (SPC) — контрольная карта x̄/Rs и индексы Cp/Cpk.',
-      features: ['Чек-листы (параметр/допуск/факт)', 'Итог: годен/брак', 'Реестр дефектов', 'Критичность и закрытие', 'SPC: карта x̄/Rs, UCL/LCL, точки вне границ', 'Индексы Cp/Cpk, Pp/Ppk', 'Ввод измерений', 'Отчёт ОТК за период (PDF/CSV)', 'Роли (data-cap)', 'Уведомления'],
-      connects: ['production', 'passport', 'quality', 'claims'], out: 'Годен/брак → паспорт; измерения → SPC'
+      features: ['Чек-листы (параметр/допуск/факт)', 'Итог: годен/брак', 'Реестр дефектов', 'Критичность и закрытие', 'SPC онлайн-дашборд', 'Индексы Cp/Cpk, Pp/Ppk', 'Ввод измерений', 'CAPA-маршрут по дефекту', 'Трассируемость изделие→партия→оператор', 'Поверка СИ с напоминаниями', 'Отчёт ОТК за период (PDF/CSV)', 'Роли (data-cap)', 'Уведомления'],
+      connects: ['production', 'passport', 'quality', 'claims', 'scale', 'workflow', 'files'], out: 'Годен/брак → паспорт; SPC/CAPA/трассировка'
     },
     {
       id: 'claims', icon: '📋', title: 'Претензии и CAPA', href: 'apps/claims/index.html', guest: false, group: 'quality', audience: 'user',
@@ -523,8 +523,8 @@ window.AppCatalog = {
       id: 'economics', icon: '💰', title: 'Экономика', href: 'apps/economics/index.html', guest: false, group: 'economics', audience: 'user',
       desc: 'KPI, себестоимость заявок, нормочас.',
       purpose: 'Расчёт экономики: себестоимость заказа (работы+материалы+накладные), нормочас, маржа, KPI завода.',
-      features: ['Себестоимость заявки', 'Нормочас по центрам', 'Накладные и маржа', 'KPI-плитки'],
-      connects: ['registry', 'production', 'bom', 'finance', 'bi'], in_: 'Часы, материалы, ставки', out: 'Себестоимость/маржа'
+      features: ['Себестоимость заявки', 'Нормочас по центрам', 'Накладные и маржа', 'Сводный дашборд (счета/дебиторка/кэш)', 'MRR по подпискам', 'Матрица квот/лимитов', 'KPI-плитки'],
+      connects: ['registry', 'production', 'bom', 'finance', 'bi', 'billing', 'reports'], in_: 'Часы, материалы, ставки', out: 'Себестоимость/маржа, MRR, квоты'
     },
     {
       id: 'teo', icon: '📋', title: 'ТЭО', href: 'apps/teo/index.html', guest: false, group: 'economics', audience: 'user',
@@ -611,8 +611,8 @@ window.AppCatalog = {
       id: 'platform', icon: '🏗', title: 'Организации (SaaS)', href: 'apps/platform/index.html', guest: false, roles: ['admin'], group: 'platform', audience: 'saas_admin',
       desc: 'Управление организациями (только админ платформы).',
       purpose: 'SaaS-администрирование: создание и ведение организаций, тарифы, статусы (только администратор платформы).',
-      features: ['Список всех организаций', 'Создание организации + владелец', 'Смена тарифа/статуса', 'Счётчики пользователей/заявок'],
-      connects: ['panel', 'org', 'admin'], out: 'Тенанты'
+      features: ['Список всех организаций', 'Создание организации + владелец', 'Смена тарифа/статуса', 'Счётчики пользователей/заявок', 'Калькулятор тарифов', 'Обзор единой НСИ', 'Карта процесса (BPMN-lite)'],
+      connects: ['panel', 'org', 'admin', 'billing', 'workflow', 'dicts', 'registry'], out: 'Тенанты, тарифы, НСИ'
     },
     {
       id: 'admin', icon: '🛡', title: 'Администрирование', href: 'apps/admin/index.html', guest: false, roles: ['admin'], group: 'platform', audience: 'saas_admin',

@@ -74,4 +74,21 @@
     if (!SB) { msg('#lMsg', 'Supabase не подключён.', 'err'); return; }
     load();
   });
+  $('#tariffBtn').addEventListener('click', function () {
+    ui.formDialog({ title: 'Калькулятор тарифов', okText: 'Рассчитать', fields: [
+      { name: 'plan', label: 'Тариф', type: 'select', options: [{ value: 'start', label: 'Старт' }, { value: 'business', label: 'Бизнес' }, { value: 'enterprise', label: 'Enterprise' }] },
+      { name: 'seats', label: 'Пользователей', type: 'number', value: 10 }
+    ] }).then(function (v) { if (!v) return;
+      rpc('app_tariff_calc', { p_token: token, p_plan_code: v.plan, p_seats: Number(v.seats) || 0, p_addons: [] }).then(function (r) { var k = r && r[0];
+        if (!k || k.total == null) { ui.toast('Тариф не найден'); return; }
+        ui.toast('Итого: ' + Number(k.total).toLocaleString('ru-RU') + ' ₽/мес'); });
+    });
+  });
+  $('#nsiBtn').addEventListener('click', function () {
+    rpc('app_nsi_overview', { p_token: token }).then(function (rows) { rows = rows || [];
+      var html = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Справочник</th><th class="num">Записей</th></tr></thead><tbody>' +
+        rows.map(function (r) { return '<tr><td>'+ui.esc(r.ref)+'</td><td class="num">'+r.cnt+'</td></tr>'; }).join('') + '</tbody></table></div>';
+      ui.dialog({ title: 'Единая НСИ', body: html, html: true, cancelText: 'Закрыть' });
+    });
+  });
 })();

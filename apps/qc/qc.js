@@ -285,4 +285,21 @@
     if (!SB) { msg('#listMsg', 'Supabase не подключён.', 'err'); return; }
     load();
   });
+  $('#spcBtn').addEventListener('click', function () {
+    rpc('app_qc_spc_dashboard', { p_token: token }).then(function (r) { var k = (r && r[0]) || {};
+      ui.dialog({ title: 'SPC онлайн', body: '<div class="kpi-row"><div class="kpi"><small>Параметры</small><b>'+(k.params||0)+'</b></div><div class="kpi"><small>Измерения</small><b>'+(k.signals||0)+'</b></div><div class="kpi"><small>Тревоги</small><b>'+(k.alarms||0)+'</b></div></div>', html: true, cancelText: 'Закрыть' }); });
+  });
+  $('#metroBtn').addEventListener('click', function () {
+    rpc('app_metrology_scan', { p_token: token, p_days: 30 }).then(function (r) { var k = (r && r[0]) || {}; ui.toast(k.message || 'Проверено', 'ok'); });
+  });
+  $('#traceBtn').addEventListener('click', function () {
+    ui.formDialog({ title: 'Трассировка', okText: 'Найти', fields: [{ name: 'q', label: 'Изделие/серийный/оператор', type: 'text' }] }).then(function (v) {
+      if (!v) return;
+      rpc('app_traceability_search', { p_token: token, p_q: v.q || '' }).then(function (rows) { rows = rows || [];
+        var html = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Изделие</th><th>Серийный</th><th>Материал</th><th>Оператор</th><th>Заказ</th></tr></thead><tbody>' +
+          (rows.length ? rows.map(function (t) { return '<tr><td>'+ui.esc(t.item)+'</td><td>'+ui.esc(t.serial||'')+'</td><td>'+ui.esc(t.material||'')+'</td><td>'+ui.esc(t.operator||'')+'</td><td>'+ui.esc(t.order_number||'')+'</td></tr>'; }).join('') : '<tr><td colspan="5" class="note">Нет записей</td></tr>')+'</tbody></table></div>';
+        ui.dialog({ title: 'Трассируемость', body: html, html: true, cancelText: 'Закрыть' });
+      });
+    });
+  });
 })();

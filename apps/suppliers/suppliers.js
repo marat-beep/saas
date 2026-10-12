@@ -83,4 +83,12 @@
     if (!SB) { msg('#fMsg', 'Supabase не подключён.', 'err'); return; }
     load(); loadCatDict();
   });
+  $('#rateBtn').addEventListener('click', function () {
+    rpc('app_supplier_rating', { p_token: token }).then(function (rows) {
+      rows = rows || [];
+      var html = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Поставщик</th><th>Категория</th><th>Статус</th><th class="num">Рейтинг</th><th class="num">Побед</th><th class="num">Ср.цена</th></tr></thead><tbody>' +
+        (rows.length ? rows.map(function (s) { return '<tr><td>'+ui.esc(s.name)+'</td><td>'+ui.esc(s.category||'')+'</td><td>'+ui.esc(s.status)+'</td><td class="num">'+(s.rating||0)+'</td><td class="num">'+s.tenders_won+'</td><td class="num">'+(s.avg_price==null?'—':s.avg_price)+'</td></tr>'; }).join('') : '<tr><td colspan="6" class="note">Нет данных</td></tr>')+'</tbody></table></div>';
+      ui.dialog({ title: 'Рейтинг поставщиков', body: html, html: true, cancelText: 'Закрыть' });
+    });
+  });
 })();

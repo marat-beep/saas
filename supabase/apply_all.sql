@@ -36669,3 +36669,447 @@ grant execute on function public.app_document_route_start(uuid,text,uuid,uuid,te
 grant execute on function public.app_document_routes(uuid,text) to anon, authenticated;
 
 -- <<<<<<<<<< 0202_docs_layer.sql <<<<<<<<<<
+
+-- >>>>>>>>>> 0203_procurement2.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0203_procurement2.sql  (X16 — Закупки/поставщики/маркетплейс 2.0)
+-- Матрица сравнения КП (app_bid_compare), авто-ранжирование (app_bid_rank),
+-- рейтинг поставщиков (app_supplier_rating), рефералы и комиссия партнёров.
+-- Идемпотентно. Зависит от 0001..0202.
+-- ============================================================
+
+-- bids: убираем устаревший FK на auth.users (сервис не использует Supabase Auth) —
+-- иначе портал поставщика не может подать КП.
+alter table public.bids drop constraint if exists bids_supplier_id_fkey;
+alter table public.bids alter column supplier_id drop not null;
+alter table public.bids alter column supplier_id set default gen_random_uuid();
+
+alter table public.app_partners add column if not exists referral_code text;
+create unique index if not exists app_partners_ref_uq on public.app_partners (tenant_id, referral_code) where referral_code is not null;
+
+-- ================= RPC: сравнение и ранжирование КП =================
+create or replace function public.app_bid_compare(p_token uuid, p_tender_id uuid)
+returns table (bid_id uuid, supplier text, price numeric, term_days integer, status text, supplier_rating numeric)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  if not (adm or exists (select 1 from public.tenders t where t.id = p_tender_id)) then raise exception 'Закупка не найдена'; end if;
+  return query
+    select b.id, coalesce(s.name, b.supplier_name), b.price, b.term_days, b.status, coalesce(s.rating,0)
+      from public.bids b left join public.app_suppliers s on lower(s.name) = lower(coalesce(b.supplier_name,''))
+     where b.tender_id = p_tender_id
+     order by b.price;
+end $$;
+
+create or replace function public.app_bid_rank(p_token uuid, p_tender_id uuid)
+returns table (rank integer, bid_id uuid, supplier text, price numeric, term_days integer, score numeric, basis text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare min_p numeric; min_t numeric;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  select min(b.price), min(nullif(b.term_days,0)) into min_p, min_t from public.bids b where b.tender_id = p_tender_id;
+  if min_p is null then return; end if;
+  return query
+    with base as (
+      select b.id, coalesce(s.name, b.supplier_name) as sup, b.price, b.term_days, coalesce(s.rating,0) as rt
+        from public.bids b left join public.app_suppliers s on lower(s.name) = lower(coalesce(b.supplier_name,''))
+       where b.tender_id = p_tender_id
+    ), sc as (
+      select b.id, b.sup, b.price, b.term_days, b.rt,
+             round(0.6 * (100.0 * min_p / greatest(b.price, 0.01))
+                 + 0.3 * (case when b.term_days is null or min_t is null then 50 else 100.0 * min_t / greatest(b.term_days,1) end)
+                 + 0.1 * (least(b.rt,5) * 20), 1) as score
+        from base b
+    )
+    select row_number() over (order by sc.score desc, sc.price)::int, sc.id, sc.sup, sc.price, sc.term_days, sc.score,
+           'цена 60% · срок 30% · рейтинг 10%'
+      from sc order by sc.score desc, sc.price;
+end $$;
+
+-- ================= RPC: рейтинг поставщиков =================
+create or replace function public.app_supplier_rating(p_token uuid)
+returns table (id uuid, name text, category text, status text, rating numeric, tenders_won bigint, avg_price numeric)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select s.id, s.name, s.category, s.status, coalesce(s.rating,0),
+           (select count(*) from public.bids b where lower(coalesce(b.supplier_name,'')) = lower(s.name) and b.status='accepted'),
+           (select round(avg(b.price),2) from public.bids b where lower(coalesce(b.supplier_name,'')) = lower(s.name))
+      from public.app_suppliers s where (adm or s.tenant_id = ten)
+     order by coalesce(s.rating,0) desc, s.name;
+end $$;
+
+-- ================= RPC: партнёры (реферал/комиссия) =================
+create or replace function public.app_partner_referral(p_token uuid, p_partner_id uuid)
+returns table (ok boolean, code text, url text, commission_pct numeric)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; p record; code text;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  select * into p from public.app_partners where id = p_partner_id and (adm or tenant_id = ten);
+  if p.id is null then return query select false, null::text, null::text, null::numeric; return; end if;
+  code := coalesce(p.referral_code, 'P' || substr(replace(p.id::text,'-',''),1,10));
+  update public.app_partners set referral_code = code where id = p.id;
+  return query select true, code, 'https://sapfir.eu/saas/?ref=' || code, p.commission_pct;
+end $$;
+
+create or replace function public.app_partner_deal_commission(p_token uuid, p_deal_id uuid)
+returns table (ok boolean, message text, commission numeric)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; d record; pct numeric; comm numeric;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', null::numeric; return; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  select * into d from public.app_partner_deals where id = p_deal_id and (adm or tenant_id = ten);
+  if d.id is null then return query select false,'Сделка не найдена', null::numeric; return; end if;
+  select coalesce(commission_pct,5) into pct from public.app_partners where id = d.partner_id;
+  comm := round(d.amount * coalesce(pct,5) / 100.0, 2);
+  update public.app_partner_deals set commission = comm where id = d.id;
+  return query select true, 'Комиссия рассчитана', comm;
+end $$;
+
+-- ================= База знаний =================
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+  ('Склад','Закупки/поставщики 2.0: матрица КП, ранжирование, рейтинг, партнёры (X16)',
+   'Закупки 2.0: матрица сравнения КП (app_bid_compare), авто-ранжирование предложений (app_bid_rank — цена 60% · срок 30% · рейтинг 10%), рейтинг поставщиков (app_supplier_rating — ручной рейтинг + число побед + средняя цена), партнёры (app_partner_referral — реферальный код/ссылка; app_partner_deal_commission — авто-комиссия по commission_pct). Маркетплейс-оплата — через escrow (app_escrow_*).',
+   'закупки поставщики матрица КП ранжирование рейтинг партнёры реферал комиссия escrow маркетплейс')
+) as v(category,question,answer,tags)
+where not exists (
+  select 1 from public.app_knowledge
+   where tenant_id = 'aaaaaaaa-0000-0000-0000-000000000001'
+     and question = 'Закупки/поставщики 2.0: матрица КП, ранжирование, рейтинг, партнёры (X16)'
+);
+
+-- ================= Права =================
+grant execute on function public.app_bid_compare(uuid,uuid) to anon, authenticated;
+grant execute on function public.app_bid_rank(uuid,uuid) to anon, authenticated;
+grant execute on function public.app_supplier_rating(uuid) to anon, authenticated;
+grant execute on function public.app_partner_referral(uuid,uuid) to anon, authenticated;
+grant execute on function public.app_partner_deal_commission(uuid,uuid) to anon, authenticated;
+
+-- <<<<<<<<<< 0203_procurement2.sql <<<<<<<<<<
+
+-- >>>>>>>>>> 0204_quality2.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0204_quality2.sql  (X18 — Качество 2.0: qc/claims/passport)
+-- SPC онлайн-дашборд, поверка СИ с напоминаниями, CAPA-маршрут (reuse W10),
+-- трассируемость изделие→партия→оператор (reuse R3). Идемпотентно. 0001..0203.
+-- ============================================================
+
+create or replace function public.app_qc_spc_dashboard(p_token uuid)
+returns table (params bigint, signals bigint, alarms bigint, last_at timestamptz)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token);
+  return query
+    select count(distinct s.param), count(*), count(*) filter (where s.signal is not null and lower(s.signal) <> 'ok'), max(s.ts)
+      from public.app_spc_signals(p_token, null) s;
+end $$;
+
+create or replace function public.app_metrology_scan(p_token uuid, p_days integer default 30)
+returns table (due integer, overdue integer, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; d integer; du integer; ov integer; rec record;
+begin
+  if not public.app_production_allowed(p_token) then return query select 0,0,'Доступ запрещён'; return; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  d := greatest(coalesce(p_days,30),1);
+  select count(*) into du from public.app_measuring_tools m where (adm or m.tenant_id=ten) and m.next_verified is not null and m.next_verified between current_date and current_date + d;
+  select count(*) into ov from public.app_measuring_tools m where (adm or m.tenant_id=ten) and m.next_verified is not null and m.next_verified < current_date;
+  for rec in
+    select m.name, m.serial, m.next_verified from public.app_measuring_tools m
+     where (adm or m.tenant_id=ten) and m.next_verified is not null and m.next_verified <= current_date + d
+  loop
+    perform public.app_notif_roles_t(ten, array['admin','owner','manager','qc'], 'Метрология: поверка СИ',
+      rec.name || coalesce(' (' || rec.serial || ')','') || ' — до ' || to_char(rec.next_verified,'DD.MM.YYYY'), 'apps/qc/index.html');
+  end loop;
+  return query select du, ov, 'К поверке: ' || du || ', просрочено: ' || ov;
+end $$;
+
+create or replace function public.app_capa_start(p_token uuid, p_defect_id uuid, p_route_id uuid)
+returns table (ok boolean, message text, request_id uuid, task_id uuid)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; uname text; d record; r record; tid uuid;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён', null::uuid, null::uuid; return; end if;
+  if not public.app_can_edit(p_token, 'qc') then return query select false,'Нет прав на качество', null::uuid, null::uuid; return; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  select s.ulogin into uname from public.app_session_user(p_token) s;
+  select * into d from public.app_defects where id = p_defect_id and (adm or tenant_id = ten);
+  if d.id is null then return query select false,'Дефект не найден', null::uuid, null::uuid; return; end if;
+  insert into public.app_tasks (tenant_id, title, description, status, priority, assignee_login, entity_type, entity_id, pos, created_login)
+  values (ten, 'CAPA: ' || d.title, 'Корректирующие/предупреждающие действия по дефекту', 'todo', 'high', d.by_login, 'defect', d.id, 0, uname)
+  returning app_tasks.id into tid;
+  select * into r from public.app_approval_request_create(p_token, p_route_id, 'defect', d.id, 'CAPA: ' || d.title) x;
+  if not r.ok then return query select false, r.message, null::uuid, tid; return; end if;
+  return query select true, 'CAPA запущена (задача + маршрут)', r.id, tid;
+end $$;
+
+create or replace function public.app_traceability_search(p_token uuid, p_q text)
+returns table (id uuid, item text, serial text, material text, operator text, order_number text, created_at timestamptz)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; q text;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  q := lower(coalesce(trim(p_q),''));
+  return query
+    select t.id, t.item, t.serial, t.material, t.operator, o.number, t.created_at
+      from public.app_traceability t left join public.app_orders o on o.id = t.order_id
+     where (adm or t.tenant_id = ten)
+       and (q = '' or lower(t.item) like '%'||q||'%' or lower(coalesce(t.serial,'')) like '%'||q||'%'
+            or lower(coalesce(t.material,'')) like '%'||q||'%' or lower(coalesce(t.operator,'')) like '%'||q||'%')
+     order by t.created_at desc limit 200;
+end $$;
+
+-- ================= База знаний =================
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+  ('Качество','Качество 2.0: SPC онлайн, поверка СИ, CAPA-маршрут, трассируемость (X18)',
+   'Качество 2.0: SPC онлайн-дашборд (app_qc_spc_dashboard — параметры/сигналы/тревоги, reuse app_spc_signals), поверка СИ с напоминаниями (app_metrology_scan — app_measuring_tools next_verified), CAPA-маршрут (app_capa_start — задача в app_tasks + маршрут app_approval_* по дефекту), трассируемость изделие→партия→оператор (app_traceability_search, reuse R3 app_traceability). Фото дефектов — app_attachment_* / app_attach_*.',
+   'качество SPC контроль поверка СИ метрология CAPA дефект трассируемость партия оператор')
+) as v(category,question,answer,tags)
+where not exists (
+  select 1 from public.app_knowledge
+   where tenant_id = 'aaaaaaaa-0000-0000-0000-000000000001'
+     and question = 'Качество 2.0: SPC онлайн, поверка СИ, CAPA-маршрут, трассируемость (X18)'
+);
+
+-- ================= Права =================
+grant execute on function public.app_qc_spc_dashboard(uuid) to anon, authenticated;
+grant execute on function public.app_metrology_scan(uuid,integer) to anon, authenticated;
+grant execute on function public.app_capa_start(uuid,uuid,uuid) to anon, authenticated;
+grant execute on function public.app_traceability_search(uuid,text) to anon, authenticated;
+
+-- <<<<<<<<<< 0204_quality2.sql <<<<<<<<<<
+
+-- >>>>>>>>>> 0205_economics2.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0205_economics2.sql  (X19 — Экономика/платформа 2.0)
+-- Сводный дашборд экономики, MRR по подпискам, матрица квот/лимитов,
+-- приём платежа биллинга. Идемпотентно. Зависит от 0001..0204.
+-- ============================================================
+
+create or replace function public.app_economics_dashboard(p_token uuid)
+returns table (orders_count bigint, invoices_total numeric, invoices_paid numeric, invoices_due numeric,
+               cash_in_plan numeric, cash_out_plan numeric, avg_check numeric)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query select
+    (select count(*) from public.app_orders o where adm or o.tenant_id=ten),
+    (select coalesce(sum(i.amount),0) from public.app_invoices i where adm or i.tenant_id=ten),
+    (select coalesce(sum(i.amount),0) from public.app_invoices i where (adm or i.tenant_id=ten) and i.status='paid'),
+    (select coalesce(sum(i.amount),0) from public.app_invoices i where (adm or i.tenant_id=ten) and i.status in ('sent','overdue')),
+    (select coalesce(sum(c.amount),0) from public.app_cash_plan c where (adm or c.tenant_id=ten) and c.kind='in' and c.status in ('planned','overdue')),
+    (select coalesce(sum(c.amount),0) from public.app_cash_plan c where (adm or c.tenant_id=ten) and c.kind='out' and c.status in ('planned','overdue')),
+    (select round(avg(i.amount),2) from public.app_invoices i where (adm or i.tenant_id=ten));
+end $$;
+
+create or replace function public.app_mrr_report(p_token uuid)
+returns table (active_subs bigint, mrr numeric, arpu numeric, trial_subs bigint)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query select
+    (select count(*) from public.app_subscriptions s where (adm or s.tenant_id=ten) and s.status='active'),
+    (select coalesce(sum(s.amount),0) from public.app_subscriptions s where (adm or s.tenant_id=ten) and s.status='active'),
+    (select round(coalesce(avg(s.amount),0),2) from public.app_subscriptions s where (adm or s.tenant_id=ten) and s.status='active'),
+    (select count(*) from public.app_subscriptions s where (adm or s.tenant_id=ten) and s.status='trial');
+end $$;
+
+create or replace function public.app_quota_matrix(p_token uuid)
+returns table (metric text, used numeric, quota numeric, pct numeric)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare ten uuid; m text; u numeric; q numeric;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; return; end if;
+  ten := public.app_my_tenant(p_token);
+  for m in select x from unnest(array['users','storage_mb','api_calls','documents','ai_tokens','orders']) x loop
+    u := public.app_quota_used(ten, m);
+    q := public.app_quota_limit(ten, m);
+    metric := m; used := coalesce(u,0); quota := q; pct := case when coalesce(q,0) > 0 then round(100.0*coalesce(u,0)/q,1) else null end;
+    return next;
+  end loop;
+end $$;
+
+create or replace function public.app_billing_mark_paid(p_token uuid, p_invoice_id uuid)
+returns table (ok boolean, message text)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare r record;
+begin
+  if not public.app_production_allowed(p_token) then return query select false,'Доступ запрещён'; return; end if;
+  if not public.app_can_edit(p_token, 'billing') then return query select false,'Нет прав на биллинг'; return; end if;
+  select * into r from public.app_invoice_set_status(p_token, p_invoice_id, 'paid') x;
+  if r.ok is null then return query select true,'Платёж отмечен'; return; end if;
+  return query select r.ok, r.message;
+end $$;
+
+-- ================= База знаний =================
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+  ('Экономика','Экономика/платформа 2.0: сводный дашборд, MRR, квоты, приём платежа (X19)',
+   'Экономика 2.0: сводный дашборд (app_economics_dashboard — заказы, счета/оплаты/дебиторка, плановые приток/отток, средний чек), MRR по подпискам (app_mrr_report — активные/триал/ARPU), матрица квот/лимитов (app_quota_matrix — пользователи, хранилище, вызовы API, документы, AI-токены, заказы; reuse app_quota_used/limit), приём платежа биллинга (app_billing_mark_paid). Платёжный календарь — app_cash_calendar; факт себестоимости — app_cost_fact; дашборды BI — W41.',
+   'экономика финансы MRR подписка квота лимит платёж биллинг дашборд себестоимость календарь')
+) as v(category,question,answer,tags)
+where not exists (
+  select 1 from public.app_knowledge
+   where tenant_id = 'aaaaaaaa-0000-0000-0000-000000000001'
+     and question = 'Экономика/платформа 2.0: сводный дашборд, MRR, квоты, приём платежа (X19)'
+);
+
+-- ================= Права =================
+grant execute on function public.app_economics_dashboard(uuid) to anon, authenticated;
+grant execute on function public.app_mrr_report(uuid) to anon, authenticated;
+grant execute on function public.app_quota_matrix(uuid) to anon, authenticated;
+grant execute on function public.app_billing_mark_paid(uuid,uuid) to anon, authenticated;
+
+-- <<<<<<<<<< 0205_economics2.sql <<<<<<<<<<
+
+-- >>>>>>>>>> 0206_platform2.sql >>>>>>>>>>
+-- ============================================================
+-- 3DMP Service · 0206_platform2.sql  (X20 — Платформа/референсы 2.0)
+-- Визуальная карта процесса (BPMN-lite) из маршрутов W10, калькулятор тарифов,
+-- обзор единой НСИ, статистика справки. Идемпотентно. Зависит от 0001..0205.
+-- ============================================================
+
+create or replace function public.app_bpmn_map(p_token uuid, p_route_id uuid)
+returns table (nodes jsonb, edges jsonb, step_count integer)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid; r record; arr jsonb; i integer;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  select * into r from public.app_approval_routes where id = p_route_id and (adm or tenant_id = ten);
+  if r.id is null then raise exception 'Маршрут не найден'; end if;
+  arr := case when r.steps is null or jsonb_typeof(r.steps) <> 'array' then '[]'::jsonb else r.steps end;
+  nodes := jsonb_build_array(jsonb_build_object('id','start','type','start','label','Старт')) ||
+           coalesce((select jsonb_agg(jsonb_build_object('id','s'||(e->>'ord'), 'type','task', 'role', e->>'role', 'label', coalesce(e->>'name', e->>'role')))
+                       from jsonb_array_elements(arr) e), '[]'::jsonb) ||
+           jsonb_build_array(jsonb_build_object('id','end','type','end','label','Финиш'));
+  edges := '[]'::jsonb;
+  edges := edges || jsonb_build_array(jsonb_build_object('from','start','to','s'||coalesce(arr->0->>'ord','1')));
+  for i in 0 .. (jsonb_array_length(arr) - 2) loop
+    edges := edges || jsonb_build_array(jsonb_build_object('from','s'||(arr->i->>'ord'), 'to','s'||(arr->(i+1)->>'ord')));
+  end loop;
+  if jsonb_array_length(arr) > 0 then
+    edges := edges || jsonb_build_array(jsonb_build_object('from','s'||(arr->(jsonb_array_length(arr)-1)->>'ord'), 'to','end'));
+  end if;
+  step_count := jsonb_array_length(arr);
+  return query select nodes, edges, step_count;
+end $$;
+
+create or replace function public.app_tariff_calc(p_token uuid, p_plan_code text, p_seats integer, p_addons jsonb default '[]'::jsonb)
+returns table (plan text, base numeric, seats numeric, addons numeric, total numeric, breakdown jsonb)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare pl record; seat_price numeric; seat_cost numeric; addon_cost numeric; br jsonb;
+begin
+  select * into pl from public.app_plans where code = p_plan_code;
+  if pl.code is null then return query select null::text, null::numeric, null::numeric, null::numeric, null::numeric, '{}'::jsonb; return; end if;
+  seat_price := coalesce((pl.features->>'seat_price')::numeric, 0);
+  seat_cost := greatest(coalesce(p_seats,0) - coalesce(pl.max_users,0), 0) * seat_price;
+  addon_cost := coalesce((select sum((e->>'price')::numeric) from jsonb_array_elements(case when jsonb_typeof(p_addons)='array' then p_addons else '[]'::jsonb end) e), 0);
+  br := jsonb_build_object('plan', pl.name, 'base', pl.price, 'seats_over', greatest(coalesce(p_seats,0) - coalesce(pl.max_users,0),0), 'seat_price', seat_price, 'addons', addon_cost);
+  return query select pl.code, pl.price, seat_cost, addon_cost, pl.price + seat_cost + addon_cost, br;
+end $$;
+
+create or replace function public.app_nsi_overview(p_token uuid)
+returns table (ref text, cnt bigint)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query
+    select 'Заказчики', count(*) from public.app_customers x where adm or x.tenant_id=ten
+    union all select 'Поставщики', count(*) from public.app_suppliers x where adm or x.tenant_id=ten
+    union all select 'Оборудование', count(*) from public.app_equipment x where adm or x.tenant_id=ten
+    union all select 'Материалы', count(*) from public.app_materials x where adm or x.tenant_id=ten
+    union all select 'Сотрудники', count(*) from public.app_employees x where adm or x.tenant_id=ten
+    union all select 'Справочники', count(*) from public.app_dictionaries x where adm or x.tenant_id=ten
+    union all select 'МДМ-связи', count(*) from public.app_mdm_links x where adm or x.tenant_id=ten;
+end $$;
+
+create or replace function public.app_help_stats(p_token uuid)
+returns table (knowledge bigint, dictionaries bigint)
+language plpgsql security definer set search_path = public
+as $$
+#variable_conflict use_column
+declare adm boolean; ten uuid;
+begin
+  if not public.app_production_allowed(p_token) then raise exception 'Доступ запрещён'; end if;
+  adm := public.app_is_platform_admin(p_token); ten := public.app_my_tenant(p_token);
+  return query select
+    (select count(*) from public.app_knowledge k where adm or k.tenant_id=ten),
+    (select count(*) from public.app_dictionaries d where adm or d.tenant_id=ten);
+end $$;
+
+-- ================= База знаний =================
+insert into public.app_knowledge (tenant_id, category, question, answer, tags)
+select 'aaaaaaaa-0000-0000-0000-000000000001', v.category, v.question, v.answer, v.tags
+from (values
+  ('Платформа','Платформа/референсы 2.0: карта процесса, тарифы, НСИ, справка (X20)',
+   'Платформа 2.0: визуальная карта процесса (app_bpmn_map — nodes/edges из шагов маршрута app_approval_routes, reuse W15), калькулятор тарифов (app_tariff_calc — база + доп. места + доп. модули из app_plans), обзор единой НСИ (app_nsi_overview — заказчики/поставщики/оборудование/материалы/сотрудники/справочники/МДМ-связи), статистика справки (app_help_stats). Конструктор процессов — W15; МДМ — app_mdm_*.',
+   'платформа процесс BPMN маршрут тариф калькулятор НСИ справочники справка MDM')
+) as v(category,question,answer,tags)
+where not exists (
+  select 1 from public.app_knowledge
+   where tenant_id = 'aaaaaaaa-0000-0000-0000-000000000001'
+     and question = 'Платформа/референсы 2.0: карта процесса, тарифы, НСИ, справка (X20)'
+);
+
+-- ================= Права =================
+grant execute on function public.app_bpmn_map(uuid,uuid) to anon, authenticated;
+grant execute on function public.app_tariff_calc(uuid,text,integer,jsonb) to anon, authenticated;
+grant execute on function public.app_nsi_overview(uuid) to anon, authenticated;
+grant execute on function public.app_help_stats(uuid) to anon, authenticated;
+
+-- <<<<<<<<<< 0206_platform2.sql <<<<<<<<<<
