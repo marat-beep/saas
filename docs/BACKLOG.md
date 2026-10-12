@@ -5,7 +5,7 @@
 > **Конец сессии:** обнови статусы пунктов (и краткий журнал в §5), затем `PLAN.md`/`PROMPTS.md` при необходимости.
 
 ## 1. Состояние (кратко)
-- Миграции `0001…0192`, `apply_all.sql` идемпотентен; смоук `app_smoke_test` 10/10, `app_smoke_test_ext` 14/14, волновые RPC 44/44, перегрузок 0 (автотест `tools/db-smoke.ps1`). Эксплуатация — `tools/run-checks.ps1` (audit+db-smoke, лог `dist/checks/`).
+- Миграции `0001…0195`, `apply_all.sql` идемпотентен; смоук `app_smoke_test` 10/10, `app_smoke_test_ext` 14/14, волновые RPC 44/44, перегрузок 0 (автотест `tools/db-smoke.ps1`). Эксплуатация — `tools/run-checks.ps1` (audit+db-smoke, лог `dist/checks/`).
 - Приложений 97 (`apps/`), прототипов 72 (`eco/apps`); каталог `catalog.js` v10.35 — единый источник модулей. Локальный автотест `tools/audit.ps1`. Новые модули помечены 🆕 в каталоге.
 - Методика типового апгрейда модуля — `docs/MODULE_BLUEPRINT.md`.
 - **Релиз:** `tools/build-release.ps1` → `dist/saas-YYYYMMDD-HHmm.zip` (деплой-артефакты для FTP; `dist/` в .gitignore).
@@ -160,11 +160,11 @@ _Автогенерация `tools/update-plan.ps1` от 2026-10-09T17:43:24. П
 | X8 | Документы 2.0: единый хаб, формулы, версии, экспорт в ЭДО | `docs`, `docbuilder`, `templates` | высокий | 🔄 (код готов, миграция `0191`) |
 | X9 | Общий слой документов/подписей/маршрутов | `docs`/`edo`/`kedo`/`access`/`workflow` | средний | ☐ |
 | X10 | Производство 2.0: маршрутные карты, таймеры, брак, ССЗ | `production` | высокий | 🔄 (код готов, миграция `0192`) |
-| X11 | MES/терминал 2.0: realtime, drag&drop, аварийные сигналы | `mes`, `terminal` | высокий | ☐ |
-| X12 | Планирование 2.0: APS+переналадки, сценарии, Gantt-зависимости | `planning`, `slots`, `forecast` | высокий | ☐ |
+| X11 | MES/терминал 2.0: realtime, drag&drop, аварийные сигналы | `mes`, `terminal` | высокий | 🔄 (код готов, миграция `0193`) |
+| X12 | Планирование 2.0: APS+переналадки, сценарии, Gantt-зависимости | `planning`, `slots`, `forecast` | высокий | 🔄 (ёмкость+APS-слоты+Гант; миграция `0194`) |
 | X13 | Оборудование/ТОиР/инструмент: предиктив→наряд, паспорт-дашборд | `maintenance`, `oee`, `eam`, `tooling`, `nc`, `iiot` | средний | ☐ |
 | X14 | Склад/снабжение 2.0: автозаявки (мин./BOM), штрихкод-склад | `warehouse`, `procurement`, `logistics` | высокий | ☐ |
-| X15 | Продажи 2.0: конвейер заявка→оплата, онлайн-оплата (R2), скоринг | `orders`, `crm`, `tkp`, `client` | высокий | ☐ |
+| X15 | Продажи 2.0: конвейер заявка→оплата, онлайн-оплата (R2), скоринг | `orders`, `crm`, `tkp`, `client` | высокий | 🔄 (конвейер+оплата+скоринг; миграция `0195`) |
 | X16 | Закупки/поставщики: сравнение КП, рейтинг, маркетплейс/эскроу | `procurement`, `suppliers`, `supplier`, `marketplace`, `partners` | средний | ☐ |
 | X17 | Сервис 2.0: портал дилера, маршруты выездов, контракт→счета, сервис-склад | `service` | высокий | ☐ |
 | X18 | Качество: SPC онлайн, фото дефектов, CAPA-маршруты, трассировка | `qc`, `claims`, `passport`, `quality` | средний | ☐ |
@@ -218,6 +218,17 @@ _Автогенерация `tools/update-plan.ps1` от 2026-10-09T17:43:24. П
 #### X10 (П2, волна 6) — Производство 2.0 (`production`) — детализация
 **Артефакты (реализовано, `0192_prod2.sql`):** поля `app_naryad_ops.started_at/finished_at`, `app_defects.naryad_op_id/cause/culprit_login/cost`; `app_daily_jobs`; RPC `app_op_start/stop` (таймер + авторасчёт факта), `app_prod_defect_save/list/kpi`, `app_daily_job_build/list/set_status` (ССЗ), `app_route_card`. UI `apps/production` v5: таймеры операций (▶/⏸), карточка «Брак и переделки», кнопки «ССЗ», «Маршрутная карта (печать)», «Брак (KPI)». `catalog` production += таймеры/брак/ССЗ, connects += qc/oee/terminal.
 
+#### X11 (П3, волна 7) — MES/терминал 2.0 (`mes`/`terminal`) — детализация
+**Артефакты (реализовано, `0193_mes2.sql`):** `app_mes_board` (срез очередей по РЦ; старая 1-арг версия удалена — перегрузок 0), `app_op_reassign` (РЦ/приоритет), `app_alert_raise` (аварийный сигнал → `app_issues` + уведомление), `app_mes_alerts`; публикация `app_naryad_ops`/`app_naryads` в `supabase_realtime`. UI `apps/mes` v3: живая доска (Realtime), drag&drop между колонками, «→ РЦ», «⚠»; `apps/terminal` v3: «⚠ Сигнал» (в офлайн-очереди).
+
+#### X12 (П3, волна 8) — Планирование 2.0 (`planning`) — детализация
+**Артефакты (реализовано, `0194_planning2.sql`):** `app_wc_capacity` (ёмкость РЦ по дням), `app_plan_slots` (слоты плана); RPC `app_capacity_list/set`, `app_aps_solve` (эвристика: приоритет×срок×ёмкость), `app_plan_gantt`, `app_wc_load`. UI `apps/planning` v5: «Решить (APS)», «Ёмкость РЦ», «Загрузка РЦ».
+**Остаток X12:** сценарии/переналадки/Gantt-зависимости — не реализовано (следующий заход).
+
+#### X15 (П3, волна 9) — Продажи 2.0 (`orders`/`crm`/`client`) — детализация
+**Артефакты (реализовано, `0195_sales2.sql`):** `app_order_flow`, `app_payment_links`; RPC `app_order_flow_list`, `app_order_pipeline`, `app_order_flow_advance` (на «счёт» — `app_order_create_invoice`, на «договор» — документ), `app_payment_link_create`, `app_payment_settle` (идемпотентно), `app_payment_links_list`, `app_lead_score`, `app_client_pay`. UI `apps/orders` v7 (кнопка «Конвейер» + продвижение стадий), `apps/crm` v3 («Скоринг лидов»), `apps/client` v2 («💳 Оплатить» счёт).
+**Остаток X15:** ТКП PDF/напоминание об истечении и полный вебхук провайдера — частично (settle идемпотентен; вебхук — задел).
+
 ## 4. Мелкие пункты (быстрые) — ☑ автоматизировано (v209)
 - [x] Панель (Тема/Сервер/Вход/Пользователь) единообразна; `#who`/`#logout`/`#tabs` без дублей — проверяется `tools/audit.ps1`.
 - [x] Боковое меню закрыто по умолчанию (`shell.js`, `sh-open` по клику «☰»).
@@ -226,6 +237,7 @@ _Автогенерация `tools/update-plan.ps1` от 2026-10-09T17:43:24. П
 - [x] Ревизия `AUDIT_BACKLOG §3` (контуры) — выполнена (v211): контурные работы закрыты волнами W2–W12, остаток вынесен в R1–R4 (см. `AUDIT_BACKLOG §7`).
 
 ## 5. Журнал (последние версии, кратко)
+- v274 — **План v5, пакет П3 (X11→X12→X15).** X11 `0193_mes2.sql` (живая доска/Realtime, drag&drop, переназначение, аварийный сигнал; UI mes v3/terminal v3; устранена перегрузка `app_mes_board`). X12 `0194_planning2.sql` (ёмкость РЦ, APS-солвер, слоты, Гант, загрузка; UI planning v5). X15 `0195_sales2.sql` (конвейер заявки, онлайн-оплата идемпотентно, скоринг лидов; UI orders v7/crm v3/client v2). `catalog.js` v10.41, `CATALOG_V` 117. Смоук 10/10, 14/14, волновые 44/44, перегрузок 0. Далее — П4 (X17→X14→X13).
 - v273 — **План v5, пакет П2 (X7→X8→X10).** X7 `0190_edo2.sql` (внешний обмен `app_edo_exchange`, SLA поручений, подписи `app_signatures`, маршруты W10, папки, `app_edo_dashboard`; UI edo v4). X8 `0191_docs2.sql` (версии шаблонов `app_template_versions`, печатные шаблоны `app_doc_print_templates`, формулы `app_doc_formula_eval`, экспорт `app_doc_to_edo`; UI docs v5 / templates v2). X10 `0192_prod2.sql` (таймеры операций, брак `app_defects`, ССЗ `app_daily_jobs`, маршрутная карта; UI production v5). `catalog.js` v10.39, `CATALOG_V` 115. Смоук 10/10, 14/14, волновые 44/44, перегрузок 0; функц. тесты с очисткой ✅. Далее — П3 (X11→X12→X15).
 - v272 — **План v5, волна X5 «Оргструктура и доступ 2.0».** Миграция `0189_access3.sql`: `app_role_permissions.can_approve`; `app_can` v3 (просмотр/правка/**утверждение**); `app_perms_matrix_get/set`, `app_role_actions_get`, `app_dept_scope_apply`; поля `department_id` к service/tasks/qc/docs/deals (+бэкфилл); сквозной гейтинг `app_dept_ok` в `app_service_list`/`app_tasks_list`. UI `apps/roles` v2 (колонка «Утверждение»). Функц. тест: матрица 641 строк, set/approve, dept_apply, service/tasks списки. Пакет П1 (X1→X4→X5) закрыт: смоук 10/10, 14/14, волновые 44/44, перегрузок 0. Далее — П2 (X7→X8→X10).
 - v271 — **План v5, волна X4 «КЭДО 2.0» (`kedo`).** Миграция `0188_kedo2.sql`: `app_hr_bulk`/`app_hr_bulk_items` (массовые ознакомления), поля `app_hr_docs.signature_provider`/`route_request_id`; RPC `app_hr_bulk_list/create/items/scan`, `app_hr_routes_list/route_save/route_start/route_act` (reuse движка согласований W10), `app_hr_sign_ext` (очередь `app_integrations` — задел УКЭП/Госключ), `app_kedo_dashboard`. UI `apps/kedo` v2 (вкладки Ознакомления/Маршруты, кнопки «Маршрут»/«ЭП», дашборд). `catalog.js` v10.36 (kedo connects +files/integrations), `CATALOG_V` 112; БЗ «КЭДО 2.0…». Функц. тест: bulk→2, маршрут manager→director → документ signed, sign_ext (нет провайдера — сообщение), очистка. Детали — BACKLOG §3g (X4). Далее — X5.

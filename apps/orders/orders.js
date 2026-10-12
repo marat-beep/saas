@@ -202,6 +202,28 @@
   $('#toCreate').addEventListener('click', function () { clearMsg('#cMsg'); fillCustomerSelect(); screens.go('s-create'); });
   $('#backToList1').addEventListener('click', function () { screens.go('s-list'); });
   $('#backToList2').addEventListener('click', function () { load(); screens.go('s-list'); });
+  $('#pipeBtn').addEventListener('click', pipelineDialog);
+  function pipelineDialog() {
+    rpc('app_order_pipeline', { p_token: token }).then(function (rows) {
+      rows = rows || [];
+      var stages = ['new', 'kp', 'contract', 'invoice', 'paid', 'done'];
+      var STL = { new: 'Новая', kp: 'КП', contract: 'Договор', invoice: 'Счёт', paid: 'Оплачено', done: 'Завершено' };
+      var html = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Заявка</th><th>Заказчик</th><th>Стадия</th><th class="num">Сумма</th><th>Продвинуть</th></tr></thead><tbody>' +
+        (rows.length ? rows.map(function (r) {
+          return '<tr><td><b>' + esc(r.number) + '</b> ' + esc(r.title) + '</td><td>' + esc(r.customer || '') + '</td><td>' + esc(STL[r.stage] || r.stage) + '</td><td class="num">' + (Number(r.amount) || 0).toLocaleString('ru-RU') + ' ₽</td>' +
+            '<td><select id="stg_' + r.order_id + '">' + stages.map(function (s) { return '<option value="' + s + '"' + (s === r.stage ? ' selected' : '') + '>' + STL[s] + '</option>'; }).join('') + '</select> <button class="act" data-adv="' + r.order_id + '">→</button></td></tr>';
+        }).join('') : '<tr><td colspan="5" class="note">Заявок нет</td></tr>') + '</tbody></table></div>';
+      ui.dialog({ title: 'Конвейер продаж: заявка → КП → договор → счёт → оплата', body: html, html: true, cancelText: 'Закрыть', onOpen: function (back) {
+        back.querySelectorAll('[data-adv]').forEach(function (b) {
+          b.addEventListener('click', function () {
+            var id = b.dataset.adv, sel = back.querySelector('#stg_' + id);
+            rpc('app_order_flow_advance', { p_token: token, p_order_id: id, p_stage: sel.value, p_note: null })
+              .then(function (r2) { var x = r2 && r2[0]; ui.toast((x && x.message) || '', x && x.ok ? 'ok' : 'err'); if (x && x.ok) { back.querySelector('[data-cancel]').click(); setTimeout(pipelineDialog, 200); } });
+          });
+        });
+      } });
+    });
+  }
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
   $('#createBtn').addEventListener('click', function () {

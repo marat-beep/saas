@@ -35,6 +35,9 @@
     $$('#list [data-st]').forEach(function (b) {
       b.addEventListener('click', function () { setStatus(b.dataset.id, b.dataset.st); });
     });
+    $$('#list [data-alert]').forEach(function (b) {
+      b.addEventListener('click', function () { alertRaise(b.dataset.alert); });
+    });
   }
   function card(o) {
     var acts = '';
@@ -42,6 +45,7 @@
     else if (o.mes_status === 'work') acts = btn('paused', o.op_id, '⏸ Пауза', 'b-pause') + btn('done', o.op_id, '✓ Готово', 'b-done');
     else if (o.mes_status === 'paused') acts = btn('work', o.op_id, '▶ Продолжить', 'b-go') + btn('done', o.op_id, '✓ Готово', 'b-done');
     else acts = btn('queue', o.op_id, '↩ В очередь', 'b-back');
+    acts += '<button data-alert="' + o.op_id + '" class="b-alert">⚠ Сигнал</button>';
     return '<div class="op' + (o.mes_status === 'done' ? ' done' : '') + '">' +
       '<div class="t">' + o.seq + '. ' + esc(o.operation) + '</div>' +
       '<div class="m">' + esc(o.naryad_number) + ' · ' + esc(o.naryad_title || '') + '</div>' +
@@ -74,6 +78,16 @@
     if (!navigator.onLine) { queueAll(list); return; }
     runOps(list)
       .then(function () { window.Auth.log('Пульт', st); ui.toast((STATUS[st] || st)); if (window.AppNotify) window.AppNotify.refresh(true); load(); })
+      .catch(function () { queueAll(list); });
+  }
+  function alertRaise(id) {
+    var kind = window.prompt('Тип сигнала (сбой / нет материала / брак / инцидент):', 'сбой');
+    if (kind == null) return;
+    var text = window.prompt('Описание:', '') || '';
+    var list = [{ rpc: 'app_alert_raise', args: { p_token: token, p_op_id: id, p_kind: kind, p_text: text }, label: 'сигнал: ' + kind }];
+    if (!navigator.onLine) { queueAll(list); return; }
+    runOps(list)
+      .then(function () { window.Auth.log('Пульт', 'сигнал ' + kind); ui.toast('Сигнал отправлен'); if (window.AppNotify) window.AppNotify.refresh(true); load(); })
       .catch(function () { queueAll(list); });
   }
 

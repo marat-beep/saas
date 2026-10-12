@@ -115,6 +115,18 @@
       .then(function (d) { var r = d && d[0]; msg('#fMsg', (r && r.message) || '', r && r.ok ? 'ok' : 'err'); if (r && r.ok) { window.Auth.log('CRM сделка', title); ['#fTitle', '#fAmount', '#fProb', '#fOwner', '#fSource', '#fNext', '#fDue'].forEach(function (s) { $(s).value = ''; }); load(); } })
       .catch(function (e) { msg('#fMsg', 'Ошибка: ' + e.message, 'err'); });
   });
+  $('#scoreBtn').addEventListener('click', function () {
+    rpc('app_lead_score', { p_token: token }).then(function (rows) {
+      rows = rows || [];
+      var BAND = { 'горячий': '#b91c1c', 'тёплый': '#b45309', 'холодный': '#64748b' };
+      var html = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Сделка</th><th>Стадия</th><th class="num">Сумма</th><th class="num">Балл</th><th>Категория</th><th>Срок</th></tr></thead><tbody>' +
+        (rows.length ? rows.map(function (r) {
+          return '<tr><td>' + esc(r.title) + '</td><td>' + esc(r.stage) + '</td><td class="num">' + (Number(r.amount) || 0).toLocaleString('ru-RU') + ' ₽</td>' +
+            '<td class="num"><b>' + r.score + '</b></td><td style="color:' + (BAND[r.band] || '#334155') + ';font-weight:600;">' + esc(r.band) + '</td><td>' + (r.due_date || '') + '</td></tr>';
+        }).join('') : '<tr><td colspan="6" class="note">Открытых сделок нет</td></tr>') + '</tbody></table></div>';
+      ui.dialog({ title: 'Скоринг лидов', body: html, html: true, cancelText: 'Закрыть' });
+    }).catch(function (e) { window.alert('Ошибка: ' + e.message); });
+  });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
   window.Auth.guard('../auth/index.html').then(function (s) {

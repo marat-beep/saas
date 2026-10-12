@@ -51,10 +51,19 @@
         return ['<b>' + esc(d.number) + '</b>', DST[d.doc_type] || d.doc_type, esc(d.title), esc(d.status), money(d.amount), fmt(d.valid_until)];
       }));
     } else if (tab === 'inv') {
-      $(p).innerHTML = table(['Счёт', 'Сумма', 'Оплачено', 'Остаток', 'Статус', 'Срок'], cache.inv.map(function (i) {
+      $(p).innerHTML = table(['Счёт', 'Сумма', 'Оплачено', 'Остаток', 'Статус', 'Срок', 'Оплата'], cache.inv.map(function (i) {
         return ['<b>' + esc(i.number) + '</b>', money(i.amount), money(i.paid), money(i.balance),
-          '<span class="badge ' + (i.is_overdue ? 'overdue' : i.status) + '">' + (i.is_overdue ? 'Просрочен' : (IST[i.status] || i.status)) + '</span>', fmt(i.due_date)];
+          '<span class="badge ' + (i.is_overdue ? 'overdue' : i.status) + '">' + (i.is_overdue ? 'Просрочен' : (IST[i.status] || i.status)) + '</span>', fmt(i.due_date),
+          (i.status === 'paid' ? '<span class="note">оплачен</span>' : '<button class="act" data-pay="' + esc(i.number) + '">💳 Оплатить</button>')];
       }));
+      $$('#panel [data-pay]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var num = b.dataset.pay;
+          rpc('app_client_pay', { p_token: token, p_invoice_number: num })
+            .then(function (r) { var x = r && r[0]; msg((x && x.message) || '', x && x.ok ? 'ok' : 'err'); if (x && x.ok) { window.Auth.log('Оплата счёта', num); load(); } })
+            .catch(function (e) { msg('Ошибка: ' + e.message, 'err'); });
+        });
+      });
     } else {
       $(p).innerHTML = table(['Номер', 'Предмет', 'Срок', 'Цена', 'Статус'], cache.tkp.map(function (t) {
         return ['<b>' + esc(t.number) + '</b>', esc(t.subject), fmt(t.valid_until), money(t.price), (TST[t.status] || t.status)];

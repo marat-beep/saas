@@ -145,6 +145,34 @@
     filter = c.dataset.f; renderGantt(); renderSched();
   });
   $('#q').addEventListener('input', function () { q = this.value; renderGantt(); renderSched(); });
+  $('#apsBtn').addEventListener('click', function () {
+    var from = window.prompt('Начало планирования (ГГГГ-ММ-ДД):', today()); if (from == null) return;
+    var days = parseInt(window.prompt('Горизонт, дней:', '14'), 10) || 14;
+    rpc('app_aps_solve', { p_token: token, p_from: from, p_days: days })
+      .then(function (r) { var x = r && r[0]; msg('#gMsg', (x && x.message) || '', x && x.ok !== false ? 'ok' : 'err'); if (x && x.ok !== false) load(); })
+      .catch(function (e) { msg('#gMsg', 'Ошибка: ' + e.message, 'err'); });
+  });
+  $('#capBtn').addEventListener('click', function () {
+    ui.formDialog({ title: 'Ёмкость рабочего центра', okText: 'Сохранить', fields: [
+      { name: 'wc_id', label: 'Рабочий центр', type: 'select', required: true, options: cap.map(function (c) { return { value: c.wc_id, label: c.wc_name }; }) },
+      { name: 'date', label: 'Дата', type: 'date', value: today() },
+      { name: 'hours', label: 'Часов', type: 'number', value: 8 }
+    ] }).then(function (v) {
+      if (!v) return;
+      rpc('app_capacity_set', { p_token: token, p_wc_id: v.wc_id, p_date: v.date, p_hours: Number(v.hours) || 8 })
+        .then(function (r) { var x = r && r[0]; ui.toast((x && x.message) || '', x && x.ok ? 'ok' : 'err'); if (x && x.ok) load(); });
+    });
+  });
+  $('#loadBtn').addEventListener('click', function () {
+    var from = window.prompt('Начало (ГГГГ-ММ-ДД):', today()); if (from == null) return;
+    var days = parseInt(window.prompt('Дней:', '14'), 10) || 14;
+    rpc('app_wc_load', { p_token: token, p_from: from, p_days: days }).then(function (rows) {
+      rows = rows || [];
+      var html = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Дата</th><th>РЦ</th><th class="num">Загрузка,ч</th><th class="num">Ёмкость,ч</th><th class="num">%</th></tr></thead><tbody>' +
+        rows.map(function (r) { var over = num(r.load_pct) > 100; return '<tr' + (over ? ' style="background:#fef2f2;"' : '') + '><td>' + dd(r.day) + '</td><td>' + esc(r.wc_name) + '</td><td class="num">' + num(r.load) + '</td><td class="num">' + num(r.capacity) + '</td><td class="num">' + num(r.load_pct) + '%</td></tr>'; }).join('') + '</tbody></table></div>';
+      ui.dialog({ title: 'Загрузка РЦ', body: html, html: true, cancelText: 'Закрыть' });
+    });
+  });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
   window.Auth.guard('../auth/index.html').then(function (s) {
