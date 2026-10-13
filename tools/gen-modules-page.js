@@ -52,8 +52,9 @@ function card(a) {
   const text = [a.title, a.id, a.desc, a.purpose, (a.features || []).join(' '), (a.connects || []).join(' '), an.why, an.merge, (an.add || []).join(' '), (an.plan || []).join(' ')].join(' ').toLowerCase();
 
   const mergeCls = an.merge ? 'has' : 'none';
+  const st = (an.wave || an.done) ? (an.partial ? 'partial' : 'done') : 'none';
   return `
-<details class="mc" id="m-${attr(a.id)}" data-id="${attr(a.id)}" data-group="${attr(a.group || '')}" data-pri="${attr(an.pri)}" data-u="${an.u}" data-merge="${an.merge ? 1 : 0}" data-wave="${attr(an.wave || '')}" data-text="${attr(text)}">
+<details class="mc" id="m-${attr(a.id)}" data-id="${attr(a.id)}" data-group="${attr(a.group || '')}" data-pri="${attr(an.pri)}" data-u="${an.u}" data-merge="${an.merge ? 1 : 0}" data-wave="${attr(an.wave || '')}" data-status="${st}" data-text="${attr(text)}">
   <summary>
     <span class="mc-ic">${esc(a.icon || '•')}</span>
     <span class="mc-tt"><b>${esc(a.title)}</b><small>${esc(a.id)}${a.desc ? ' · ' + esc(a.desc) : ''}</small></span>
@@ -302,6 +303,7 @@ ul.feat li::before{content:'✓';position:absolute;left:0;color:var(--accent-700
     <select id="f-pri"><option value="">Любой приоритет</option><option value="high">высокий</option><option value="mid">средний</option><option value="low">низкий</option></select>
     <select id="f-u"><option value="0">Любая полезность</option><option value="5">5 — ядро</option><option value="4">4 и выше</option><option value="3">3 и выше</option></select>
     <select id="f-wave"><option value="">Любая волна v5</option>${waveList.map(w => `<option value="${attr(w)}">${esc(w)}</option>`).join('')}</select>
+    <select id="f-status"><option value="">Все статусы</option><option value="partial">Только остаток (◐)</option><option value="hide_done">Скрыть реализованные (✅)</option><option value="done">Только реализованные (✅)</option><option value="none">Без статуса</option></select>
     <label class="ck"><input type="checkbox" id="f-merge"> только с рек. объединения</label>
     <span class="shown" id="shown"></span>
     <button class="reset" id="reset">Сброс</button>
@@ -315,10 +317,10 @@ ul.feat li::before{content:'✓';position:absolute;left:0;color:var(--accent-700
 <script>
 (function(){
   var q=document.getElementById('q'), fg=document.getElementById('f-group'), fp=document.getElementById('f-pri'),
-      fu=document.getElementById('f-u'), fw=document.getElementById('f-wave'), fm=document.getElementById('f-merge'), shown=document.getElementById('shown');
+      fu=document.getElementById('f-u'), fw=document.getElementById('f-wave'), fs=document.getElementById('f-status'), fm=document.getElementById('f-merge'), shown=document.getElementById('shown');
   var cards=[].slice.call(document.querySelectorAll('.mc'));
   function apply(){
-    var s=(q.value||'').trim().toLowerCase(), g=fg.value, p=fp.value, u=parseInt(fu.value||'0',10), m=fm.checked, n=0;
+    var s=(q.value||'').trim().toLowerCase(), g=fg.value, p=fp.value, u=parseInt(fu.value||'0',10), st=fs.value, m=fm.checked, n=0;
     cards.forEach(function(c){
       var ok=true;
       if(s && c.getAttribute('data-text').indexOf(s)<0) ok=false;
@@ -326,6 +328,13 @@ ul.feat li::before{content:'✓';position:absolute;left:0;color:var(--accent-700
       if(ok && p && c.getAttribute('data-pri')!==p) ok=false;
       if(ok && u && parseInt(c.getAttribute('data-u'),10)<u) ok=false;
       if(ok && fw.value && c.getAttribute('data-wave')!==fw.value) ok=false;
+      if(ok && st){
+        var cs=c.getAttribute('data-status');
+        if(st==='partial' && cs!=='partial') ok=false;
+        else if(st==='done' && cs!=='done') ok=false;
+        else if(st==='none' && cs!=='none') ok=false;
+        else if(st==='hide_done' && cs==='done') ok=false;
+      }
       if(ok && m && c.getAttribute('data-merge')!=='1') ok=false;
       c.classList.toggle('hidden',!ok); if(ok) n++;
     });
@@ -334,8 +343,8 @@ ul.feat li::before{content:'✓';position:absolute;left:0;color:var(--accent-700
       var vis=sec.querySelectorAll('.mc:not(.hidden)').length; sec.classList.toggle('hidden', vis===0);
     });
   }
-  ['input','change'].forEach(function(ev){ [q,fg,fp,fu,fw,fm].forEach(function(el){ el.addEventListener(ev,apply); }); });
-  document.getElementById('reset').addEventListener('click',function(){ q.value=''; fg.value=''; fp.value=''; fu.value='0'; fw.value=''; fm.checked=false; apply(); });
+  ['input','change'].forEach(function(ev){ [q,fg,fp,fu,fw,fs,fm].forEach(function(el){ el.addEventListener(ev,apply); }); });
+  document.getElementById('reset').addEventListener('click',function(){ q.value=''; fg.value=''; fp.value=''; fu.value='0'; fw.value=''; fs.value=''; fm.checked=false; apply(); });
   document.querySelectorAll('[data-target]').forEach(function(a){ a.addEventListener('click',function(e){
     var id=a.getAttribute('data-target'), el=document.querySelector('.mc[data-id="'+id+'"]');
     if(el){ e.preventDefault(); el.classList.remove('hidden'); el.open=true; el.scrollIntoView({behavior:'smooth',block:'start'}); }

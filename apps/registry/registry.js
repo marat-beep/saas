@@ -51,13 +51,14 @@
       rpc('app_ref_tech_routes_list', { p_token: token }).catch(function () { return []; }),
       rpc('app_ref_edm_list', { p_token: token, p_category: null }).catch(function () { return []; }),
       rpc('app_ref_fixtures_list', { p_token: token, p_category: null }).catch(function () { return []; }),
-      rpc('app_ref_techdata_list', { p_token: token, p_kind: null, p_q: null }).catch(function () { return []; })
+      rpc('app_ref_techdata_list', { p_token: token, p_kind: null, p_q: null }).catch(function () { return []; }),
+      rpc('app_op_norms_list', { p_token: token, p_q: null }).catch(function () { return []; })
     ]).then(function (r) {
       eq = r[0] || []; mats = r[1] || []; ops = r[2] || []; tps = r[3] || []; routes = r[4] || []; orders = r[5] || []; wcs = r[6] || []; refs = r[7] || [];
       tech.cutting = r[8] || []; tech.tools = r[9] || []; tech.machines = r[10] || []; tech.fits = r[11] || [];
       tech.fasteners = r[12] || []; tech.heat = r[13] || []; tech.fluids = r[14] || []; tech.processes = r[15] || [];
       tech.tolerances = r[16] || []; tech.threads = r[17] || []; tech.roughness = r[18] || []; tech.hardness = r[19] || []; tech.coatings = r[20] || [];
-      tech.estd = r[21] || []; tech.tech_routes = r[22] || []; tech.edm = r[23] || []; tech.fixtures = r[24] || []; tech.techdata = r[25] || [];
+      tech.estd = r[21] || []; tech.tech_routes = r[22] || []; tech.edm = r[23] || []; tech.fixtures = r[24] || []; tech.techdata = r[25] || []; tech.opnorms = r[26] || [];
       renderEq(); renderMat(); renderOp(); renderTp(); renderRt(); renderRef(); renderTech();
       $('#tpMat').innerHTML = opt('— нет —', '') + mats.map(function (m) { return opt(m.name, m.id); }).join('');
       $('#stOp').innerHTML = ops.map(function (o) { return opt(o.name + ' (' + kLabel(o.kind) + ')', o.id); }).join('');
@@ -156,7 +157,8 @@
     fixtures: [['category', 'Категория'], ['name', 'Наименование'], ['purpose', 'Назначение'], ['material', 'Материал'], ['standard', 'ГОСТ'], ['note', '']],
     casting: [['category', 'Раздел'], ['name', 'Наименование'], ['value', 'Значение'], ['note', 'Примечание']],
     forging: [['category', 'Раздел'], ['name', 'Наименование'], ['value', 'Значение'], ['note', 'Примечание']],
-    welding: [['category', 'Раздел'], ['name', 'Наименование'], ['value', 'Значение'], ['note', 'Примечание']]
+    welding: [['category', 'Раздел'], ['name', 'Наименование'], ['value', 'Значение'], ['note', 'Примечание']],
+    opnorms: [['operation', 'Операция'], ['unit_min', 'Норма, мин/шт'], ['note', 'Примечание']]
   };
   function cellV(v) { if (v == null || v === '') return ''; if (typeof v === 'number') return fmt(v); return esc(String(v)); }
   function renderTech() {
@@ -412,5 +414,17 @@
   if (_tw) _tw.addEventListener('click', function () {
     if (!window.AppTechWizard) { ui.toast('Мастер не подключён'); return; }
     window.AppTechWizard.open({ token: token, onDone: function () { load(); } });
+  });
+  var _na = document.getElementById('normAdd');
+  if (_na) _na.addEventListener('click', function () {
+    ui.formDialog({ title: 'Норма времени операции', okText: 'Сохранить', fields: [
+      { name: 'op', label: 'Операция (наименование)', required: true, value: '' },
+      { name: 'min', label: 'Норма, мин/шт', type: 'number', value: 10 },
+      { name: 'note', label: 'Примечание' }
+    ] }).then(function (v) {
+      if (!v) return;
+      rpc('app_op_norm_save', { p_token: token, p_operation: v.op, p_unit_min: Number(v.min) || 0, p_note: v.note })
+        .then(function (r) { var x = r && r[0]; ui.toast((x && x.message) || 'Сохранено', x && x.ok ? 'ok' : 'err'); if (x && x.ok) load(); });
+    });
   });
 })();

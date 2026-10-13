@@ -80,8 +80,10 @@
               host.innerHTML = '<span class="note">Загрузка…</span>';
               rpc('app_tech_wizard_preview', { p_token: ctx.token, p_code: d.code }).then(function (rows) {
                 rows = rows || [];
-                host.innerHTML = rows.length ? '<table class="mini"><thead><tr><th class="num">№</th><th>Операция</th><th>Оборудование</th><th>Требования</th></tr></thead><tbody>' +
-                  rows.map(function (s, i) { return '<tr><td class="num">' + (i + 1) + '</td><td>' + esc(s.operation) + '</td><td>' + esc(s.equipment) + '</td><td>' + esc(s.note || '') + '</td></tr>'; }).join('') + '</tbody></table>'
+                var total = rows.reduce(function (a, s) { return a + num(s.unit_min); }, 0);
+                host.innerHTML = rows.length ? '<table class="mini"><thead><tr><th class="num">№</th><th>Операция</th><th>Оборудование</th><th>Требования</th><th class="num">Норма, мин/шт</th></tr></thead><tbody>' +
+                  rows.map(function (s, i) { return '<tr><td class="num">' + (i + 1) + '</td><td>' + esc(s.operation) + '</td><td>' + esc(s.equipment) + '</td><td>' + esc(s.note || '') + '</td><td class="num">' + num(s.unit_min) + '</td></tr>'; }).join('') +
+                  '</tbody><tfoot><tr><td colspan="4" style="text-align:right;color:var(--muted);">Итого на 1 шт:</td><td class="num"><b>' + total + '</b></td></tr></tfoot></table>'
                   : '<span class="note">Состав не задан в типовом маршруте.</span>';
               }).catch(function (e) { host.innerHTML = '<span class="note">Ошибка: ' + esc(e.message) + '</span>'; });
             } },
