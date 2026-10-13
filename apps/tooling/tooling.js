@@ -67,7 +67,8 @@
         '<div class="toolbar mt">' +
         '<button class="btn secondary" data-use="' + t.id + '" data-name="' + esc(t.name) + '" style="width:auto;padding:8px 14px;">Учесть наработку</button>' +
         '<button class="btn secondary" data-resh="' + t.id + '" style="width:auto;padding:8px 14px;">Заточка</button>' +
-        '</div></div>';
+        '<button class="btn secondary" data-usage="' + t.id + '" style="width:auto;padding:8px 14px;">Списания</button>' +
+        '</div><div id="use_' + t.id + '"></div></div>';
     }).join('') : '<span class="note">Инструмента нет.</span>';
     $$('#list [data-use]').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -86,6 +87,18 @@
         rpc('app_tool_life_resharpen', { p_token: token, p_id: b.dataset.resh, p_note: null })
           .then(function (d) { var r = d && d[0]; ui.toast((r && r.message) || 'Готово'); window.Auth.log('Заточка инструмента', ''); load(); })
           .catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+      });
+    });
+    $$('#list [data-usage]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var host = document.getElementById('use_' + b.dataset.usage);
+        if (host.innerHTML) { host.innerHTML = ''; return; }
+        rpc('app_tool_usage_list', { p_token: token, p_tool_life_id: b.dataset.usage }).then(function (rows) {
+          rows = rows || [];
+          host.innerHTML = rows.length ? '<table class="mini mt"><thead><tr><th>Дата</th><th>Наряд</th><th class="num">Мин</th><th>Примечание</th></tr></thead><tbody>' +
+            rows.map(function (r) { return '<tr><td class="muted">' + new Date(r.created_at).toLocaleString('ru-RU') + '</td><td>' + esc(r.naryad || '—') + '</td><td class="num">' + num(r.minutes) + '</td><td>' + esc(r.note || '') + '</td></tr>'; }).join('') + '</tbody></table>'
+            : '<span class="note">Списаний нет — наработка списывается автоматически при выполнении операции наряда.</span>';
+        }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
       });
     });
   }
