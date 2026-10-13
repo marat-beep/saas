@@ -32,6 +32,11 @@
   .estatus{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:.72rem;color:var(--emuted);background:var(--ehead);border:1px solid var(--eborder);border-radius:9px;padding:5px 9px}
   .estatus i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:4px;vertical-align:middle}
   .pal-g{font-size:.66rem;text-transform:uppercase;letter-spacing:.04em;color:var(--emuted);margin:8px 0 5px;font-weight:800}
+  .pal-h{width:100%;display:flex;gap:6px;align-items:center;background:transparent;border:0;color:var(--emuted);font:inherit;font-size:.66rem;text-transform:uppercase;letter-spacing:.04em;font-weight:800;margin:8px 0 5px;padding:2px 0;cursor:pointer}
+  .pal-h .cr{font-size:.72rem}
+  .etop input[type=range]{width:110px;min-height:auto;padding:0}
+  .editor:fullscreen{border-radius:0;height:100vh;overflow:auto;padding:10px}
+  .editor:fullscreen #cvWrap{height:calc(100vh - 210px)}
   .pal-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
   .pal-i{display:flex;flex-direction:column;gap:2px;align-items:flex-start;border:1px solid var(--eborder);border-radius:9px;background:var(--esurf);color:var(--etext);padding:7px 8px;font-size:.7rem;cursor:pointer;text-align:left;line-height:1.15}
   .pal-i:hover{border-color:var(--accent);background:rgba(16,185,129,.10)} .pal-i span{font-size:1rem}
@@ -80,6 +85,10 @@
         <button class="btn secondary" id="zPlan" title="Весь план">Весь план</button>
         <button class="btn secondary" id="zi" title="Приблизить">＋</button>
         <button class="btn secondary" id="zFit" title="100%">100%</button>
+        <button class="btn secondary" id="zStage" title="Масштаб по этапу «Новое»">Этап</button>
+        <input type="range" id="zSlider" min="20" max="300" value="100" title="Масштаб">
+        <span class="seg" id="navSeg"><button id="navL" title="Влево">←</button><button id="navU" title="Вверх">↑</button><button id="navD" title="Вниз">↓</button><button id="navR" title="Вправо">→</button></span>
+        <button class="btn secondary" id="fsBtn" title="Развернуть на весь экран">⤢ Развернуть</button>
         <label class="ck"><input type="checkbox" id="gridChk" checked> Сетка</label>
         <label class="ck"><input type="checkbox" id="snapChk" checked> Привязка</label>
         <span class="seg" id="stageSeg"><button class="active" data-s="new">Новое</button><button data-s="exist">Действующее</button><button data-s="future">Будущее</button></span>
@@ -152,7 +161,7 @@
   <script src="../../assets/js/nav.js?v=108"></script>
   <script src="../../assets/js/shell.js?v=75"></script>
   <script src="../../assets/js/module-report.js?v=3"></script>
-  <script src="layout.js?v=5"></script>
+  <script src="layout.js?v=6"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=2"></script>
 </body>
