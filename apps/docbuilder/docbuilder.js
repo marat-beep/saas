@@ -6,7 +6,7 @@
 (function () {
   'use strict';
   var ui = window.AppUI, $ = ui.qs, SB = window.SB;
-  var token = null, role = null, types = [], list = [], editId = null, curId = null;
+  var token = null, role = null, types = [], list = [], editId = null, curId = null, fxResult = null;
 
   function esc(v) { return ui.esc(v); }
   function rpc(n, a) { return SB.rpc(n, a).then(function (r) { if (r.error) throw new Error(r.error.message); return r.data; }); }
@@ -59,6 +59,13 @@
         if (values[f.code]) el.value = values[f.code];
       });
     });
+    populateFx();
+  }
+
+  function populateFx() {
+    var sel = document.getElementById('fxField'); if (!sel) return;
+    var codes = ui.qsa('#dForm [data-code]').map(function (w) { return w.getAttribute('data-code'); });
+    sel.innerHTML = '<option value="">— поле —</option>' + codes.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join('');
   }
 
   function collectFields() {
@@ -231,6 +238,18 @@
     }
   });
   $('#dReset').addEventListener('click', resetForm);
+  $('#fxEval').addEventListener('click', function () {
+    var expr = $('#fxExpr').value.trim(); if (!expr) { $('#fxOut').textContent = 'Введите формулу'; return; }
+    rpc('app_doc_formula_eval', { p_token: token, p_expr: expr, p_values: collectFields() })
+      .then(function (r) { var x = r && r[0]; if (!x || !x.ok) { $('#fxOut').textContent = (x && x.message) || 'Ошибка'; fxResult = null; return; } fxResult = x.result; $('#fxOut').textContent = '= ' + Number(x.result).toLocaleString('ru-RU'); })
+      .catch(function (e) { fxResult = null; $('#fxOut').textContent = 'Ошибка: ' + e.message; });
+  });
+  $('#fxApply').addEventListener('click', function () {
+    var code = $('#fxField').value; if (!code) { $('#fxOut').textContent = 'Выберите поле'; return; }
+    var el = $('#f_' + code); if (!el) { $('#fxOut').textContent = 'Поле не найдено'; return; }
+    if (fxResult == null) { $('#fxOut').textContent = 'Сначала вычислите'; return; }
+    el.value = String(fxResult); $('#fxOut').textContent = 'Записано в ' + code;
+  });
   $('#fType2').addEventListener('change', loadList);
   $('#q').addEventListener('input', loadList);
   $('#pvPrint').addEventListener('click', function () { window.print(); });

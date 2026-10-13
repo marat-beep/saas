@@ -31,6 +31,17 @@
       </div>
       <p class="note">Поля ниже строятся по выбранному типу. Заполните и нажмите «Создать документ» — номер присвоится автоматически.</p>
       <div id="dForm" class="form-grid mt"><span class="note">Выберите тип документа.</span></div>
+      <details class="panel mt" id="fxPanel">
+        <summary class="panel-sum"><b>🧮 Формулы и вычисляемые поля</b> <span class="muted">— подстановка {полей} и арифметика</span></summary>
+        <div class="toolbar mt">
+          <input type="text" id="fxExpr" class="search" placeholder="напр. {qty}*{price}*1.2 или {total}/{qty}">
+          <button class="btn secondary" id="fxEval" style="width:auto;padding:8px 14px;">Вычислить</button>
+          <select id="fxField" style="padding:8px 11px;border:1px solid var(--border);border-radius:9px;"></select>
+          <button class="btn secondary" id="fxApply" style="width:auto;padding:8px 14px;">Записать в поле</button>
+          <span class="note" id="fxOut"></span>
+        </div>
+        <p class="note">Доступны текущие поля документа как <code>{имя}</code>. Поддерживаются +, −, ×, ÷ и скобки. Вычисленное можно записать в выбранное поле.</p>
+      </details>
       <div class="btn-row mt">
         <button class="btn" id="dCreate">Создать документ</button>
         <button class="btn secondary" id="dReset">Очистить</button>
@@ -96,7 +107,7 @@
   <script src="../../assets/js/support-widget.js?v=1"></script>
   <script src="../../assets/js/nav.js?v=108"></script>
   <script src="../../assets/js/shell.js?v=75"></script>
-  <script src="docbuilder.js?v=5"></script>
+  <script src="docbuilder.js?v=6"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=2"></script>
 </body>
