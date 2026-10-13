@@ -34,7 +34,9 @@
         <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="kCreate">Создать ключ</button></div>
       </div>
       <div class="msg" id="kMsg"></div>
+      <div class="toolbar mt"><input type="search" class="search" id="q" placeholder="Поиск: ключ, назначение, статус…"></div>
       <div style="overflow:auto;"><table class="tab" id="keys"></table></div>
+      <script>document.addEventListener('DOMContentLoaded',function(){if(window.AppUI)AppUI.quickSearch('q','keys');});</script>
     </div>
 
     <div class="card">

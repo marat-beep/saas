@@ -38,7 +38,9 @@
 
     <div class="card">
       <h2>Значения <span class="note" id="cnt"></span></h2>
+      <div class="toolbar mt"><input type="search" class="search" id="q" placeholder="Поиск: модуль, пользователь, действие…"></div>
       <div id="list" class="mt"><span class="note">Загрузка…</span></div>
+      <script>document.addEventListener('DOMContentLoaded',function(){if(window.AppUI)AppUI.quickSearch('q','list');});</script>
     </div>
   </main>
 

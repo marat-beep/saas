@@ -80,7 +80,9 @@
       <div class="card">
         <h2>Пользователи <span class="note" id="uCount"></span></h2>
         <div class="msg" id="lMsg"></div>
+        <div class="toolbar mt"><input type="search" class="search" id="q" placeholder="Поиск: логин, ФИО, роль…"></div>
         <div style="overflow:auto;"><table class="tab2" id="users"></table></div>
+        <script>document.addEventListener('DOMContentLoaded',function(){if(window.AppUI)AppUI.quickSearch('q','users');});</script>
       </div>
     </section>
 

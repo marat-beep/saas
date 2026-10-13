@@ -28,7 +28,9 @@
         <div class="field"><label>Макс. уровень</label><input type="number" id="skMax" value="5" min="1" max="10"></div>
         <div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="skSave">Добавить навык</button></div>
       </div>
+      <div class="toolbar mt"><input type="search" class="search" id="q" placeholder="Поиск по компетенциям, матрице, планам…"></div>
       <div id="skList" class="mt"><span class="note">Загрузка…</span></div>
+      <script>document.addEventListener('DOMContentLoaded',function(){if(window.AppUI){['skList','mxList','tpList'].forEach(function(id){AppUI.quickSearch('q',id);});}});</script>
     </div>
 
     <div class="card">

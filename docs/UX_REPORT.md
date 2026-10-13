@@ -1,19 +1,12 @@
 # UX-отчёт: поиск и пустые состояния по модулям (U3)
 
-_Автогенерация `tools/ux-check.ps1`. Всего модулей: 98; с похожими на список блоками: 61._
+_Автогенерация `tools/ux-check.ps1`. Всего модулей: 98; с похожими на список блоками: 62._
 
 ## Модули с списками без поиска
 
-- `apps/api`
-- `apps/billing`
-- `apps/calendar`
-- `apps/competences`
 - `apps/economics`
-- `apps/org`
-- `apps/reports`
 - `apps/roles`
 - `apps/terminal`
-- `apps/usage`
 
 ## Модули без явного пустого состояния
 
@@ -43,19 +36,19 @@ _Автогенерация `tools/ux-check.ps1`. Всего модулей: 98;
 | adoption | — | **нет** | да |
 | ai | — | да | да |
 | announcements | да | да | да |
-| api | да | **нет** | да |
+| api | да | да | да |
 | assistant | — | да | да |
 | auth | — | **нет** | да |
 | bi | — | **нет** | **нет** |
-| billing | да | **нет** | да |
+| billing | да | да | да |
 | bom | да | да | да |
 | bugbox | да | да | да |
 | builder | да | да | да |
 | calc | да | да | да |
-| calendar | да | **нет** | да |
+| calendar | да | да | да |
 | claims | да | да | да |
 | client | — | **нет** | да |
-| competences | да | **нет** | да |
+| competences | да | да | да |
 | config | — | **нет** | да |
 | crm | да | да | да |
 | dashboard | — | **нет** | да |
@@ -97,11 +90,11 @@ _Автогенерация `tools/ux-check.ps1`. Всего модулей: 98;
 | oee | да | да | да |
 | onboarding | — | да | да |
 | orders | да | да | да |
-| org | да | **нет** | да |
+| org | да | да | да |
 | panel | — | да | **нет** |
 | partners | да | да | да |
 | passport | да | да | да |
-| planning | — | да | да |
+| planning | да | да | да |
 | platform | да | да | **нет** |
 | plm | да | да | да |
 | pmo | — | **нет** | **нет** |
@@ -113,7 +106,7 @@ _Автогенерация `tools/ux-check.ps1`. Всего модулей: 98;
 | quality | — | да | да |
 | registry | да | да | да |
 | remarks | — | **нет** | **нет** |
-| reports | да | **нет** | да |
+| reports | да | да | да |
 | reverse | да | да | да |
 | roles | да | **нет** | да |
 | safety | — | **нет** | **нет** |
@@ -131,7 +124,7 @@ _Автогенерация `tools/ux-check.ps1`. Всего модулей: 98;
 | terminal | да | **нет** | да |
 | tkp | да | да | да |
 | tooling | да | да | да |
-| usage | да | **нет** | да |
+| usage | да | да | да |
 | warehouse | да | да | да |
 | whitelabel | — | **нет** | **нет** |
 | workflow | — | **нет** | да |

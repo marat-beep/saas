@@ -139,5 +139,30 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
   })();
 
-  g.AppUI = { qs: qs, qsa: qsa, esc: esc, toast: toast, fmtDate: fmtDate, dialog: dialog, formDialog: formDialog, confirmDialog: confirmDialog };
+  // Универсальный клиентский поиск по списку: скрывает строки/карточки, не содержащие запрос.
+  // Использование: AppUI.quickSearch('q', 'list') — input #q фильтрует содержимое #list.
+  function quickSearch(input, box, rowSel) {
+    var inp = typeof input === 'string' ? document.getElementById(input) : input;
+    var host = typeof box === 'string' ? document.getElementById(box) : box;
+    if (!inp || !host) return null;
+    function rowsOf() {
+      if (rowSel) return qsa(rowSel, host);
+      var tr = qsa('tbody tr', host); if (tr.length) return tr;
+      var oc = qsa('.ocard', host); if (oc.length) return oc;
+      var cd = qsa('.card, .row, .item, .mtile', host); if (cd.length) return cd;
+      return Array.prototype.filter.call(host.children, function (el) { return el.tagName !== 'SCRIPT' && el.tagName !== 'STYLE'; });
+    }
+    function apply() {
+      var s = (inp.value || '').trim().toLowerCase(), rows = rowsOf(), n = 0;
+      rows.forEach(function (r) {
+        var hit = !s || (r.textContent || '').toLowerCase().indexOf(s) >= 0;
+        r.style.display = hit ? '' : 'none'; if (hit) n++;
+      });
+      return n;
+    }
+    inp.addEventListener('input', apply);
+    if (window.MutationObserver) { try { new MutationObserver(function () { apply(); }).observe(host, { childList: true, subtree: true }); } catch (e) {} }
+    return apply;
+  }
+  g.AppUI = { qs: qs, qsa: qsa, esc: esc, toast: toast, fmtDate: fmtDate, dialog: dialog, formDialog: formDialog, confirmDialog: confirmDialog, quickSearch: quickSearch };
 })(window);

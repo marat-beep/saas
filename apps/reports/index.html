@@ -99,7 +99,9 @@
         <div class="field"><label>Адрес/получатель</label><input type="text" id="scTarget" placeholder="mail@example.com"></div>
       </div>
       <button class="btn" id="scSave">Сохранить расписание</button>
+      <div class="toolbar mt"><input type="search" class="search" id="q" placeholder="Поиск: отчёт, расписание…"></div>
       <div id="schedList" class="mt"></div>
+      <script>document.addEventListener('DOMContentLoaded',function(){if(window.AppUI)AppUI.quickSearch('q','schedList');});</script>
     </div>
 
     <div class="card">

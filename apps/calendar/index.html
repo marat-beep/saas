@@ -50,7 +50,9 @@
         <button class="btn secondary" id="reload" style="width:auto;padding:9px 14px;">Показать</button>
       </div>
       <h2>Календарь <span class="note" id="cnt"></span></h2>
+      <div class="toolbar mt"><input type="search" class="search" id="q" placeholder="Поиск: событие, участник, тип…"></div>
       <div style="overflow:auto;" id="list"><span class="note">Загрузка…</span></div>
+      <script>document.addEventListener('DOMContentLoaded',function(){if(window.AppUI)AppUI.quickSearch('q','list');});</script>
     </div>
   </main>
 
