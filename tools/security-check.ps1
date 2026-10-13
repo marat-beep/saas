@@ -28,7 +28,13 @@ foreach ($f in $targets) {
   if ([regex]::IsMatch($t, $patSecret)) { Add-F 'F' 'Critical' "Найден секретный ключ (sb_secret_*)" 'Немедленно убрать из клиента и отозвать.' $rel 1 3 }
   if ([regex]::IsMatch($t, $patSbp))    { Add-F 'F' 'Critical' "Найден management-токен (sbp_*)" 'Секрет не должен попадать в клиент/репозиторий.' $rel 1 3 }
   if ([regex]::IsMatch($t, '"role"\s*:\s*"service_role"')) { Add-F 'F' 'Critical' "JWT с ролью service_role в клиенте" 'Секретный ключ не должен использоваться в браузере.' $rel 1 3 }
-  elseif ([regex]::IsMatch($t, $patSvc)) { Add-F 'F' 'Info' "Упоминание service_role (не ключ)" 'Проверить, что это лишь комментарий/документация.' $rel 3 1 }
+  else {
+    # упоминание service_role вне комментариев (комментарии/документация не считаются)
+    $tnc = [regex]::Replace($t, '(?s)/\*.*?\*/', ' ')
+    $tnc = [regex]::Replace($tnc, '(?m)//.*$', ' ')
+    $tnc = [regex]::Replace($tnc, '(?m)--.*$', ' ')
+    if ([regex]::IsMatch($tnc, $patSvc)) { Add-F 'F' 'Info' "Упоминание service_role (не ключ)" 'Проверить, что это лишь комментарий/документация.' $rel 3 1 }
+  }
   if ([regex]::IsMatch($t, $patPwd))    { Add-F 'F' 'Minor' "Возможный пароль в коде" 'Проверить хардкод.' $rel 3 2 }
 }
 

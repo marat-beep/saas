@@ -1,19 +1,9 @@
 {
     "tool":  "integrity",
-    "at":  "2026-10-13T14:51:27",
+    "at":  "2026-10-13T14:57:58",
     "migrations":  231,
     "max":  231,
     "findings":  [
-                     {
-                         "area":  "E",
-                         "sev":  "Info",
-                         "title":  "Знаки \u0027?\u0027 в строковых литералах: 90",
-                         "detail":  "Проверить на порчу кодировки UTF-8 (many могут быть легитимны).",
-                         "evidence":  "supabase/migrations",
-                         "method":  "integrity",
-                         "effort":  3,
-                         "impact":  1,
-                         "status":  "open"
-                     }
+
                  ]
 }

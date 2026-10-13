@@ -1,17 +1,7 @@
 {
     "tool":  "security",
-    "at":  "2026-10-12T15:58:01",
+    "at":  "2026-10-13T14:58:00",
     "findings":  [
-                     {
-                         "area":  "F",
-                         "sev":  "Info",
-                         "title":  "Упоминание service_role (не ключ)",
-                         "detail":  "Проверить, что это лишь комментарий/документация.",
-                         "evidence":  "\\assets\\js\\config.js",
-                         "method":  "security",
-                         "effort":  3,
-                         "impact":  1,
-                         "status":  "open"
-                     }
+
                  ]
 }

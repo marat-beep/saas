@@ -1,51 +1,15 @@
 [
     {
-        "area":  "E",
-        "sev":  "Info",
-        "title":  "Знаки \u0027?\u0027 в строковых литералах: 89",
-        "detail":  "Проверить на порчу кодировки UTF-8 (many могут быть легитимны).",
-        "evidence":  "supabase/migrations",
-        "method":  "integrity",
-        "effort":  3,
-        "impact":  1,
-        "status":  "open",
-        "id":  "F-0001"
-    },
-    {
         "area":  "H",
         "sev":  "Info",
-        "title":  "Много RPC-функций: 1199",
+        "title":  "Много RPC-функций: 1223",
         "detail":  "Проверять пагинацию/индексы горячих списков.",
         "evidence":  "supabase/migrations",
         "method":  "perf",
         "effort":  3,
         "impact":  1,
         "status":  "open",
-        "id":  "F-0002"
-    },
-    {
-        "area":  "C",
-        "sev":  "Minor",
-        "title":  "Очистка сценарных данных: не выполнено шагов 1",
-        "detail":  "{\"message\":\"ThrottlerException: Too Many Requests\"}",
-        "evidence":  "cleanup",
-        "method":  "scenario",
-        "effort":  2,
-        "impact":  1,
-        "status":  "open",
-        "id":  "F-0003"
-    },
-    {
-        "area":  "F",
-        "sev":  "Info",
-        "title":  "Упоминание service_role (не ключ)",
-        "detail":  "Проверить, что это лишь комментарий/документация.",
-        "evidence":  "\\assets\\js\\config.js",
-        "method":  "security",
-        "effort":  3,
-        "impact":  1,
-        "status":  "open",
-        "id":  "F-0004"
+        "id":  "F-0001"
     },
     {
         "area":  "A",
@@ -57,6 +21,6 @@
         "effort":  3,
         "impact":  1,
         "status":  "open",
-        "id":  "F-0005"
+        "id":  "F-0002"
     }
 ]

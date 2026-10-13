@@ -12,16 +12,31 @@ param(
 $ErrorActionPreference = 'Stop'
 if ([string]::IsNullOrWhiteSpace($Token)) { $Token = Read-Host 'Введите Management-токен (sbp_...)' }
 
+$script:SqlMinGapMs = 400
+$script:SqlLast = [DateTime]::UtcNow
 function Sql([string]$q) {
-  $json = @{ query = $q } | ConvertTo-Json -Compress
-  $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
-  try {
-    return Invoke-RestMethod -Method Post -Uri "https://api.supabase.com/v1/projects/$Project/database/query" `
-      -Headers @{ Authorization = "Bearer $Token" } -ContentType 'application/json; charset=utf-8' -Body $bytes -TimeoutSec 120
-  } catch {
-    Write-Host ("Ошибка SQL: " + $_.Exception.Message) -ForegroundColor Red
-    if ($_.ErrorDetails) { Write-Host $_.ErrorDetails.Message }
-    throw
+  $attempt = 0
+  while ($true) {
+    $attempt++
+    $gap = [int]([DateTime]::UtcNow - $script:SqlLast).TotalMilliseconds
+    if ($gap -lt $script:SqlMinGapMs) { Start-Sleep -Milliseconds ($script:SqlMinGapMs - $gap) }
+    $script:SqlLast = [DateTime]::UtcNow
+    $json = @{ query = $q } | ConvertTo-Json -Compress
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+    try {
+      return Invoke-RestMethod -Method Post -Uri "https://api.supabase.com/v1/projects/$Project/database/query" `
+        -Headers @{ Authorization = "Bearer $Token" } -ContentType 'application/json; charset=utf-8' -Body $bytes -TimeoutSec 120
+    } catch {
+      $msg = ''
+      try { $msg = [string]$_.ErrorDetails.Message } catch {}
+      if (-not $msg) { try { $msg = [string]$_.Exception.Message } catch {} }
+      if (($msg -match 'ThrottlerException|429|Too Many Requests|connection was closed|503|upstream connect') -and $attempt -le 5) {
+        Start-Sleep -Seconds ([Math]::Min(2 * $attempt, 10)); continue
+      }
+      Write-Host ("Ошибка SQL: " + $_.Exception.Message) -ForegroundColor Red
+      if ($_.ErrorDetails) { Write-Host $_.ErrorDetails.Message }
+      throw
+    }
   }
 }
 function Val($r) { if ($r.token) { return $r.token }; if ($r.value) { return (@($r.value)[0]) }; return $null }

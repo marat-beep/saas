@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 # 3DMP Service - tools/apply-migration.ps1
 # Applies a SQL file (migration) to the Supabase project via Management API (UTF-8).
 # Token sbp_... : -Token parameter, env SUPABASE_ACCESS_TOKEN, or -TokenFile.

@@ -38,10 +38,17 @@ if (Test-Path $apply) {
   if ($markers -ne $migs.Count) { Add-F 'E' 'Major' "apply_all.sql не синхронизирован с миграциями" "Маркеров $markers, миграций $($migs.Count)." 'supabase/apply_all.sql' 1 2 }
 } else { Add-F 'E' 'Critical' "Нет supabase/apply_all.sql" 'Единый файл применения отсутствует.' 'supabase/' 1 3 }
 
-# кодировка: признаки порчи (ромб/знаки вопроса в текстовых литералах-комментариях) — мягкая проверка по FAQ-текстам
+# кодировка: признаки порчи (ромб/знаки вопроса) — только '?' рядом с кириллицей или '??'.
+# Легитимные '?' (LIKE '%?%', проверки, JSON-операторы, https://…?…, '?'-подсказки) не считаются.
 $qmark = 0
-foreach ($f in $migs) { $qmark += ([regex]::Matches((Get-Content $f.FullName -Raw), "'[^']*\?[^']*'")).Count }
-if ($qmark -gt 0) { Add-F 'E' 'Info' "Знаки '?' в строковых литералах: $qmark" 'Проверить на порчу кодировки UTF-8 (many могут быть легитимны).' 'supabase/migrations' 3 1 }
+foreach ($f in $migs) {
+  $raw = Get-Content $f.FullName -Raw
+  foreach ($m in [regex]::Matches($raw, "'[^']*'")) {
+    # порча — это '?' ВНУТРИ слова (кириллица-?-кириллица) или '??'; '?' в конце вопроса — норма.
+    if ($m.Value -match '[А-Яа-яЁё]\?[А-Яа-яЁё]' -or $m.Value -match '\?\?') { $qmark++ }
+  }
+}
+if ($qmark -gt 0) { Add-F 'E' 'Info' "Признаки порчи кодировки ('?' рядом с кириллицей): $qmark" 'Проверить UTF-8; ложные срабатывания LIKE/фильтров исключены.' 'supabase/migrations' 3 1 }
 
 $out = [ordered]@{ tool = 'integrity'; at = (Get-Date).ToString('s'); migrations = $migs.Count; max = $maxN; findings = $findings }
 New-Item -ItemType Directory -Force -Path (Join-Path $Root 'audit\checks') | Out-Null
