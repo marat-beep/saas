@@ -39,15 +39,37 @@
       if (!s) return true;
       return [t.number, t.subject, t.counterparty, t.customer].join(' ').toLowerCase().indexOf(s) >= 0;
     });
-    $('#list').innerHTML = '<table class="table" style="width:100%;border-collapse:collapse"><thead><tr><th>Номер</th><th>Дата</th><th>Заказчик</th><th>Предмет</th><th>Срок</th><th>Цена</th><th>Статус</th></tr></thead><tbody>' +
+    $('#list').innerHTML = '<table class="table" style="width:100%;border-collapse:collapse"><thead><tr><th>Номер</th><th>Дата</th><th>Заказчик</th><th>Предмет</th><th>Срок</th><th>Цена</th><th>Статус</th><th>Действия</th></tr></thead><tbody>' +
       (list.length ? list.map(function (t) {
         return '<tr style="border-bottom:1px solid var(--border)"><td><b>' + esc(t.number) + '</b></td><td>' + fmt(t.tkp_date) + '</td>' +
           '<td>' + esc(t.customer || t.counterparty || '—') + '</td><td>' + esc(t.subject) + '</td>' +
           '<td>' + fmt(t.valid_until) + (t.expired ? ' <span class="badge cancelled">просрочено</span>' : '') + '</td><td>' + money(t.price) + '</td>' +
           '<td><select data-st="' + t.id + '" style="padding:5px;border:1px solid var(--border);border-radius:7px;font-size:.76rem;">' +
           Object.keys(ST).map(function (k) { return '<option value="' + k + '"' + (t.status === k ? ' selected' : '') + '>' + ST[k] + '</option>'; }).join('') +
-          '</select></td></tr>';
-      }).join('') : '<tr><td colspan="7"><span class="note">ТКП нет.</span></td></tr>') + '</tbody></table>';
+          '</select></td>' +
+          '<td style="white-space:nowrap"><button class="act" data-doc="' + t.id + '" title="Создать документ ТКП">📄</button> <button class="act" data-kp="' + t.id + '" title="КП из ТКП">КП</button> <button class="act" data-ord="' + t.id + '" title="Заявка из ТКП">Заявка</button> <button class="act" data-print="' + t.id + '" title="Печать">🖨</button></td></tr>';
+      }).join('') : '<tr><td colspan="8"><span class="note">ТКП нет.</span></td></tr>') + '</tbody></table>';
+    function act(sel, rpcName, okMsg) {
+      $$('#list [' + sel + ']').forEach(function (b) {
+        b.addEventListener('click', function () {
+          rpc(rpcName, { p_token: token, p_id: b.getAttribute(sel.replace('data-', 'data-')) }).then(function (d) {
+            var r = d && d[0]; ui.toast((r && (r.message || okMsg)) || 'Готово', r && r.ok === false ? 'err' : 'ok'); window.Auth.log('ТКП', okMsg); load();
+          }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+        });
+      });
+    }
+    act('data-doc', 'app_tkp_to_doc', 'ТКП → документ');
+    act('data-kp', 'app_tkp_to_quote', 'ТКП → КП');
+    act('data-ord', 'app_tkp_to_order', 'ТКП → заявка');
+    $$('#list [data-print]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        rpc('app_tkp_print_text', { p_token: token, p_id: b.dataset.print }).then(function (d) {
+          var r = d && d[0]; if (!r) return; var w = window.open('', '_blank'); if (!w) { ui.toast('Разрешите всплывающие окна', 'err'); return; }
+          w.document.write('<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>' + esc(r.number || 'ТКП') + '</title></head><body style="font:13px/1.5 Consolas,monospace;white-space:pre-wrap;padding:28px;">' + esc(r.content || '') + '</body></html>');
+          w.document.close(); w.focus(); w.print();
+        }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+      });
+    });
     $$('#list [data-st]').forEach(function (sel) {
       sel.addEventListener('change', function () {
         rpc('app_tkp_set_status', { p_token: token, p_id: sel.dataset.st, p_status: sel.value })
@@ -63,6 +85,17 @@
     filter = b.dataset.f; render();
   });
   $('#q').addEventListener('input', function () { q = this.value; render(); });
+  $('#expBtn').addEventListener('click', function () {
+    rpc('app_tkp_expiring', { p_token: token, p_days: 30 }).then(function (rows) {
+      rows = rows || [];
+      $('#tkpOut').innerHTML = rows.length ? '<div class="note">Истекают в течение 30 дней (' + rows.length + '):</div><table class="mini mt"><thead><tr><th>Номер</th><th>Предмет</th><th>Срок</th><th class="num">Осталось, дн</th></tr></thead><tbody>' +
+        rows.map(function (r) { return '<tr><td>' + esc(r.number) + '</td><td>' + esc(r.subject) + '</td><td>' + fmt(r.valid_until) + '</td><td class="num">' + r.days_left + '</td></tr>'; }).join('') + '</tbody></table>'
+        : '<span class="note">Нет ТКП, истекающих в ближайшие 30 дней.</span>';
+    }).catch(function (e) { $('#tkpOut').innerHTML = '<span class="note">Ошибка: ' + e.message + '</span>'; });
+  });
+  $('#scanBtn').addEventListener('click', function () {
+    rpc('app_tkp_expire_scan', { p_token: token }).then(function (d) { var r = d && d[0]; ui.toast((r && r.message) || 'Готово'); load(); }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+  });
   $('#fAdd').addEventListener('click', function () {
     var subj = $('#fSubject').value.trim(); if (!subj) { msg('#fMsg', 'Укажите предмет ТКП.', 'err'); return; }
     var price = parseFloat(($('#fPrice').value || '').replace(',', '.'));
