@@ -49,9 +49,9 @@
           { title: '4. Задание, наряд и документ', html: function (d) {
               return '<label>Название <span class="wz-req">*</span></label><input name="title" value="' + esc(d.title || '') + '">' +
                 '<label>Срок наряда</label><input name="due" type="date" value="' + esc(d.due || '') + '">' +
-                '<label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" name="make_naryad" ' + (d.make_naryad !== false ? 'checked' : '') + '> Наряд</label>' +
-                '<label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" name="make_tasks" ' + (d.make_tasks !== false ? 'checked' : '') + '> Сменно-суточное задание</label>' +
-                '<label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" name="make_doc" ' + (d.make_doc !== false ? 'checked' : '') + '> Документ-техкарта</label>';
+                '<label style="display:flex;gap:8px;align-items:center;font-weight:600;"><input type="checkbox" name="make_naryad" style="width:auto;flex:0 0 auto;" ' + (d.make_naryad !== false ? 'checked' : '') + '> Наряд</label>' +
+                '<label style="display:flex;gap:8px;align-items:center;font-weight:600;"><input type="checkbox" name="make_tasks" style="width:auto;flex:0 0 auto;" ' + (d.make_tasks !== false ? 'checked' : '') + '> Сменно-суточное задание</label>' +
+                '<label style="display:flex;gap:8px;align-items:center;font-weight:600;"><input type="checkbox" name="make_doc" style="width:auto;flex:0 0 auto;" ' + (d.make_doc !== false ? 'checked' : '') + '> Документ-техкарта</label>';
             }, validate: function (d) { return d.title ? null : 'Укажите название'; } }
         ],
         onSubmit: function (d) {
@@ -126,9 +126,68 @@
     }).catch(function (e) { toast('Ошибка: ' + e.message, 'err'); });
   }
 
+  /* ---------- Мастер: заказ клиента ---------- */
+  function openOrder(ctx) {
+    if (requiresWizard()) return;
+    g.AppWizard.open({
+      id: 'order', title: 'Заказ клиента', icon: '🧾', submitText: 'Создать', doneText: 'Заказ создан',
+      steps: [{ title: 'Заказ', html: function (d) {
+        return '<label>Тема <span class="wz-req">*</span></label><input name="title" value="' + esc(d.title || '') + '">' +
+          '<label>Заказчик</label><input name="customer" value="' + esc(d.customer || '') + '">' +
+          '<label>Срок</label><input name="due" type="date" value="' + esc(d.due || '') + '">' +
+          '<label>Приоритет</label><select name="priority"><option value="normal">Обычный</option><option value="high">Высокий</option><option value="critical">Критичный</option></select>' +
+          '<label>Сумма</label><input name="amount" type="number" value="' + esc(d.amount || '') + '">';
+      }, validate: function (d) { return d.title ? null : 'Укажите тему'; } }],
+      onSubmit: function (d) {
+        return rpc('app_order_create', { p_token: ctx.token, p_title: d.title, p_description: '', p_source: '', p_customer: d.customer || '', p_contact: '', p_priority: d.priority || 'normal', p_customer_id: null, p_due_date: d.due || null, p_assignee: '', p_amount: d.amount ? Number(d.amount) : null, p_order_type: 'single' })
+          .then(function (r) { var x = r && r[0]; var id = x && (x.id || x.order_id); if (!id && (!x || x.ok === false)) return (x && x.message) || 'Не удалось создать'; toast('Заказ создан', 'ok'); done(x); return null; });
+      }
+    });
+  }
+
+  /* ---------- Мастер: сервисная заявка ---------- */
+  function openSrvc(ctx) {
+    if (requiresWizard()) return;
+    g.AppWizard.open({
+      id: 'srvc', title: 'Сервисная заявка', icon: '🔧', submitText: 'Создать', doneText: 'Заявка создана',
+      steps: [{ title: 'Заявка', html: function (d) {
+        return '<label>Тема <span class="wz-req">*</span></label><input name="title" value="' + esc(d.title || '') + '">' +
+          '<label>Вид</label><select name="kind"><option value="service">Обслуживание</option><option value="repair">Ремонт</option><option value="warranty">Гарантия</option></select>' +
+          '<label>Приоритет</label><select name="priority"><option value="normal">Обычный</option><option value="high">Высокий</option><option value="critical">Критичный</option></select>' +
+          '<label>Срок</label><input name="due" type="date" value="' + esc(d.due || '') + '">' +
+          '<label>Контакт</label><input name="contact" value="' + esc(d.contact || '') + '">' +
+          '<label>Объект/адрес</label><input name="location" value="' + esc(d.location || '') + '">';
+      }, validate: function (d) { return d.title ? null : 'Укажите тему'; } }],
+      onSubmit: function (d) {
+        return rpc('app_service_save', { p_token: ctx.token, p_id: null, p_customer_id: null, p_equipment_id: null, p_title: d.title, p_kind: d.kind || 'service', p_scheduled_date: d.due || null, p_engineer: null, p_works: null, p_cost: null, p_note: null, p_priority: d.priority || 'normal', p_channel: 'manual', p_is_warranty: (d.kind === 'warranty') || null, p_contact: d.contact || null, p_location: d.location || null, p_assigned_login: null })
+          .then(function (r) { var x = r && r[0]; if (!x || !x.number) return (x && x.message) || 'Не удалось создать'; toast('Создана заявка ' + x.number, 'ok'); done(x); return null; });
+      }
+    });
+  }
+
+  /* ---------- Мастер: паспорт партии ---------- */
+  function openPassport(ctx) {
+    if (requiresWizard()) return;
+    g.AppWizard.open({
+      id: 'passport', title: 'Паспорт партии', icon: '📘', submitText: 'Создать', doneText: 'Паспорт создан',
+      steps: [{ title: 'Паспорт', html: function (d) {
+        return '<label>Изделие/партия <span class="wz-req">*</span></label><input name="product" value="' + esc(d.product || '') + '">' +
+          '<label>Серийный номер</label><input name="serial" value="' + esc(d.serial || '') + '">' +
+          '<label>Количество</label><input name="qty" type="number" min="1" value="' + esc(d.qty || 1) + '">';
+      }, validate: function (d) { return d.product ? null : 'Укажите изделие/партию'; } }],
+      onSubmit: function (d) {
+        return rpc('app_passport_create', { p_token: ctx.token, p_order_id: null, p_product: d.product, p_qc_check_id: null, p_data: {}, p_naryad_id: null, p_serial: d.serial || null, p_qty: d.qty ? Number(d.qty) : 1 })
+          .then(function (r) { var x = r && r[0]; if (!x || (!x.id && !x.number)) return (x && x.message) || 'Не удалось создать'; toast('Паспорт создан', 'ok'); done(x); return null; });
+      }
+    });
+  }
+
   var DEFS = [
     { id: 'mfg', icon: '🧭', title: 'Деталь → техпроцесс → задание, наряд и документ', desc: 'Пошагово: тип детали, материал, партия, срок → маршрут, ССЗ, наряд, техкарта.', modules: ['registry', 'assistant', 'norms', 'production', 'planning', 'mes', 'docs'], run: openMfg },
     { id: 'doc', icon: '📄', title: 'Быстрый документ', desc: 'Создать КП/договор/акт/техкарту с автоматическим номером.', modules: ['docs', 'docbuilder', 'templates', 'registry', 'tkp'], run: openDoc },
+    { id: 'order', icon: '🧾', title: 'Заказ клиента', desc: 'Быстро завести заказ: тема, заказчик, срок, приоритет, сумма.', modules: ['orders', 'crm', 'tkp', 'planning', 'economics'], run: openOrder },
+    { id: 'srvc', icon: '🔧', title: 'Сервисная заявка', desc: 'Заявка на ремонт/обслуживание с приоритетом и сроком.', modules: ['service', 'dealer', 'maintenance'], run: openSrvc },
+    { id: 'passport', icon: '📘', title: 'Паспорт партии', desc: 'Создать паспорт изделия/партии с серийным номером.', modules: ['qc', 'passport', 'quality', 'production'], run: openPassport },
     { id: 'cap', icon: '⚙', title: 'Ёмкость РЦ на дату', desc: 'Задать доступные часы рабочего центра.', modules: ['planning', 'slots'], run: openCap },
     { id: 'tool', icon: '🛠', title: 'Наработка инструмента', desc: 'Быстро списать наработку по инструменту.', modules: ['tooling', 'maintenance'], run: openTool }
   ];
