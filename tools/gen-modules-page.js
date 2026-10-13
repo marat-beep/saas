@@ -282,6 +282,7 @@ ul.feat li::before{content:'✓';position:absolute;left:0;color:var(--accent-700
       <span><b>3</b> — полезно, ниша/средняя отдача</span>
       <span><b>2</b> — вспомогательное/прототип</span>
       <span><b>Приоритет обновления:</b> <span class="b b-pri pri-high">высокий</span> <span class="b b-pri pri-mid">средний</span> <span class="b b-pri pri-low">низкий</span></span>
+      <span><b>Статус:</b> <span class="tag" style="background:#ecfdf5;border-color:#a7f3d0;color:#065f46;font-weight:700">✅ реализовано</span> <span class="tag" style="background:#fff7ed;border-color:#fed7aa;color:#9a3412;font-weight:700">◐ частично</span> — фильтр «Статус» скрывает реализованные/показывает только остаток</span>
     </div>
   </div>
 
