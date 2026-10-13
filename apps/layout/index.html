@@ -10,13 +10,13 @@
   .lwrap{display:grid;grid-template-columns:250px 1fr 300px;gap:10px;align-items:start}
   body.no-pal .lwrap{grid-template-columns:0 1fr 300px} body.no-pal .pal{display:none}
   body.no-props .lwrap{grid-template-columns:250px 1fr 0} body.no-props .side{display:none}
-  body.solo .lwrap{grid-template-columns:0 1fr 0} body.solo .pal,body.solo .side,body.solo .mstools{display:none}
+  body.solo .lwrap{grid-template-columns:0 1fr 0} body.solo .pal,body.solo .side,body.solo .appbar{display:none}
   .pal-g{font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:9px 0 5px;font-weight:800}
   .pal-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
   .pal-i{display:flex;flex-direction:column;gap:2px;align-items:flex-start;border:1px solid var(--border);border-radius:9px;background:#fff;padding:7px 8px;font-size:.7rem;cursor:pointer;text-align:left;line-height:1.15}
   .pal-i:hover{border-color:var(--accent);background:var(--accent-100)}
   .pal-i span{font-size:1rem}
-  #cvWrap{overflow:auto;border:1px solid var(--border);border-radius:12px;background:#fff;max-height:72vh}
+  #cvWrap{overflow:auto;border:1px solid var(--border);border-radius:12px;background:#fff;max-height:72vh;min-height:340px}
   #cv{display:block;background:#fff;touch-action:none}
   #cv .li{cursor:move} #cv .gl{stroke:#eef2f7;stroke-width:18} #cv .ln{fill:#334155}
   #cv .lk{stroke:#0ea5e9;stroke-width:40;stroke-dasharray:120 80;opacity:.85} #cv .rt{fill:none;stroke:#2563eb;stroke-width:50;stroke-linejoin:round;opacity:.9}
@@ -27,22 +27,26 @@
   .plrow{cursor:pointer}.plrow.on{border-color:var(--accent);background:var(--accent-100)}
   .plrow b,.lkrow span{font-size:.8rem}.plrow small{color:var(--muted);font-size:.7rem}.plrow .pl-act,.lkrow .act{margin-left:auto}
   .leg{display:flex;gap:12px;flex-wrap:wrap;font-size:.74rem;color:var(--muted)}.leg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:4px;vertical-align:middle}
-  .mstools{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0;position:sticky;top:50px;z-index:16;background:var(--bg);padding:6px 0}
-  .mstools + .mstools{top:98px}
-  .mstools select,.mstools input{width:auto;min-height:38px;padding:8px 11px;border:1px solid var(--border);border-radius:10px}
-  .mstools .search{flex:1;min-width:180px;width:auto}
-  .mstools label.btn{cursor:pointer}
+  .appbar{position:static;background:var(--bg);padding:8px 0;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+  .bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .bar button,.bar select,.bar input,.bar label.btn{width:auto}
+  .bar button{padding:8px 12px;min-height:38px}
+  .bar select,.bar input,.bar label.btn{min-height:38px;padding:8px 11px;border:1px solid var(--border);border-radius:10px}
+  .bar .search{flex:1;min-width:170px}
+  .bar .seg{display:inline-flex;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .bar .seg button{border:0;border-right:1px solid var(--border);border-radius:0}
+  .bar .seg button:last-child{border-right:0}
   .grip{width:14px;cursor:col-resize;position:absolute;top:0;bottom:0;right:-7px;z-index:5}
   .grip:hover{background:linear-gradient(90deg,transparent,rgba(16,185,129,.15),transparent)}
   .lwrap{position:relative}
-  .mstools .seg button.active,#tabs button.active,#mEdit.active,#mDemo.active,[data-tool].active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .bar .seg button.active,#tabs button.active,#mEdit.active,#mDemo.active,[data-tool].active{background:var(--accent);color:#fff;border-color:var(--accent)}
   #log{max-height:120px;overflow:auto;font-size:.72rem;color:var(--muted);border:1px solid var(--border);border-radius:9px;padding:6px 8px;background:#fff}
   #tabs{display:flex;gap:4px;margin-bottom:6px}#tabs button{font-size:.74rem}
   body.dark{--bg:#0e1420;--surface:#151d2a;--text:#e6edf5;--muted:#93a1b3;--border:#26303f;--accent:#10b981;--accent-100:#12291f}
   body.dark #cv,body.dark #cvWrap,body.dark .pal-i,body.dark #prop input,body.dark #prop select,body.dark .plrow,body.dark .lkrow,body.dark #log{background:#0f1622;color:#e6edf5}
   body.dark #cv .gl{stroke:#1b2432} body.dark #cv .ln{fill:#cbd5e1}
   @media(max-width:1080px){.lwrap{grid-template-columns:1fr}}
-  @media print{.topbar,.mstools,.pal,.side,#plansCard,#toolsBar,.hero{display:none}.lwrap{grid-template-columns:1fr}#cvWrap{max-height:none;border:0}body{background:#fff}}
+  @media print{.topbar,.appbar,.pal,.side,#plansCard,.hero{display:none}.lwrap{grid-template-columns:1fr}#cvWrap{max-height:none;border:0}body{background:#fff}}
 </style>
 </head>
 <body>
@@ -56,7 +60,8 @@
   <main class="wrap fluid">
     <div class="hero"><h1>Планировки и расстановка</h1><p>Конструктор: цех, офис, компрессорная, участок, автоматическая линия. Редактор и демонстрация потока, коммуникации, метки, экспорт PNG/SVG/HTML и печать.</p></div>
 
-    <div class="mstools">
+    <div class="appbar">
+    <div class="bar">
       <span class="seg"><button id="mEdit" class="active">Редактор</button><button id="mDemo">Демонстрация</button></span>
       <span class="seg" id="tools">
         <button data-tool="sel" class="active" title="Выделение (V)">↖</button>
@@ -79,7 +84,7 @@
       <button class="btn secondary" id="themeBtn" title="Тема">🌙</button>
     </div>
 
-    <div class="mstools" id="toolsBar">
+    <div class="bar" id="toolsBar">
       <input id="proj" class="search" style="min-width:220px;" value="Новая планировка" placeholder="Название планировки">
       <select id="kind" style="padding:8px 11px;border:1px solid var(--border);border-radius:10px;">
         <option value="shop">Цех</option><option value="office">Офис</option><option value="compressor">Компрессорная</option><option value="line">Автоматическая линия</option><option value="other">Другое</option>
@@ -101,6 +106,8 @@
       <button class="btn secondary" id="stepPrev" style="width:auto;padding:8px 10px;">◀</button>
       <button class="btn secondary" id="stepNext" style="width:auto;padding:8px 10px;">▶</button>
       <select id="spd" style="padding:8px 11px;border:1px solid var(--border);border-radius:10px;"><option value="900">медленно</option><option value="1800" selected>обычно</option><option value="3600">быстро</option></select>
+    </div>
+
     </div>
 
     <div class="lwrap">

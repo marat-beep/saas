@@ -94,6 +94,7 @@
     }).join('');
     g += S.notes.map(function (n) { return '<g class="nt" data-note="' + n.id + '" transform="translate(' + n.x + ',' + n.y + ')"><circle r="' + GRID * 0.9 + '" fill="#f59e0b" stroke="#fff" stroke-width="' + GRID / 6 + '"/><text y="' + GRID * 0.35 + '" text-anchor="middle" font-size="' + GRID * 1.1 + '" fill="#fff">!</text></g>'; }).join('');
     var mark = flowMark(); if (mark) g += '<circle class="fm" cx="' + mark[0] + '" cy="' + mark[1] + '" r="' + GRID * 0.9 + '" fill="#2563eb" stroke="#fff" stroke-width="' + GRID / 6 + '"/>';
+    if (!S.items.length) g += '<text x="' + (S.w / 2) + '" y="' + (S.h / 2) + '" text-anchor="middle" font-size="' + (GRID * 6) + '" fill="#94a3b8">Выберите элемент из палитры слева → он появится здесь</text>';
     svg.innerHTML = g;
     bind(); stat();
   }
