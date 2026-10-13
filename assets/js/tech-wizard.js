@@ -62,6 +62,27 @@
     ]).then(function (r) {
       parts = r[0] || []; mats = r[1] || []; ops = r[2] || [];
       if (!parts.length) { toast('Нет типовых маршрутов — заполните «Справочники → Типовые маршруты»', 'err'); return; }
+      function renderPreview(box, d) {
+        var host = box.querySelector('#twPv'); if (!host) return;
+        if (!d.code) { host.innerHTML = '<span class="note">Выберите тип детали на шаге 1.</span>'; return; }
+        host.innerHTML = '<span class="note">Загрузка…</span>';
+        Promise.all([
+          rpc('app_tech_wizard_preview', { p_token: ctx.token, p_code: d.code }).catch(function () { return []; }),
+          rpc('app_tech_route_variants', { p_token: ctx.token, p_code: d.code }).catch(function () { return []; })
+        ]).then(function (res) {
+          var rows = res[0] || [], vars = res[1] || [];
+          var total = rows.reduce(function (a, s) { return a + num(s.unit_min); }, 0);
+          var sel = '<label>Вариант техпроцесса</label><select id="twVar"><option value="' + esc(d.code) + '" selected>' + esc(d.code) + ' (выбран)</option>' +
+            vars.map(function (v) { return '<option value="' + esc(v.code) + '">' + esc(v.code) + ' · ' + esc(v.name) + ' · ' + v.steps + ' оп.</option>'; }).join('') + '</select>';
+          host.innerHTML = (vars.length ? sel : '') +
+            (rows.length ? '<table class="mini mt"><thead><tr><th class="num">№</th><th>Операция</th><th>Оборудование</th><th>Требования</th><th class="num">Норма, мин/шт</th></tr></thead><tbody>' +
+              rows.map(function (s, i) { return '<tr><td class="num">' + (i + 1) + '</td><td>' + esc(s.operation) + '</td><td>' + esc(s.equipment) + '</td><td>' + esc(s.note || '') + '</td><td class="num">' + num(s.unit_min) + '</td></tr>'; }).join('') +
+              '</tbody><tfoot><tr><td colspan="4" style="text-align:right;color:var(--muted);">Итого на 1 шт:</td><td class="num"><b>' + total + '</b></td></tr></tfoot></table>'
+              : '<span class="note">Состав не задан в типовом маршруте.</span>');
+          var vs = host.querySelector('#twVar');
+          if (vs) vs.addEventListener('change', function () { d.code = this.value; renderPreview(box, d); });
+        }).catch(function (e) { host.innerHTML = '<span class="note">Ошибка: ' + esc(e.message) + '</span>'; });
+      }
       g.AppWizard.open({
         id: 'techwiz', title: 'Мастер техпроцесса', icon: '🧭', submitText: 'Создать', doneText: 'Техпроцесс создан',
         steps: [
@@ -72,21 +93,9 @@
               return '<label>Материал</label>' + optionsHtml(mats, 'material', d.material) +
                 '<label>Количество, шт</label><input name="qty" type="number" min="1" step="1" value="' + esc(d.qty || 1) + '">';
             } },
-          { title: '3. Предлагаемый техпроцесс', hint: 'Проверьте состав операций перед созданием.',
+          { title: '3. Предлагаемый техпроцесс', hint: 'Проверьте состав операций и при необходимости выберите вариант.',
             html: function () { return '<div id="twPv"><span class="note">Выберите тип детали на шаге 1.</span></div>'; },
-            onShow: function (box, d) {
-              var host = box.querySelector('#twPv'); if (!host) return;
-              if (!d.code) { host.innerHTML = '<span class="note">Выберите тип детали на шаге 1.</span>'; return; }
-              host.innerHTML = '<span class="note">Загрузка…</span>';
-              rpc('app_tech_wizard_preview', { p_token: ctx.token, p_code: d.code }).then(function (rows) {
-                rows = rows || [];
-                var total = rows.reduce(function (a, s) { return a + num(s.unit_min); }, 0);
-                host.innerHTML = rows.length ? '<table class="mini"><thead><tr><th class="num">№</th><th>Операция</th><th>Оборудование</th><th>Требования</th><th class="num">Норма, мин/шт</th></tr></thead><tbody>' +
-                  rows.map(function (s, i) { return '<tr><td class="num">' + (i + 1) + '</td><td>' + esc(s.operation) + '</td><td>' + esc(s.equipment) + '</td><td>' + esc(s.note || '') + '</td><td class="num">' + num(s.unit_min) + '</td></tr>'; }).join('') +
-                  '</tbody><tfoot><tr><td colspan="4" style="text-align:right;color:var(--muted);">Итого на 1 шт:</td><td class="num"><b>' + total + '</b></td></tr></tfoot></table>'
-                  : '<span class="note">Состав не задан в типовом маршруте.</span>';
-              }).catch(function (e) { host.innerHTML = '<span class="note">Ошибка: ' + esc(e.message) + '</span>'; });
-            } },
+            onShow: function (box, d) { renderPreview(box, d); } },
           { title: '4. Вид обработки (уточнение)', hint: 'Ключевая операция добавится в маршрут, если её нет. Необязательно.',
             html: function (d) { return '<label>Операция</label>' + optionsHtml(ops, 'operation', d.operation, '— без уточнения —'); } },
           { title: '5. Записи и документы', hint: 'Мастер создаст маршрут, при необходимости — наряд и техкарту.',

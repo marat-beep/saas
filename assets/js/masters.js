@@ -183,12 +183,97 @@
     });
   }
 
+  /* ---------- Мастер: сотрудник ---------- */
+  function openEmp(ctx) {
+    if (requiresWizard()) return;
+    g.AppWizard.open({
+      id: 'emp', title: 'Новый сотрудник', icon: '👷', submitText: 'Создать', doneText: 'Сотрудник добавлен',
+      steps: [{ title: 'Сотрудник', html: function (d) {
+        return '<label>ФИО <span class="wz-req">*</span></label><input name="fio" value="' + esc(d.fio || '') + '">' +
+          '<label>Должность</label><input name="position" value="' + esc(d.position || '') + '">' +
+          '<label>Подразделение</label><input name="dept" value="' + esc(d.dept || '') + '">' +
+          '<label>Телефон</label><input name="phone" value="' + esc(d.phone || '') + '">' +
+          '<label>Email</label><input name="email" value="' + esc(d.email || '') + '">' +
+          '<label>Дата приёма</label><input name="hired" type="date" value="' + esc(d.hired || '') + '">';
+      }, validate: function (d) { return d.fio ? null : 'Укажите ФИО'; } }],
+      onSubmit: function (d) {
+        return rpc('app_employee_save', { p_token: ctx.token, p_id: null, p_full_name: d.fio, p_position: d.position || '', p_dept: d.dept || '', p_phone: d.phone || '', p_email: d.email || null, p_hired_at: d.hired || null, p_user_login: null })
+          .then(function () { toast('Сотрудник добавлен', 'ok'); done(); return null; });
+      }
+    });
+  }
+
+  /* ---------- Мастер: входящий документ ---------- */
+  function openEdo(ctx) {
+    if (requiresWizard()) return;
+    g.AppWizard.open({
+      id: 'edo', title: 'Входящий документ', icon: '📥', submitText: 'Создать', doneText: 'Документ создан',
+      steps: [{ title: 'Документ', html: function (d) {
+        return '<label>Название <span class="wz-req">*</span></label><input name="title" value="' + esc(d.title || '') + '">' +
+          '<label>Тип</label><select name="dt"><option value="letter">Письмо</option><option value="order">Приказ</option><option value="contract">Договор</option><option value="invoice">Счёт</option><option value="other">Прочее</option></select>' +
+          '<label>Корреспондент</label><input name="corr" value="' + esc(d.corr || '') + '">' +
+          '<label>Краткое содержание</label><input name="summary" value="' + esc(d.summary || '') + '">' +
+          '<label>Срок</label><input name="due" type="date" value="' + esc(d.due || '') + '">';
+      }, validate: function (d) { return d.title ? null : 'Укажите название'; } }],
+      onSubmit: function (d) {
+        return rpc('app_doc_save', { p_token: ctx.token, p_id: null, p_kind: 'in', p_doc_type: d.dt || 'letter', p_title: d.title, p_correspondent: d.corr || '', p_summary: d.summary || '', p_responsible: '', p_due_date: d.due || null, p_reg_date: null })
+          .then(function () { toast('Документ создан', 'ok'); done(); return null; });
+      }
+    });
+  }
+
+  /* ---------- Мастер: заявка на закупку ---------- */
+  function openPr(ctx) {
+    if (requiresWizard()) return;
+    rpc('app_ref_material_list', { p_token: ctx.token, p_group: null, p_q: null }).then(function (rows) {
+      var mats = (rows || []).map(function (m) { return { code: m.id, name: m.grade + (m.group_code ? ' (' + m.group_code + ')' : '') }; });
+      g.AppWizard.open({
+        id: 'pr', title: 'Заявка на закупку', icon: '📦', submitText: 'Создать', doneText: 'Заявка создана',
+        steps: [{ title: 'Заявка', html: function (d) {
+          return '<label>Название <span class="wz-req">*</span></label><input name="title" value="' + esc(d.title || '') + '">' +
+            '<label>Материал (из справочника)</label>' + opts(mats, 'material', d.material, '— без привязки —') +
+            '<label>Количество</label><input name="qty" type="number" value="' + esc(d.qty || 1) + '">' +
+            '<label>Ед.</label><input name="unit" value="' + esc(d.unit || 'шт') + '">' +
+            '<label>Примечание</label><input name="note" value="' + esc(d.note || '') + '">';
+        }, validate: function (d) { return d.title ? null : 'Укажите название'; } }],
+        onSubmit: function (d) {
+          return rpc('app_purchase_request_save', { p_token: ctx.token, p_id: null, p_material_id: d.material || null, p_title: d.title, p_qty: d.qty ? Number(d.qty) : 1, p_unit: d.unit || 'шт', p_note: d.note || null })
+            .then(function () { toast('Заявка создана', 'ok'); done(); return null; });
+        }
+      });
+    }).catch(function (e) { toast('Ошибка: ' + e.message, 'err'); });
+  }
+
+  /* ---------- Мастер: сделка CRM ---------- */
+  function openDeal(ctx) {
+    if (requiresWizard()) return;
+    g.AppWizard.open({
+      id: 'deal', title: 'Сделка CRM', icon: '📈', submitText: 'Создать', doneText: 'Сделка создана',
+      steps: [{ title: 'Сделка', html: function (d) {
+        return '<label>Название <span class="wz-req">*</span></label><input name="title" value="' + esc(d.title || '') + '">' +
+          '<label>Стадия</label><select name="stage"><option value="lead">Лид</option><option value="qualified">Квалифицирована</option><option value="proposal">КП</option><option value="negotiation">Переговоры</option><option value="won">Выиграна</option><option value="lost">Проиграна</option></select>' +
+          '<label>Сумма</label><input name="amount" type="number" value="' + esc(d.amount || '') + '">' +
+          '<label>Вероятность, %</label><input name="prob" type="number" min="0" max="100" value="' + esc(d.prob || 50) + '">' +
+          '<label>Следующее действие</label><input name="action" value="' + esc(d.action || '') + '">' +
+          '<label>Срок</label><input name="due" type="date" value="' + esc(d.due || '') + '">';
+      }, validate: function (d) { return d.title ? null : 'Укажите название'; } }],
+      onSubmit: function (d) {
+        return rpc('app_deal_save', { p_token: ctx.token, p_id: null, p_customer_id: null, p_title: d.title, p_stage: d.stage || 'lead', p_amount: d.amount ? Number(d.amount) : null, p_probability: d.prob ? Number(d.prob) : null, p_source: '', p_owner: '', p_next_action: d.action || null, p_due_date: d.due || null, p_order_id: null, p_note: null })
+          .then(function () { toast('Сделка создана', 'ok'); done(); return null; });
+      }
+    });
+  }
+
   var DEFS = [
     { id: 'mfg', icon: '🧭', title: 'Деталь → техпроцесс → задание, наряд и документ', desc: 'Пошагово: тип детали, материал, партия, срок → маршрут, ССЗ, наряд, техкарта.', modules: ['registry', 'assistant', 'norms', 'production', 'planning', 'mes', 'docs'], run: openMfg },
     { id: 'doc', icon: '📄', title: 'Быстрый документ', desc: 'Создать КП/договор/акт/техкарту с автоматическим номером.', modules: ['docs', 'docbuilder', 'templates', 'registry', 'tkp'], run: openDoc },
     { id: 'order', icon: '🧾', title: 'Заказ клиента', desc: 'Быстро завести заказ: тема, заказчик, срок, приоритет, сумма.', modules: ['orders', 'crm', 'tkp', 'planning', 'economics'], run: openOrder },
     { id: 'srvc', icon: '🔧', title: 'Сервисная заявка', desc: 'Заявка на ремонт/обслуживание с приоритетом и сроком.', modules: ['service', 'dealer', 'maintenance'], run: openSrvc },
     { id: 'passport', icon: '📘', title: 'Паспорт партии', desc: 'Создать паспорт изделия/партии с серийным номером.', modules: ['qc', 'passport', 'quality', 'production'], run: openPassport },
+    { id: 'emp', icon: '👷', title: 'Новый сотрудник', desc: 'Завести сотрудника: ФИО, должность, подразделение, контакты.', modules: ['hr'], run: openEmp },
+    { id: 'edo', icon: '📥', title: 'Входящий документ', desc: 'Зарегистрировать входящий документ (письмо/приказ/договор/счёт).', modules: ['edo', 'docs', 'office'], run: openEdo },
+    { id: 'pr', icon: '📦', title: 'Заявка на закупку', desc: 'Быстрая заявка на материал с привязкой к справочнику.', modules: ['procurement', 'warehouse', 'supply'], run: openPr },
+    { id: 'deal', icon: '📈', title: 'Сделка CRM', desc: 'Новая сделка: стадия, сумма, вероятность, следующее действие.', modules: ['crm', 'tkp', 'orders'], run: openDeal },
     { id: 'cap', icon: '⚙', title: 'Ёмкость РЦ на дату', desc: 'Задать доступные часы рабочего центра.', modules: ['planning', 'slots'], run: openCap },
     { id: 'tool', icon: '🛠', title: 'Наработка инструмента', desc: 'Быстро списать наработку по инструменту.', modules: ['tooling', 'maintenance'], run: openTool }
   ];
