@@ -8,7 +8,7 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '10.47',
+  version: '10.48',
   updated: '09.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
@@ -78,7 +78,7 @@ window.AppCatalog = {
       { id: 'ktpp_tech',     title: 'Технологии и расчёты',   apps: ['norms', 'calc', 'nc', 'reverse', 'assistant'] }
     ],
     production: [
-      { id: 'prod_shop',     title: 'Цех, план и MES',        apps: ['production', 'mes', 'planning', 'slots', 'forecast', 'setup', 'terminal', 'calendar', 'lean', 'issues'] },
+      { id: 'prod_shop',     title: 'Цех, план и MES',        apps: ['production', 'mes', 'planning', 'slots', 'forecast', 'setup', 'terminal', 'calendar', 'lean', 'issues', 'layout'] },
       { id: 'prod_equip',    title: 'Оборудование, ТОиР и IIoT', apps: ['maintenance', 'tooling', 'oee', 'iiot', 'eam', 'service', 'warehouse'] },
       { id: 'prod_data',     title: 'НСИ, проекты и логистика', apps: ['mdm', 'plm', 'ai', 'pmo', 'logistics'] }
     ],
@@ -209,6 +209,13 @@ window.AppCatalog = {
       purpose: 'Единая точка приёма заявок/заказов из любых модулей и внешних сервисов с прозрачным статусом и историей.',
       features: ['Заявка (тема, CRM-заказчик, источник, приоритет, тип, срок, сумма)', 'Позиции заявки (состав/сумма)', 'Статусы и история', 'Конвейер: заявка→КП→договор→счёт→оплата (автодокументы)', 'Связи: КП/договор/маршрут/наряд/счёт', 'Вложения (файлы)', 'SLA-просрочка и уведомления', 'Отчёт за период (PDF/CSV)', 'Роли (data-cap)'],
       connects: ['production', 'finance', 'docs', 'supplier', 'client', 'service', 'registry', 'crm', 'edo'], in_: 'Источник (модуль/клиент)', out: 'Заявка → КП/наряд/счёт'
+    },
+    {
+      id: 'layout', icon: '🗺', title: 'Планировки', href: 'apps/layout/index.html', guest: false, group: 'prod_shop', audience: 'user',
+      desc: 'Конструктор расстановки: цех, офис, компрессорная, линия.',
+      purpose: 'Проектирование планировок и расстановки оборудования (станки, роботы/манипуляторы, конвейеры, хранение, инфраструктура, офисная мебель, зоны) со стадиями, сеткой, экспортом/печатью.',
+      features: ['Палитра элементов (станки, роботы, конвейеры, хранение, инфраструктура, офис, зоны)', 'Перемещение/размер/поворот, сетка и привязка', 'Стадии: действующее/новое/будущее', 'Зум/панорама, печать, экспорт/импорт JSON', 'Проекты: цех, офис, компрессорная, автоматическая линия'],
+      connects: ['production', 'planning', 'registry', 'equipment', 'maintenance'], in_: 'Оборудование и участки', out: 'Схема планировки'
     },
     {
       id: 'supplier', icon: '📦', title: 'Портал поставщика', href: 'apps/supplier/index.html', guest: false, group: 'sales', audience: 'user',

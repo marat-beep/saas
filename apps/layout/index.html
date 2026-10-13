@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Планировки и расстановка — 3DMP Service</title>
+<meta name="description" content="Конструктор планировок: расстановка станков, роботов, конвейеров и оборудования в цеху, офисе, компрессорной и на участке.">
+<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<style>
+  .lwrap{display:grid;grid-template-columns:264px 1fr 296px;gap:12px;align-items:start}
+  .pal-g{font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:10px 0 6px;font-weight:800}
+  .pal-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .pal-i{display:flex;flex-direction:column;gap:3px;align-items:flex-start;border:1px solid var(--border);border-radius:10px;background:#fff;padding:8px 9px;font-size:.72rem;cursor:pointer;text-align:left;line-height:1.2}
+  .pal-i:hover{border-color:var(--accent);background:var(--accent-100)}
+  .pal-i span{font-size:1.05rem}
+  #cvWrap{overflow:auto;border:1px solid var(--border);border-radius:12px;background:#fff;max-height:74vh}
+  #cv{display:block;background:#fff}
+  #cv .li{cursor:move}
+  #prop label{display:block;font-size:.74rem;font-weight:700;margin:8px 0 3px}
+  #prop input,#prop select{width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:9px;font:inherit;font-size:.82rem;background:#fff}
+  .plrow{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:#fff;cursor:pointer}
+  .plrow.on{border-color:var(--accent);background:var(--accent-100)}
+  .plrow b{font-size:.82rem}.plrow small{color:var(--muted);font-size:.72rem}
+  .plrow .pl-act{margin-left:auto}
+  .leg{display:flex;gap:14px;flex-wrap:wrap;font-size:.76rem;color:var(--muted)}
+  .leg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:middle}
+  #stageSeg button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  @media(max-width:1080px){.lwrap{grid-template-columns:1fr}}
+  @media print{.topbar,.toolbar,.pal,.side,#plansCard{display:none}.lwrap{grid-template-columns:1fr}#cvWrap{max-height:none;border:0}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🗺</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap fluid">
+    <div class="hero"><h1>Планировки и расстановка</h1><p>Конструктор расстановки оборудования: цех, офис, компрессорная, участок, автоматическая линия. Тащите элементы из палитры, задавайте размеры, стадии и печатайте схему.</p></div>
+
+    <div class="sv-actions" style="margin:10px 0;flex-wrap:wrap;gap:8px;">
+      <input id="proj" class="search" style="min-width:260px;" value="Новая планировка" placeholder="Название планировки">
+      <select id="kind" style="padding:9px 11px;border:1px solid var(--border);border-radius:10px;">
+        <option value="shop">Цех</option><option value="office">Офис</option><option value="compressor">Компрессорная</option><option value="line">Автоматическая линия</option><option value="other">Другое</option>
+      </select>
+      <button class="btn" id="saveBtn" style="width:auto;padding:9px 16px;">💾 Сохранить</button>
+      <button class="btn secondary" id="newBtn" style="width:auto;padding:9px 16px;">＋ Новая</button>
+      <button class="btn secondary" id="expBtn" style="width:auto;padding:9px 16px;">⬇ JSON</button>
+      <label class="btn secondary" style="width:auto;padding:9px 16px;cursor:pointer;">⬆ Импорт<input type="file" id="impFile" accept="application/json" style="display:none;"></label>
+      <button class="btn secondary" id="printBtn" style="width:auto;padding:9px 16px;">🖨 Печать</button>
+      <span class="spacer"></span>
+      <button class="btn secondary" id="zo" style="width:auto;padding:9px 12px;">−</button>
+      <button class="btn secondary" id="z1" style="width:auto;padding:9px 12px;">100%</button>
+      <button class="btn secondary" id="zi" style="width:auto;padding:9px 12px;">＋</button>
+      <label class="ck" style="display:flex;align-items:center;gap:6px;font-size:.8rem;"><input type="checkbox" id="snap" checked> сетка</label>
+      <span class="seg" id="stageSeg"><button class="active" data-s="new">Новое</button><button data-s="exist">Действующее</button><button data-s="future">Будущее</button></span>
+    </div>
+    <div class="note" style="margin:0 0 8px;">Стадия нового элемента: <b id="stageHint">Новое</b> · <span id="kpi"></span></div>
+
+    <div class="lwrap">
+      <div class="card pal"><h2>Палитра</h2><div id="palette"></div></div>
+      <div class="card" style="padding:10px;"><div id="cvWrap"><svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg></div>
+        <div class="leg mt"><span><i style="background:#10b981"></i>Новое</span><span><i style="background:#94a3b8"></i>Действующее</span><span><i style="background:#8b95a3"></i>Будущее</span><span>Размеры в мм · сетка 100 мм</span></div>
+      </div>
+      <div class="card side"><h2>Свойства</h2><div id="prop"><span class="note">Выберите элемент на плане.</span></div></div>
+    </div>
+
+    <div class="card mt" id="plansCard"><h2>Проекты планировок</h2><div id="plans"><span class="note">Загрузка…</span></div></div>
+  </main>
+
+  <footer class="foot">3DMP Service · планировки</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=4"></script>
+  <script src="../../assets/js/auth.js?v=7"></script>
+  <script src="../../assets/js/notify.js?v=3"></script>
+  <script src="../../assets/js/support-widget.js?v=1"></script>
+  <script src="../../assets/js/catalog.js?v=124"></script>
+  <script src="../../assets/js/nav.js?v=108"></script>
+  <script src="../../assets/js/shell.js?v=75"></script>
+  <script src="../../assets/js/module-report.js?v=3"></script>
+  <script src="layout.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=2"></script>
+  <script src="../../assets/js/module-info.js?v=2"></script>
+</body>
+</html>
