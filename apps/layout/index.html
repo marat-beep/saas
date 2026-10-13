@@ -7,46 +7,50 @@
 <meta name="description" content="Конструктор планировок: расстановка станков, роботов, конвейеров и оборудования; маршруты потока, коммуникации, метки, экспорт и печать.">
 <link rel="stylesheet" href="../../assets/css/app.css?v=36">
 <style>
-  .lwrap{display:grid;grid-template-columns:250px 1fr 300px;gap:10px;align-items:start}
-  body.no-pal .lwrap{grid-template-columns:0 1fr 300px} body.no-pal .pal{display:none}
-  body.no-props .lwrap{grid-template-columns:250px 1fr 0} body.no-props .side{display:none}
-  body.solo .lwrap{grid-template-columns:0 1fr 0} body.solo .pal,body.solo .side,body.solo .appbar{display:none}
-  .pal-g{font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:9px 0 5px;font-weight:800}
-  .pal-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
-  .pal-i{display:flex;flex-direction:column;gap:2px;align-items:flex-start;border:1px solid var(--border);border-radius:9px;background:#fff;padding:7px 8px;font-size:.7rem;cursor:pointer;text-align:left;line-height:1.15}
-  .pal-i:hover{border-color:var(--accent);background:var(--accent-100)}
-  .pal-i span{font-size:1rem}
-  #cvWrap{overflow:auto;border:1px solid var(--border);border-radius:12px;background:#fff;max-height:72vh;min-height:340px}
-  #cv{display:block;background:#fff;touch-action:none}
-  #cv .li{cursor:move} #cv .gl{stroke:#eef2f7;stroke-width:18} #cv .ln{fill:#334155}
+  main.layout-app{max-width:none;padding:10px 14px 40px}
+  /* ---------- редактор: тема строго внутри окна ---------- */
+  .editor{--ebg:#eef2f7;--esurf:#ffffff;--ehead:#f8fafc;--etext:#0f172a;--emuted:#64748b;--eborder:#e2e8f0;--egl:#eef2f7;--eln:#334155;
+    background:var(--ebg);color:var(--etext);border:1px solid var(--eborder);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px}
+  .editor.theme-dark{--ebg:#0e1420;--esurf:#151d2a;--ehead:#1b2432;--etext:#e6edf5;--emuted:#93a1b3;--eborder:#26303f;--egl:#1b2432;--eln:#cbd5e1}
+  .etop{display:flex;gap:6px;flex-wrap:wrap;align-items:center;background:var(--ehead);border:1px solid var(--eborder);border-radius:10px;padding:6px 8px}
+  .etop button,.etop select,.etop input,.etop label.btn{width:auto;min-height:36px;padding:7px 11px;border:1px solid var(--eborder);border-radius:9px;background:var(--esurf);color:var(--etext);cursor:pointer}
+  .etop .seg{display:inline-flex;border:1px solid var(--eborder);border-radius:9px;overflow:hidden}
+  .etop .seg button{border:0;border-right:1px solid var(--eborder);border-radius:0}
+  .etop .seg button:last-child{border-right:0}
+  .etop .seg button.active,[data-tool].active,#mEdit.active,#mDemo.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .etop .search{flex:1;min-width:170px}
+  .ebody{display:grid;grid-template-columns:250px 1fr 320px;gap:8px;align-items:stretch}
+  .editor.no-pal .ebody{grid-template-columns:0 1fr 320px} .editor.no-pal .epal{display:none}
+  .editor.no-props .ebody{grid-template-columns:250px 1fr 0} .editor.no-props .eprops{display:none}
+  .editor.solo .ebody{grid-template-columns:0 1fr 0} .editor.solo .epal,.editor.solo .eprops{display:none}
+  .epal,.eprops{background:var(--esurf);border:1px solid var(--eborder);border-radius:12px;padding:10px;position:relative;max-height:calc(100vh - 190px);overflow:auto}
+  .ecanvas{display:flex;flex-direction:column;gap:6px;min-width:0}
+  #cvWrap{overflow:auto;border:1px solid var(--eborder);border-radius:12px;background:var(--esurf);height:calc(100vh - 230px);min-height:420px}
+  #cv{display:block;background:var(--esurf);touch-action:none}
+  #cv .gl{stroke:var(--egl)} #cv .ln{fill:var(--eln)} #cv .li{cursor:move}
   #cv .lk{stroke:#0ea5e9;stroke-width:40;stroke-dasharray:120 80;opacity:.85} #cv .rt{fill:none;stroke:#2563eb;stroke-width:50;stroke-linejoin:round;opacity:.9}
-  #prop label{display:block;font-size:.73rem;font-weight:700;margin:7px 0 3px}
-  #prop input,#prop select{width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:9px;font:inherit;font-size:.82rem;background:#fff}
+  .estatus{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:.72rem;color:var(--emuted);background:var(--ehead);border:1px solid var(--eborder);border-radius:9px;padding:5px 9px}
+  .estatus i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:4px;vertical-align:middle}
+  .pal-g{font-size:.66rem;text-transform:uppercase;letter-spacing:.04em;color:var(--emuted);margin:8px 0 5px;font-weight:800}
+  .pal-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .pal-i{display:flex;flex-direction:column;gap:2px;align-items:flex-start;border:1px solid var(--eborder);border-radius:9px;background:var(--esurf);color:var(--etext);padding:7px 8px;font-size:.7rem;cursor:pointer;text-align:left;line-height:1.15}
+  .pal-i:hover{border-color:var(--accent);background:rgba(16,185,129,.10)} .pal-i span{font-size:1rem}
+  .eprops .tabs{display:flex;gap:4px;margin-bottom:8px}
+  .eprops .tabs button{flex:1;width:auto;padding:7px 6px;font-size:.72rem;border:1px solid var(--eborder);border-radius:9px;background:var(--esurf);color:var(--etext);cursor:pointer}
+  .eprops .tabs button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .eprops label{display:block;font-size:.72rem;font-weight:700;margin:7px 0 3px;color:var(--etext)}
+  #prop input,#prop select{width:100%;padding:7px 9px;border:1px solid var(--eborder);border-radius:9px;font:inherit;font-size:.82rem;background:var(--esurf);color:var(--etext)}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .plrow,.lkrow{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:9px;padding:7px 9px;background:#fff;margin-bottom:6px}
-  .plrow{cursor:pointer}.plrow.on{border-color:var(--accent);background:var(--accent-100)}
-  .plrow b,.lkrow span{font-size:.8rem}.plrow small{color:var(--muted);font-size:.7rem}.plrow .pl-act,.lkrow .act{margin-left:auto}
-  .leg{display:flex;gap:12px;flex-wrap:wrap;font-size:.74rem;color:var(--muted)}.leg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:4px;vertical-align:middle}
-  .appbar{position:static;background:var(--bg);padding:8px 0;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
-  .bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-  .bar button,.bar select,.bar input,.bar label.btn{width:auto}
-  .bar button{padding:8px 12px;min-height:38px}
-  .bar select,.bar input,.bar label.btn{min-height:38px;padding:8px 11px;border:1px solid var(--border);border-radius:10px}
-  .bar .search{flex:1;min-width:170px}
-  .bar .seg{display:inline-flex;border:1px solid var(--border);border-radius:10px;overflow:hidden}
-  .bar .seg button{border:0;border-right:1px solid var(--border);border-radius:0}
-  .bar .seg button:last-child{border-right:0}
-  .grip{width:14px;cursor:col-resize;position:absolute;top:0;bottom:0;right:-7px;z-index:5}
-  .grip:hover{background:linear-gradient(90deg,transparent,rgba(16,185,129,.15),transparent)}
-  .lwrap{position:relative}
-  .bar .seg button.active,#tabs button.active,#mEdit.active,#mDemo.active,[data-tool].active{background:var(--accent);color:#fff;border-color:var(--accent)}
-  #log{max-height:120px;overflow:auto;font-size:.72rem;color:var(--muted);border:1px solid var(--border);border-radius:9px;padding:6px 8px;background:#fff}
-  #tabs{display:flex;gap:4px;margin-bottom:6px}#tabs button{font-size:.74rem}
-  body.dark{--bg:#0e1420;--surface:#151d2a;--text:#e6edf5;--muted:#93a1b3;--border:#26303f;--accent:#10b981;--accent-100:#12291f}
-  body.dark #cv,body.dark #cvWrap,body.dark .pal-i,body.dark #prop input,body.dark #prop select,body.dark .plrow,body.dark .lkrow,body.dark #log{background:#0f1622;color:#e6edf5}
-  body.dark #cv .gl{stroke:#1b2432} body.dark #cv .ln{fill:#cbd5e1}
-  @media(max-width:1080px){.lwrap{grid-template-columns:1fr}}
-  @media print{.topbar,.appbar,.pal,.side,#plansCard,.hero{display:none}.lwrap{grid-template-columns:1fr}#cvWrap{max-height:none;border:0}body{background:#fff}}
+  .mlist{margin-top:8px}
+  .plrow,.lkrow{display:flex;align-items:center;gap:8px;border:1px solid var(--eborder);border-radius:9px;padding:7px 9px;background:var(--esurf);margin-bottom:6px;color:var(--etext)}
+  .plrow{cursor:pointer}.plrow.on{border-color:var(--accent);background:rgba(16,185,129,.12)}
+  .plrow b,.lkrow span{font-size:.8rem}.plrow small{color:var(--emuted);font-size:.7rem}.plrow .pl-act,.lkrow .act{margin-left:auto}
+  #log{max-height:110px;overflow:auto;font-size:.72rem;color:var(--emuted);border:1px solid var(--eborder);border-radius:9px;padding:6px 8px;background:var(--ehead)}
+  .grip{width:12px;cursor:col-resize;position:absolute;top:0;bottom:0;right:-6px;z-index:5}
+  .grip.left{left:-6px;right:auto} .grip:hover{background:linear-gradient(90deg,transparent,rgba(16,185,129,.18),transparent)}
+  .hintbar{font-size:.72rem;color:var(--emuted)}
+  @media(max-width:1080px){.ebody{grid-template-columns:1fr}}
+  @media print{.topbar,.etop,.epal,.eprops,.hero,#plansCard{display:none}.ebody{grid-template-columns:1fr}#cvWrap{height:auto;border:0}.editor{border:0;background:#fff}}
 </style>
 </head>
 <body>
@@ -57,85 +61,85 @@
     <button class="tbtn" id="logout">Выйти</button>
   </header>
 
-  <main class="wrap fluid">
-    <div class="hero"><h1>Планировки и расстановка</h1><p>Конструктор: цех, офис, компрессорная, участок, автоматическая линия. Редактор и демонстрация потока, коммуникации, метки, экспорт PNG/SVG/HTML и печать.</p></div>
+  <main class="layout-app">
+    <div class="hero" style="margin-bottom:8px"><h1>Планировки и расстановка</h1><p>Конструктор цеха/офиса/компрессорной/линии: редактор и демонстрация, коммуникации, маршруты, метки, экспорт PNG/SVG/HTML и печать.</p></div>
 
-    <div class="appbar">
-    <div class="bar">
-      <span class="seg"><button id="mEdit" class="active">Редактор</button><button id="mDemo">Демонстрация</button></span>
-      <span class="seg" id="tools">
-        <button data-tool="sel" class="active" title="Выделение (V)">↖</button>
-        <button data-tool="pan" title="Рука (H)">✋</button>
-        <button data-tool="note" title="Метка (C)">💬</button>
-        <button data-tool="route" title="Маршрут">〰</button>
-        <button data-tool="link" title="Связь">🔗</button>
-      </span>
-      <button class="btn secondary" id="undoBtn" disabled>↶</button>
-      <button class="btn secondary" id="redoBtn" disabled>↷</button>
-      <button class="btn secondary" id="zo" style="width:auto;padding:8px 12px;">−</button>
-      <button class="btn secondary" id="zFit" style="width:auto;padding:8px 12px;">100%</button>
-      <button class="btn secondary" id="zi" style="width:auto;padding:8px 12px;">＋</button>
-      <label class="ck"><input type="checkbox" id="gridChk" checked> сетка</label>
-      <label class="ck"><input type="checkbox" id="snapChk" checked> привязка</label>
-      <span class="seg" id="stageSeg"><button class="active" data-s="new">Новое</button><button data-s="exist">Действующее</button><button data-s="future">Будущее</button></span>
-      <button class="btn secondary" id="palBtn" title="Палитра">▤</button>
-      <button class="btn secondary" id="propsBtn" title="Свойства">▥</button>
-      <button class="btn secondary" id="soloBtn" title="Только схема">⛶</button>
-      <button class="btn secondary" id="themeBtn" title="Тема">🌙</button>
-    </div>
-
-    <div class="bar" id="toolsBar">
-      <input id="proj" class="search" style="min-width:220px;" value="Новая планировка" placeholder="Название планировки">
-      <select id="kind" style="padding:8px 11px;border:1px solid var(--border);border-radius:10px;">
-        <option value="shop">Цех</option><option value="office">Офис</option><option value="compressor">Компрессорная</option><option value="line">Автоматическая линия</option><option value="other">Другое</option>
-      </select>
-      <button class="btn" id="saveBtn" style="width:auto;padding:8px 14px;">💾 Сохранить</button>
-      <button class="btn secondary" id="newBtn" style="width:auto;padding:8px 14px;">＋ Новая</button>
-      <button class="btn secondary" id="expJson" style="width:auto;padding:8px 14px;">JSON</button>
-      <button class="btn secondary" id="expSvg" style="width:auto;padding:8px 14px;">SVG</button>
-      <button class="btn secondary" id="expPng" style="width:auto;padding:8px 14px;">PNG</button>
-      <button class="btn secondary" id="expHtml" style="width:auto;padding:8px 14px;">HTML</button>
-      <button class="btn secondary" id="printBtn" style="width:auto;padding:8px 14px;">🖨 Печать/PDF</button>
-      <label class="btn secondary" style="width:auto;padding:8px 14px;cursor:pointer;">Импорт<input type="file" id="impFile" accept="application/json" style="display:none;"></label>
-      <button class="btn secondary" id="zPlan" style="width:auto;padding:8px 14px;">Весь план</button>
-      <button class="btn secondary" id="clearBtn" style="width:auto;padding:8px 14px;">Очистить</button>
-      <button class="btn secondary" id="resetBtn" style="width:auto;padding:8px 14px;">Сброс</button>
-      <label class="ck"><input type="checkbox" id="baseChk"> базовый сценарий</label>
-      <button class="btn secondary" id="reportBtn" style="width:auto;padding:8px 14px;">Отчёт по потоку</button>
-      <button class="btn secondary" id="playBtn" style="display:none;width:auto;padding:8px 14px;">▶ Пуск</button>
-      <button class="btn secondary" id="stepPrev" style="width:auto;padding:8px 10px;">◀</button>
-      <button class="btn secondary" id="stepNext" style="width:auto;padding:8px 10px;">▶</button>
-      <select id="spd" style="padding:8px 11px;border:1px solid var(--border);border-radius:10px;"><option value="900">медленно</option><option value="1800" selected>обычно</option><option value="3600">быстро</option></select>
-    </div>
-
-    </div>
-
-    <div class="lwrap">
-      <div class="card pal" style="position:relative;"><h2>Палитра</h2><div id="palette"></div><div class="grip" id="gripPal" title="Тяните, чтобы изменить ширину"></div></div>
-      <div class="card" style="padding:10px;">
-        <div id="cvWrap"><svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg></div>
-        <div class="leg mt"><span><i style="background:#10b981"></i>Новое</span><span><i style="background:#94a3b8"></i>Действующее</span><span><i style="background:#8b95a3"></i>Будущее</span><span>мм · сетка 100</span><span id="stats"></span><span style="margin-left:auto" id="coords">x — · y —</span></div>
-        <h4 class="mt" style="font-size:.72rem;color:var(--muted);text-transform:uppercase;">События</h4><div id="log"></div>
+    <div class="editor" id="editor">
+      <div class="etop">
+        <span class="seg"><button id="mEdit" class="active">Редактор</button><button id="mDemo">Демонстрация</button></span>
+        <button class="btn secondary" id="undoBtn" title="Отменить (Ctrl+Z)" disabled>↶</button>
+        <button class="btn secondary" id="redoBtn" title="Повторить (Ctrl+Y)" disabled>↷</button>
+        <span class="seg" id="tools">
+          <button data-tool="sel" class="active" title="Выделение (V)">↖</button>
+          <button data-tool="pan" title="Рука (H)">✋</button>
+          <button data-tool="note" title="Метка (C)">💬</button>
+          <button data-tool="route" title="Маршрут">〰</button>
+          <button data-tool="link" title="Связь">🔗</button>
+        </span>
+        <button class="btn secondary" id="zo" title="Отдалить">−</button>
+        <button class="btn secondary" id="zPlan" title="Весь план">Весь план</button>
+        <button class="btn secondary" id="zi" title="Приблизить">＋</button>
+        <button class="btn secondary" id="zFit" title="100%">100%</button>
+        <label class="ck"><input type="checkbox" id="gridChk" checked> Сетка</label>
+        <label class="ck"><input type="checkbox" id="snapChk" checked> Привязка</label>
+        <span class="seg" id="stageSeg"><button class="active" data-s="new">Новое</button><button data-s="exist">Действующее</button><button data-s="future">Будущее</button></span>
+        <button class="btn secondary" id="playBtn" style="display:none">▶ Пуск</button>
+        <button class="btn secondary" id="stepPrev" title="Фаза назад">◀</button>
+        <button class="btn secondary" id="stepNext" title="Фаза вперёд">▶</button>
+        <select id="spd" title="Скорость потока"><option value="900">медленно</option><option value="1800" selected>обычно</option><option value="3600">быстро</option></select>
+        <span style="flex:1"></span>
+        <button class="btn secondary" id="palBtn" title="Палитра">▤</button>
+        <button class="btn secondary" id="propsBtn" title="Свойства">▥</button>
+        <button class="btn secondary" id="soloBtn" title="Только схема">⛶</button>
+        <button class="btn secondary" id="themeBtn" title="Тема редактора">🌙</button>
       </div>
-      <div class="card side" style="position:relative;">
-        <div class="grip" id="gripProps" style="left:-7px;right:auto;" title="Тяните, чтобы изменить ширину"></div>
-        <div id="tabs"><button class="active" data-tab="prop">Свойства</button><button data-tab="notes">Метки</button><button data-tab="links">Связи</button><button data-tab="flow">Поток</button></div>
-        <div id="tab-prop"><div id="prop"><span class="note">Выберите элемент на плане.</span></div></div>
-        <div id="tab-notes" style="display:none;"><button class="btn secondary" id="noteAdd" style="width:auto;padding:8px 14px;">＋ Метка</button><div id="notesList" class="mt"></div><button class="btn secondary" id="noteExport" style="width:auto;padding:8px 14px;margin-top:6px;">Экспорт меток</button></div>
-        <div id="tab-links" style="display:none;"><div class="note">Инструмент 🔗: выберите два элемента.</div><div id="linksList" class="mt"></div><button class="btn secondary" id="linkExport" style="width:auto;padding:8px 14px;margin-top:6px;">Экспорт связей</button></div>
-        <div id="tab-flow" style="display:none;">
-          <button class="btn secondary" id="routeAdd" style="width:auto;padding:8px 14px;">Создать маршрут</button>
-          <button class="btn secondary" id="routeAuto" style="width:auto;padding:8px 14px;margin-top:6px;">Авто-маршрут</button>
-          <button class="btn" id="routeDone" style="width:auto;padding:8px 14px;margin-top:6px;">Завершить</button>
-          <div id="routeList" class="mt"></div>
-          <button class="btn secondary" id="routeExport" style="width:auto;padding:8px 14px;margin-top:6px;">Экспорт маршрутов</button>
-        </div>
+
+      <div class="etop">
+        <input id="proj" class="search" value="Новая планировка" placeholder="Название планировки">
+        <select id="kind"><option value="shop">Цех</option><option value="office">Офис</option><option value="compressor">Компрессорная</option><option value="line">Автоматическая линия</option><option value="other">Другое</option></select>
+        <button class="btn" id="saveBtn" style="background:var(--accent);color:#fff;border-color:var(--accent)">💾 Сохранить</button>
+        <button class="btn secondary" id="newBtn">＋ Новая</button>
+        <button class="btn secondary" id="expJson">JSON</button>
+        <button class="btn secondary" id="expSvg">SVG</button>
+        <button class="btn secondary" id="expPng">PNG</button>
+        <button class="btn secondary" id="expHtml">HTML</button>
+        <button class="btn secondary" id="printBtn">🖨 Печать/PDF</button>
+        <label class="btn secondary" style="cursor:pointer">Импорт<input type="file" id="impFile" accept="application/json" style="display:none"></label>
+        <button class="btn secondary" id="clearBtn">Очистить</button>
+        <button class="btn secondary" id="resetBtn">Сброс</button>
+        <label class="ck"><input type="checkbox" id="baseChk"> базовый сценарий</label>
+        <button class="btn secondary" id="reportBtn">Отчёт по потоку</button>
+      </div>
+
+      <div class="ebody" id="ebody">
+        <aside class="epal"><h2 style="font-size:.82rem;margin:0 0 6px;">Палитра</h2><div id="palette"></div><div class="grip" id="gripPal" title="Тяните, чтобы изменить ширину"></div></aside>
+        <section class="ecanvas">
+          <div id="cvWrap"><svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg></div>
+          <div class="estatus">
+            <span><i style="background:#10b981"></i>Новое</span><span><i style="background:#94a3b8"></i>Действующее</span><span><i style="background:#8b95a3"></i>Будущее</span>
+            <span>мм · сетка 100</span><span id="stats"></span><span style="margin-left:auto" id="coords">x — · y —</span>
+          </div>
+          <div id="log"></div>
+        </section>
+        <aside class="eprops">
+          <div class="tabs" id="tabs"><button class="active" data-tab="prop">Свойства</button><button data-tab="notes">Метки</button><button data-tab="links">Связи</button><button data-tab="flow">Поток</button></div>
+          <div id="tab-prop"><div id="prop"><span class="hintbar">Выберите элемент на плане.</span></div></div>
+          <div id="tab-notes" style="display:none;"><button class="btn secondary" id="noteAdd" style="width:auto">＋ Метка</button><div id="notesList" class="mlist"></div><button class="btn secondary" id="noteExport" style="width:auto;margin-top:6px">Экспорт меток</button></div>
+          <div id="tab-links" style="display:none;"><div class="hintbar">Инструмент 🔗: выберите два элемента.</div><div id="linksList" class="mlist"></div><button class="btn secondary" id="linkExport" style="width:auto;margin-top:6px">Экспорт связей</button></div>
+          <div id="tab-flow" style="display:none;">
+            <button class="btn secondary" id="routeAdd" style="width:auto">Создать маршрут</button>
+            <button class="btn secondary" id="routeAuto" style="width:auto;margin-top:6px">Авто-маршрут</button>
+            <button class="btn secondary" id="routeDone" style="width:auto;margin-top:6px">Завершить</button>
+            <div id="routeList" class="mlist"></div>
+            <button class="btn secondary" id="routeExport" style="width:auto;margin-top:6px">Экспорт маршрутов</button>
+          </div>
+          <div class="grip left" id="gripProps" title="Тяните, чтобы изменить ширину"></div>
+        </aside>
       </div>
     </div>
 
     <div class="card mt" id="plansCard"><h2>Проекты планировок</h2><div id="plans"><span class="note">Загрузка…</span></div></div>
   </main>
-  <footer class="foot">3DMP Service · планировки (порт конструктора robot: тема, инструменты, undo/redo, метки, связи, маршруты, экспорт/печать)</footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="../../assets/js/config.js?v=2"></script>
@@ -148,7 +152,7 @@
   <script src="../../assets/js/nav.js?v=108"></script>
   <script src="../../assets/js/shell.js?v=75"></script>
   <script src="../../assets/js/module-report.js?v=3"></script>
-  <script src="layout.js?v=3"></script>
+  <script src="layout.js?v=4"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=2"></script>
 </body>

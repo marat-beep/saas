@@ -238,8 +238,8 @@
   function logEvent(text) { var l = $('#log'); if (!l) return; var t = new Date().toLocaleTimeString('ru-RU'); l.insertAdjacentHTML('afterbegin', '<div>[' + t + '] ' + esc(text) + '</div>'); }
 
   /* ---------- тема ---------- */
-  function setTheme(t) { document.body.classList.toggle('dark', t === 'dark'); localStorage.setItem('layout-theme', t); var b = $('#themeBtn'); if (b) b.textContent = t === 'dark' ? '☀' : '🌙'; }
-  function toggleTheme() { setTheme(document.body.classList.contains('dark') ? 'light' : 'dark'); }
+  function setTheme(t) { var ed = $('#editor'); if (ed) ed.classList.toggle('theme-dark', t === 'dark'); localStorage.setItem('layout-theme', t); var b = $('#themeBtn'); if (b) b.textContent = t === 'dark' ? '☀' : '🌙'; }
+  function toggleTheme() { var ed = $('#editor'); setTheme((ed && ed.classList.contains('theme-dark')) ? 'light' : 'dark'); }
 
   /* ---------- события ---------- */
   function setTool(t) { tool = t; $$('[data-tool]').forEach(function (b) { b.classList.toggle('active', b.dataset.tool === t); }); }
@@ -252,9 +252,9 @@
   $('#zi').onclick = function () { zoom = Math.min(4, zoom * 1.2); draw(); }; $('#zo').onclick = function () { zoom = Math.max(0.2, zoom / 1.2); draw(); };
   $('#zFit').onclick = function () { zoom = 1; draw(); };
   $('#gridChk').onchange = draw; $('#snapChk').onchange = draw;
-  $('#palBtn').onclick = function () { document.body.classList.toggle('no-pal'); };
-  $('#propsBtn').onclick = function () { document.body.classList.toggle('no-props'); };
-  $('#soloBtn').onclick = function () { document.body.classList.toggle('solo'); };
+  $('#palBtn').onclick = function () { $('#editor').classList.toggle('no-pal'); };
+  $('#propsBtn').onclick = function () { $('#editor').classList.toggle('no-props'); };
+  $('#soloBtn').onclick = function () { $('#editor').classList.toggle('solo'); };
   $('#themeBtn').onclick = toggleTheme;
   $$('#tabs button').forEach(function (b) { b.onclick = function () { $$('#tabs button').forEach(function (x) { x.classList.toggle('active', x === b); }); var id = b.dataset.tab; ['prop', 'notes', 'links', 'flow'].forEach(function (k) { $('#tab-' + k).style.display = k === id ? '' : 'none'; }); }; });
   $('#noteAdd').onclick = function () { setTool('note'); toast('Кликните место метки'); };
@@ -309,14 +309,14 @@
   (function () {
     var gp = $('#gripPal'), gpr = $('#gripProps');
     if (gp) gp.onmousedown = function (e) {
-      var sx = e.clientX, w0 = $('.pal').offsetWidth;
-      function mv(ev) { var nw = Math.max(160, Math.min(440, w0 + (ev.clientX - sx))); $('.lwrap').style.gridTemplateColumns = nw + 'px 1fr ' + ($('.side') ? $('.side').offsetWidth : 300) + 'px'; }
+      var sx = e.clientX, w0 = $('.epal').offsetWidth;
+      function mv(ev) { var nw = Math.max(160, Math.min(440, w0 + (ev.clientX - sx))); $('.ebody').style.gridTemplateColumns = nw + 'px 1fr ' + ($('.eprops') ? $('.eprops').offsetWidth : 320) + 'px'; }
       function up() { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); }
       document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up); e.preventDefault();
     };
     if (gpr) gpr.onmousedown = function (e) {
-      var sx = e.clientX, w0 = $('.side').offsetWidth;
-      function mv(ev) { var nw = Math.max(200, Math.min(480, w0 - (ev.clientX - sx))); $('.lwrap').style.gridTemplateColumns = ($('.pal') ? $('.pal').offsetWidth : 250) + 'px 1fr ' + nw + 'px'; }
+      var sx = e.clientX, w0 = $('.eprops').offsetWidth;
+      function mv(ev) { var nw = Math.max(200, Math.min(480, w0 - (ev.clientX - sx))); $('.ebody').style.gridTemplateColumns = ($('.epal') ? $('.epal').offsetWidth : 250) + 'px 1fr ' + nw + 'px'; }
       function up() { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); }
       document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up); e.preventDefault();
     };
@@ -326,7 +326,7 @@
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     token = s.token; $('#who').textContent = s.login + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
-    setTheme(localStorage.getItem('layout-theme') || 'light');
+    setTheme(localStorage.getItem('layout-theme') || 'dark');
     palette(); fitZoom(); draw(); prop(); renderLists(); loadList().catch(function () {});
     logEvent('Проект загружен');
     window.addEventListener('resize', function () { if (zoom <= 0.5) { fitZoom(); draw(); } });
