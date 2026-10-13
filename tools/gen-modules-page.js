@@ -1,9 +1,9 @@
 /* ============================================================
    tools/gen-modules-page.js — генератор modules.html (корень воркспейса, над SAAS/)
-   Собирает самодостаточную справочную страницу по всем модулям:
-   описание возможностей (из assets/js/catalog.js) + экспертная
-   аналитика (tools/modules-analysis.js): полезность, объединение,
-   наполнение и план обновления. Работает без backend (статика + JS-фильтры).
+   «Дашборд готовности модулей»: описание возможностей (catalog.js) +
+   аналитика (modules-analysis.js) + визуализация (SVG, offline):
+   гейдж общей готовности, кольцевые диаграммы (статус/контуры/приоритет),
+   карта модулей по статусу, раздел «Осталось сделать», фильтры.
    Запуск: node tools/gen-modules-page.js
    ============================================================ */
 'use strict';
@@ -21,14 +21,40 @@ const AUD = { guest: 'гость', user: 'пользователь', client_admi
 const PRI = { high: 'высокий', mid: 'средний', low: 'низкий' };
 const titleById = {};
 C.apps.forEach(a => { titleById[a.id] = a.title; });
+const groupById = {};
+(C.groups || []).forEach(g => { groupById[g.id] = g; });
 
 function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 function attr(s) { return esc(s).replace(/\n/g, ' '); }
 function stars(u) { u = Math.max(1, Math.min(5, u | 0)); return '★'.repeat(u) + '☆'.repeat(5 - u); }
 function roles(a) { return a.roles && a.roles.length ? a.roles.join(', ') : 'все авторизованные'; }
+function isDoneItem(s) { return /✅/.test(String(s || '')); }
 
-/* ---------- статистика ---------- */
-const stats = { n: C.apps.length, groups: (C.groups || []).length, uSum: 0, uAvg: 0, merges: 0, pri: { high: 0, mid: 0, low: 0 }, missing: [] };
+/* ---------- статус/готовность модуля ---------- */
+function stOf(an) {
+  if (!an) return 'none';
+  if (an.partial) return 'partial';
+  return (an.wave || an.done) ? 'done' : 'none';
+}
+function planRemain(an) { return an && an.plan ? an.plan.filter(x => !isDoneItem(x)).length : 0; }
+function planDone(an) { return an && an.plan ? an.plan.filter(x => isDoneItem(x)).length : 0; }
+function scoreOf(an) {
+  const st = stOf(an);
+  if (st === 'done') return 100;
+  if (st === 'none') return 0;
+  const total = (an.plan || []).length;
+  if (!total) return 50;
+  return Math.round(planDone(an) / total * 100);
+}
+const ST_LABEL = { done: '✅ реализовано', partial: '◐ частично', none: 'без статуса' };
+const ST_COLOR = { done: '#10b981', partial: '#f59e0b', none: '#94a3b8' };
+
+/* ---------- агрегаты ---------- */
+const mods = C.apps.map(a => {
+  const an = A[a.id] || null;
+  return { a, an, status: stOf(an), remain: planRemain(an), score: scoreOf(an), group: a.group || '', pri: an ? an.pri : '' };
+});
+const stats = { n: C.apps.length, groups: (C.groups || []).length, uSum: 0, uAvg: 0, merges: 0, pri: { high: 0, mid: 0, low: 0 }, missing: [], status: { done: 0, partial: 0, none: 0 } };
 C.apps.forEach(a => {
   const an = A[a.id];
   if (!an) { stats.missing.push(a.id); return; }
@@ -37,28 +63,83 @@ C.apps.forEach(a => {
   stats.pri[an.pri] = (stats.pri[an.pri] || 0) + 1;
 });
 stats.uAvg = (stats.uSum / C.apps.length).toFixed(1);
+mods.forEach(m => { stats.status[m.status]++; });
+const overall = Math.round(mods.reduce((s, m) => s + m.score, 0) / mods.length);
+const remainTotal = mods.filter(m => m.status !== 'done').reduce((s, m) => s + m.remain, 0);
 const waveList = Array.from(new Set(C.apps.map(a => A[a.id] && A[a.id].wave).filter(Boolean))).sort((x, y) => (parseInt(x.slice(1), 10) || 0) - (parseInt(y.slice(1), 10) || 0));
 
+/* ---------- SVG-диаграммы (offline) ---------- */
+function donut(segs, size) {
+  size = size || 132; const r = size / 2 - 12, c = size / 2, circ = 2 * Math.PI * r;
+  const tot = segs.reduce((s, x) => s + x.v, 0) || 1; let off = 0;
+  const arcs = segs.map(s => {
+    const len = circ * (s.v / tot);
+    const el = '<circle cx="' + c + '" cy="' + c + '" r="' + r + '" fill="none" stroke="' + s.c + '" stroke-width="18" stroke-dasharray="' + len.toFixed(2) + ' ' + (circ - len).toFixed(2) + '" stroke-dashoffset="' + (-off).toFixed(2) + '" transform="rotate(-90 ' + c + ' ' + c + ')"></circle>';
+    off += len; return el;
+  }).join('');
+  return '<svg viewBox="0 0 ' + size + ' ' + size + '" width="' + size + '" height="' + size + '" role="img">' + arcs + '</svg>';
+}
+function legend(segs) {
+  return '<div class="dlegend">' + segs.map(s => '<span><i style="background:' + s.c + '"></i>' + esc(s.l) + ' <b>' + s.v + '</b></span>').join('') + '</div>';
+}
+function kpiDonut(title, segs, size) {
+  return '<div class="dcard"><h4>' + esc(title) + '</h4><div class="drow">' + donut(segs, size) + legend(segs) + '</div></div>';
+}
+const R = 54, CIRC = 2 * Math.PI * R;
+const gauge = '<div class="gauge"><svg viewBox="0 0 132 132" width="150" height="150" role="img" aria-label="Готовность">' +
+  '<circle cx="66" cy="66" r="' + R + '" fill="none" stroke="#e2e8f0" stroke-width="16"></circle>' +
+  '<circle id="gaugeArc" cx="66" cy="66" r="' + R + '" fill="none" stroke="#10b981" stroke-width="16" stroke-linecap="round" stroke-dasharray="' + (CIRC * overall / 100).toFixed(2) + ' ' + CIRC.toFixed(2) + '" transform="rotate(-90 66 66)"></circle>' +
+  '</svg><div class="gauge-c"><b id="gaugePct">' + overall + '%</b><span>готовность</span></div></div>';
+
+const statusSegs = [
+  { v: stats.status.done, c: ST_COLOR.done, l: '✅' },
+  { v: stats.status.partial, c: ST_COLOR.partial, l: '◐' },
+  { v: stats.status.none, c: ST_COLOR.none, l: 'без статуса' }
+];
+const groupSegs = (C.groups || []).map((g, i) => ({ v: C.apps.filter(a => a.group === g.id).length, c: ['#10b981', '#0ea5e9', '#6366f1', '#f59e0b', '#ef4444', '#14b8a6', '#a855f7', '#84cc16', '#f97316'][i % 9], l: g.title }));
+const priSegs = [
+  { v: stats.pri.high, c: '#dc2626', l: 'высокий' },
+  { v: stats.pri.mid, c: '#d97706', l: 'средний' },
+  { v: stats.pri.low, c: '#0ea5e9', l: 'низкий' }
+];
+
+/* карта модулей */
+function mapTile(m) {
+  const g = groupById[m.group];
+  return '<a class="map-tile" href="#m-' + attr(m.a.id) + '" data-id="' + attr(m.a.id) + '" data-status="' + m.status + '" data-score="' + m.score + '" style="border-color:' + ST_COLOR[m.status] + '" title="' + attr(m.a.title + ' · ' + (ST_LABEL[m.status] || '') + ' · готовность ' + m.score + '%' + (m.remain ? ' · осталось ' + m.remain : '')) + '">' +
+    '<span class="mt-ic">' + esc(m.a.icon || '•') + '</span><span class="mt-t">' + esc(m.a.title) + '</span>' +
+    '<span class="mt-s" style="background:' + ST_COLOR[m.status] + '">' + m.score + '%</span></a>';
+}
+const mapHtml = (C.groups || []).map(g => {
+  const items = mods.filter(m => m.group === g.id);
+  if (!items.length) return '';
+  return '<div class="map-grp"><div class="map-grp-h">' + esc(g.icon || '') + ' ' + esc(g.title) + ' <span class="cnt">' + items.length + '</span></div>' +
+    '<div class="map-grid">' + items.map(mapTile).join('') + '</div></div>';
+}).join('');
+
 /* ---------- карточка модуля ---------- */
-function card(a) {
-  const an = A[a.id] || { u: 3, why: 'Аналитика не задана.', merge: '', add: [], pri: 'mid', plan: [] };
+function card(m) {
+  const a = m.a;
+  const an = m.an || { u: 3, why: 'Аналитика не задана.', merge: '', add: [], pri: 'mid', plan: [] };
   const connects = (a.connects || []).map(id => {
     const t = titleById[id];
     return '<span class="chip" title="' + attr(id) + '">' + esc(t ? t : id) + '</span>';
   }).join('') || '<span class="muted">—</span>';
   const feats = (a.features || []).map(f => '<li>' + esc(f) + '</li>').join('') || '<li class="muted">—</li>';
   const adds = (an.add || []).map(f => '<li>' + esc(f) + '</li>').join('') || '<li class="muted">—</li>';
-  const plan = (an.plan || []).map(f => '<li>' + esc(f) + '</li>').join('') || '<li class="muted">—</li>';
+  const plan = (an.plan || []).map(f => '<li class="' + (isDoneItem(f) ? 'pdone' : 'prem') + '">' + esc(f) + '</li>').join('') || '<li class="muted">—</li>';
   const text = [a.title, a.id, a.desc, a.purpose, (a.features || []).join(' '), (a.connects || []).join(' '), an.why, an.merge, (an.add || []).join(' '), (an.plan || []).join(' ')].join(' ').toLowerCase();
 
   const mergeCls = an.merge ? 'has' : 'none';
-  const st = (an.wave || an.done) ? (an.partial ? 'partial' : 'done') : 'none';
+  const st = m.status;
+  const stBadge = st === 'done' ? '<span class="tag s-done">✅ реализовано</span>' : st === 'partial' ? '<span class="tag s-partial">◐ частично · осталось ' + m.remain + '</span>' : '<span class="tag s-none">без статуса</span>';
   return `
-<details class="mc" id="m-${attr(a.id)}" data-id="${attr(a.id)}" data-group="${attr(a.group || '')}" data-pri="${attr(an.pri)}" data-u="${an.u}" data-merge="${an.merge ? 1 : 0}" data-wave="${attr(an.wave || '')}" data-status="${st}" data-text="${attr(text)}">
+<details class="mc" id="m-${attr(a.id)}" data-id="${attr(a.id)}" data-group="${attr(a.group || '')}" data-pri="${attr(an.pri)}" data-u="${an.u}" data-merge="${an.merge ? 1 : 0}" data-wave="${attr(an.wave || '')}" data-status="${st}" data-score="${m.score}" data-remain="${m.remain}" data-text="${attr(text)}">
   <summary>
     <span class="mc-ic">${esc(a.icon || '•')}</span>
     <span class="mc-tt"><b>${esc(a.title)}</b><small>${esc(a.id)}${a.desc ? ' · ' + esc(a.desc) : ''}</small></span>
     <span class="badges">
+      <span class="b b-score" style="background:${ST_COLOR[st]}" title="Готовность модуля">${m.score}%</span>
       <span class="b b-u" title="Полезность ${an.u}/5">${stars(an.u)}</span>
       <span class="b b-pri pri-${attr(an.pri)}" title="Приоритет обновления">обновление: ${esc(PRI[an.pri] || an.pri)}</span>
     </span>
@@ -69,7 +150,7 @@ function card(a) {
       <span class="tag">Аудитория: ${esc(AUD[a.audience] || a.audience || 'пользователь')}${a.guest ? ' · доступ: гость' : ''}</span>
       <span class="tag">Роли: ${esc(roles(a))}</span>
       ${an.wave ? '<span class="tag wave" title="Волна плана обновления v5">план v5: ' + esc(an.wave) + '</span>' : ''}
-      ${(an.wave || an.done) ? (an.partial ? '<span class="tag" style="background:#fff7ed;border-color:#fed7aa;color:#9a3412;font-weight:700">◐ частично реализовано</span>' : '<span class="tag" style="background:#ecfdf5;border-color:#a7f3d0;color:#065f46;font-weight:700">✅ реализовано</span>') : ''}
+      ${stBadge}
       <a class="tag link" href="${attr(a.href)}" target="_blank" rel="noopener">Открыть модуль →</a>
     </div>
     ${a.purpose ? '<p class="mc-purpose">' + esc(a.purpose) + '</p>' : ''}
@@ -81,7 +162,7 @@ function card(a) {
       <div class="an an-u"><h4>Полезность</h4><div class="score"><span class="s-val">${an.u}/5</span><span class="s-stars">${stars(an.u)}</span></div><p>${esc(an.why)}</p></div>
       <div class="an an-merge ${mergeCls}"><h4>Объединение</h4><p>${an.merge ? esc(an.merge) : 'Объединение не требуется.'}</p></div>
       <div class="an an-add"><h4>Наполнение функциями</h4><ul>${adds}</ul></div>
-      <div class="an an-plan"><h4>План обновления <span class="pri-dot pri-${attr(an.pri)}">${esc(PRI[an.pri] || an.pri)}</span></h4><ol>${plan}</ol></div>
+      <div class="an an-plan"><h4>План обновления <span class="pri-dot pri-${attr(an.pri)}">${esc(PRI[an.pri] || an.pri)}</span> <span class="muted">· осталось ${m.remain}</span></h4><ol>${plan}</ol></div>
     </div>
   </div>
 </details>`;
@@ -90,19 +171,19 @@ function card(a) {
 /* ---------- разделы ---------- */
 const sections = [];
 (C.groups || []).forEach(g => {
-  const items = C.apps.filter(a => a.group === g.id);
+  const items = mods.filter(m => m.group === g.id);
   if (!items.length) return;
   const used = {};
   const subHtml = [];
   const subs = (C.subgroups && C.subgroups[g.id]) || null;
-  const emit = a => { used[a.id] = 1; return card(a); };
+  const emit = m => { used[m.a.id] = 1; return card(m); };
   if (subs) {
     subs.forEach(s => {
-      const si = items.filter(a => s.apps.indexOf(a.id) >= 0);
+      const si = items.filter(m => s.apps.indexOf(m.a.id) >= 0);
       if (!si.length) return;
       subHtml.push('<h3 class="sub">' + esc(s.title) + ' <span class="cnt">' + si.length + '</span></h3>' + si.map(emit).join(''));
     });
-    const other = items.filter(a => !used[a.id]);
+    const other = items.filter(m => !used[m.a.id]);
     if (other.length) subHtml.push('<h3 class="sub">Прочее в контуре <span class="cnt">' + other.length + '</span></h3>' + other.map(emit).join(''));
   } else {
     subHtml.push(items.map(emit).join(''));
@@ -114,6 +195,17 @@ const sections = [];
   ${subHtml.join('\n')}
 </section>`);
 });
+
+/* ---------- «Осталось сделать» ---------- */
+const remainPanel = (() => {
+  const parts = mods.filter(m => m.status === 'partial').map(m => {
+    const items = (m.an.plan || []).filter(x => !isDoneItem(x));
+    return '<div class="rem"><div class="rem-h"><a href="#m-' + attr(m.a.id) + '" data-target="' + attr(m.a.id) + '">' + esc(m.a.icon || '') + ' <b>' + esc(m.a.title) + '</b></a>' +
+      '<span class="tag s-partial">осталось ' + items.length + ' · готовность ' + m.score + '%</span></div><ul>' +
+      items.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div>';
+  });
+  return '<details class="panel" open><summary class="panel-sum"><b>Осталось сделать</b> <span class="cnt">' + (stats.status.partial) + ' модулей ◐</span> <span class="muted">· ' + remainTotal + ' пунктов плана без ✅</span></summary><div class="rem-grid" style="margin-top:12px">' + (parts.join('') || '<span class="muted">Нет модулей с остатком.</span>') + '</div></details>';
+})();
 
 /* ---------- сводка / кластеры объединения ---------- */
 const mergeList = C.apps.filter(a => A[a.id] && A[a.id].merge)
@@ -133,8 +225,8 @@ const html = `<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Справочник модулей 3DMP — возможности, полезность, план обновления</title>
-<meta name="description" content="Справочная страница по всем модулям сервиса 3DMP: полное описание возможностей, оценка полезности, варианты объединения, наполнение и план обновления.">
+<title>Дашборд готовности модулей 3DMP — статус, прогресс, остаток</title>
+<meta name="description" content="Дашборд готовности модулей сервиса 3DMP: общая готовность, распределение по статусам/контурам/приоритетам, карта модулей, раздел «Осталось сделать».">
 <style>
 :root{
   --bg:#f1f5f9; --surface:#fff; --text:#0f172a; --muted:#64748b; --border:#e2e8f0;
@@ -174,6 +266,37 @@ details.panel[open] .panel-sum .muted{display:none}
 .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
 .legend b{color:var(--text)}
 
+/* дашборд */
+.dash{display:grid;grid-template-columns:220px 1fr;gap:16px;align-items:center}
+.gauge{position:relative;display:flex;align-items:center;justify-content:center;width:150px;height:150px;margin:0 auto}
+.gauge svg{position:absolute;inset:0}
+.gauge-c{position:relative;text-align:center}
+.gauge-c b{font-size:2rem;line-height:1}
+.gauge-c span{display:block;font-size:.72rem;color:var(--muted)}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.dcard{background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);padding:12px}
+.dcard h4{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px}
+.drow{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.dlegend{display:flex;flex-direction:column;gap:5px;font-size:.76rem}
+.dlegend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:middle}
+
+.map-grp{margin-bottom:12px}
+.map-grp-h{font-size:.8rem;font-weight:700;color:#334155;margin:10px 0 6px;display:flex;align-items:center;gap:8px}
+.map-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.map-tile{display:flex;align-items:center;gap:8px;border:2px solid var(--border);border-radius:var(--r2);padding:8px 10px;background:#fff;text-decoration:none;color:var(--text)}
+.map-tile:hover{box-shadow:0 6px 16px rgba(15,23,42,.10);transform:translateY(-1px)}
+.mt-ic{font-size:1.05rem}
+.mt-t{flex:1;font-size:.78rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mt-s{color:#fff;font-size:.68rem;font-weight:800;border-radius:999px;padding:2px 7px}
+
+/* осталось сделать */
+.rem-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px}
+.rem{border:1px solid #fed7aa;background:#fffbeb;border-radius:var(--r2);padding:10px 12px}
+.rem-h{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-bottom:6px}
+.rem-h a{text-decoration:none}
+.rem ul{margin-left:18px;display:flex;flex-direction:column;gap:3px}
+.rem li{font-size:.79rem;color:#334155}
+
 .toolbar{position:sticky;top:0;z-index:20;background:rgba(241,245,249,.92);backdrop-filter:blur(6px);border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .toolbar input[type=search],.toolbar select{border:1px solid var(--border);border-radius:9px;padding:8px 11px;font-size:.83rem;background:#fff;color:var(--text)}
 .toolbar input[type=search]{flex:1;min-width:200px}
@@ -199,6 +322,7 @@ h3.sub{font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(-
 .badges{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
 .b{font-size:.7rem;font-weight:800;border-radius:999px;padding:4px 10px;white-space:nowrap}
 .b-u{background:#fef3c7;color:#b45309;letter-spacing:1px}
+.b-score{color:#fff}
 .b-pri{color:#fff}
 .pri-high{background:var(--high)}
 .pri-mid{background:var(--mid)}
@@ -213,6 +337,9 @@ h3.sub{font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(-
 .tag.link{color:var(--accent-700);font-weight:700;border-color:var(--accent);text-decoration:none}
 .tag.link:hover{background:var(--accent-100)}
 .tag.wave{background:#eef2ff;border-color:#c7d2fe;color:#4338ca;font-weight:700}
+.s-done{background:#ecfdf5;border-color:#a7f3d0;color:#065f46;font-weight:700}
+.s-partial{background:#fff7ed;border-color:#fed7aa;color:#9a3412;font-weight:700}
+.s-none{background:#f1f5f9;border-color:#e2e8f0;color:#64748b;font-weight:700}
 .mc-purpose{font-size:.86rem;color:#334155;margin-bottom:12px}
 .mc-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px}
 .mc-col h4,.an h4{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px}
@@ -229,6 +356,8 @@ ul.feat li::before{content:'✓';position:absolute;left:0;color:var(--accent-700
 .an p{font-size:.82rem;color:#334155}
 .an ul,.an ol{margin-left:18px;display:flex;flex-direction:column;gap:4px}
 .an li{font-size:.8rem;color:#334155}
+.an ol .prem{color:#9a3412;font-weight:600}
+.an ol .pdone{color:#64748b;text-decoration:line-through}
 .an-merge.has{border-color:var(--warning);background:#fffbeb}
 .an-merge.none{opacity:.85}
 .score{display:flex;align-items:center;gap:10px;margin-bottom:6px}
@@ -246,13 +375,13 @@ ul.feat li::before{content:'✓';position:absolute;left:0;color:var(--accent-700
 
 .foot{color:var(--muted);font-size:.78rem;margin-top:30px;border-top:1px solid var(--border);padding-top:14px}
 .hidden{display:none !important}
-@media (max-width:820px){.mc-cols,.analysis{grid-template-columns:1fr}.wrap{padding:18px 12px 50px}.hero h1{font-size:1.4rem}}
-@media print{.toolbar{display:none}.mc{break-inside:avoid}.mc-body{display:block}.mc>summary{cursor:default}}
+@media (max-width:820px){.mc-cols,.analysis{grid-template-columns:1fr}.dash{grid-template-columns:1fr}.wrap{padding:18px 12px 50px}.hero h1{font-size:1.4rem}}
+@media print{.toolbar{display:none}.mc{break-inside:avoid}.mc-body{display:block}.mc>summary{cursor:default}.map-tile{break-inside:avoid}}
 </style>
 </head>
 <body>
 <header class="topbar">
-  <a class="brand" href="index.html"><span class="logo">🏭</span><span>3DMP <span style="opacity:.7;font-weight:400">· справочник модулей</span></span></a>
+  <a class="brand" href="index.html"><span class="logo">🏭</span><span>3DMP <span style="opacity:.7;font-weight:400">· дашборд готовности модулей</span></span></a>
   <span class="spacer"></span>
   <a class="tbtn" href="apps/guide/index.html">Гид по системе</a>
   <a class="tbtn" href="apps/modules/index.html">Карта модулей</a>
@@ -261,30 +390,54 @@ ul.feat li::before{content:'✓';position:absolute;left:0;color:var(--accent-700
 
 <main class="wrap">
   <div class="hero">
-    <h1>Справочник модулей 3DMP</h1>
-    <p>Полное описание возможностей каждого модуля, экспертная оценка полезности, варианты объединения с другими модулями, направления наполнения функциями и поэтапный план обновления. Используйте поиск и фильтры ниже.</p>
+    <h1>Дашборд готовности модулей 3DMP</h1>
+    <p>Общая готовность, распределение по статусам/контурам/приоритетам, карта модулей по статусу и раздел «Осталось сделать» (только ◐). Плюс полное описание возможностей, полезность и план обновления.</p>
     <p class="gen">Сгенерировано ${generated} из <code>assets/js/catalog.js</code> (v${esc(C.version || '')}) и <code>tools/modules-analysis.js</code>. Не редактировать вручную.</p>
   </div>
 
   <div class="cards">
+    <div class="stat"><b>${overall}%</b><span>общая готовность</span></div>
     <div class="stat"><b>${stats.n}</b><span>модулей</span></div>
+    <div class="stat"><b style="color:#047857">${stats.status.done}</b><span>✅ реализовано</span></div>
+    <div class="stat"><b style="color:#b45309">${stats.status.partial}</b><span>◐ частично</span></div>
+    <div class="stat"><b>${remainTotal}</b><span>пунктов плана без ✅</span></div>
     <div class="stat"><b>${stats.groups}</b><span>контуров</span></div>
-    <div class="stat"><b>${stats.uAvg}</b><span>средняя полезность</span></div>
-    <div class="stat"><b>${stats.pri.high || 0}</b><span>высокий приоритет</span></div>
-    <div class="stat"><b>${stats.merges}</b><span>с рек. объединения</span></div>
+  </div>
+
+  <div class="panel">
+    <h2>Карта и прогресс</h2>
+    <div class="dash">
+      <div>
+        ${gauge}
+        <div class="legend" style="justify-content:center;margin-top:8px;gap:10px;">
+          <span>✅ ${stats.status.done}</span><span>◐ ${stats.status.partial}</span><span>без статуса ${stats.status.none}</span>
+        </div>
+      </div>
+      <div class="dgrid">
+        ${kpiDonut('По статусу', statusSegs)}
+        ${kpiDonut('По контурам', groupSegs)}
+        ${kpiDonut('По приоритету', priSegs)}
+      </div>
+    </div>
+    <div class="legend" style="margin-top:12px;">
+      <span><b>Легенда карты:</b></span>
+      <span><i style="display:inline-block;width:11px;height:11px;background:${ST_COLOR.done};border-radius:3px;margin-right:5px;vertical-align:middle"></i>✅ готов</span>
+      <span><i style="display:inline-block;width:11px;height:11px;background:${ST_COLOR.partial};border-radius:3px;margin-right:5px;vertical-align:middle"></i>◐ частично (остаток)</span>
+      <span><i style="display:inline-block;width:11px;height:11px;background:${ST_COLOR.none};border-radius:3px;margin-right:5px;vertical-align:middle"></i>без статуса</span>
+    </div>
+    <div style="margin-top:14px;">${mapHtml}</div>
   </div>
 
   <div class="panel">
     <h2>Легенда оценки</h2>
     <div class="legend">
-      <span><b>Полезность 5</b> — ядро, критично для работы</span>
-      <span><b>4</b> — важно, высокая отдача</span>
-      <span><b>3</b> — полезно, ниша/средняя отдача</span>
-      <span><b>2</b> — вспомогательное/прототип</span>
-      <span><b>Приоритет обновления:</b> <span class="b b-pri pri-high">высокий</span> <span class="b b-pri pri-mid">средний</span> <span class="b b-pri pri-low">низкий</span></span>
-      <span><b>Статус:</b> <span class="tag" style="background:#ecfdf5;border-color:#a7f3d0;color:#065f46;font-weight:700">✅ реализовано</span> <span class="tag" style="background:#fff7ed;border-color:#fed7aa;color:#9a3412;font-weight:700">◐ частично</span> — фильтр «Статус» скрывает реализованные/показывает только остаток</span>
+      <span><b>Готовность модуля:</b> ✅ → 100%, ◐ → доля пунктов плана с ✅, без статуса → 0%</span>
+      <span><b>Полезность:</b> 5 — ядро · 4 — важно · 3 — ниша · 2 — вспомогательное</span>
+      <span><b>Приоритет:</b> <span class="b b-pri pri-high">высокий</span> <span class="b b-pri pri-mid">средний</span> <span class="b b-pri pri-low">низкий</span></span>
     </div>
   </div>
+
+  ${remainPanel}
 
   <div class="panel">
     <h2>Приоритеты обновления</h2>
@@ -304,7 +457,7 @@ ul.feat li::before{content:'✓';position:absolute;left:0;color:var(--accent-700
     <select id="f-pri"><option value="">Любой приоритет</option><option value="high">высокий</option><option value="mid">средний</option><option value="low">низкий</option></select>
     <select id="f-u"><option value="0">Любая полезность</option><option value="5">5 — ядро</option><option value="4">4 и выше</option><option value="3">3 и выше</option></select>
     <select id="f-wave"><option value="">Любая волна v5</option>${waveList.map(w => `<option value="${attr(w)}">${esc(w)}</option>`).join('')}</select>
-    <select id="f-status"><option value="">Все статусы</option><option value="partial">Только остаток (◐)</option><option value="hide_done">Скрыть реализованные (✅)</option><option value="done">Только реализованные (✅)</option><option value="none">Без статуса</option></select>
+    <select id="f-status"><option value="">Все статусы</option><option value="partial">Только остаток (◐)</option><option value="hide_done">Скрыть ✅</option><option value="done">Только ✅</option><option value="none">Без статуса</option></select>
     <label class="ck"><input type="checkbox" id="f-merge"> только с рек. объединения</label>
     <span class="shown" id="shown"></span>
     <button class="reset" id="reset">Сброс</button>
@@ -312,7 +465,7 @@ ul.feat li::before{content:'✓';position:absolute;left:0;color:var(--accent-700
 
   ${sections.join('\n')}
 
-  <p class="foot">Справочный файл для анализа (лежит в корне проекта, вне <code>SAAS/</code>; на FTP не заливается). Источник: <code>SAAS/assets/js/catalog.js</code> + <code>SAAS/tools/modules-analysis.js</code> → <code>SAAS/tools/gen-modules-page.js</code> → <code>modules.html</code>. Волны <code>план v5</code> ссылаются на <code>SAAS/docs/PLAN_UPDATE_V5.md</code>. Маркер 🆕 — модули новой волны.</p>
+  <p class="foot">Дашборд для анализа (корень проекта, вне <code>SAAS/</code>; на FTP не заливается). Источники: <code>SAAS/assets/js/catalog.js</code> + <code>SAAS/tools/modules-analysis.js</code> → <code>SAAS/tools/gen-modules-page.js</code> → <code>modules.html</code>. Обновление — <code>node tools/gen-modules-page.js</code> после каждой волны.</p>
 </main>
 
 <script>
@@ -320,8 +473,11 @@ ul.feat li::before{content:'✓';position:absolute;left:0;color:var(--accent-700
   var q=document.getElementById('q'), fg=document.getElementById('f-group'), fp=document.getElementById('f-pri'),
       fu=document.getElementById('f-u'), fw=document.getElementById('f-wave'), fs=document.getElementById('f-status'), fm=document.getElementById('f-merge'), shown=document.getElementById('shown');
   var cards=[].slice.call(document.querySelectorAll('.mc'));
+  var tiles=[].slice.call(document.querySelectorAll('.map-tile'));
+  var arc=document.getElementById('gaugeArc'), pct=document.getElementById('gaugePct');
+  var CIRC=2*Math.PI*54;
   function apply(){
-    var s=(q.value||'').trim().toLowerCase(), g=fg.value, p=fp.value, u=parseInt(fu.value||'0',10), st=fs.value, m=fm.checked, n=0;
+    var s=(q.value||'').trim().toLowerCase(), g=fg.value, p=fp.value, u=parseInt(fu.value||'0',10), st=fs.value, m=fm.checked, n=0, scoreSum=0;
     cards.forEach(function(c){
       var ok=true;
       if(s && c.getAttribute('data-text').indexOf(s)<0) ok=false;
@@ -337,12 +493,19 @@ ul.feat li::before{content:'✓';position:absolute;left:0;color:var(--accent-700
         else if(st==='hide_done' && cs==='done') ok=false;
       }
       if(ok && m && c.getAttribute('data-merge')!=='1') ok=false;
-      c.classList.toggle('hidden',!ok); if(ok) n++;
+      c.classList.toggle('hidden',!ok); if(ok){ n++; scoreSum+=parseInt(c.getAttribute('data-score'),10)||0; }
     });
     shown.textContent='показано '+n+' из '+cards.length;
     document.querySelectorAll('.grp').forEach(function(sec){
       var vis=sec.querySelectorAll('.mc:not(.hidden)').length; sec.classList.toggle('hidden', vis===0);
     });
+    tiles.forEach(function(t){
+      var el=document.querySelector('.mc[data-id="'+t.getAttribute('data-id')+'"]');
+      t.classList.toggle('hidden', !el || el.classList.contains('hidden'));
+    });
+    var P = n ? Math.round(scoreSum/n) : 0;
+    if(pct) pct.textContent=P+'%';
+    if(arc) arc.setAttribute('stroke-dasharray',(CIRC*P/100).toFixed(2)+' '+CIRC.toFixed(2));
   }
   ['input','change'].forEach(function(ev){ [q,fg,fp,fu,fw,fs,fm].forEach(function(el){ el.addEventListener(ev,apply); }); });
   document.getElementById('reset').addEventListener('click',function(){ q.value=''; fg.value=''; fp.value=''; fu.value='0'; fw.value=''; fs.value=''; fm.checked=false; apply(); });
@@ -357,5 +520,5 @@ ul.feat li::before{content:'✓';position:absolute;left:0;color:var(--accent-700
 </html>`;
 
 fs.writeFileSync(OUT, html, { encoding: 'utf8' });
-console.log('gen-modules-page: записано ' + OUT + ' (' + C.apps.length + ' модулей, ' + stats.merges + ' к объединению)');
+console.log('gen-modules-page: записано ' + OUT + ' (' + C.apps.length + ' модулей; готовность ' + overall + '%; ✅ ' + stats.status.done + ' / ◐ ' + stats.status.partial + ' / без ' + stats.status.none + '; остаток ' + remainTotal + ' п.)');
 if (stats.missing.length) console.warn('НЕТ аналитики для: ' + stats.missing.join(', '));
