@@ -16,7 +16,7 @@
   function uid(p) { return (p || 'i') + Date.now().toString(36) + Math.floor(Math.random() * 1000); }
 
   var token = null, planId = null, zoom = 1, tool = 'sel', mode = 'edit', sel = null, anim = null;
-  var W = 24000, H = 14000, GRID = 100, phase = 0;
+  var W = 12000, H = 8000, GRID = 100, phase = 0;
   var history = [], redo = [];
   var stage = 'new';
   var STAGES = { exist: { l: 'Действующее', c: '#94a3b8' }, 'new': { l: 'Новое', c: '#10b981' }, future: { l: 'Будущее', c: '#8b95a3' } };
@@ -245,7 +245,7 @@
     });
   }
   var KINDS = { shop: 'Цех', office: 'Офис', compressor: 'Компрессорная', line: 'Линия', other: 'Другое' };
-  function openPlan(id) { return rpc('app_layout_plan_get', { p_token: token, p_id: id }).then(function (r) { var p = r && r[0]; if (!p) return; planId = p.id; $('#proj').value = p.name || ''; $('#kind').value = p.kind || 'shop'; applyData(p.data || {}); fitZoom(); draw(); loadList(); }); }
+  function openPlan(id) { return rpc('app_layout_plan_get', { p_token: token, p_id: id }).then(function (r) { var p = r && r[0]; if (!p) return; planId = p.id; $('#proj').value = p.name || ''; $('#kind').value = p.kind || 'shop'; applyData(p.data || {}); fitZoom(); draw(); centerView(); loadList(); }); }
   function save() {
     var name = $('#proj').value.trim(); if (!name) { toast('Укажите название', 'err'); return; }
     rpc('app_layout_plan_save', { p_token: token, p_id: planId, p_name: name, p_kind: $('#kind').value, p_data: S, p_note: null })
@@ -339,7 +339,14 @@
     if (e.key === 'Escape') { routePts = []; tool = 'sel'; setTool('sel'); draw(); }
     if (e.key.toLowerCase() === 'v') setTool('sel'); if (e.key.toLowerCase() === 'h') setTool('pan'); if (e.key.toLowerCase() === 'c') setTool('note');
   };
-  function fitZoom() { var w = $('#cvWrap'); if (!w) return; var z = Math.min((w.clientWidth - 24) / S.w, (w.clientHeight - 24) / S.h); zoom = Math.max(0.05, Math.min(4, z || 1)); }
+  function contentBox() {
+    var list = S.items.length ? S.items : [{ x: 0, y: 0, w: S.w, h: S.h }];
+    var x0 = Math.min.apply(null, list.map(function (i) { return i.x; })), y0 = Math.min.apply(null, list.map(function (i) { return i.y; }));
+    var x1 = Math.max.apply(null, list.map(function (i) { return i.x + i.w; })), y1 = Math.max.apply(null, list.map(function (i) { return i.y + i.h; }));
+    return { x: x0, y: y0, w: Math.max(x1 - x0, 800), h: Math.max(y1 - y0, 600) };
+  }
+  function fitZoom() { var w = $('#cvWrap'); if (!w) return; var b = contentBox(); var z = Math.min((w.clientWidth - 40) / b.w, (w.clientHeight - 40) / b.h); zoom = Math.max(0.1, Math.min(3, z || 1)); }
+  function centerView() { var w = $('#cvWrap'); if (!w) return; var b = contentBox(); w.scrollLeft = Math.max(0, (b.x + b.w / 2) * zoom - w.clientWidth / 2); w.scrollTop = Math.max(0, (b.y + b.h / 2) * zoom - w.clientHeight / 2); }
   function showReport() {
     var len = 0; S.routes.forEach(function (r) { for (var i = 1; i < r.pts.length; i++) len += Math.sqrt(Math.pow(r.pts[i][0] - r.pts[i - 1][0], 2) + Math.pow(r.pts[i][1] - r.pts[i - 1][1], 2)); });
     var cnt = S.items.filter(function (i) { return i.type !== 'zone' && i.type !== 'aisle'; }).length;
@@ -347,7 +354,7 @@
       '<p>Оборудование/элементы: <b>' + cnt + '</b></p><p>Связей: <b>' + S.links.length + '</b> · маршрутов: <b>' + S.routes.length + '</b></p>' +
       '<p>Длина маршрутов: <b>' + (len / 1000).toFixed(1) + ' м</b></p><p>Меток: <b>' + S.notes.length + '</b></p>' });
   }
-  $('#zPlan').onclick = function () { fitZoom(); draw(); };
+  $('#zPlan').onclick = function () { fitZoom(); draw(); centerView(); };
   $('#zFit').onclick = function () { zoom = 1; draw(); };
   $('#clearBtn').onclick = function () { snapshot(); S.items = []; S.notes = []; S.links = []; S.routes = []; sel = null; draw(); prop(); renderLists(); logEvent('Схема очищена'); };
   $('#resetBtn').onclick = function () { snapshot(); planId = null; $('#proj').value = 'Новая планировка'; applyData({}); fitZoom(); draw(); logEvent('Полный сброс'); };
@@ -387,15 +394,15 @@
     if (!document.fullscreenElement) { var rq = ed.requestFullscreen || ed.webkitRequestFullscreen || ed.msRequestFullscreen; if (rq) rq.call(ed); else toast('Полноэкранный режим недоступен', 'err'); }
     else if (document.exitFullscreen) document.exitFullscreen();
   };
-  document.addEventListener('fullscreenchange', function () { setTimeout(function () { fitZoom(); draw(); }, 60); });
+  document.addEventListener('fullscreenchange', function () { setTimeout(function () { fitZoom(); draw(); centerView(); }, 60); });
   $('#logout').onclick = function () { window.Auth.logout(); location.href = '../../index.html'; };
 
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     token = s.token; $('#who').textContent = s.login + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     setTheme(localStorage.getItem('layout-theme') || 'dark');
-    palette(); fitZoom(); draw(); prop(); renderLists(); loadList().catch(function () {});
+    palette(); fitZoom(); draw(); centerView(); prop(); renderLists(); loadList().catch(function () {});
     logEvent('Проект загружен');
-    window.addEventListener('resize', function () { if (zoom <= 0.5) { fitZoom(); draw(); } });
+    window.addEventListener('resize', function () { fitZoom(); draw(); centerView(); });
   });
 })();
