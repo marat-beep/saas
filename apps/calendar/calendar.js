@@ -53,6 +53,27 @@
       msg('#cMsg', 'Результат: ' + fmt(d), 'ok');
     }).catch(function (e) { msg('#cMsg', 'Ошибка: ' + e.message, 'err'); });
   });
+  $('#ruBtn').addEventListener('click', function () {
+    var y = parseInt($('#ruYear').value, 10) || new Date().getFullYear();
+    rpc('app_calendar_load_ru', { p_token: token, p_year: y }).then(function (r) {
+      var x = r && r[0]; var m = $('#ruMsg'); m.className = 'msg show ' + (x && x.ok ? 'ok' : 'err'); m.textContent = (x && x.message) || 'Готово';
+      window.Auth.log('Календарь: праздники РФ', String(y)); load();
+    }).catch(function (e) { var m = $('#ruMsg'); m.className = 'msg show err'; m.textContent = 'Ошибка: ' + e.message; });
+  });
+  $('#wBetweenBtn').addEventListener('click', function () {
+    var a = $('#wFrom').value, b = $('#wTo').value;
+    if (!a || !b) { $('#wOut').innerHTML = '<span class="note">Укажите начало и конец.</span>'; return; }
+    rpc('app_workdays_between', { p_token: token, p_from: a, p_to: b }).then(function (n) {
+      $('#wOut').innerHTML = '<b>Рабочих дней: ' + (n == null ? '—' : n) + '</b> <span class="note">с ' + a + ' по ' + b + '</span>';
+    }).catch(function (e) { $('#wOut').innerHTML = '<span class="note">Ошибка: ' + e.message + '</span>'; });
+  });
+  $('#wListBtn').addEventListener('click', function () {
+    var a = $('#wFrom').value || new Date().toISOString().slice(0, 10);
+    rpc('app_workdays', { p_token: token, p_from: a, p_days: 10 }).then(function (rows) {
+      rows = rows || [];
+      $('#wOut').innerHTML = rows.length ? '<div class="note">10 рабочих дней от ' + a + ':</div><div class="chips mt">' + rows.map(function (r) { return '<span class="chip">' + (r.day || '') + '</span>'; }).join('') + '</div>' : '<span class="note">Нет данных.</span>';
+    }).catch(function (e) { $('#wOut').innerHTML = '<span class="note">Ошибка: ' + e.message + '</span>'; });
+  });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
   window.Auth.guard('../auth/index.html').then(function (s) {
