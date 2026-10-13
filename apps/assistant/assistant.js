@@ -91,6 +91,11 @@
   });
   var _chips = document.getElementById('qChips');
   if (_chips) _chips.addEventListener('click', function (e) { var b = e.target.closest('.chip'); if (!b) return; $('#q').value = b.dataset.q; ask(); });
+  var _tw = document.getElementById('twBtn');
+  if (_tw) _tw.addEventListener('click', function () {
+    if (!window.AppTechWizard) { ui.toast('Мастер не подключён'); return; }
+    window.AppTechWizard.open({ token: token });
+  });
   $('#recBtn').addEventListener('click', recommend);
   $('#kAdd').addEventListener('click', function () {
     var q = $('#kQ').value.trim(), a = $('#kA').value.trim();

@@ -408,4 +408,9 @@
       printDoc('ВО', body);
     }).catch(function (e) { ui.toast('Ошибка: ' + e.message); });
   });
+  var _tw = document.getElementById('twBtn');
+  if (_tw) _tw.addEventListener('click', function () {
+    if (!window.AppTechWizard) { ui.toast('Мастер не подключён'); return; }
+    window.AppTechWizard.open({ token: token, onDone: function () { load(); } });
+  });
 })();
