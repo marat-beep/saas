@@ -30,6 +30,13 @@
   #cv .gl{stroke:var(--egl)} #cv .ln{fill:var(--eln)} #cv .li{cursor:move}
   #cv .lk{stroke:#0ea5e9;stroke-width:40;stroke-dasharray:120 80;opacity:.85} #cv .rt{fill:none;stroke:#2563eb;stroke-width:50;stroke-linejoin:round;opacity:.9}
   .estatus{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:.72rem;color:var(--emuted);background:var(--ehead);border:1px solid var(--eborder);border-radius:9px;padding:5px 9px}
+  .ehint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;color:var(--emuted);font-size:.86rem;pointer-events:none}
+  .editor.expanded{position:fixed;inset:0;z-index:9999;border-radius:0;overflow:auto;padding:10px}
+  body.ed-expanded{overflow:hidden} body.ed-expanded .topbar,body.ed-expanded .hero{display:none}
+  .editor.expanded #cvWrap{height:calc(100vh - 150px)}
+  .utrow{display:flex;align-items:center;gap:6px;border:1px solid var(--eborder);border-radius:9px;padding:6px 8px;margin-bottom:5px;font-size:.76rem;color:var(--etext)}
+  .utsw{width:14px;height:14px;border-radius:3px;flex:0 0 auto}
+  .utrow b{margin-left:auto;color:var(--emuted);font-weight:600}
   .estatus i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:4px;vertical-align:middle}
   .pal-g{font-size:.66rem;text-transform:uppercase;letter-spacing:.04em;color:var(--emuted);margin:8px 0 5px;font-weight:800}
   .pal-h{width:100%;display:flex;gap:6px;align-items:center;background:transparent;border:0;color:var(--emuted);font:inherit;font-size:.66rem;text-transform:uppercase;letter-spacing:.04em;font-weight:800;margin:8px 0 5px;padding:2px 0;cursor:pointer}
@@ -118,12 +125,13 @@
         <button class="btn secondary" id="resetBtn">Сброс</button>
         <label class="ck"><input type="checkbox" id="baseChk"> базовый сценарий</label>
         <button class="btn secondary" id="reportBtn">Отчёт по потоку</button>
+        <button class="btn secondary" id="demoBtn" title="Загрузить демонстрационный проект (линия из конструктора robot)">Демо линия</button>
       </div>
 
       <div class="ebody" id="ebody">
         <aside class="epal"><h2 style="font-size:.82rem;margin:0 0 6px;">Палитра</h2><div id="palette"></div><div class="grip" id="gripPal" title="Тяните, чтобы изменить ширину"></div></aside>
         <section class="ecanvas">
-          <div id="cvWrap"><svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg></div>
+          <div id="cvWrap" style="position:relative;"><svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg><div id="emptyHint" class="ehint">Выберите элемент из палитры слева — он появится здесь. Нужна коммуникация? Вкладка «Связи» → выберите вид → «Проложить».</div></div>
           <div class="estatus">
             <span><i style="background:#10b981"></i>Новое</span><span><i style="background:#94a3b8"></i>Действующее</span><span><i style="background:#8b95a3"></i>Будущее</span>
             <span>мм · сетка 100</span><span id="stats"></span><span style="margin-left:auto" id="coords">x — · y —</span>
@@ -134,7 +142,13 @@
           <div class="tabs" id="tabs"><button class="active" data-tab="prop">Свойства</button><button data-tab="notes">Метки</button><button data-tab="links">Связи</button><button data-tab="flow">Поток</button></div>
           <div id="tab-prop"><div id="prop"><span class="hintbar">Выберите элемент на плане.</span></div></div>
           <div id="tab-notes" style="display:none;"><button class="btn secondary" id="noteAdd" style="width:auto">＋ Метка</button><div id="notesList" class="mlist"></div><button class="btn secondary" id="noteExport" style="width:auto;margin-top:6px">Экспорт меток</button></div>
-          <div id="tab-links" style="display:none;"><div class="hintbar">Инструмент 🔗: выберите два элемента.</div><div id="linksList" class="mlist"></div><button class="btn secondary" id="linkExport" style="width:auto;margin-top:6px">Экспорт связей</button></div>
+          <div id="tab-links" style="display:none;">
+            <div class="hintbar">Коммуникации: выберите вид и нажмите «Проложить», затем кликайте точки на плане; «Завершить».</div>
+            <div id="utilsList" class="mlist"></div>
+            <div class="hintbar" style="margin-top:8px">Связи между элементами (инструмент 🔗):</div>
+            <div id="linksList" class="mlist"></div>
+            <button class="btn secondary" id="linkExport" style="width:auto;margin-top:6px">Экспорт связей</button>
+          </div>
           <div id="tab-flow" style="display:none;">
             <button class="btn secondary" id="routeAdd" style="width:auto">Создать маршрут</button>
             <button class="btn secondary" id="routeAuto" style="width:auto;margin-top:6px">Авто-маршрут</button>
@@ -161,7 +175,7 @@
   <script src="../../assets/js/nav.js?v=108"></script>
   <script src="../../assets/js/shell.js?v=75"></script>
   <script src="../../assets/js/module-report.js?v=3"></script>
-  <script src="layout.js?v=7"></script>
+  <script src="layout.js?v=8"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=2"></script>
 </body>

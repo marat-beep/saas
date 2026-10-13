@@ -20,8 +20,12 @@
   var history = [], redo = [];
   var stage = 'new';
   var STAGES = { exist: { l: 'Действующее', c: '#94a3b8' }, 'new': { l: 'Новое', c: '#10b981' }, future: { l: 'Будущее', c: '#8b95a3' } };
-  var S = { w: W, h: H, items: [], notes: [], links: [], routes: [] };
-  var linkFrom = null, routePts = [], flow = { spd: 1800, playing: false, t: 0 }, flowBase = false;
+  var S = { w: W, h: H, items: [], notes: [], links: [], routes: [], utils: [] };
+  var linkFrom = null, routePts = [], utilPts = [], utilKind = null, flow = { spd: 1800, playing: false, t: 0 }, flowBase = false;
+  var UTILS = [
+    { k: 'electric', l: 'Питание (электр.)', c: '#ef4444' }, { k: 'air', l: 'Воздух', c: '#06b6d4' },
+    { k: 'water', l: 'Вода', c: '#3b82f6' }, { k: 'gas', l: 'Газ', c: '#f59e0b' }, { k: 'net', l: 'Сеть / данные', c: '#22c55e' }
+  ];
 
   var TYPES = [
     { g: 'Станки и обработка', items: [
@@ -123,6 +127,8 @@
     }
     g += S.links.map(function (l) { var a = byId(l.a), b = byId(l.b); if (!a || !b) return ''; return '<line class="lk" x1="' + (a.x + a.w) + '" y1="' + (a.y + a.h / 2) + '" x2="' + b.x + '" y2="' + (b.y + b.h / 2) + '" marker-end="url(#ah)" data-lk="' + l.id + '"/>'; }).join('');
     g += S.routes.map(function (r) { return '<polyline class="rt" marker-end="url(#ahr)" data-rt="' + r.id + '" points="' + r.pts.map(function (p) { return p[0] + ',' + p[1]; }).join(' ') + '"/>'; }).join('');
+    g += (S.utils || []).map(function (u) { var kk = UTILS.filter(function (x) { return x.k === u.kind; })[0] || { c: '#888' }; return '<polyline data-ut="' + u.id + '" fill="none" stroke="' + kk.c + '" stroke-width="' + (GRID * 0.45) + '" stroke-dasharray="' + (GRID * 2) + ' ' + (GRID) + '" stroke-linejoin="round" points="' + u.pts.map(function (p) { return p[0] + ',' + p[1]; }).join(' ') + '"/>'; }).join('');
+    if (utilPts.length && utilKind) { var kc = (UTILS.filter(function (x) { return x.k === utilKind; })[0] || {}).c; g += '<polyline fill="none" stroke="' + kc + '" stroke-width="' + (GRID * 0.45) + '" stroke-dasharray="' + (GRID) + '" points="' + utilPts.map(function (p) { return p[0] + ',' + p[1]; }).join(' ') + '"/>'; }
     g += S.items.map(function (it) {
       var c = (STAGES[it.stage] || STAGES['new']).c, isz = it.type === 'zone' || it.type === 'aisle';
       return '<g class="li" data-id="' + it.id + '" transform="translate(' + it.x + ',' + it.y + ') rotate(' + (it.rot || 0) + ',' + (it.w / 2) + ',' + (it.h / 2) + ')">' +
@@ -135,8 +141,8 @@
     }).join('');
     g += S.notes.map(function (n) { return '<g class="nt" data-note="' + n.id + '" transform="translate(' + n.x + ',' + n.y + ')"><circle r="' + GRID * 0.9 + '" fill="#f59e0b" stroke="#fff" stroke-width="' + GRID / 6 + '"/><text y="' + GRID * 0.35 + '" text-anchor="middle" font-size="' + GRID * 1.1 + '" fill="#fff">!</text></g>'; }).join('');
     var mark = flowMark(); if (mark) g += '<circle class="fm" cx="' + mark[0] + '" cy="' + mark[1] + '" r="' + GRID * 0.9 + '" fill="#2563eb" stroke="#fff" stroke-width="' + GRID / 6 + '"/>';
-    if (!S.items.length) g += '<text x="' + (S.w / 2) + '" y="' + (S.h / 2) + '" text-anchor="middle" font-size="' + (GRID * 6) + '" fill="#94a3b8">Выберите элемент из палитры слева → он появится здесь</text>';
     svg.innerHTML = g;
+    var eh = $('#emptyHint'); if (eh) eh.style.display = S.items.length ? 'none' : '';
     bind(); stat();
   }
   function byId(id) { return S.items.filter(function (x) { return x.id === id; })[0]; }
@@ -168,6 +174,7 @@
         if (e.target.classList && e.target.classList.contains('rz')) return;
         var id = gEl.getAttribute('data-id');
         if (tool === 'route') { var p = stagePct(e); routePts.push(p); previewRoute(); e.preventDefault(); return; }
+        if (tool === 'util') { utilPts.push(stagePct(e)); draw(); e.preventDefault(); return; }
         if (tool === 'link') {
           if (linkFrom && linkFrom !== id) { snapshot(); S.links.push({ id: uid('l'), a: linkFrom, b: id, kind: 'conveyor' }); renderLists(); linkFrom = null; draw(); }
           else linkFrom = id; toast(linkFrom ? 'Выберите второй элемент для связи' : 'Готово');
@@ -176,7 +183,7 @@
         if (mode === 'demo') return;
         sel = id; prop(); draw();
         var it = byId(id); if (!it) return;
-        var sx = e.clientX, sy = e.clientY, ox = it.x, oy = it.y, sc = (S.w / zoom) / $('#cv').clientWidth, moved = 0;
+        var sx = e.clientX, sy = e.clientY, ox = it.x, oy = it.y, sc = 1 / zoom, moved = 0;
         function mv(ev) { moved = 1; it.x = snapv(ox + (ev.clientX - sx) * sc); it.y = snapv(oy + (ev.clientY - sy) * sc); draw(); }
         function up() { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); if (moved) { snapshot(); } }
         document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up); e.preventDefault();
@@ -185,7 +192,7 @@
     var rz = $('#cv .rz');
     if (rz) rz.onmousedown = function (e) {
       var it = byId(sel); if (!it) return;
-      var sx = e.clientX, sy = e.clientY, ow = it.w, oh = it.h, sc = (S.w / zoom) / $('#cv').clientWidth;
+      var sx = e.clientX, sy = e.clientY, ow = it.w, oh = it.h, sc = 1 / zoom;
       function mv(ev) { it.w = Math.max(GRID * 3, snapv(ow + (ev.clientX - sx) * sc)); it.h = Math.max(GRID * 3, snapv(oh + (ev.clientY - sy) * sc)); draw(); }
       function up() { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); snapshot(); }
       document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up); e.preventDefault(); e.stopPropagation();
@@ -219,6 +226,16 @@
     $$('[data-ndel]').forEach(function (b) { b.onclick = function () { snapshot(); S.notes = S.notes.filter(function (x) { return x.id !== b.dataset.ndel; }); renderLists(); draw(); }; });
     $$('[data-ldel]').forEach(function (b) { b.onclick = function () { snapshot(); S.links = S.links.filter(function (x) { return x.id !== b.dataset.ldel; }); renderLists(); draw(); }; });
     $$('[data-rdel]').forEach(function (b) { b.onclick = function () { snapshot(); S.routes = S.routes.filter(function (x) { return x.id !== b.dataset.rdel; }); renderLists(); draw(); }; });
+    renderUtils();
+  }
+  function pathLen(pts) { var L = 0; for (var i = 1; i < pts.length; i++) L += Math.sqrt(Math.pow(pts[i][0] - pts[i - 1][0], 2) + Math.pow(pts[i][1] - pts[i - 1][1], 2)); return L; }
+  function renderUtils() {
+    var host = $('#utilsList'); if (!host) return;
+    var by = {}; (S.utils || []).forEach(function (u) { by[u.kind] = (by[u.kind] || 0) + pathLen(u.pts); });
+    host.innerHTML = UTILS.map(function (x) {
+      return '<div class="utrow"><span class="utsw" style="background:' + x.c + '"></span><span>' + x.l + '</span><b>' + ((by[x.k] || 0) / 1000).toFixed(2) + ' м</b><button class="act" data-util="' + x.k + '">Проложить</button></div>';
+    }).join('');
+    $$('#utilsList [data-util]').forEach(function (b) { b.onclick = function () { utilKind = b.dataset.util; utilPts = []; tool = 'util'; toast('Кликайте точки коммуникации; «Завершить» — сохранить'); }; });
   }
 
   /* ---------- палитра ---------- */
@@ -235,7 +252,7 @@
   function addType(t) { snapshot(); var d = typeDef(t); var it = { id: uid(), type: t, name: d.n, x: snapv(S.w / 2 - d.w / 2), y: snapv(S.h / 2 - d.h / 2), w: d.w, h: d.h, rot: 0, stage: stage }; S.items.push(it); sel = it.id; draw(); prop(); }
 
   /* ---------- проекты ---------- */
-  function applyData(d) { S = { w: d.w || W, h: d.h || H, items: d.items || [], notes: d.notes || [], links: d.links || [], routes: d.routes || [] }; sel = null; history = []; redo = []; syncHist(); draw(); prop(); renderLists(); }
+  function applyData(d) { S = { w: d.w || W, h: d.h || H, items: d.items || [], notes: d.notes || [], links: d.links || [], routes: d.routes || [], utils: d.utils || [] }; sel = null; history = []; redo = []; syncHist(); draw(); prop(); renderLists(); }
   function loadList() {
     return rpc('app_layout_plan_list', { p_token: token }).then(function (rows) {
       rows = rows || [];
@@ -262,7 +279,7 @@
     img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
   }
   function exportHtml() { dl(($('#proj').value || 'layout') + '.html', '<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>' + esc($('#proj').value) + '</title><style>body{margin:0}#cv{width:100%;height:auto}</style></head><body>' + svgString() + '</body></html>', 'text/html'); }
-  function exportJson() { dl(($('#proj').value || 'layout') + '.json', JSON.stringify({ name: $('#proj').value, kind: $('#kind').value, w: S.w, h: S.h, items: S.items, notes: S.notes, links: S.links, routes: S.routes }, null, 2), 'application/json'); }
+  function exportJson() { dl(($('#proj').value || 'layout') + '.json', JSON.stringify({ name: $('#proj').value, kind: $('#kind').value, w: S.w, h: S.h, items: S.items, notes: S.notes, links: S.links, routes: S.routes, utils: S.utils }, null, 2), 'application/json'); }
   function importJson(file) { var fr = new FileReader(); fr.onload = function () { try { var d = JSON.parse(fr.result); if (d.name) $('#proj').value = d.name; if (d.kind) $('#kind').value = d.kind; applyData(d); toast('Импортировано'); } catch (e) { toast('Некорректный JSON', 'err'); } }; fr.readAsText(file); }
   function exportNotes() { dl('notes.txt', S.notes.map(function (n, i) { return (i + 1) + '. ' + (n.text || '') + ' @(' + Math.round(n.x) + ',' + Math.round(n.y) + ')'; }).join('\n'), 'text/plain'); }
   function exportLinks() { dl('links.csv', 'A,B\n' + S.links.map(function (l) { var a = byId(l.a), b = byId(l.b); return '"' + ((a && a.name) || '') + '","' + ((b && b.name) || '') + '"'; }).join('\n'), 'text/csv'); }
@@ -277,7 +294,11 @@
     renderLists(); draw(); toast('Маршрут построен (' + list.length + ' тчк)');
   }
   function addRoute() { tool = 'route'; routePts = []; toast('Кликайте точки маршрута; «Завершить» — сохранить'); }
-  function finishRoute() { if (routePts.length < 2) { routePts = []; tool = 'sel'; return; } snapshot(); S.routes.push({ id: uid('r'), pts: routePts.slice() }); routePts = []; tool = 'sel'; renderLists(); draw(); }
+  function finishRoute() {
+    if (tool === 'util') { if (utilPts.length >= 2) { snapshot(); S.utils.push({ id: uid('u'), kind: utilKind, pts: utilPts.slice() }); } utilPts = []; utilKind = null; tool = 'sel'; renderLists(); draw(); return; }
+    if (routePts.length < 2) { routePts = []; tool = 'sel'; return; }
+    snapshot(); S.routes.push({ id: uid('r'), pts: routePts.slice() }); routePts = []; tool = 'sel'; renderLists(); draw();
+  }
   function animTick() { if (!flow.playing) return; flow.t += 0.06 * (flow.spd / 1800); draw(); anim = requestAnimationFrame(animTick); }
   function togglePlay() { flow.playing = !flow.playing; var b = $('#playBtn'); if (b) b.textContent = flow.playing ? '⏸ Пауза' : '▶ Пуск'; if (flow.playing && !anim) anim = requestAnimationFrame(animTick); if (!flow.playing && anim) { cancelAnimationFrame(anim); anim = null; } }
   function stepFwd() { phase++; flow.t += 1; draw(); }
@@ -326,6 +347,7 @@
   $('#cv').onclick = function (e) {
     if (tool === 'note') { var p = stagePct(e); var txt = prompt('Комментарий к метке:', ''); if (txt != null) { snapshot(); S.notes.push({ id: uid('n'), x: p[0], y: p[1], text: txt }); renderLists(); draw(); } setTool('sel'); return; }
     if (tool === 'route') { var pr = stagePct(e); routePts.push(pr); previewRoute(); return; }
+    if (tool === 'util') { utilPts.push(stagePct(e)); draw(); return; }
     if (e.target === $('#cv')) { sel = null; prop(); draw(); }
   };
   document.onkeydown = function (e) {
@@ -336,7 +358,11 @@
     if (e.ctrlKey && e.key.toLowerCase() === 'y') { e.preventDefault(); redoFn(); }
     if (e.ctrlKey && e.key.toLowerCase() === 's') { e.preventDefault(); save(); }
     if (e.key === 'Enter' && tool === 'route') finishRoute();
-    if (e.key === 'Escape') { routePts = []; tool = 'sel'; setTool('sel'); draw(); }
+    if (e.key === 'Escape') {
+      var ed = $('#editor');
+      if (ed && ed.classList.contains('expanded')) { ed.classList.remove('expanded'); document.body.classList.remove('ed-expanded'); var fb = $('#fsBtn'); if (fb) fb.textContent = '⤢ Развернуть'; setTimeout(function () { fitZoom(); draw(); centerView(); }, 60); }
+      routePts = []; utilPts = []; utilKind = null; tool = 'sel'; setTool('sel'); draw();
+    }
     if (e.key.toLowerCase() === 'v') setTool('sel'); if (e.key.toLowerCase() === 'h') setTool('pan'); if (e.key.toLowerCase() === 'c') setTool('note');
   };
   function contentBox() {
@@ -390,9 +416,33 @@
   if ($('#zSlider')) $('#zSlider').oninput = function () { zoom = Math.max(0.2, Math.min(3, (Number(this.value) || 100) / 100)); draw(); };
   if ($('#zStage')) $('#zStage').onclick = function () { zoomToBBox(S.items.filter(function (i) { return i.stage === 'new'; })); };
   if ($('#fsBtn')) $('#fsBtn').onclick = function () {
-    var ed = $('#editor');
-    if (!document.fullscreenElement) { var rq = ed.requestFullscreen || ed.webkitRequestFullscreen || ed.msRequestFullscreen; if (rq) rq.call(ed); else toast('Полноэкранный режим недоступен', 'err'); }
-    else if (document.exitFullscreen) document.exitFullscreen();
+    var ed = $('#editor'); var on = ed.classList.toggle('expanded'); document.body.classList.toggle('ed-expanded', on);
+    this.textContent = on ? '⤢ Свернуть' : '⤢ Развернуть';
+    setTimeout(function () { fitZoom(); draw(); centerView(); }, 60);
+  };
+  var DEMO = {
+    w: 16000, h: 9000, notes: [], links: [],
+    items: [
+      { id: 'd1', type: 'lathe', name: 'ОЦ токарный', x: 1500, y: 1200, w: 2800, h: 1800, rot: 0, stage: 'new' },
+      { id: 'd2', type: 'mill', name: 'ОЦ фрезерный', x: 1500, y: 3600, w: 3200, h: 2600, rot: 0, stage: 'new' },
+      { id: 'd3', type: 'turn', name: 'Поворотный', x: 5600, y: 4200, w: 2400, h: 2400, rot: 0, stage: 'new' },
+      { id: 'd4', type: 'accum', name: 'Накопитель', x: 5600, y: 1200, w: 6000, h: 1400, rot: 0, stage: 'new' },
+      { id: 'd5', type: 'robot6', name: 'Робот 6-осевой', x: 8800, y: 4200, w: 2500, h: 2500, rot: 0, stage: 'new' },
+      { id: 'd6', type: 'robot6', name: 'Робот SCARA', x: 8800, y: 4200, w: 2200, h: 2200, rot: 0, stage: 'exist' },
+      { id: 'd7', type: 'view', name: '', x: 0, y: 0, w: 0, h: 0, stage: 'exist' },
+      { id: 'd8', type: 'conv', name: 'Конвейер', x: 11800, y: 1200, w: 3000, h: 900, rot: 0, stage: 'new' },
+      { id: 'd9', type: 'rack', name: 'Стеллаж', x: 11800, y: 4200, w: 2700, h: 1100, rot: 0, stage: 'new' },
+      { id: 'd10', type: 'cmm', name: 'КИМ', x: 1500, y: 6400, w: 2000, h: 1600, rot: 0, stage: 'new' },
+      { id: 'd11', type: 'cabinet', name: 'Шкаф управления', x: 4200, y: 1200, w: 1200, h: 600, rot: 0, stage: 'new' },
+      { id: 'd12', type: 'zone', name: 'Зона безопасности', x: 8200, y: 3600, w: 4200, h: 3400, rot: 0, stage: 'exist' }
+    ],
+    routes: [{ id: 'dr1', pts: [[2900, 2100], [2900, 4600], [5600, 5400], [8800, 5400], [11800, 1650]] }],
+    utils: [{ id: 'du1', kind: 'electric', pts: [[2100, 1500], [4500, 1500], [4500, 5000], [9000, 5000]] }, { id: 'du2', kind: 'air', pts: [[2100, 3900], [7800, 3900]] }]
+  };
+  DEMO.items = DEMO.items.filter(function (i) { return i.w > 0; });
+  if ($('#demoBtn')) $('#demoBtn').onclick = function () {
+    snapshot(); planId = null; $('#proj').value = 'Демо: линия (из robot)'; $('#kind').value = 'line';
+    applyData(deep(DEMO)); fitZoom(); draw(); centerView(); logEvent('Загружен демо-проект (robot)');
   };
   document.addEventListener('fullscreenchange', function () { setTimeout(function () { fitZoom(); draw(); centerView(); }, 60); });
   $('#logout').onclick = function () { window.Auth.logout(); location.href = '../../index.html'; };
