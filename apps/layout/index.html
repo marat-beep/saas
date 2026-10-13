@@ -27,7 +27,14 @@
   .plrow{cursor:pointer}.plrow.on{border-color:var(--accent);background:var(--accent-100)}
   .plrow b,.lkrow span{font-size:.8rem}.plrow small{color:var(--muted);font-size:.7rem}.plrow .pl-act,.lkrow .act{margin-left:auto}
   .leg{display:flex;gap:12px;flex-wrap:wrap;font-size:.74rem;color:var(--muted)}.leg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:4px;vertical-align:middle}
-  .mstools{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0}
+  .mstools{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0;position:sticky;top:50px;z-index:16;background:var(--bg);padding:6px 0}
+  .mstools + .mstools{top:98px}
+  .mstools select,.mstools input{width:auto;min-height:38px;padding:8px 11px;border:1px solid var(--border);border-radius:10px}
+  .mstools .search{flex:1;min-width:180px;width:auto}
+  .mstools label.btn{cursor:pointer}
+  .grip{width:14px;cursor:col-resize;position:absolute;top:0;bottom:0;right:-7px;z-index:5}
+  .grip:hover{background:linear-gradient(90deg,transparent,rgba(16,185,129,.15),transparent)}
+  .lwrap{position:relative}
   .mstools .seg button.active,#tabs button.active,#mEdit.active,#mDemo.active,[data-tool].active{background:var(--accent);color:#fff;border-color:var(--accent)}
   #log{max-height:120px;overflow:auto;font-size:.72rem;color:var(--muted);border:1px solid var(--border);border-radius:9px;padding:6px 8px;background:#fff}
   #tabs{display:flex;gap:4px;margin-bottom:6px}#tabs button{font-size:.74rem}
@@ -85,6 +92,11 @@
       <button class="btn secondary" id="expHtml" style="width:auto;padding:8px 14px;">HTML</button>
       <button class="btn secondary" id="printBtn" style="width:auto;padding:8px 14px;">🖨 Печать/PDF</button>
       <label class="btn secondary" style="width:auto;padding:8px 14px;cursor:pointer;">Импорт<input type="file" id="impFile" accept="application/json" style="display:none;"></label>
+      <button class="btn secondary" id="zPlan" style="width:auto;padding:8px 14px;">Весь план</button>
+      <button class="btn secondary" id="clearBtn" style="width:auto;padding:8px 14px;">Очистить</button>
+      <button class="btn secondary" id="resetBtn" style="width:auto;padding:8px 14px;">Сброс</button>
+      <label class="ck"><input type="checkbox" id="baseChk"> базовый сценарий</label>
+      <button class="btn secondary" id="reportBtn" style="width:auto;padding:8px 14px;">Отчёт по потоку</button>
       <button class="btn secondary" id="playBtn" style="display:none;width:auto;padding:8px 14px;">▶ Пуск</button>
       <button class="btn secondary" id="stepPrev" style="width:auto;padding:8px 10px;">◀</button>
       <button class="btn secondary" id="stepNext" style="width:auto;padding:8px 10px;">▶</button>
@@ -92,13 +104,14 @@
     </div>
 
     <div class="lwrap">
-      <div class="card pal"><h2>Палитра</h2><div id="palette"></div></div>
+      <div class="card pal" style="position:relative;"><h2>Палитра</h2><div id="palette"></div><div class="grip" id="gripPal" title="Тяните, чтобы изменить ширину"></div></div>
       <div class="card" style="padding:10px;">
         <div id="cvWrap"><svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg></div>
         <div class="leg mt"><span><i style="background:#10b981"></i>Новое</span><span><i style="background:#94a3b8"></i>Действующее</span><span><i style="background:#8b95a3"></i>Будущее</span><span>мм · сетка 100</span><span id="stats"></span><span style="margin-left:auto" id="coords">x — · y —</span></div>
         <h4 class="mt" style="font-size:.72rem;color:var(--muted);text-transform:uppercase;">События</h4><div id="log"></div>
       </div>
-      <div class="card side">
+      <div class="card side" style="position:relative;">
+        <div class="grip" id="gripProps" style="left:-7px;right:auto;" title="Тяните, чтобы изменить ширину"></div>
         <div id="tabs"><button class="active" data-tab="prop">Свойства</button><button data-tab="notes">Метки</button><button data-tab="links">Связи</button><button data-tab="flow">Поток</button></div>
         <div id="tab-prop"><div id="prop"><span class="note">Выберите элемент на плане.</span></div></div>
         <div id="tab-notes" style="display:none;"><button class="btn secondary" id="noteAdd" style="width:auto;padding:8px 14px;">＋ Метка</button><div id="notesList" class="mt"></div><button class="btn secondary" id="noteExport" style="width:auto;padding:8px 14px;margin-top:6px;">Экспорт меток</button></div>
@@ -128,7 +141,7 @@
   <script src="../../assets/js/nav.js?v=108"></script>
   <script src="../../assets/js/shell.js?v=75"></script>
   <script src="../../assets/js/module-report.js?v=3"></script>
-  <script src="layout.js?v=2"></script>
+  <script src="layout.js?v=3"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=2"></script>
 </body>

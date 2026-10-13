@@ -38,7 +38,8 @@
     { g: 'Конвейеры и транспорт', items: [
       { t: 'conv', n: 'Конвейер прямой', w: 3000, h: 900, ic: '➡️' }, { t: 'turn', n: 'Поворотный', w: 2400, h: 2400, ic: '🔄' },
       { t: 'accum', n: 'Накопитель', w: 6000, h: 1400, ic: '📥' }, { t: 'agv', n: 'AGV/погрузчик', w: 2000, h: 1200, ic: '🛻' },
-      { t: 'lift', n: 'Подъёмник', w: 1600, h: 1600, ic: '↕️' }
+      { t: 'lift', n: 'Подъёмник', w: 1600, h: 1600, ic: '↕️' }, { t: 'rail', n: 'Рельс/направляющая', w: 8000, h: 400, ic: '🛤' },
+      { t: 'cross', n: 'Перегрузочный стол', w: 1600, h: 1600, ic: '➕' }, { t: 'buffer', n: 'Буфер накопления', w: 4000, h: 2000, ic: '🧱' }
     ] },
     { g: 'Хранение и оснастка', items: [
       { t: 'rack', n: 'Стеллаж', w: 2700, h: 1100, ic: '🗄' }, { t: 'pallet', n: 'Паллета', w: 1200, h: 800, ic: '▭' },
@@ -74,19 +75,20 @@
   function draw() {
     var svg = $('#cv'); var vbW = S.w / zoom, vbH = S.h / zoom;
     svg.setAttribute('viewBox', '0 0 ' + vbW + ' ' + vbH); svg.style.width = vbW + 'px'; svg.style.height = vbH + 'px';
-    var g = '';
+    var g = '<defs><marker id="ah" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 z" fill="#0ea5e9"/></marker><marker id="ahr" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 z" fill="#2563eb"/></marker></defs>';
     if ($('#gridChk') && $('#gridChk').checked) {
       for (var x = 0; x <= S.w; x += GRID * 5) g += '<line x1="' + x + '" y1="0" x2="' + x + '" y2="' + S.h + '" class="gl"/>';
       for (var y = 0; y <= S.h; y += GRID * 5) g += '<line x1="0" y1="' + y + '" x2="' + S.w + '" y2="' + y + '" class="gl"/>';
     }
-    g += S.links.map(function (l) { var a = byId(l.a), b = byId(l.b); if (!a || !b) return ''; return '<line class="lk" x1="' + (a.x + a.w / 2) + '" y1="' + (a.y + a.h / 2) + '" x2="' + (b.x + b.w / 2) + '" y2="' + (b.y + b.h / 2) + '" data-lk="' + l.id + '"/>'; }).join('');
-    g += S.routes.map(function (r) { return '<polyline class="rt" data-rt="' + r.id + '" points="' + r.pts.map(function (p) { return p[0] + ',' + p[1]; }).join(' ') + '"/>'; }).join('');
+    g += S.links.map(function (l) { var a = byId(l.a), b = byId(l.b); if (!a || !b) return ''; return '<line class="lk" x1="' + (a.x + a.w) + '" y1="' + (a.y + a.h / 2) + '" x2="' + b.x + '" y2="' + (b.y + b.h / 2) + '" marker-end="url(#ah)" data-lk="' + l.id + '"/>'; }).join('');
+    g += S.routes.map(function (r) { return '<polyline class="rt" marker-end="url(#ahr)" data-rt="' + r.id + '" points="' + r.pts.map(function (p) { return p[0] + ',' + p[1]; }).join(' ') + '"/>'; }).join('');
     g += S.items.map(function (it) {
       var c = (STAGES[it.stage] || STAGES['new']).c, isz = it.type === 'zone' || it.type === 'aisle';
       return '<g class="li" data-id="' + it.id + '" transform="translate(' + it.x + ',' + it.y + ') rotate(' + (it.rot || 0) + ',' + (it.w / 2) + ',' + (it.h / 2) + ')">' +
         '<rect x="0" y="0" width="' + it.w + '" height="' + it.h + '" rx="' + (GRID / 2) + '" fill="' + (isz ? 'rgba(16,185,129,.08)' : c + '22') + '" stroke="' + c + '" stroke-width="' + (sel === it.id ? GRID / 2 : GRID / 4) + '"' + (isz ? ' stroke-dasharray="' + GRID / 2 + ' ' + GRID / 3 + '"' : '') + '/>' +
         '<text x="' + (it.w / 2) + '" y="' + (it.h / 2 - 40) + '" text-anchor="middle" font-size="' + Math.max(140, Math.min(it.w, it.h) / 6) + '">' + esc(typeDef(it.type).ic) + '</text>' +
         '<text x="' + (it.w / 2) + '" y="' + (it.h / 2 + Math.max(240, Math.min(it.w, it.h) / 3)) + '" text-anchor="middle" font-size="' + Math.max(140, Math.min(it.w, it.h) / 9) + '" class="ln">' + esc(it.name) + '</text>' +
+        (isz ? '' : '<circle cx="0" cy="' + (it.h / 2) + '" r="' + (GRID * 0.6) + '" fill="#0ea5e9"/><circle cx="' + it.w + '" cy="' + (it.h / 2) + '" r="' + (GRID * 0.6) + '" fill="#0ea5e9"/>') +
         (sel === it.id ? '<rect class="rz" x="' + (it.w - GRID) + '" y="' + (it.h - GRID) + '" width="' + (GRID * 1.6) + '" height="' + (GRID * 1.6) + '" fill="#10b981" stroke="#fff" stroke-width="20"/>' : '') +
         '</g>';
     }).join('');
@@ -195,7 +197,7 @@
     });
   }
   var KINDS = { shop: 'Цех', office: 'Офис', compressor: 'Компрессорная', line: 'Линия', other: 'Другое' };
-  function openPlan(id) { return rpc('app_layout_plan_get', { p_token: token, p_id: id }).then(function (r) { var p = r && r[0]; if (!p) return; planId = p.id; $('#proj').value = p.name || ''; $('#kind').value = p.kind || 'shop'; applyData(p.data || {}); loadList(); }); }
+  function openPlan(id) { return rpc('app_layout_plan_get', { p_token: token, p_id: id }).then(function (r) { var p = r && r[0]; if (!p) return; planId = p.id; $('#proj').value = p.name || ''; $('#kind').value = p.kind || 'shop'; applyData(p.data || {}); fitZoom(); draw(); loadList(); }); }
   function save() {
     var name = $('#proj').value.trim(); if (!name) { toast('Укажите название', 'err'); return; }
     rpc('app_layout_plan_save', { p_token: token, p_id: planId, p_name: name, p_kind: $('#kind').value, p_data: S, p_note: null })
@@ -289,13 +291,43 @@
     if (e.key === 'Escape') { routePts = []; tool = 'sel'; setTool('sel'); draw(); }
     if (e.key.toLowerCase() === 'v') setTool('sel'); if (e.key.toLowerCase() === 'h') setTool('pan'); if (e.key.toLowerCase() === 'c') setTool('note');
   };
+  function fitZoom() { var w = $('#cvWrap'); if (!w) return; var z = Math.min((w.clientWidth - 24) / S.w, (w.clientHeight - 24) / S.h); zoom = Math.max(0.05, Math.min(4, z || 1)); }
+  function showReport() {
+    var len = 0; S.routes.forEach(function (r) { for (var i = 1; i < r.pts.length; i++) len += Math.sqrt(Math.pow(r.pts[i][0] - r.pts[i - 1][0], 2) + Math.pow(r.pts[i][1] - r.pts[i - 1][1], 2)); });
+    var cnt = S.items.filter(function (i) { return i.type !== 'zone' && i.type !== 'aisle'; }).length;
+    ui.dialog({ title: 'Отчёт по потоку', html: true, cancelText: 'Закрыть', body:
+      '<p>Оборудование/элементы: <b>' + cnt + '</b></p><p>Связей: <b>' + S.links.length + '</b> · маршрутов: <b>' + S.routes.length + '</b></p>' +
+      '<p>Длина маршрутов: <b>' + (len / 1000).toFixed(1) + ' м</b></p><p>Меток: <b>' + S.notes.length + '</b></p>' });
+  }
+  $('#zPlan').onclick = function () { fitZoom(); draw(); };
+  $('#zFit').onclick = function () { zoom = 1; draw(); };
+  $('#clearBtn').onclick = function () { snapshot(); S.items = []; S.notes = []; S.links = []; S.routes = []; sel = null; draw(); prop(); renderLists(); logEvent('Схема очищена'); };
+  $('#resetBtn').onclick = function () { snapshot(); planId = null; $('#proj').value = 'Новая планировка'; applyData({}); fitZoom(); draw(); logEvent('Полный сброс'); };
+  $('#baseChk').onchange = function () { flowBase = this.checked; draw(); };
+  $('#reportBtn').onclick = showReport;
+  (function () {
+    var gp = $('#gripPal'), gpr = $('#gripProps');
+    if (gp) gp.onmousedown = function (e) {
+      var sx = e.clientX, w0 = $('.pal').offsetWidth;
+      function mv(ev) { var nw = Math.max(160, Math.min(440, w0 + (ev.clientX - sx))); $('.lwrap').style.gridTemplateColumns = nw + 'px 1fr ' + ($('.side') ? $('.side').offsetWidth : 300) + 'px'; }
+      function up() { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); }
+      document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up); e.preventDefault();
+    };
+    if (gpr) gpr.onmousedown = function (e) {
+      var sx = e.clientX, w0 = $('.side').offsetWidth;
+      function mv(ev) { var nw = Math.max(200, Math.min(480, w0 - (ev.clientX - sx))); $('.lwrap').style.gridTemplateColumns = ($('.pal') ? $('.pal').offsetWidth : 250) + 'px 1fr ' + nw + 'px'; }
+      function up() { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); }
+      document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up); e.preventDefault();
+    };
+  })();
   $('#logout').onclick = function () { window.Auth.logout(); location.href = '../../index.html'; };
 
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     token = s.token; $('#who').textContent = s.login + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     setTheme(localStorage.getItem('layout-theme') || 'light');
-    palette(); draw(); prop(); renderLists(); loadList().catch(function () {});
+    palette(); fitZoom(); draw(); prop(); renderLists(); loadList().catch(function () {});
     logEvent('Проект загружен');
+    window.addEventListener('resize', function () { if (zoom <= 0.5) { fitZoom(); draw(); } });
   });
 })();
