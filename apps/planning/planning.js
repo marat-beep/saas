@@ -17,6 +17,7 @@
   function isOverdue(n) { return n.due_date && n.due_date < today() && n.status !== 'closed'; }
   function msg(id, t, k) { var e = $(id); e.className = 'msg show ' + (k || 'info'); e.textContent = t; }
   function rpc(n, a) { return SB.rpc(n, a).then(function (r) { if (r.error) throw new Error(r.error.message); return r.data; }); }
+  window.AppPlanning = { getToken: function () { return token; }, getSched: function () { return sched; }, reload: function () { return load(); } };
 
   function load() {
     return Promise.all([
@@ -133,8 +134,10 @@
     $('#t-cap').style.display = (b.dataset.t === 'cap') ? '' : 'none';
     $('#t-aps').style.display = (b.dataset.t === 'aps') ? '' : 'none';
     var tan = $('#t-ana'); if (tan) tan.style.display = (b.dataset.t === 'ana') ? '' : 'none';
+    var tsn = $('#t-scn'); if (tsn) tsn.style.display = (b.dataset.t === 'scn') ? '' : 'none';
     if (b.dataset.t === 'aps') loadAps();
     if (b.dataset.t === 'ana' && window.AppProdAnalytics) window.AppProdAnalytics.load();
+    if (b.dataset.t === 'scn' && window.AppPlanningScn) window.AppPlanningScn.load();
   });
   $('#apsBuild').addEventListener('click', loadAps);
   $('#apsApply').addEventListener('click', applyAps);
