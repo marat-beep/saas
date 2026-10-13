@@ -4,29 +4,38 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Планировки и расстановка — 3DMP Service</title>
-<meta name="description" content="Конструктор планировок: расстановка станков, роботов, конвейеров и оборудования в цеху, офисе, компрессорной и на участке.">
+<meta name="description" content="Конструктор планировок: расстановка станков, роботов, конвейеров и оборудования; маршруты потока, коммуникации, метки, экспорт и печать.">
 <link rel="stylesheet" href="../../assets/css/app.css?v=36">
 <style>
-  .lwrap{display:grid;grid-template-columns:264px 1fr 296px;gap:12px;align-items:start}
-  .pal-g{font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:10px 0 6px;font-weight:800}
-  .pal-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-  .pal-i{display:flex;flex-direction:column;gap:3px;align-items:flex-start;border:1px solid var(--border);border-radius:10px;background:#fff;padding:8px 9px;font-size:.72rem;cursor:pointer;text-align:left;line-height:1.2}
+  .lwrap{display:grid;grid-template-columns:250px 1fr 300px;gap:10px;align-items:start}
+  body.no-pal .lwrap{grid-template-columns:0 1fr 300px} body.no-pal .pal{display:none}
+  body.no-props .lwrap{grid-template-columns:250px 1fr 0} body.no-props .side{display:none}
+  body.solo .lwrap{grid-template-columns:0 1fr 0} body.solo .pal,body.solo .side,body.solo .mstools{display:none}
+  .pal-g{font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:9px 0 5px;font-weight:800}
+  .pal-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .pal-i{display:flex;flex-direction:column;gap:2px;align-items:flex-start;border:1px solid var(--border);border-radius:9px;background:#fff;padding:7px 8px;font-size:.7rem;cursor:pointer;text-align:left;line-height:1.15}
   .pal-i:hover{border-color:var(--accent);background:var(--accent-100)}
-  .pal-i span{font-size:1.05rem}
-  #cvWrap{overflow:auto;border:1px solid var(--border);border-radius:12px;background:#fff;max-height:74vh}
-  #cv{display:block;background:#fff}
-  #cv .li{cursor:move}
-  #prop label{display:block;font-size:.74rem;font-weight:700;margin:8px 0 3px}
+  .pal-i span{font-size:1rem}
+  #cvWrap{overflow:auto;border:1px solid var(--border);border-radius:12px;background:#fff;max-height:72vh}
+  #cv{display:block;background:#fff;touch-action:none}
+  #cv .li{cursor:move} #cv .gl{stroke:#eef2f7;stroke-width:18} #cv .ln{fill:#334155}
+  #cv .lk{stroke:#0ea5e9;stroke-width:40;stroke-dasharray:120 80;opacity:.85} #cv .rt{fill:none;stroke:#2563eb;stroke-width:50;stroke-linejoin:round;opacity:.9}
+  #prop label{display:block;font-size:.73rem;font-weight:700;margin:7px 0 3px}
   #prop input,#prop select{width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:9px;font:inherit;font-size:.82rem;background:#fff}
-  .plrow{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:#fff;cursor:pointer}
-  .plrow.on{border-color:var(--accent);background:var(--accent-100)}
-  .plrow b{font-size:.82rem}.plrow small{color:var(--muted);font-size:.72rem}
-  .plrow .pl-act{margin-left:auto}
-  .leg{display:flex;gap:14px;flex-wrap:wrap;font-size:.76rem;color:var(--muted)}
-  .leg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:middle}
-  #stageSeg button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .plrow,.lkrow{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:9px;padding:7px 9px;background:#fff;margin-bottom:6px}
+  .plrow{cursor:pointer}.plrow.on{border-color:var(--accent);background:var(--accent-100)}
+  .plrow b,.lkrow span{font-size:.8rem}.plrow small{color:var(--muted);font-size:.7rem}.plrow .pl-act,.lkrow .act{margin-left:auto}
+  .leg{display:flex;gap:12px;flex-wrap:wrap;font-size:.74rem;color:var(--muted)}.leg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:4px;vertical-align:middle}
+  .mstools{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0}
+  .mstools .seg button.active,#tabs button.active,#mEdit.active,#mDemo.active,[data-tool].active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  #log{max-height:120px;overflow:auto;font-size:.72rem;color:var(--muted);border:1px solid var(--border);border-radius:9px;padding:6px 8px;background:#fff}
+  #tabs{display:flex;gap:4px;margin-bottom:6px}#tabs button{font-size:.74rem}
+  body.dark{--bg:#0e1420;--surface:#151d2a;--text:#e6edf5;--muted:#93a1b3;--border:#26303f;--accent:#10b981;--accent-100:#12291f}
+  body.dark #cv,body.dark #cvWrap,body.dark .pal-i,body.dark #prop input,body.dark #prop select,body.dark .plrow,body.dark .lkrow,body.dark #log{background:#0f1622;color:#e6edf5}
+  body.dark #cv .gl{stroke:#1b2432} body.dark #cv .ln{fill:#cbd5e1}
   @media(max-width:1080px){.lwrap{grid-template-columns:1fr}}
-  @media print{.topbar,.toolbar,.pal,.side,#plansCard{display:none}.lwrap{grid-template-columns:1fr}#cvWrap{max-height:none;border:0}}
+  @media print{.topbar,.mstools,.pal,.side,#plansCard,#toolsBar,.hero{display:none}.lwrap{grid-template-columns:1fr}#cvWrap{max-height:none;border:0}body{background:#fff}}
 </style>
 </head>
 <body>
@@ -38,39 +47,75 @@
   </header>
 
   <main class="wrap fluid">
-    <div class="hero"><h1>Планировки и расстановка</h1><p>Конструктор расстановки оборудования: цех, офис, компрессорная, участок, автоматическая линия. Тащите элементы из палитры, задавайте размеры, стадии и печатайте схему.</p></div>
+    <div class="hero"><h1>Планировки и расстановка</h1><p>Конструктор: цех, офис, компрессорная, участок, автоматическая линия. Редактор и демонстрация потока, коммуникации, метки, экспорт PNG/SVG/HTML и печать.</p></div>
 
-    <div class="sv-actions" style="margin:10px 0;flex-wrap:wrap;gap:8px;">
-      <input id="proj" class="search" style="min-width:260px;" value="Новая планировка" placeholder="Название планировки">
-      <select id="kind" style="padding:9px 11px;border:1px solid var(--border);border-radius:10px;">
+    <div class="mstools">
+      <span class="seg"><button id="mEdit" class="active">Редактор</button><button id="mDemo">Демонстрация</button></span>
+      <span class="seg" id="tools">
+        <button data-tool="sel" class="active" title="Выделение (V)">↖</button>
+        <button data-tool="pan" title="Рука (H)">✋</button>
+        <button data-tool="note" title="Метка (C)">💬</button>
+        <button data-tool="route" title="Маршрут">〰</button>
+        <button data-tool="link" title="Связь">🔗</button>
+      </span>
+      <button class="btn secondary" id="undoBtn" disabled>↶</button>
+      <button class="btn secondary" id="redoBtn" disabled>↷</button>
+      <button class="btn secondary" id="zo" style="width:auto;padding:8px 12px;">−</button>
+      <button class="btn secondary" id="zFit" style="width:auto;padding:8px 12px;">100%</button>
+      <button class="btn secondary" id="zi" style="width:auto;padding:8px 12px;">＋</button>
+      <label class="ck"><input type="checkbox" id="gridChk" checked> сетка</label>
+      <label class="ck"><input type="checkbox" id="snapChk" checked> привязка</label>
+      <span class="seg" id="stageSeg"><button class="active" data-s="new">Новое</button><button data-s="exist">Действующее</button><button data-s="future">Будущее</button></span>
+      <button class="btn secondary" id="palBtn" title="Палитра">▤</button>
+      <button class="btn secondary" id="propsBtn" title="Свойства">▥</button>
+      <button class="btn secondary" id="soloBtn" title="Только схема">⛶</button>
+      <button class="btn secondary" id="themeBtn" title="Тема">🌙</button>
+    </div>
+
+    <div class="mstools" id="toolsBar">
+      <input id="proj" class="search" style="min-width:220px;" value="Новая планировка" placeholder="Название планировки">
+      <select id="kind" style="padding:8px 11px;border:1px solid var(--border);border-radius:10px;">
         <option value="shop">Цех</option><option value="office">Офис</option><option value="compressor">Компрессорная</option><option value="line">Автоматическая линия</option><option value="other">Другое</option>
       </select>
-      <button class="btn" id="saveBtn" style="width:auto;padding:9px 16px;">💾 Сохранить</button>
-      <button class="btn secondary" id="newBtn" style="width:auto;padding:9px 16px;">＋ Новая</button>
-      <button class="btn secondary" id="expBtn" style="width:auto;padding:9px 16px;">⬇ JSON</button>
-      <label class="btn secondary" style="width:auto;padding:9px 16px;cursor:pointer;">⬆ Импорт<input type="file" id="impFile" accept="application/json" style="display:none;"></label>
-      <button class="btn secondary" id="printBtn" style="width:auto;padding:9px 16px;">🖨 Печать</button>
-      <span class="spacer"></span>
-      <button class="btn secondary" id="zo" style="width:auto;padding:9px 12px;">−</button>
-      <button class="btn secondary" id="z1" style="width:auto;padding:9px 12px;">100%</button>
-      <button class="btn secondary" id="zi" style="width:auto;padding:9px 12px;">＋</button>
-      <label class="ck" style="display:flex;align-items:center;gap:6px;font-size:.8rem;"><input type="checkbox" id="snap" checked> сетка</label>
-      <span class="seg" id="stageSeg"><button class="active" data-s="new">Новое</button><button data-s="exist">Действующее</button><button data-s="future">Будущее</button></span>
+      <button class="btn" id="saveBtn" style="width:auto;padding:8px 14px;">💾 Сохранить</button>
+      <button class="btn secondary" id="newBtn" style="width:auto;padding:8px 14px;">＋ Новая</button>
+      <button class="btn secondary" id="expJson" style="width:auto;padding:8px 14px;">JSON</button>
+      <button class="btn secondary" id="expSvg" style="width:auto;padding:8px 14px;">SVG</button>
+      <button class="btn secondary" id="expPng" style="width:auto;padding:8px 14px;">PNG</button>
+      <button class="btn secondary" id="expHtml" style="width:auto;padding:8px 14px;">HTML</button>
+      <button class="btn secondary" id="printBtn" style="width:auto;padding:8px 14px;">🖨 Печать/PDF</button>
+      <label class="btn secondary" style="width:auto;padding:8px 14px;cursor:pointer;">Импорт<input type="file" id="impFile" accept="application/json" style="display:none;"></label>
+      <button class="btn secondary" id="playBtn" style="display:none;width:auto;padding:8px 14px;">▶ Пуск</button>
+      <button class="btn secondary" id="stepPrev" style="width:auto;padding:8px 10px;">◀</button>
+      <button class="btn secondary" id="stepNext" style="width:auto;padding:8px 10px;">▶</button>
+      <select id="spd" style="padding:8px 11px;border:1px solid var(--border);border-radius:10px;"><option value="900">медленно</option><option value="1800" selected>обычно</option><option value="3600">быстро</option></select>
     </div>
-    <div class="note" style="margin:0 0 8px;">Стадия нового элемента: <b id="stageHint">Новое</b> · <span id="kpi"></span></div>
 
     <div class="lwrap">
       <div class="card pal"><h2>Палитра</h2><div id="palette"></div></div>
-      <div class="card" style="padding:10px;"><div id="cvWrap"><svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg></div>
-        <div class="leg mt"><span><i style="background:#10b981"></i>Новое</span><span><i style="background:#94a3b8"></i>Действующее</span><span><i style="background:#8b95a3"></i>Будущее</span><span>Размеры в мм · сетка 100 мм</span></div>
+      <div class="card" style="padding:10px;">
+        <div id="cvWrap"><svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg></div>
+        <div class="leg mt"><span><i style="background:#10b981"></i>Новое</span><span><i style="background:#94a3b8"></i>Действующее</span><span><i style="background:#8b95a3"></i>Будущее</span><span>мм · сетка 100</span><span id="stats"></span><span style="margin-left:auto" id="coords">x — · y —</span></div>
+        <h4 class="mt" style="font-size:.72rem;color:var(--muted);text-transform:uppercase;">События</h4><div id="log"></div>
       </div>
-      <div class="card side"><h2>Свойства</h2><div id="prop"><span class="note">Выберите элемент на плане.</span></div></div>
+      <div class="card side">
+        <div id="tabs"><button class="active" data-tab="prop">Свойства</button><button data-tab="notes">Метки</button><button data-tab="links">Связи</button><button data-tab="flow">Поток</button></div>
+        <div id="tab-prop"><div id="prop"><span class="note">Выберите элемент на плане.</span></div></div>
+        <div id="tab-notes" style="display:none;"><button class="btn secondary" id="noteAdd" style="width:auto;padding:8px 14px;">＋ Метка</button><div id="notesList" class="mt"></div><button class="btn secondary" id="noteExport" style="width:auto;padding:8px 14px;margin-top:6px;">Экспорт меток</button></div>
+        <div id="tab-links" style="display:none;"><div class="note">Инструмент 🔗: выберите два элемента.</div><div id="linksList" class="mt"></div><button class="btn secondary" id="linkExport" style="width:auto;padding:8px 14px;margin-top:6px;">Экспорт связей</button></div>
+        <div id="tab-flow" style="display:none;">
+          <button class="btn secondary" id="routeAdd" style="width:auto;padding:8px 14px;">Создать маршрут</button>
+          <button class="btn secondary" id="routeAuto" style="width:auto;padding:8px 14px;margin-top:6px;">Авто-маршрут</button>
+          <button class="btn" id="routeDone" style="width:auto;padding:8px 14px;margin-top:6px;">Завершить</button>
+          <div id="routeList" class="mt"></div>
+          <button class="btn secondary" id="routeExport" style="width:auto;padding:8px 14px;margin-top:6px;">Экспорт маршрутов</button>
+        </div>
+      </div>
     </div>
 
     <div class="card mt" id="plansCard"><h2>Проекты планировок</h2><div id="plans"><span class="note">Загрузка…</span></div></div>
   </main>
-
-  <footer class="foot">3DMP Service · планировки</footer>
+  <footer class="foot">3DMP Service · планировки (порт конструктора robot: тема, инструменты, undo/redo, метки, связи, маршруты, экспорт/печать)</footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="../../assets/js/config.js?v=2"></script>
@@ -83,7 +128,7 @@
   <script src="../../assets/js/nav.js?v=108"></script>
   <script src="../../assets/js/shell.js?v=75"></script>
   <script src="../../assets/js/module-report.js?v=3"></script>
-  <script src="layout.js?v=1"></script>
+  <script src="layout.js?v=2"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=2"></script>
 </body>

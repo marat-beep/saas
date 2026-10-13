@@ -1,8 +1,10 @@
 /* ============================================================
-   3DMP Service · apps/layout/layout.js — конструктор планировок.
-   Расстановка оборудования (цех/офис/компрессорная/линия): палитра,
-   SVG-редактор (перемещение/размер/поворот), стадии, сетка, зум,
-   экспорт/импорт JSON, печать, сохранение проектов (app_layout_plan_*).
+   3DMP Service · apps/layout/layout.js (v2) — «Планировки».
+   Порт функций конструктора robot: тема (светлая/тёмная), режимы
+   редактор/демонстрация, инструменты (выделение/рука/метка/маршрут/связь),
+   undo/redo, сетка/привязка, зум/весь план, метки-комментарии,
+   коммуникации (связи), маршруты потока с анимацией и фазами, события,
+   экспорт JSON/SVG/PNG/HTML и печать. Проекты — app_layout_plan_*.
    ============================================================ */
 (function () {
   'use strict';
@@ -10,11 +12,16 @@
   function esc(v) { return ui.esc(v); }
   function rpc(n, a) { return SB.rpc(n, a).then(function (r) { if (r.error) throw new Error(r.error.message); return r.data; }); }
   function toast(t, k) { ui.toast(t, k); }
+  function deep(o) { return JSON.parse(JSON.stringify(o)); }
+  function uid(p) { return (p || 'i') + Date.now().toString(36) + Math.floor(Math.random() * 1000); }
 
-  var token = null, planId = null, zoom = 1, snap = true, sel = null, items = [];
-  var W = 24000, H = 14000, GRID = 100;
+  var token = null, planId = null, zoom = 1, tool = 'sel', mode = 'edit', sel = null, anim = null;
+  var W = 24000, H = 14000, GRID = 100, phase = 0;
+  var history = [], redo = [];
   var stage = 'new';
   var STAGES = { exist: { l: 'Действующее', c: '#94a3b8' }, 'new': { l: 'Новое', c: '#10b981' }, future: { l: 'Будущее', c: '#8b95a3' } };
+  var S = { w: W, h: H, items: [], notes: [], links: [], routes: [] };
+  var linkFrom = null, routePts = [], flow = { spd: 1800, playing: false, t: 0 }, flowBase = false;
 
   var TYPES = [
     { g: 'Станки и обработка', items: [
@@ -25,11 +32,13 @@
     ] },
     { g: 'Роботы и манипуляторы', items: [
       { t: 'robot6', n: 'Робот 6-осевой', w: 2500, h: 2500, ic: '🦾' }, { t: 'scara', n: 'Робот SCARA', w: 2200, h: 2200, ic: '🤖' },
-      { t: 'delta', n: 'Дельта-робот', w: 2400, h: 2400, ic: '🎯' }, { t: 'pallet', n: 'Паллетизатор', w: 5200, h: 5200, ic: '📦' }
+      { t: 'delta', n: 'Дельта-робот', w: 2400, h: 2400, ic: '🎯' }, { t: 'pallet', n: 'Паллетизатор', w: 5200, h: 5200, ic: '📦' },
+      { t: 'track', n: 'Робот на рельсе', w: 4400, h: 2300, ic: '🛤' }
     ] },
     { g: 'Конвейеры и транспорт', items: [
       { t: 'conv', n: 'Конвейер прямой', w: 3000, h: 900, ic: '➡️' }, { t: 'turn', n: 'Поворотный', w: 2400, h: 2400, ic: '🔄' },
-      { t: 'accum', n: 'Накопитель', w: 6000, h: 1400, ic: '📥' }, { t: 'agv', n: 'AGV/погрузчик', w: 2000, h: 1200, ic: '🛻' }
+      { t: 'accum', n: 'Накопитель', w: 6000, h: 1400, ic: '📥' }, { t: 'agv', n: 'AGV/погрузчик', w: 2000, h: 1200, ic: '🛻' },
+      { t: 'lift', n: 'Подъёмник', w: 1600, h: 1600, ic: '↕️' }
     ] },
     { g: 'Хранение и оснастка', items: [
       { t: 'rack', n: 'Стеллаж', w: 2700, h: 1100, ic: '🗄' }, { t: 'pallet', n: 'Паллета', w: 1200, h: 800, ic: '▭' },
@@ -38,12 +47,14 @@
     { g: 'Инфраструктура', items: [
       { t: 'panel', n: 'Шкаф управления', w: 1200, h: 600, ic: '🔌' }, { t: 'compressor', n: 'Компрессор', w: 2200, h: 1400, ic: '🌬' },
       { t: 'receiver', n: 'Ресивер', w: 1400, h: 1400, ic: '🛢' }, { t: 'dryer', n: 'Осушитель', w: 1200, h: 900, ic: '💧' },
-      { t: 'chiller', n: 'Чиллер', w: 1800, h: 1200, ic: '❄️' }, { t: 'col', n: 'Колонна/опора', w: 600, h: 600, ic: '⬛' }
+      { t: 'chiller', n: 'Чиллер', w: 1800, h: 1200, ic: '❄️' }, { t: 'col', n: 'Колонна/опора', w: 600, h: 600, ic: '⬛' },
+      { t: 'vision', n: 'СТЗ: камера', w: 1300, h: 1000, ic: '📷' }, { t: 'ap', n: 'Точка доступа Wi-Fi', w: 1300, h: 1300, ic: '📶' },
+      { t: 'terminal', n: 'Терминал оператора', w: 1500, h: 1300, ic: '🖥' }, { t: 'printer', n: 'Принтер/маркиратор', w: 1300, h: 900, ic: '🖨' }
     ] },
     { g: 'Офис и помещения', items: [
       { t: 'desk', n: 'Стол', w: 1600, h: 800, ic: '🪑' }, { t: 'meet', n: 'Переговорный стол', w: 3200, h: 1400, ic: '🗣' },
-      { t: 'shelf', n: 'Шкаф/стеллаж', w: 2000, h: 500, ic: '🗄' }, { t: 'printer', n: 'Принтер', w: 700, h: 600, ic: '🖨' },
-      { t: 'door', n: 'Дверь', w: 1000, h: 200, ic: '🚪' }, { t: 'wall', n: 'Перегородка', w: 3000, h: 150, ic: '🧱' }
+      { t: 'shelf', n: 'Шкаф/стеллаж', w: 2000, h: 500, ic: '🗄' }, { t: 'door', n: 'Дверь', w: 1000, h: 200, ic: '🚪' },
+      { t: 'wall', n: 'Перегородка', w: 3000, h: 150, ic: '🧱' }
     ] },
     { g: 'Зоны и безопасность', items: [
       { t: 'zone', n: 'Зона (безопасности)', w: 4000, h: 3000, ic: '⬜' }, { t: 'aisle', n: 'Проезд/проход', w: 2000, h: 6000, ic: '↔️' },
@@ -51,143 +62,240 @@
     ] }
   ];
   function typeDef(t) { for (var i = 0; i < TYPES.length; i++) for (var j = 0; j < TYPES[i].items.length; j++) if (TYPES[i].items[j].t === t) return TYPES[i].items[j]; return { t: t, n: t, w: 1200, h: 800, ic: '•' }; }
-  function uid() { return 'i' + Date.now().toString(36) + Math.floor(Math.random() * 1000); }
-  function snapv(v) { return snap ? Math.round(v / GRID) * GRID : Math.round(v); }
+  function snapv(v) { return $('#snapChk') && $('#snapChk').checked ? Math.round(v / GRID) * GRID : Math.round(v); }
+
+  /* ---------- история ---------- */
+  function snapshot() { history.push(deep(S)); if (history.length > 60) history.shift(); redo = []; syncHist(); }
+  function syncHist() { var u = $('#undoBtn'), r = $('#redoBtn'); if (u) u.disabled = !history.length; if (r) r.disabled = !redo.length; }
+  function undo() { if (!history.length) return; redo.push(deep(S)); S = history.pop(); sel = null; draw(); prop(); syncHist(); }
+  function redoFn() { if (!redo.length) return; history.push(deep(S)); S = redo.pop(); draw(); prop(); syncHist(); }
 
   /* ---------- отрисовка ---------- */
   function draw() {
-    var svg = $('#cv');
-    var vbW = W / zoom, vbH = H / zoom;
-    svg.setAttribute('viewBox', '0 0 ' + vbW + ' ' + vbH);
-    svg.setAttribute('width', vbW); svg.setAttribute('height', vbH);
-    svg.style.width = vbW + 'px'; svg.style.height = vbH + 'px';
+    var svg = $('#cv'); var vbW = S.w / zoom, vbH = S.h / zoom;
+    svg.setAttribute('viewBox', '0 0 ' + vbW + ' ' + vbH); svg.style.width = vbW + 'px'; svg.style.height = vbH + 'px';
     var g = '';
-    if (snap) {
-      for (var x = 0; x <= W; x += GRID * 5) g += '<line x1="' + x + '" y1="0" x2="' + x + '" y2="' + H + '" stroke="#eef2f7" stroke-width="' + (GRID / 6) + '"/>';
-      for (var y = 0; y <= H; y += GRID * 5) g += '<line x1="0" y1="' + y + '" x2="' + W + '" y2="' + y + '" stroke="#eef2f7" stroke-width="' + (GRID / 6) + '"/>';
+    if ($('#gridChk') && $('#gridChk').checked) {
+      for (var x = 0; x <= S.w; x += GRID * 5) g += '<line x1="' + x + '" y1="0" x2="' + x + '" y2="' + S.h + '" class="gl"/>';
+      for (var y = 0; y <= S.h; y += GRID * 5) g += '<line x1="0" y1="' + y + '" x2="' + S.w + '" y2="' + y + '" class="gl"/>';
     }
-    svg.innerHTML = g + items.map(function (it) {
+    g += S.links.map(function (l) { var a = byId(l.a), b = byId(l.b); if (!a || !b) return ''; return '<line class="lk" x1="' + (a.x + a.w / 2) + '" y1="' + (a.y + a.h / 2) + '" x2="' + (b.x + b.w / 2) + '" y2="' + (b.y + b.h / 2) + '" data-lk="' + l.id + '"/>'; }).join('');
+    g += S.routes.map(function (r) { return '<polyline class="rt" data-rt="' + r.id + '" points="' + r.pts.map(function (p) { return p[0] + ',' + p[1]; }).join(' ') + '"/>'; }).join('');
+    g += S.items.map(function (it) {
       var c = (STAGES[it.stage] || STAGES['new']).c, isz = it.type === 'zone' || it.type === 'aisle';
       return '<g class="li" data-id="' + it.id + '" transform="translate(' + it.x + ',' + it.y + ') rotate(' + (it.rot || 0) + ',' + (it.w / 2) + ',' + (it.h / 2) + ')">' +
         '<rect x="0" y="0" width="' + it.w + '" height="' + it.h + '" rx="' + (GRID / 2) + '" fill="' + (isz ? 'rgba(16,185,129,.08)' : c + '22') + '" stroke="' + c + '" stroke-width="' + (sel === it.id ? GRID / 2 : GRID / 4) + '"' + (isz ? ' stroke-dasharray="' + GRID / 2 + ' ' + GRID / 3 + '"' : '') + '/>' +
-        '<text x="' + (it.w / 2) + '" y="' + (it.h / 2 - 40) + '" text-anchor="middle" font-size="' + Math.max(140, Math.min(it.w, it.h) / 6) + '" fill="#0f172a">' + esc(typeDef(it.type).ic) + '</text>' +
-        '<text x="' + (it.w / 2) + '" y="' + (it.h / 2 + Math.max(240, Math.min(it.w, it.h) / 3)) + '" text-anchor="middle" font-size="' + Math.max(140, Math.min(it.w, it.h) / 9) + '" fill="#334155">' + esc(it.name) + '</text>' +
+        '<text x="' + (it.w / 2) + '" y="' + (it.h / 2 - 40) + '" text-anchor="middle" font-size="' + Math.max(140, Math.min(it.w, it.h) / 6) + '">' + esc(typeDef(it.type).ic) + '</text>' +
+        '<text x="' + (it.w / 2) + '" y="' + (it.h / 2 + Math.max(240, Math.min(it.w, it.h) / 3)) + '" text-anchor="middle" font-size="' + Math.max(140, Math.min(it.w, it.h) / 9) + '" class="ln">' + esc(it.name) + '</text>' +
         (sel === it.id ? '<rect class="rz" x="' + (it.w - GRID) + '" y="' + (it.h - GRID) + '" width="' + (GRID * 1.6) + '" height="' + (GRID * 1.6) + '" fill="#10b981" stroke="#fff" stroke-width="20"/>' : '') +
         '</g>';
     }).join('');
-    bind();
-    var n = items.length, area = items.reduce(function (a, it) { return a + it.w * it.h; }, 0) / 1e6;
-    $('#kpi').textContent = 'Элементов: ' + n + ' · площадь: ' + area.toFixed(2) + ' м²';
+    g += S.notes.map(function (n) { return '<g class="nt" data-note="' + n.id + '" transform="translate(' + n.x + ',' + n.y + ')"><circle r="' + GRID * 0.9 + '" fill="#f59e0b" stroke="#fff" stroke-width="' + GRID / 6 + '"/><text y="' + GRID * 0.35 + '" text-anchor="middle" font-size="' + GRID * 1.1 + '" fill="#fff">!</text></g>'; }).join('');
+    var mark = flowMark(); if (mark) g += '<circle class="fm" cx="' + mark[0] + '" cy="' + mark[1] + '" r="' + GRID * 0.9 + '" fill="#2563eb" stroke="#fff" stroke-width="' + GRID / 6 + '"/>';
+    svg.innerHTML = g;
+    bind(); stat();
+  }
+  function byId(id) { return S.items.filter(function (x) { return x.id === id; })[0]; }
+  function pathPts() { var r = S.routes[0]; return r ? r.pts : null; }
+  function flowMark() {
+    if (mode !== 'demo') return null;
+    if (flowBase || !S.routes.length) {
+      var list = S.items.filter(function (i) { return i.type !== 'zone' && i.type !== 'aisle'; });
+      if (!list.length) return null;
+      var k = Math.floor(flow.t) % list.length, it = list[k];
+      return [it.x + it.w / 2, it.y + it.h / 2];
+    }
+    var r = S.routes[0]; if (!r || r.pts.length < 2) return null;
+    var seg = flow.t % (r.pts.length - 1), i = Math.floor(seg), f = seg - i, a = r.pts[i], b = r.pts[i + 1] || a;
+    return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
+  }
+  function stat() {
+    var n = S.items.length, area = S.items.reduce(function (a, it) { return a + it.w * it.h; }, 0) / 1e6;
+    var s = $('#stats'); if (s) s.textContent = 'Элементов: ' + n + ' · площадь: ' + area.toFixed(2) + ' м² · связей: ' + S.links.length + ' · маршрутов: ' + S.routes.length + ' · меток: ' + S.notes.length;
+    var c = $('#coords');
+    if (c && $('#cv').__ptr) c.textContent = 'x ' + Math.round($('#cv').__ptr[0]) + ' · y ' + Math.round($('#cv').__ptr[1]);
   }
 
   function bind() {
-    $$('#cv .li').forEach(function (g) {
-      g.addEventListener('mousedown', function (e) {
-        if (e.target.classList.contains('rz')) return;
-        var id = g.getAttribute('data-id'); sel = id; prop(); draw();
-        var it = items.filter(function (x) { return x.id === id; })[0]; if (!it) return;
-        var sx = e.clientX, sy = e.clientY, ox = it.x, oy = it.y, sc = (W / zoom) / $('#cv').clientWidth;
-        function mv(ev) { it.x = snapv(ox + (ev.clientX - sx) * sc); it.y = snapv(oy + (ev.clientY - sy) * sc); draw(); }
-        function up() { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); }
-        document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
-        e.preventDefault();
-      });
+    var svg = $('#cv');
+    svg.onmousemove = function (e) { svg.__ptr = stagePct(e); stat(); };
+    $$('#cv .li').forEach(function (gEl) {
+      gEl.onmousedown = function (e) {
+        if (e.target.classList && e.target.classList.contains('rz')) return;
+        var id = gEl.getAttribute('data-id');
+        if (tool === 'route') { var p = stagePct(e); routePts.push(p); previewRoute(); e.preventDefault(); return; }
+        if (tool === 'link') {
+          if (linkFrom && linkFrom !== id) { snapshot(); S.links.push({ id: uid('l'), a: linkFrom, b: id, kind: 'conveyor' }); renderLists(); linkFrom = null; draw(); }
+          else linkFrom = id; toast(linkFrom ? 'Выберите второй элемент для связи' : 'Готово');
+          e.stopPropagation(); return;
+        }
+        if (mode === 'demo') return;
+        sel = id; prop(); draw();
+        var it = byId(id); if (!it) return;
+        var sx = e.clientX, sy = e.clientY, ox = it.x, oy = it.y, sc = (S.w / zoom) / $('#cv').clientWidth, moved = 0;
+        function mv(ev) { moved = 1; it.x = snapv(ox + (ev.clientX - sx) * sc); it.y = snapv(oy + (ev.clientY - sy) * sc); draw(); }
+        function up() { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); if (moved) { snapshot(); } }
+        document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up); e.preventDefault();
+      };
     });
     var rz = $('#cv .rz');
-    if (rz) rz.addEventListener('mousedown', function (e) {
-      var it = items.filter(function (x) { return x.id === sel; })[0]; if (!it) return;
-      var sx = e.clientX, sy = e.clientY, ow = it.w, oh = it.h, sc = (W / zoom) / $('#cv').clientWidth;
+    if (rz) rz.onmousedown = function (e) {
+      var it = byId(sel); if (!it) return;
+      var sx = e.clientX, sy = e.clientY, ow = it.w, oh = it.h, sc = (S.w / zoom) / $('#cv').clientWidth;
       function mv(ev) { it.w = Math.max(GRID * 3, snapv(ow + (ev.clientX - sx) * sc)); it.h = Math.max(GRID * 3, snapv(oh + (ev.clientY - sy) * sc)); draw(); }
-      function up() { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); }
-      document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
-      e.preventDefault(); e.stopPropagation();
-    });
+      function up() { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); snapshot(); }
+      document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up); e.preventDefault(); e.stopPropagation();
+    };
+    $$('#cv .nt').forEach(function (gEl) { gEl.onclick = function (e) { var id = gEl.getAttribute('data-note'); var n = S.notes.filter(function (x) { return x.id === id; })[0]; if (n) alert('Комментарий: ' + (n.text || '(пусто)')); e.stopPropagation(); }; });
   }
+  function stagePct(e) { var r = $('#cv').getBoundingClientRect(); return [ (e.clientX - r.left) / r.width * S.w, (e.clientY - r.top) / r.height * S.h ]; }
+  function previewRoute() { draw(); var svg = $('#cv'); if (!routePts.length) return; svg.insertAdjacentHTML('beforeend', '<polyline points="' + routePts.map(function (p) { return p[0] + ',' + p[1]; }).join(' ') + '" fill="none" stroke="#2563eb" stroke-width="' + GRID / 2 + '" stroke-dasharray="' + GRID + '"/>'); }
 
-  /* ---------- панель свойств ---------- */
+  /* ---------- свойства/списки ---------- */
   function prop() {
-    var it = items.filter(function (x) { return x.id === sel; })[0];
-    if (!it) { $('#prop').innerHTML = '<span class="note">Выберите элемент на плане.</span>'; return; }
-    $('#prop').innerHTML =
+    var it = byId(sel); var host = $('#prop');
+    if (!it) { host.innerHTML = '<span class="note">Выберите элемент на плане.</span>'; return; }
+    host.innerHTML =
       '<label>Название</label><input id="pName" value="' + esc(it.name) + '">' +
       '<label>Стадия</label><select id="pStage">' + Object.keys(STAGES).map(function (k) { return '<option value="' + k + '"' + (it.stage === k ? ' selected' : '') + '>' + STAGES[k].l + '</option>'; }).join('') + '</select>' +
-      '<label>X, мм</label><input id="pX" type="number" value="' + it.x + '"><label>Y, мм</label><input id="pY" type="number" value="' + it.y + '">' +
-      '<label>Ширина, мм</label><input id="pW" type="number" value="' + it.w + '"><label>Высота, мм</label><input id="pH" type="number" value="' + it.h + '">' +
+      '<div class="grid2"><div><label>X, мм</label><input id="pX" type="number" value="' + it.x + '"></div><div><label>Y, мм</label><input id="pY" type="number" value="' + it.y + '"></div></div>' +
+      '<div class="grid2"><div><label>Ширина</label><input id="pW" type="number" value="' + it.w + '"></div><div><label>Высота</label><input id="pH" type="number" value="' + it.h + '"></div></div>' +
       '<div class="btn-row mt"><button class="btn secondary" id="pRot">↻ 90°</button><button class="btn secondary" id="pDup">⧉ Копия</button><button class="btn secondary" id="pDel">✕ Удалить</button></div>';
-    $('#pName').addEventListener('input', function () { it.name = this.value; draw(); });
-    $('#pStage').addEventListener('change', function () { it.stage = this.value; draw(); });
-    ['pX:x', 'pY:y', 'pW:w', 'pH:h'].forEach(function (p) {
-      var id = p.split(':')[0], k = p.split(':')[1];
-      $('#' + id).addEventListener('change', function () { it[k] = Number(this.value) || 0; draw(); });
-    });
-    $('#pRot').addEventListener('click', function () { it.rot = ((it.rot || 0) + 90) % 360; draw(); });
-    $('#pDup').addEventListener('click', function () { var c = JSON.parse(JSON.stringify(it)); c.id = uid(); c.x += GRID * 3; c.y += GRID * 3; items.push(c); sel = c.id; draw(); prop(); });
-    $('#pDel').addEventListener('click', function () { items = items.filter(function (x) { return x.id !== sel; }); sel = null; draw(); prop(); });
+    $('#pName').oninput = function () { it.name = this.value; draw(); };
+    $('#pStage').onchange = function () { it.stage = this.value; draw(); };
+    ['pX:x', 'pY:y', 'pW:w', 'pH:h'].forEach(function (pp) { var id = pp.split(':')[0], k = pp.split(':')[1]; $('#' + id).onchange = function () { it[k] = Number(this.value) || 0; draw(); }; });
+    $('#pRot').onclick = function () { it.rot = ((it.rot || 0) + 90) % 360; draw(); };
+    $('#pDup').onclick = function () { snapshot(); var c = deep(it); c.id = uid(); c.x += GRID * 3; c.y += GRID * 3; S.items.push(c); sel = c.id; draw(); prop(); };
+    $('#pDel').onclick = function () { snapshot(); S.items = S.items.filter(function (x) { return x.id !== sel; }); sel = null; draw(); prop(); };
+  }
+  function renderLists() {
+    var nl = $('#notesList'); if (nl) nl.innerHTML = S.notes.length ? S.notes.map(function (n) { return '<div class="lkrow"><span>' + esc(n.text || 'метка') + '</span><button class="act" data-ndel="' + n.id + '">✕</button></div>'; }).join('') : '<span class="note">Меток нет.</span>';
+    var ll = $('#linksList'); if (ll) ll.innerHTML = S.links.length ? S.links.map(function (l) { var a = byId(l.a), b = byId(l.b); return '<div class="lkrow"><span>' + esc((a && a.name) || '?') + ' ↔ ' + esc((b && b.name) || '?') + '</span><button class="act" data-ldel="' + l.id + '">✕</button></div>'; }).join('') : '<span class="note">Связей нет.</span>';
+    var rl = $('#routeList'); if (rl) rl.innerHTML = S.routes.length ? S.routes.map(function (r, i) { return '<div class="lkrow"><span>Маршрут ' + (i + 1) + ' · ' + r.pts.length + ' тчк</span><button class="act" data-rdel="' + r.id + '">✕</button></div>'; }).join('') : '<span class="note">Маршрутов нет.</span>';
+    $$('[data-ndel]').forEach(function (b) { b.onclick = function () { snapshot(); S.notes = S.notes.filter(function (x) { return x.id !== b.dataset.ndel; }); renderLists(); draw(); }; });
+    $$('[data-ldel]').forEach(function (b) { b.onclick = function () { snapshot(); S.links = S.links.filter(function (x) { return x.id !== b.dataset.ldel; }); renderLists(); draw(); }; });
+    $$('[data-rdel]').forEach(function (b) { b.onclick = function () { snapshot(); S.routes = S.routes.filter(function (x) { return x.id !== b.dataset.rdel; }); renderLists(); draw(); }; });
   }
 
   /* ---------- палитра ---------- */
   function palette() {
-    $('#palette').innerHTML = TYPES.map(function (grp) {
-      return '<div class="pal-g">' + esc(grp.g) + '</div><div class="pal-grid">' + grp.items.map(function (it) {
-        return '<button class="pal-i" data-t="' + it.t + '" title="' + esc(it.n) + ' · ' + (it.w / 1000).toFixed(1) + '×' + (it.h / 1000).toFixed(1) + ' м"><span>' + it.ic + '</span>' + esc(it.n) + '</button>';
-      }).join('') + '</div>';
-    }).join('');
-    $$('#palette .pal-i').forEach(function (b) { b.addEventListener('click', function () { addType(b.dataset.t); }); });
+    $('#palette').innerHTML = TYPES.map(function (grp) { return '<div class="pal-g">' + esc(grp.g) + '</div><div class="pal-grid">' + grp.items.map(function (it) { return '<button class="pal-i" data-t="' + it.t + '" title="' + esc(it.n) + ' · ' + (it.w / 1000).toFixed(1) + '×' + (it.h / 1000).toFixed(1) + ' м"><span>' + it.ic + '</span>' + esc(it.n) + '</button>'; }).join('') + '</div>'; }).join('');
+    $$('#palette .pal-i').forEach(function (b) { b.onclick = function () { addType(b.dataset.t); }; });
   }
-  function addType(t) {
-    var d = typeDef(t); var it = { id: uid(), type: t, name: d.n, x: snapv(W / 2 - d.w / 2), y: snapv(H / 2 - d.h / 2), w: d.w, h: d.h, rot: 0, stage: stage };
-    items.push(it); sel = it.id; draw(); prop();
-  }
+  function addType(t) { snapshot(); var d = typeDef(t); var it = { id: uid(), type: t, name: d.n, x: snapv(S.w / 2 - d.w / 2), y: snapv(S.h / 2 - d.h / 2), w: d.w, h: d.h, rot: 0, stage: stage }; S.items.push(it); sel = it.id; draw(); prop(); }
 
   /* ---------- проекты ---------- */
+  function applyData(d) { S = { w: d.w || W, h: d.h || H, items: d.items || [], notes: d.notes || [], links: d.links || [], routes: d.routes || [] }; sel = null; history = []; redo = []; syncHist(); draw(); prop(); renderLists(); }
   function loadList() {
     return rpc('app_layout_plan_list', { p_token: token }).then(function (rows) {
       rows = rows || [];
-      $('#plans').innerHTML = rows.length ? rows.map(function (p) {
-        return '<div class="plrow' + (p.id === planId ? ' on' : '') + '" data-open="' + p.id + '"><b>' + esc(p.name) + '</b><small>' + esc(KINDS[p.kind] || p.kind) + ' · ' + p.items + ' эл.</small>' +
-          '<span class="pl-act"><button class="act" data-del="' + p.id + '">✕</button></span></div>';
-      }).join('') : '<span class="note">Проектов нет. Создайте планировку и сохраните.</span>';
-      $$('#plans [data-open]').forEach(function (r) { r.addEventListener('click', function (e) { if (e.target.dataset.del) return; openPlan(r.dataset.open); }); });
-      $$('#plans [data-del]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_layout_plan_delete', { p_token: token, p_id: b.dataset.del }).then(function () { toast('Удалено'); if (b.dataset.del === planId) { planId = null; items = []; draw(); } loadList(); }); }); });
+      $('#plans').innerHTML = rows.length ? rows.map(function (p) { return '<div class="plrow' + (p.id === planId ? ' on' : '') + '" data-open="' + p.id + '"><b>' + esc(p.name) + '</b><small>' + esc(KINDS[p.kind] || p.kind) + ' · ' + p.items + ' эл.</small><span class="pl-act"><button class="act" data-del="' + p.id + '">✕</button></span></div>'; }).join('') : '<span class="note">Проектов нет.</span>';
+      $$('#plans [data-open]').forEach(function (r) { r.onclick = function (e) { if (e.target.dataset.del) return; openPlan(r.dataset.open); }; });
+      $$('#plans [data-del]').forEach(function (b) { b.onclick = function () { rpc('app_layout_plan_delete', { p_token: token, p_id: b.dataset.del }).then(function () { toast('Удалено'); if (b.dataset.del === planId) { planId = null; applyData({}); } loadList(); }); }; });
     });
   }
   var KINDS = { shop: 'Цех', office: 'Офис', compressor: 'Компрессорная', line: 'Линия', other: 'Другое' };
-  function openPlan(id) {
-    return rpc('app_layout_plan_get', { p_token: token, p_id: id }).then(function (r) {
-      var p = r && r[0]; if (!p) return;
-      planId = p.id; var d = p.data || {};
-      items = d.items || []; W = d.w || 24000; H = d.h || 14000;
-      $('#proj').value = p.name || ''; $('#kind').value = p.kind || 'shop'; sel = null; draw(); prop(); loadList();
-    });
-  }
+  function openPlan(id) { return rpc('app_layout_plan_get', { p_token: token, p_id: id }).then(function (r) { var p = r && r[0]; if (!p) return; planId = p.id; $('#proj').value = p.name || ''; $('#kind').value = p.kind || 'shop'; applyData(p.data || {}); loadList(); }); }
   function save() {
     var name = $('#proj').value.trim(); if (!name) { toast('Укажите название', 'err'); return; }
-    var data = { w: W, h: H, items: items };
-    rpc('app_layout_plan_save', { p_token: token, p_id: planId, p_name: name, p_kind: $('#kind').value, p_data: data, p_note: null })
-      .then(function (r) { var x = r && r[0]; if (!x || x.ok === false) { toast((x && x.message) || 'Ошибка', 'err'); return; } planId = x.id; toast('Сохранено'); loadList(); })
-      .catch(function (e) { toast('Ошибка: ' + e.message, 'err'); });
+    rpc('app_layout_plan_save', { p_token: token, p_id: planId, p_name: name, p_kind: $('#kind').value, p_data: S, p_note: null })
+      .then(function (r) { var x = r && r[0]; if (!x || x.ok === false) { toast((x && x.message) || 'Ошибка', 'err'); return; } planId = x.id; toast('Сохранено'); loadList(); });
   }
-  function exportJson() { var blob = new Blob([JSON.stringify({ name: $('#proj').value, kind: $('#kind').value, w: W, h: H, items: items }, null, 2)], { type: 'application/json' }); var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = ($('#proj').value || 'layout') + '.json'; a.click(); }
-  function importJson(file) { var fr = new FileReader(); fr.onload = function () { try { var d = JSON.parse(fr.result); items = d.items || []; W = d.w || W; H = d.h || H; if (d.name) $('#proj').value = d.name; if (d.kind) $('#kind').value = d.kind; draw(); toast('Импортировано'); } catch (e) { toast('Некорректный JSON', 'err'); } }; fr.readAsText(file); }
+
+  /* ---------- экспорт ---------- */
+  function svgString() { var svg = $('#cv').cloneNode(true); svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg'); svg.insertAdjacentHTML('afterbegin', '<rect width="' + S.w + '" height="' + S.h + '" fill="#ffffff"/>'); return new XMLSerializer().serializeToString(svg); }
+  function dl(name, data, mime) { var b = new Blob([data], { type: mime || 'application/octet-stream' }); var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name; a.click(); }
+  function exportSvg() { dl(($('#proj').value || 'layout') + '.svg', svgString(), 'image/svg+xml'); }
+  function exportPng() {
+    var svg = svgString(), img = new Image();
+    img.onload = function () { var cv = document.createElement('canvas'); cv.width = S.w; cv.height = S.h; var ctx = cv.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, S.w, S.h); ctx.drawImage(img, 0, 0); cv.toBlob(function (b) { var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = ($('#proj').value || 'layout') + '.png'; a.click(); }); };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+  function exportHtml() { dl(($('#proj').value || 'layout') + '.html', '<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>' + esc($('#proj').value) + '</title><style>body{margin:0}#cv{width:100%;height:auto}</style></head><body>' + svgString() + '</body></html>', 'text/html'); }
+  function exportJson() { dl(($('#proj').value || 'layout') + '.json', JSON.stringify({ name: $('#proj').value, kind: $('#kind').value, w: S.w, h: S.h, items: S.items, notes: S.notes, links: S.links, routes: S.routes }, null, 2), 'application/json'); }
+  function importJson(file) { var fr = new FileReader(); fr.onload = function () { try { var d = JSON.parse(fr.result); if (d.name) $('#proj').value = d.name; if (d.kind) $('#kind').value = d.kind; applyData(d); toast('Импортировано'); } catch (e) { toast('Некорректный JSON', 'err'); } }; fr.readAsText(file); }
+  function exportNotes() { dl('notes.txt', S.notes.map(function (n, i) { return (i + 1) + '. ' + (n.text || '') + ' @(' + Math.round(n.x) + ',' + Math.round(n.y) + ')'; }).join('\n'), 'text/plain'); }
+  function exportLinks() { dl('links.csv', 'A,B\n' + S.links.map(function (l) { var a = byId(l.a), b = byId(l.b); return '"' + ((a && a.name) || '') + '","' + ((b && b.name) || '') + '"'; }).join('\n'), 'text/csv'); }
+  function exportRoutes() { dl('routes.csv', S.routes.map(function (r, i) { return 'Маршрут ' + (i + 1) + ': ' + r.pts.map(function (p) { return p[0] + ',' + p[1]; }).join(' '); }).join('\n'), 'text/csv'); }
+
+  /* ---------- маршруты/анимация ---------- */
+  function autoRoutes() {
+    snapshot();
+    var list = S.items.filter(function (i) { return i.type !== 'zone' && i.type !== 'aisle'; }).sort(function (a, b) { return a.x - b.x; });
+    if (list.length < 2) { toast('Нужно ≥2 элемента'); return; }
+    S.routes = [{ id: uid('r'), pts: list.map(function (it) { return [it.x + it.w / 2, it.y + it.h / 2]; }) }];
+    renderLists(); draw(); toast('Маршрут построен (' + list.length + ' тчк)');
+  }
+  function addRoute() { tool = 'route'; routePts = []; toast('Кликайте точки маршрута; «Завершить» — сохранить'); }
+  function finishRoute() { if (routePts.length < 2) { routePts = []; tool = 'sel'; return; } snapshot(); S.routes.push({ id: uid('r'), pts: routePts.slice() }); routePts = []; tool = 'sel'; renderLists(); draw(); }
+  function animTick() { if (!flow.playing) return; flow.t += 0.06 * (flow.spd / 1800); draw(); anim = requestAnimationFrame(animTick); }
+  function togglePlay() { flow.playing = !flow.playing; var b = $('#playBtn'); if (b) b.textContent = flow.playing ? '⏸ Пауза' : '▶ Пуск'; if (flow.playing && !anim) anim = requestAnimationFrame(animTick); if (!flow.playing && anim) { cancelAnimationFrame(anim); anim = null; } }
+  function stepFwd() { phase++; flow.t += 1; draw(); }
+  function stepBack() { phase = Math.max(0, phase - 1); flow.t = Math.max(0, flow.t - 1); draw(); }
+  function logEvent(text) { var l = $('#log'); if (!l) return; var t = new Date().toLocaleTimeString('ru-RU'); l.insertAdjacentHTML('afterbegin', '<div>[' + t + '] ' + esc(text) + '</div>'); }
+
+  /* ---------- тема ---------- */
+  function setTheme(t) { document.body.classList.toggle('dark', t === 'dark'); localStorage.setItem('layout-theme', t); var b = $('#themeBtn'); if (b) b.textContent = t === 'dark' ? '☀' : '🌙'; }
+  function toggleTheme() { setTheme(document.body.classList.contains('dark') ? 'light' : 'dark'); }
 
   /* ---------- события ---------- */
-  $('#newBtn').addEventListener('click', function () { planId = null; items = []; sel = null; $('#proj').value = 'Новая планировка'; draw(); prop(); loadList(); });
-  $('#saveBtn').addEventListener('click', save);
-  $('#expBtn').addEventListener('click', exportJson);
-  $('#impFile').addEventListener('change', function () { if (this.files[0]) importJson(this.files[0]); this.value = ''; });
-  $('#printBtn').addEventListener('click', function () { window.print(); });
-  $('#zi').addEventListener('click', function () { zoom = Math.min(3, zoom * 1.2); draw(); });
-  $('#zo').addEventListener('click', function () { zoom = Math.max(0.25, zoom / 1.2); draw(); });
-  $('#z1').addEventListener('click', function () { zoom = 1; draw(); });
-  $('#snap').addEventListener('change', function () { snap = this.checked; draw(); });
-  $$('#stageSeg button').forEach(function (b) { b.addEventListener('click', function () { stage = b.dataset.s; $$('#stageSeg button').forEach(function (x) { x.classList.toggle('active', x === b); }); }); });
-  document.addEventListener('keydown', function (e) { if ((e.key === 'Delete' || e.key === 'Backspace') && sel && !/INPUT|SELECT|TEXTAREA/.test((document.activeElement || {}).tagName || '')) { items = items.filter(function (x) { return x.id !== sel; }); sel = null; draw(); prop(); } });
+  function setTool(t) { tool = t; $$('[data-tool]').forEach(function (b) { b.classList.toggle('active', b.dataset.tool === t); }); }
+  function setMode(m) { mode = m; $('#mEdit').classList.toggle('active', m === 'edit'); $('#mDemo').classList.toggle('active', m === 'demo'); $('#playBtn').style.display = m === 'demo' ? '' : 'none'; if (m === 'edit' && flow.playing) togglePlay(); }
+  $('#palette').onclick = function () {};
+  $$('[data-tool]').forEach(function (b) { b.onclick = function () { setTool(b.dataset.tool); }; });
+  $('#mEdit').onclick = function () { setMode('edit'); };
+  $('#mDemo').onclick = function () { setMode('demo'); draw(); };
+  $('#undoBtn').onclick = undo; $('#redoBtn').onclick = redoFn;
+  $('#zi').onclick = function () { zoom = Math.min(4, zoom * 1.2); draw(); }; $('#zo').onclick = function () { zoom = Math.max(0.2, zoom / 1.2); draw(); };
+  $('#zFit').onclick = function () { zoom = 1; draw(); };
+  $('#gridChk').onchange = draw; $('#snapChk').onchange = draw;
+  $('#palBtn').onclick = function () { document.body.classList.toggle('no-pal'); };
+  $('#propsBtn').onclick = function () { document.body.classList.toggle('no-props'); };
+  $('#soloBtn').onclick = function () { document.body.classList.toggle('solo'); };
+  $('#themeBtn').onclick = toggleTheme;
+  $$('#tabs button').forEach(function (b) { b.onclick = function () { $$('#tabs button').forEach(function (x) { x.classList.toggle('active', x === b); }); var id = b.dataset.tab; ['prop', 'notes', 'links', 'flow'].forEach(function (k) { $('#tab-' + k).style.display = k === id ? '' : 'none'; }); }; });
+  $('#noteAdd').onclick = function () { setTool('note'); toast('Кликните место метки'); };
+  $('#noteExport').onclick = exportNotes;
+  $('#linkExport').onclick = exportLinks;
+  $('#routeAdd').onclick = addRoute; $('#routeAuto').onclick = autoRoutes; $('#routeDone').onclick = finishRoute; $('#routeExport').onclick = exportRoutes;
+  $('#playBtn').onclick = togglePlay; $('#stepPrev').onclick = stepBack; $('#stepNext').onclick = stepFwd;
+  $('#spd').onchange = function () { flow.spd = Number(this.value) || 1800; };
+  $('#expJson').onclick = exportJson; $('#expSvg').onclick = exportSvg; $('#expPng').onclick = exportPng; $('#expHtml').onclick = exportHtml;
+  $('#printBtn').onclick = function () { window.print(); };
+  $('#impFile').onchange = function () { if (this.files[0]) importJson(this.files[0]); this.value = ''; };
+  $('#saveBtn').onclick = save;
+  $('#newBtn').onclick = function () { snapshot(); planId = null; $('#proj').value = 'Новая планировка'; applyData({}); loadList(); };
+  $$('#stageSeg button').forEach(function (b) { b.onclick = function () { stage = b.dataset.s; $$('#stageSeg button').forEach(function (x) { x.classList.toggle('active', x === b); }); }; });
+  $('#cv').onmousedown = function (e) {
+    if (tool !== 'pan' || e.target !== $('#cv')) return;
+    var wrap = $('#cvWrap'), sx = e.clientX, sy = e.clientY, l = wrap.scrollLeft, t = wrap.scrollTop;
+    function mv(ev) { wrap.scrollLeft = l - (ev.clientX - sx); wrap.scrollTop = t - (ev.clientY - sy); }
+    function up() { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); }
+    document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up); e.preventDefault();
+  };
+  $('#cv').onclick = function (e) {
+    if (tool === 'note') { var p = stagePct(e); var txt = prompt('Комментарий к метке:', ''); if (txt != null) { snapshot(); S.notes.push({ id: uid('n'), x: p[0], y: p[1], text: txt }); renderLists(); draw(); } setTool('sel'); return; }
+    if (tool === 'route') { var pr = stagePct(e); routePts.push(pr); previewRoute(); return; }
+    if (e.target === $('#cv')) { sel = null; prop(); draw(); }
+  };
+  document.onkeydown = function (e) {
+    var tag = (document.activeElement || {}).tagName || '';
+    if (/INPUT|SELECT|TEXTAREA/.test(tag)) return;
+    if (e.key === 'Delete' && sel) { snapshot(); S.items = S.items.filter(function (x) { return x.id !== sel; }); sel = null; draw(); prop(); }
+    if (e.ctrlKey && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); }
+    if (e.ctrlKey && e.key.toLowerCase() === 'y') { e.preventDefault(); redoFn(); }
+    if (e.ctrlKey && e.key.toLowerCase() === 's') { e.preventDefault(); save(); }
+    if (e.key === 'Enter' && tool === 'route') finishRoute();
+    if (e.key === 'Escape') { routePts = []; tool = 'sel'; setTool('sel'); draw(); }
+    if (e.key.toLowerCase() === 'v') setTool('sel'); if (e.key.toLowerCase() === 'h') setTool('pan'); if (e.key.toLowerCase() === 'c') setTool('note');
+  };
+  $('#logout').onclick = function () { window.Auth.logout(); location.href = '../../index.html'; };
 
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
-    if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
     token = s.token; $('#who').textContent = s.login + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
-    palette(); draw(); prop(); loadList().catch(function () {});
+    setTheme(localStorage.getItem('layout-theme') || 'light');
+    palette(); draw(); prop(); renderLists(); loadList().catch(function () {});
+    logEvent('Проект загружен');
   });
-  $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 })();
