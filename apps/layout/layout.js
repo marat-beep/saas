@@ -73,12 +73,13 @@
 
   /* ---------- отрисовка ---------- */
   function draw() {
-    var svg = $('#cv'); var vbW = S.w / zoom, vbH = S.h / zoom;
-    svg.setAttribute('viewBox', '0 0 ' + vbW + ' ' + vbH); svg.style.width = vbW + 'px'; svg.style.height = vbH + 'px';
+    var svg = $('#cv');
+    svg.setAttribute('viewBox', '0 0 ' + S.w + ' ' + S.h);
+    svg.style.width = (S.w * zoom) + 'px'; svg.style.height = (S.h * zoom) + 'px';
     var g = '<defs><marker id="ah" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 z" fill="#0ea5e9"/></marker><marker id="ahr" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 z" fill="#2563eb"/></marker></defs>';
     if ($('#gridChk') && $('#gridChk').checked) {
-      for (var x = 0; x <= S.w; x += GRID * 5) g += '<line x1="' + x + '" y1="0" x2="' + x + '" y2="' + S.h + '" class="gl"/>';
-      for (var y = 0; y <= S.h; y += GRID * 5) g += '<line x1="0" y1="' + y + '" x2="' + S.w + '" y2="' + y + '" class="gl"/>';
+      for (var x = 0; x <= S.w; x += GRID * 5) g += '<line x1="' + x + '" y1="0" x2="' + x + '" y2="' + S.h + '" class="gl" stroke-width="' + (GRID / 12) + '"/>';
+      for (var y = 0; y <= S.h; y += GRID * 5) g += '<line x1="0" y1="' + y + '" x2="' + S.w + '" y2="' + y + '" class="gl" stroke-width="' + (GRID / 12) + '"/>';
     }
     g += S.links.map(function (l) { var a = byId(l.a), b = byId(l.b); if (!a || !b) return ''; return '<line class="lk" x1="' + (a.x + a.w) + '" y1="' + (a.y + a.h / 2) + '" x2="' + b.x + '" y2="' + (b.y + b.h / 2) + '" marker-end="url(#ah)" data-lk="' + l.id + '"/>'; }).join('');
     g += S.routes.map(function (r) { return '<polyline class="rt" marker-end="url(#ahr)" data-rt="' + r.id + '" points="' + r.pts.map(function (p) { return p[0] + ',' + p[1]; }).join(' ') + '"/>'; }).join('');
