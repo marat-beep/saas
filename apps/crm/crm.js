@@ -127,6 +127,36 @@
       ui.dialog({ title: 'Скоринг лидов', body: html, html: true, cancelText: 'Закрыть' });
     }).catch(function (e) { window.alert('Ошибка: ' + e.message); });
   });
+  $('#contactsBtn').addEventListener('click', function () {
+    Promise.all([
+      rpc('app_deal_list', { p_token: token, p_q: null }).catch(function () { return []; }),
+      rpc('app_crm_contact_list', { p_token: token, p_deal_id: null }).catch(function () { return []; })
+    ]).then(function (res) {
+      var deals = res[0] || [], rows = res[1] || [];
+      var KIND = { call: '📞 Звонок', email: '✉ Письмо', meeting: '🤝 Встреча', note: '📝 Заметка' };
+      function listHtml() {
+        return rows.length ? '<div class="tbl-wrap" style="max-height:260px;overflow:auto"><table class="tbl"><thead><tr><th>Когда</th><th>Сделка</th><th>Вид</th><th>Напр.</th><th>Тема</th><th>Кто</th></tr></thead><tbody>' +
+          rows.map(function (k) { return '<tr><td class="muted">' + new Date(k.at).toLocaleString('ru-RU') + '</td><td>' + esc(k.deal || '—') + '</td><td>' + esc(KIND[k.kind] || k.kind) + '</td><td>' + (k.direction === 'in' ? '↙ вх' : '↗ исх') + '</td><td>' + esc(k.subject || k.body || '') + '</td><td class="muted">' + esc(k.by_login || '') + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<span class="note">Контактов нет.</span>';
+      }
+      var body = '<div class="form-grid" style="margin-bottom:10px">' +
+        '<div class="field"><label>Сделка</label><select id="ctDeal"><option value="">— без сделки —</option>' + deals.map(function (d) { return '<option value="' + d.id + '">' + esc(d.title) + '</option>'; }).join('') + '</select></div>' +
+        '<div class="field"><label>Вид</label><select id="ctKind"><option value="call">Звонок</option><option value="email">Письмо</option><option value="meeting">Встреча</option><option value="note">Заметка</option></select></div>' +
+        '<div class="field"><label>Направление</label><select id="ctDir"><option value="out">Исходящий</option><option value="in">Входящий</option></select></div>' +
+        '<div class="field"><label>Тема</label><input id="ctSubj"></div>' +
+        '<div class="field" style="grid-column:1/-1"><label>Текст</label><input id="ctBody"></div></div>' +
+        '<div class="btn-row"><button class="btn secondary" id="ctAdd">＋ Добавить контакт</button><span id="ctMsg" class="note"></span></div>' +
+        '<div class="mt">' + listHtml() + '</div>';
+      ui.dialog({ title: 'Журнал контактов (почта/телефония)', body: body, html: true, cancelText: 'Закрыть' });
+      var add = document.getElementById('ctAdd');
+      if (add) add.addEventListener('click', function () {
+        rpc('app_crm_contact_add', { p_token: token, p_deal_id: document.getElementById('ctDeal').value || null, p_customer_id: null,
+          p_kind: document.getElementById('ctKind').value, p_direction: document.getElementById('ctDir').value,
+          p_subject: document.getElementById('ctSubj').value, p_body: document.getElementById('ctBody').value })
+          .then(function (d) { var r = d && d[0]; var m = document.getElementById('ctMsg'); m.className = 'note ' + (r && r.ok ? 'ok' : 'err'); m.textContent = (r && r.message) || ''; if (r && r.ok) { window.Auth.log('CRM контакт', r.id); rows.unshift({ at: new Date().toISOString(), deal: (deals.filter(function (x) { return x.id === document.getElementById('ctDeal').value; })[0] || {}).title, kind: document.getElementById('ctKind').value, direction: document.getElementById('ctDir').value, subject: document.getElementById('ctSubj').value, by_login: me && me.login }); } })
+          .catch(function (e) { window.alert('Ошибка: ' + e.message); });
+      });
+    }).catch(function (e) { window.alert('Ошибка: ' + e.message); });
+  });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
   window.Auth.guard('../auth/index.html').then(function (s) {
