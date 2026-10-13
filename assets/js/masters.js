@@ -45,21 +45,27 @@
         id: 'mfg', title: 'Мастер производства: деталь → техпроцесс', icon: '🧭', submitText: 'Создать', doneText: 'Создано',
         steps: [
           { title: '1. Тип детали', hint: 'Типовая деталь → подбирается типовой маршрут.', html: function (d) { return '<label>Тип детали <span class="wz-req">*</span></label>' + opts(parts, 'code', d.code); }, validate: function (d) { return d.code ? null : 'Выберите тип детали'; } },
-          { title: '2. Материал и партия', html: function (d) { return '<label>Материал</label>' + opts(mats, 'material', d.material) + '<label>Количество, шт</label><input name="qty" type="number" min="1" value="' + esc(d.qty || 1) + '">'; } },
+          { title: '2. Материал, партия и масса', html: function (d) { return '<label>Материал</label>' + opts(mats, 'material', d.material) + '<label>Количество, шт</label><input name="qty" type="number" min="1" value="' + esc(d.qty || 1) + '"><label>Масса, кг</label><input name="weight" type="number" min="0" step="0.1" value="' + esc(d.weight || '') + '">'; } },
           { title: '3. Уточняющая операция', hint: 'Необязательно — добавится в маршрут.', html: function (d) { return '<label>Операция</label>' + opts(ops, 'operation', d.operation, '— без уточнения —'); } },
           { title: '4. Задание, наряд и документ', html: function (d) {
               return '<label>Название <span class="wz-req">*</span></label><input name="title" value="' + esc(d.title || '') + '">' +
                 '<label>Срок наряда</label><input name="due" type="date" value="' + esc(d.due || '') + '">' +
                 '<label style="display:flex;gap:8px;align-items:center;font-weight:600;"><input type="checkbox" name="make_naryad" style="width:auto;flex:0 0 auto;" ' + (d.make_naryad !== false ? 'checked' : '') + '> Наряд</label>' +
                 '<label style="display:flex;gap:8px;align-items:center;font-weight:600;"><input type="checkbox" name="make_tasks" style="width:auto;flex:0 0 auto;" ' + (d.make_tasks !== false ? 'checked' : '') + '> Сменно-суточное задание</label>' +
-                '<label style="display:flex;gap:8px;align-items:center;font-weight:600;"><input type="checkbox" name="make_doc" style="width:auto;flex:0 0 auto;" ' + (d.make_doc !== false ? 'checked' : '') + '> Документ-техкарта</label>';
+                '<label style="display:flex;gap:8px;align-items:center;font-weight:600;"><input type="checkbox" name="make_doc" style="width:auto;flex:0 0 auto;" ' + (d.make_doc !== false ? 'checked' : '') + '> Документ-техкарта</label>' +
+                '<label style="display:flex;gap:8px;align-items:center;font-weight:600;"><input type="checkbox" name="ex_tooling" style="width:auto;flex:0 0 auto;" ' + (d.ex_tooling ? 'checked' : '') + '> 📐 Нужна оснастка</label>' +
+                '<label style="display:flex;gap:8px;align-items:center;font-weight:600;"><input type="checkbox" name="ex_electrodes" style="width:auto;flex:0 0 auto;" ' + (d.ex_electrodes ? 'checked' : '') + '> 🔌 Нужны электроды</label>';
             }, validate: function (d) { return d.title ? null : 'Укажите название'; } }
         ],
         onSubmit: function (d) {
+          var extras = [];
+          if (d.ex_tooling) extras.push('tooling');
+          if (d.ex_electrodes) extras.push('electrodes');
           return rpc('app_master_manufacture', {
             p_token: ctx.token, p_code: d.code, p_title: d.title, p_material: d.material || null,
             p_qty: d.qty ? Number(d.qty) : 1, p_due: d.due || null, p_operation: d.operation || null,
-            p_make_naryad: d.make_naryad !== false, p_make_tasks: d.make_tasks !== false, p_make_doc: d.make_doc !== false
+            p_make_naryad: d.make_naryad !== false, p_make_tasks: d.make_tasks !== false, p_make_doc: d.make_doc !== false,
+            p_weight: d.weight ? Number(d.weight) : null, p_extras: extras.length ? extras : null
           }).then(function (r) {
             var x = r && r[0];
             if (!x || x.ok === false) return (x && x.message) || 'Не удалось создать';

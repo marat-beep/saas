@@ -164,5 +164,38 @@
     if (window.MutationObserver) { try { new MutationObserver(function () { apply(); }).observe(host, { childList: true, subtree: true }); } catch (e) {} }
     return apply;
   }
-  g.AppUI = { qs: qs, qsa: qsa, esc: esc, toast: toast, fmtDate: fmtDate, dialog: dialog, formDialog: formDialog, confirmDialog: confirmDialog, quickSearch: quickSearch };
+  // Поисковый селект (комбо) для форм/мастеров. HTML + инициализация.
+  // Использование: container.innerHTML += AppUI.comboHtml('code', [{value,label,info,icon}], sel, 'поиск…'); AppUI.initCombos(container).
+  function comboHtml(name, options, selected, placeholder) {
+    var sel = (options || []).filter(function (o) { return String(o.value) === String(selected); })[0];
+    var list = (options || []).map(function (o) {
+      return '<div class="ac-item" data-v="' + esc(o.value) + '"><b>' + (o.icon ? esc(o.icon) + ' ' : '') + esc(o.label) + '</b>' + (o.info ? '<span class="g">' + esc(o.info) + '</span>' : '') + '</div>';
+    }).join('');
+    return '<div class="ac" data-combo-wrap><input type="text" data-combo autocomplete="off" placeholder="' + esc(placeholder || 'поиск…') + '" value="' + (sel ? esc(sel.label) : '') + '">' +
+      '<input type="hidden" name="' + esc(name) + '" value="' + (sel ? esc(sel.value) : '') + '"><div class="ac-panel" hidden>' + list + '</div></div>';
+  }
+  function initCombos(root) {
+    qsa('[data-combo]', root || document).forEach(function (inp) {
+      if (inp.__ac) return; inp.__ac = 1;
+      var wrap = inp.closest('[data-combo-wrap]'); if (!wrap) return;
+      var hid = wrap.querySelector('input[type=hidden]'), panel = wrap.querySelector('.ac-panel');
+      var items = qsa('.ac-item', panel);
+      function render(f) {
+        var q = (f || '').trim().toLowerCase(), n = 0;
+        items.forEach(function (it) { var hit = !q || (it.textContent || '').toLowerCase().indexOf(q) >= 0; it.style.display = hit ? '' : 'none'; if (hit) n++; });
+        panel.hidden = false; return n;
+      }
+      inp.addEventListener('focus', function () { render(''); });
+      inp.addEventListener('input', function () { hid.value = ''; render(inp.value); });
+      inp.addEventListener('keydown', function (e) { if (e.key === 'Escape') panel.hidden = true; });
+      inp.addEventListener('blur', function () { setTimeout(function () { panel.hidden = true; }, 160); });
+      panel.addEventListener('mousedown', function (e) {
+        var it = e.target.closest('.ac-item'); if (!it) return; e.preventDefault();
+        hid.value = it.getAttribute('data-v');
+        var b = it.querySelector('b'); inp.value = b ? b.textContent.trim() : '';
+        panel.hidden = true;
+      });
+    });
+  }
+  g.AppUI = { qs: qs, qsa: qsa, esc: esc, toast: toast, fmtDate: fmtDate, dialog: dialog, formDialog: formDialog, confirmDialog: confirmDialog, quickSearch: quickSearch, comboHtml: comboHtml, initCombos: initCombos };
 })(window);

@@ -36,6 +36,14 @@
       '.wz-fields input[type=checkbox]{width:auto;flex:0 0 auto;padding:0;border-radius:4px}' +
       '.wz-fields label{display:block}' +
       '.wz-fields label input[type=checkbox]{margin-right:6px}' +
+      '.wz-fields .ac{position:relative}' +
+      '.wz-fields .ac-panel{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:60;background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 10px 26px rgba(15,23,42,.16);max-height:220px;overflow:auto}' +
+      '.wz-fields .ac-panel[hidden]{display:none}' +
+      '.wz-fields .ac-item{padding:8px 12px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-size:.84rem}' +
+      '.wz-fields .ac-item b{font-weight:600;font-size:.84rem}' +
+      '.wz-fields .ac-item .g{color:var(--muted);font-size:.72rem;white-space:nowrap}' +
+      '.wz-fields .ac-item:hover{background:#f0fdf4}' +
+      '.wz-pv{overflow:auto;max-height:300px}' +
       '.wz-req{color:var(--danger)}' +
       '.wz-msg{margin:0 16px;font-size:.82rem;padding:8px 10px;border-radius:9px}' +
       '.wz-msg.err{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}' +
