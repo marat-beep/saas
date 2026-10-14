@@ -123,6 +123,125 @@
   }
   function snapv(v) { return $('#snapChk') && $('#snapChk').checked ? Math.round(v / GRID) * GRID : Math.round(v); }
 
+  /* ---------- L3: подложка (растр/вектор DXF) ---------- */
+  function bgRect() { var b = S.bg || {}; return { x: b.x != null ? b.x : 0, y: b.y != null ? b.y : 0, w: b.w != null ? b.w : S.w, h: b.h != null ? b.h : S.h }; }
+  function bgLayer() {
+    var b = S.bg; if (!b) return '';
+    var r = bgRect(), op = (b.opacity != null ? b.opacity : 0.5);
+    if (b.href) return '<image href="' + b.href + '" x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.h + '" opacity="' + op + '" preserveAspectRatio="none"/>';
+    if (b.dxf && b.dxf.length) {
+      var bb = b.bbox || { x: 0, y: 0, w: 1, h: 1 }, sx = r.w / (bb.w || 1), sy = r.h / (bb.h || 1);
+      var T = function (p) { return { x: r.x + (p[0] - bb.x) * sx, y: r.y + (bb.y + bb.h - p[1]) * sy }; };
+      var sw = Math.max(GRID / 6, (b.lineWeight || 1) * (Math.min(sx, sy) || 1));
+      return '<g fill="none" stroke="' + (b.color || '#334155') + '" stroke-width="' + sw + '" opacity="' + op + '">' + b.dxf.map(function (s) { var a = T(s[0]), c = T(s[1]); return '<line x1="' + a.x + '" y1="' + a.y + '" x2="' + c.x + '" y2="' + c.y + '"/>'; }).join('') + '</g>';
+    }
+    return '';
+  }
+  /* Минимальный DXF-парсер: LINE, LWPOLYLINE, POLYLINE+VERTEX, CIRCLE, ARC — для 2D-планов. */
+  function parseDxf(text) {
+    var lines = String(text).split(/\r?\n/), segs = [], ent = null, nums = {}, verts = [], polyFlag = 0;
+    function num(code, val) { var v = parseFloat(val); return isNaN(v) ? null : v; }
+    function finish() {
+      if (!ent) return;
+      var t = ent;
+      if (t === 'LINE' && nums[10] != null && nums[20] != null && nums[11] != null && nums[21] != null) segs.push([[nums[10], nums[20]], [nums[11], nums[21]]]);
+      else if ((t === 'LWPOLYLINE' || t === 'POLYLINE') && verts.length >= 2) {
+        for (var i = 1; i < verts.length; i++) segs.push([verts[i - 1], verts[i]]);
+        if (polyFlag & 1) segs.push([verts[verts.length - 1], verts[0]]);
+      } else if (t === 'CIRCLE' && nums[10] != null && nums[20] != null && nums[40] != null) {
+        var cx = nums[10], cy = nums[20], rr = nums[40], n = 24, pv = null, pf = null;
+        for (var a = 0; a <= n; a++) { var ang = a / n * Math.PI * 2, p = [cx + rr * Math.cos(ang), cy + rr * Math.sin(ang)]; if (pf) segs.push([pf, p]); else pv = p; pf = p; }
+      } else if (t === 'ARC' && nums[10] != null && nums[20] != null && nums[40] != null) {
+        var a1 = (nums[50] || 0) * Math.PI / 180, a2 = (nums[51] || 360) * Math.PI / 180; if (a2 <= a1) a2 += Math.PI * 2;
+        var m = 20, pp = null;
+        for (var k = 0; k <= m; k++) { var aa = a1 + (a2 - a1) * k / m, q = [nums[10] + nums[40] * Math.cos(aa), nums[20] + nums[40] * Math.sin(aa)]; if (pp) segs.push([pp, q]); pp = q; }
+      }
+      ent = null; nums = {}; verts = []; polyFlag = 0;
+    }
+    for (var i = 0; i + 1 < lines.length; i += 2) {
+      var code = parseInt(String(lines[i]).trim(), 10), val = String(lines[i + 1]).trim();
+      if (isNaN(code)) continue;
+      if (code === 0) {
+        finish();
+        if (val === 'LINE' || val === 'LWPOLYLINE' || val === 'POLYLINE' || val === 'CIRCLE' || val === 'ARC') ent = val;
+        else if (val === 'VERTEX' && ent) { /* keep ent as POLYLINE */ var keep = verts; verts = keep; }
+        continue;
+      }
+      if (!ent) continue;
+      if (ent === 'LINE' || ent === 'CIRCLE' || ent === 'ARC') { var nv = num(code, val); if (nv != null && nums[code] == null) nums[code] = nv; }
+      else if (ent === 'LWPOLYLINE') {
+        if (code === 10) { nums._x = num(10, val); }
+        else if (code === 20 && nums._x != null) { verts.push([nums._x, num(20, val)]); nums._x = null; }
+        else if (code === 70) polyFlag = parseInt(val, 10) || 0;
+      } else if (ent === 'POLYLINE') {
+        if (code === 70) polyFlag = parseInt(val, 10) || 0;
+        if (code === 10) { nums._x = num(10, val); }
+        else if (code === 20 && nums._x != null) { verts.push([nums._x, num(20, val)]); nums._x = null; }
+      }
+    }
+    finish();
+    return segs;
+  }
+  function dxfBBox(segs) {
+    var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    segs.forEach(function (s) { s.forEach(function (p) { if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0]; if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1]; }); });
+    if (!isFinite(x0)) return { x: 0, y: 0, w: 1, h: 1 };
+    return { x: x0, y: y0, w: Math.max(x1 - x0, 1), h: Math.max(y1 - y0, 1) };
+  }
+  function loadDxf(name, text) {
+    var segs = parseDxf(text);
+    if (!segs.length) { toast('В DXF не найдено линий (LINE/LWPOLYLINE/POLYLINE)', 'err'); return; }
+    var bb = dxfBBox(segs), k = Math.min(S.w / bb.w, S.h / bb.h) * 0.9, w = bb.w * k, h = bb.h * k;
+    S.bg = { dxf: segs, bbox: bb, opacity: 0.55, lineWeight: 1, color: '#334155', x: (S.w - w) / 2, y: (S.h - h) / 2, w: w, h: h };
+    draw(); logEvent('Подложка DXF: ' + name + ' (' + segs.length + ' линий)'); toast('DXF-подложка загружена (' + segs.length + ' линий)');
+  }
+
+  /* ---------- L3: 3D-превью (изометрия) ---------- */
+  var H3D = { mill: 2200, lathe: 1800, grind: 2000, edm: 2000, press: 2400, saw: 1200, cmm: 1600, bench: 900,
+    robot6: 2000, scara: 1800, delta: 1800, pallet: 1800, track: 1600,
+    conv: 900, turn: 1000, accum: 1000, agv: 1200, lift: 1600, rail: 300, cross: 900, buffer: 1200,
+    rack: 2400, cabinet: 1800, tool: 900, panel: 1800, compressor: 1600, receiver: 1800, dryer: 1500, chiller: 1500, col: 3000, vision: 1800, ap: 300, terminal: 1500, printer: 1200,
+    desk: 750, meet: 750, shelf: 1800, door: 2000, wall: 2700 };
+  function shade(hex, f) { var n = parseInt(hex.slice(1), 16), r = Math.round(((n >> 16) & 255) * f), g = Math.round(((n >> 8) & 255) * f), b = Math.round((n & 255) * f); return 'rgb(' + r + ',' + g + ',' + b + ')'; }
+  function iso3d(ang, ext) {
+    var a = ang * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a);
+    function rp(x, y) { return [x * ca - y * sa, x * sa + y * ca]; }
+    function proj(x, y, z) { var q = rp(x, y); return [(q[0] - q[1]) * 0.866, (q[0] + q[1]) * 0.5 - z]; }
+    var list = S.items.filter(function (it) { return layers[layerOf(it.type)]; });
+    var boxes = list.map(function (it) {
+      var z = (it.type === 'zone' || it.type === 'aisle' || it.type === 'label') ? 0 : (H3D[it.type] || 1500) * ext;
+      var cx = it.x + it.w / 2, cy = it.y + it.h / 2, ra = (it.rot || 0) * Math.PI / 180, cr = Math.cos(ra), sr = Math.sin(ra);
+      function corner(dx, dy) { var vx = it.x + dx - cx, vy = it.y + dy - cy; return [cx + vx * cr - vy * sr, cy + vx * sr + vy * cr]; }
+      var c = [corner(0, 0), corner(it.w, 0), corner(it.w, it.h), corner(0, it.h)];
+      var q = rp(cx, cy), depth = q[0] + q[1];
+      return { z: z, c: c, depth: depth, col: (STAGES[it.stage] || STAGES['new']).c, name: it.name };
+    }).sort(function (p, r) { return p.depth - r.depth; });
+    var minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity, body = '';
+    function pt(x, y, z) { var p = proj(x, y, z); if (p[0] < minx) minx = p[0]; if (p[0] > maxx) maxx = p[0]; if (p[1] < miny) miny = p[1]; if (p[1] > maxy) maxy = p[1]; return p[0].toFixed(1) + ',' + p[1].toFixed(1); }
+    boxes.forEach(function (b) {
+      var top = b.c.map(function (p) { return pt(p[0], p[1], b.z); }).join(' ');
+      if (b.z <= 0) { body += '<polygon points="' + top + '" fill="' + b.col + '22" stroke="' + b.col + '" stroke-dasharray="40 24"/>'; return; }
+      for (var i = 0; i < 4; i++) {
+        var p1 = b.c[i], p2 = b.c[(i + 1) % 4];
+        var poly = [pt(p1[0], p1[1], 0), pt(p2[0], p2[1], 0), pt(p2[0], p2[1], b.z), pt(p1[0], p1[1], b.z)].join(' ');
+        body += '<polygon points="' + poly + '" fill="' + shade(b.col, 0.72) + '" stroke="' + shade(b.col, 0.55) + '"/>';
+      }
+      body += '<polygon points="' + top + '" fill="' + shade(b.col, 1) + '" stroke="' + shade(b.col, 0.8) + '"/>';
+      var c0 = proj(b.c[2][0], b.c[2][1], b.z);
+      body += '<text x="' + c0[0].toFixed(1) + '" y="' + c0[1].toFixed(1) + '" font-size="120" fill="#0f172a" opacity=".7">' + esc((b.name || '').slice(0, 14)) + '</text>';
+    });
+    var pad = 400, vw = Math.max(maxx - minx + pad * 2, 100), vh = Math.max(maxy - miny + pad * 2, 100);
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + (minx - pad).toFixed(0) + ' ' + (miny - pad).toFixed(0) + ' ' + vw.toFixed(0) + ' ' + vh.toFixed(0) + '" style="width:100%;height:60vh;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px">' + body + '</svg>';
+  }
+  function open3d() {
+    var ang = 55, ext = 1;
+    ui.dialog({ title: '3D-превью (изометрия)', html: true, cancelText: 'Закрыть', body:
+      '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:8px"><label>Угол обзора</label><input type="range" id="v3ang" min="0" max="360" value="55" style="flex:1;min-width:160px"><label>Высота</label><input type="range" id="v3ext" min="30" max="220" value="100"></div><div id="v3host">' + iso3d(55, 1) + '</div>' });
+    var host = document.getElementById('v3host'), ra = document.getElementById('v3ang'), re = document.getElementById('v3ext');
+    function upd() { host.innerHTML = iso3d(Number(ra.value), Number(re.value) / 100); }
+    if (ra) ra.oninput = upd; if (re) re.oninput = upd;
+  }
+
   /* ---------- история ---------- */
   function snapshot() { history.push(deep(S)); if (history.length > 60) history.shift(); redo = []; syncHist(); }
   function syncHist() { var u = $('#undoBtn'), r = $('#redoBtn'); if (u) u.disabled = !history.length; if (r) r.disabled = !redo.length; }
@@ -136,7 +255,7 @@
     svg.style.width = (S.w * zoom) + 'px'; svg.style.height = (S.h * zoom) + 'px';
     var zs = $('#zSlider'); if (zs) zs.value = Math.round(zoom * 100);
     var g = '<defs><marker id="ah" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 z" fill="#0ea5e9"/></marker><marker id="ahr" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 z" fill="#2563eb"/></marker></defs>';
-    if (S.bg && S.bg.href) g += '<image href="' + S.bg.href + '" x="0" y="0" width="' + S.w + '" height="' + S.h + '" opacity="' + (S.bg.opacity != null ? S.bg.opacity : 0.5) + '" preserveAspectRatio="none"/>';
+    g += bgLayer();
     if ($('#gridChk') && $('#gridChk').checked) {
       for (var x = 0; x <= S.w; x += GRID * 5) g += '<line x1="' + x + '" y1="0" x2="' + x + '" y2="' + S.h + '" class="gl" stroke-width="' + (GRID / 12) + '"/>';
       for (var y = 0; y <= S.h; y += GRID * 5) g += '<line x1="0" y1="' + y + '" x2="' + S.w + '" y2="' + y + '" class="gl" stroke-width="' + (GRID / 12) + '"/>';
@@ -347,7 +466,7 @@
   function addType(t) { snapshot(); var d = typeDef(t); var it = { id: uid(), type: t, name: d.n, x: snapv(S.w / 2 - d.w / 2), y: snapv(S.h / 2 - d.h / 2), w: d.w, h: d.h, rot: 0, stage: stage }; S.items.push(it); sel = it.id; draw(); prop(); }
 
   /* ---------- проекты ---------- */
-  function applyData(d) { S = { w: d.w || W, h: d.h || H, items: d.items || [], notes: d.notes || [], links: d.links || [], routes: d.routes || [], utils: d.utils || [] }; sel = null; history = []; redo = []; syncHist(); draw(); prop(); renderLists(); }
+  function applyData(d) { S = { w: d.w || W, h: d.h || H, items: d.items || [], notes: d.notes || [], links: d.links || [], routes: d.routes || [], utils: d.utils || [], bg: d.bg || null }; sel = null; history = []; redo = []; syncHist(); draw(); prop(); renderLists(); }
   function loadList() {
     return rpc('app_layout_plan_list', { p_token: token }).then(function (rows) {
       rows = rows || [];
@@ -374,7 +493,7 @@
     img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
   }
   function exportHtml() { dl(($('#proj').value || 'layout') + '.html', '<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>' + esc($('#proj').value) + '</title><style>body{margin:0}#cv{width:100%;height:auto}</style></head><body>' + svgString() + '</body></html>', 'text/html'); }
-  function exportJson() { dl(($('#proj').value || 'layout') + '.json', JSON.stringify({ name: $('#proj').value, kind: $('#kind').value, w: S.w, h: S.h, items: S.items, notes: S.notes, links: S.links, routes: S.routes, utils: S.utils }, null, 2), 'application/json'); }
+  function exportJson() { dl(($('#proj').value || 'layout') + '.json', JSON.stringify({ name: $('#proj').value, kind: $('#kind').value, w: S.w, h: S.h, items: S.items, notes: S.notes, links: S.links, routes: S.routes, utils: S.utils, bg: S.bg || null }, null, 2), 'application/json'); }
   function importJson(file) { var fr = new FileReader(); fr.onload = function () { try { var d = JSON.parse(fr.result); if (d.name) $('#proj').value = d.name; if (d.kind) $('#kind').value = d.kind; applyData(d); baseline = deep(S); toast('Импортировано'); } catch (e) { toast('Некорректный JSON', 'err'); } }; fr.readAsText(file); }
   function exportNotes() { dl('notes.txt', S.notes.map(function (n, i) { return (i + 1) + '. ' + (n.text || '') + ' @(' + Math.round(n.x) + ',' + Math.round(n.y) + ')'; }).join('\n'), 'text/plain'); }
   function exportLinks() { dl('links.csv', 'A,B\n' + S.links.map(function (l) { var a = byId(l.a), b = byId(l.b); return '"' + ((a && a.name) || '') + '","' + ((b && b.name) || '') + '"'; }).join('\n'), 'text/csv'); }
@@ -570,10 +689,15 @@
       '<label class="ck" style="display:flex;gap:6px;align-items:center;margin-top:6px"><input type="checkbox" id="setSnap" ' + ($('#snapChk').checked ? 'checked' : '') + '> Привязка</label>' +
       '<label class="ck" style="display:flex;gap:6px;align-items:center;margin-top:6px"><input type="checkbox" id="setDim" ' + ($('#dimChk') && $('#dimChk').checked ? 'checked' : '') + '> Размеры на плане</label>' +
       '<label style="margin-top:8px">Прозрачность подложки</label><input type="range" id="setBgOp" min="5" max="100" value="' + Math.round(((S.bg && S.bg.opacity != null ? S.bg.opacity : 0.5)) * 100) + '">' +
-      '<div class="btn-row mt" style="flex-wrap:wrap"><button class="btn secondary" id="setBgOff" style="width:auto">Убрать подложку</button><button class="btn secondary" id="setRestore" style="width:auto">↺ Вернуть исходную схему</button><button class="btn secondary" id="setClear" style="width:auto">✕ Очистить</button><button class="btn secondary" id="setReset" style="width:auto">⟲ Полный сброс</button></div>';
+      (S.bg ? (function () { var r = bgRect(); return '<div class="pal-g" style="margin-top:10px">Калибровка подложки, мм</div>' +
+        '<div class="grid2" style="gap:6px"><div><label>X</label><input id="setBgX" type="number" value="' + Math.round(r.x) + '"></div><div><label>Y</label><input id="setBgY" type="number" value="' + Math.round(r.y) + '"></div></div>' +
+        '<div class="grid2" style="gap:6px"><div><label>Ширина</label><input id="setBgW" type="number" value="' + Math.round(r.w) + '"></div><div><label>Высота</label><input id="setBgH" type="number" value="' + Math.round(r.h) + '"></div></div>'; })() : '') +
+      '<div class="btn-row mt" style="flex-wrap:wrap"><button class="btn secondary" id="setBgOff" style="width:auto">Убрать подложку</button>' + (S.bg ? '<button class="btn secondary" id="setBgFit" style="width:auto">Подогнать по плану</button>' : '') + '<button class="btn secondary" id="setRestore" style="width:auto">↺ Вернуть исходную схему</button><button class="btn secondary" id="setClear" style="width:auto">✕ Очистить</button><button class="btn secondary" id="setReset" style="width:auto">⟲ Полный сброс</button></div>';
     ui.dialog({ title: 'Настройки', html: true, cancelText: 'Закрыть', body: html });
     var bo = document.getElementById('setBgOp'); if (bo) bo.oninput = function () { if (!S.bg) S.bg = { href: null }; S.bg.opacity = Number(this.value) / 100; draw(); };
     var bof = document.getElementById('setBgOff'); if (bof) bof.onclick = function () { S.bg = null; draw(); toast('Подложка убрана'); };
+    ['setBgX:x', 'setBgY:y', 'setBgW:w', 'setBgH:h'].forEach(function (p) { var id = p.split(':')[0], k = p.split(':')[1], el = document.getElementById(id); if (el) el.onchange = function () { if (!S.bg) return; var b = bgRect(); b[k] = Number(this.value) || 0; S.bg.x = b.x; S.bg.y = b.y; S.bg.w = b.w; S.bg.h = b.h; draw(); }; });
+    var bf = document.getElementById('setBgFit'); if (bf) bf.onclick = function () { if (!S.bg) return; S.bg.x = 0; S.bg.y = 0; S.bg.w = S.w; S.bg.h = S.h; draw(); toast('Подложка растянута по плану'); };
     var sp = document.getElementById('setSpd'); if (sp) sp.onchange = function () { flow.spd = Number(this.value); };
     var g = document.getElementById('setGrid'); if (g) g.onchange = function () { $('#gridChk').checked = this.checked; draw(); };
     var sn = document.getElementById('setSnap'); if (sn) sn.onchange = function () { $('#snapChk').checked = this.checked; };
@@ -595,9 +719,16 @@
     logEvent('Проверка коллизий: ' + pairs.length + ' пересечений');
   };
   if ($('#bgBtn')) $('#bgBtn').onclick = function () { var f = $('#bgFile'); if (f) f.click(); };
+  if ($('#view3d')) $('#view3d').onclick = open3d;
   if ($('#bgFile')) $('#bgFile').onchange = function () {
     var file = this.files[0]; this.value = ''; if (!file) return;
-    var fr = new FileReader(); fr.onload = function () { S.bg = { href: fr.result, opacity: 0.5 }; draw(); toast('Подложка добавлена'); logEvent('Подложка загружена'); }; fr.readAsDataURL(file);
+    var isDxf = /\.dxf$/i.test(file.name);
+    var fr = new FileReader();
+    fr.onload = function () {
+      if (isDxf) { loadDxf(file.name, String(fr.result)); }
+      else { S.bg = { href: fr.result, opacity: 0.5, x: 0, y: 0, w: S.w, h: S.h }; draw(); toast('Подложка добавлена'); logEvent('Подложка загружена'); }
+    };
+    if (isDxf) fr.readAsText(file); else fr.readAsDataURL(file);
   };
   if ($('#helpBtn')) $('#helpBtn').onclick = function () {
     ui.dialog({ title: 'Как работает редактор', html: true, cancelText: 'Понятно', body:
@@ -606,7 +737,9 @@
       '<p><b>Коммуникации:</b> вкладка «Связи» → вид (Питание/Воздух/Вода/Газ/Сеть) → «Проложить» → кликайте точки → «Завершить».</p>' +
       '<p><b>Узлы:</b> включите «Размеры» — показываются габариты (мм). У выбранного узла — размерные линии и маркер поворота (зелёный круг сверху): тяните для поворота (привязка 15°), либо задайте угол в свойствах.</p>' +
       '<p><b>Демонстрация:</b> режим «Демонстрация» показывает движение по маршруту (▶/◀, скорость в настройках).</p>' +
-      '<p><b>Экспорт/печать:</b> JSON/SVG/PNG/HTML и «Печать/PDF». История версий — 🕘.</p>' });
+      '<p><b>Экспорт/печать:</b> JSON/SVG/PNG/HTML и «Печать/PDF». История версий — 🕘.</p>' +
+      '<p><b>Подложка:</b> «Подложка» — растровый план (PNG/JPG) или чертёж **DXF** (LINE/LWPOLYLINE/POLYLINE/CIRCLE/ARC). Калибровка (X/Y/Ш/В, мм) и прозрачность — в ⚙ Настройках.</p>' +
+      '<p><b>3D-превью:</b> кнопка «3D» — изометрический вид: узлы вытягиваются по высоте; ползунки меняют угол обзора и высоту.</p>' });
   };
   $('#logout').onclick = function () { window.Auth.logout(); location.href = '../../index.html'; };
 

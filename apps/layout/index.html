@@ -132,8 +132,9 @@
         <button class="btn secondary" id="reportBtn">Отчёт по потоку</button>
         <button class="btn secondary" id="demoBtn" title="Загрузить демонстрационный проект (линия из конструктора robot)">Демо линия</button>
         <button class="btn secondary" id="collBtn" title="Проверить пересечения оборудования">Коллизии</button>
-        <button class="btn secondary" id="bgBtn" title="Подложка (чертёж/план)">Подложка</button>
-        <input type="file" id="bgFile" accept="image/*" style="display:none">
+        <button class="btn secondary" id="bgBtn" title="Подложка (чертёж/план: PNG/JPG или DXF)">Подложка</button>
+        <button class="btn secondary" id="view3d" title="3D-превью (изометрия)">3D</button>
+        <input type="file" id="bgFile" accept="image/*,.dxf" style="display:none">
       </div>
 
       <div class="ebody" id="ebody">
@@ -187,7 +188,7 @@
   <script src="../../assets/js/nav.js?v=109"></script>
   <script src="../../assets/js/shell.js?v=76"></script>
   <script src="../../assets/js/module-report.js?v=3"></script>
-  <script src="layout.js?v=13"></script>
+  <script src="layout.js?v=14"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=2"></script>
 </body>
