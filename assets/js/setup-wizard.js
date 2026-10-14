@@ -25,7 +25,7 @@
     return new Promise(function (res) {
       if (g.AppCatalog && g.AppCatalog.apps) { res(); return; }
       if (document.getElementById('wzCatLd')) { var t = setInterval(function () { if (g.AppCatalog && g.AppCatalog.apps) { clearInterval(t); res(); } }, 80); return; }
-      var s = document.createElement('script'); s.id = 'wzCatLd'; s.src = ROOT + 'assets/js/catalog.js?v=127'; s.onload = function () { res(); }; s.onerror = function () { res(); }; document.head.appendChild(s);
+      var s = document.createElement('script'); s.id = 'wzCatLd'; s.src = ROOT + 'assets/js/catalog.js?v=128'; s.onload = function () { res(); }; s.onerror = function () { res(); }; document.head.appendChild(s);
     });
   }
 

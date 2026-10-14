@@ -1,11 +1,11 @@
 {
     "tool":  "perf",
-    "at":  "2026-10-13T14:58:02",
+    "at":  "2026-10-14T12:24:19",
     "findings":  [
                      {
                          "area":  "H",
                          "sev":  "Info",
-                         "title":  "Много RPC-функций: 1223",
+                         "title":  "Много RPC-функций: 1282",
                          "detail":  "Проверять пагинацию/индексы горячих списков.",
                          "evidence":  "supabase/migrations",
                          "method":  "perf",

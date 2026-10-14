@@ -8,7 +8,7 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '10.51',
+  version: '10.52',
   updated: '14.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
@@ -727,98 +727,98 @@ window.AppCatalog = {
       connects: ['builder', 'access', 'admin', 'orders', 'docs'], in_: 'События, заявки, права', out: 'Задачи, уведомления, автоматизация'
     },
     {
-      id: 'mdm', icon: '🗂️', title: '🆕 НСИ / Мастер-данные', href: 'apps/mdm/index.html', guest: false, roles: ['admin', 'owner', 'manager'], group: 'production',
+      id: 'mdm', icon: '🗂️', title: '🆕 НСИ / Мастер-данные', href: 'apps/mdm/index.html', guest: false, audience: 'user', roles: ['admin', 'owner', 'manager'], group: 'production',
       desc: 'Единый справочник номенклатуры, версии, внешние коды (1С/PLM), дубли и импорт.',
       purpose: 'MDM: единый справочник (материалы/изделия/услуги/оборудование/инструмент) с версиями, сопоставление с внешними системами (1С/PLM/ERP), поиск дублей по наименованию и слияние, импорт по коду. Основа НСИ для всех модулей.',
       features: ['Единый реестр номенклатуры (типы, группы, атрибуты)', 'Версии позиций', 'Внешние коды (1С/PLM/ERP)', 'Поиск дублей и слияние', 'Импорт (upsert по коду)', 'Экспорт CSV/PDF'],
       connects: ['registry', 'bom', 'norms', 'warehouse', 'procurement', 'integrations'], in_: 'Данные 1С/PLM/вручную', out: 'Единая НСИ'
     },
     {
-      id: 'plm', icon: '📐', title: '🆕 Изделия и состав (PLM)', href: 'apps/plm/index.html', guest: false, roles: ['admin', 'owner', 'manager'], group: 'production',
+      id: 'plm', icon: '📐', title: '🆕 Изделия и состав (PLM)', href: 'apps/plm/index.html', guest: false, audience: 'user', roles: ['admin', 'owner', 'manager'], group: 'production',
       desc: 'Изделия с версиями, состав (BOM), документы (ЕСКД/ЕСТД), изменения (ECN).',
       purpose: 'PDM/PLM: изделия (версия, состояние draft/released/obsolete, связь с НСИ), состав с версиями (компоненты из НСИ или под-изделия), документы ЕСКД/ЕСТД/ТУ, изменения (ECN) со статусами и решением владельца.',
       features: ['Изделия и версии (черновик/выпущено/снято)', 'Состав (BOM) по версиям', 'Документы ЕСКД/ЕСТД/ТУ', 'Изменения (ECN) и решение', 'KPI PLM'],
       connects: ['mdm', 'bom', 'registry', 'docs', 'workflow', 'production'], in_: 'НСИ, документация', out: 'Изделие/состав/изменения'
     },
     {
-      id: 'edo', icon: '📨', title: '🆕 Документооборот (ЭДО)', href: 'apps/edo/index.html', guest: false, roles: ['admin', 'owner', 'manager'], group: 'platform',
+      id: 'edo', icon: '📨', title: '🆕 Документооборот (ЭДО)', href: 'apps/edo/index.html', guest: false, audience: 'user', roles: ['admin', 'owner', 'manager'], group: 'platform',
       desc: 'Реестр документов (вход/исход/внутр/ОРД), регистрация, поручения (SLA), внешний обмен, подписи, маршруты, дела.',
       purpose: 'ЭДО/СЭД: реестр документов с авто-регистрацией (ЭДО-ГГГГ-NNNNN); поручения со сроком/SLA и уведомлениями о просрочке; внешний обмен с контрагентом через ЭДО-оператора (очередь интеграций); подпись документа (ПЭП/УНЭП/УКЭП/Госключ); маршруты согласования; связи с объектами; папки и номенклатура дел/архив.',
       features: ['Реестр документов (вход/исход/внутр/ОРД)', 'Авто-регистрация (номер)', 'Статусы и сроки, просрочка', 'Поручения со SLA и уведомлениями', 'Внешний обмен с контрагентом (ЭДО-оператор)', 'Подпись документа (ПЭП/УНЭП/УКЭП/Госключ)', 'Маршруты согласования', 'Папки и номенклатура дел, архив', 'Связи с объектами', 'KPI/дашборд ЭДО'],
       connects: ['docs', 'files', 'workflow', 'access', 'orders', 'crm', 'kedo', 'integrations'], in_: 'Документы и события', out: 'Реестр, обмен, подписи, поручения, архив'
     },
     {
-      id: 'tasks', icon: '🗒️', title: '🆕 Задачи и проекты', href: 'apps/tasks/index.html', guest: false, roles: ['admin', 'owner', 'manager'], group: 'platform',
+      id: 'tasks', icon: '🗒️', title: '🆕 Задачи и проекты', href: 'apps/tasks/index.html', guest: false, audience: 'user', roles: ['admin', 'owner', 'manager'], group: 'platform',
       desc: 'Проекты, канбан-задачи, учёт времени, обсуждения (@упоминания) и контакт-центр (inbox).',
       purpose: 'Совместная работа: проекты и задачи (канбан todo/in_progress/done, приоритет, исполнитель, срок, оценка/факт часов, связь с объектом), учёт времени, обсуждения объектов с упоминаниями @логин (уведомления), контакт-центр — единый inbox (email/chat/sms/call, назначение/закрытие).',
       features: ['Проекты и задачи', 'Канбан-доска', 'Мои задачи', 'Учёт времени', 'Обсуждения и @упоминания', 'Контакт-центр (inbox)', 'KPI'],
       connects: ['calendar', 'crm', 'orders', 'announcements', 'staff', 'guide'], in_: 'Проекты, обращения, события', out: 'Задачи, уведомления, inbox'
     },
     {
-      id: 'kedo', icon: '🧑‍💼', title: '🆕 Кадры (КЭДО)', href: 'apps/kedo/index.html', guest: false, roles: ['admin', 'owner', 'manager'], group: 'platform',
+      id: 'kedo', icon: '🧑‍💼', title: '🆕 Кадры (КЭДО)', href: 'apps/kedo/index.html', guest: false, audience: 'user', roles: ['admin', 'owner', 'manager'], group: 'platform',
       desc: 'Кадровые документы, массовые ознакомления, маршруты, подпись (ПЭП/провайдер ЭП), шаблоны, ЛК, МЧД.',
       purpose: 'КЭДО: кадровые документы (приём/перевод/увольнение/отпуск/больничный/ознакомление/приказ) со статусами и подписанием (ПЭП; внешний провайдер ЭП — задел УКЭП/Госключ), массовые ознакомления с контролем подписи по каждому, маршруты согласования (reuse движка W10), шаблоны, личный кабинет сотрудника, машиночитаемые доверенности (МЧД).',
       features: ['Кадровые документы и статусы', 'Ознакомление и подпись (ПЭП)', 'Массовые ознакомления (контроль подписи)', 'Маршруты кадровых документов (согласование)', 'Подпись внешним провайдером ЭП (очередь интеграций)', 'Личный кабинет сотрудника', 'Шаблоны документов', 'МЧД', 'KPI/дашборд КЭДО'],
       connects: ['hr', 'staff', 'edo', 'access', 'docs', 'files', 'integrations'], in_: 'Кадры, шаблоны, маршруты', out: 'Документы, ознакомления, подписи, МЧД'
     },
     {
-      id: 'eam', icon: '🛠️', title: '🆕 EAM 2.0 (CMMS)', href: 'apps/eam/index.html', guest: false, roles: ['admin', 'owner', 'manager'], group: 'production',
+      id: 'eam', icon: '🛠️', title: '🆕 EAM 2.0 (CMMS)', href: 'apps/eam/index.html', guest: false, audience: 'user', roles: ['admin', 'owner', 'manager'], group: 'production',
       desc: 'Вибродиагностика (+авто-наряд), энергоменеджмент, простои/дисциплина, версии УП, карта цеха.',
       purpose: 'CMMS/EAM 2.0: вибродиагностика с порогами (при аварии — авто-наряд ТОиР и уведомление), энергоменеджмент (ресурсы и стоимость), простои и дисциплина (причины, журнал вход/выход), версии УП с эталоном и сверкой, 3D-карта цеха.',
       features: ['Вибрация: пороги и алерты + авто-наряд', 'Энергия: расход и стоимость', 'Простои и журнал оператора', 'Версии УП и сверка с эталоном', 'Карта цеха', 'KPI'],
       connects: ['maintenance', 'iiot', 'oee', 'nc', 'equipment'], in_: 'Телеметрия, наработка', out: 'Наряды, энергоKPI, сверка УП'
     },
     {
-      id: 'safety', icon: '⛑️', title: '🆕 Охрана труда (EHS)', href: 'apps/safety/index.html', guest: false, roles: ['admin', 'owner', 'manager'], group: 'platform',
+      id: 'safety', icon: '⛑️', title: '🆕 Охрана труда (EHS)', href: 'apps/safety/index.html', guest: false, audience: 'user', roles: ['admin', 'owner', 'manager'], group: 'platform',
       desc: 'Инструктажи, наряды-допуски, СИЗ, медосмотры, инциденты; KPI.',
       purpose: 'Охрана труда и EHS: журналы инструктажей, наряды-допуски (огневые/высота/электро и др. со статусами), выдача СИЗ со сроками, медосмотры, регистрация инцидентов/расследований; KPI (просрочки, активные допуски, открытые инциденты).',
       features: ['Журналы инструктажей', 'Наряды-допуски и статусы', 'Наряд-допуск → задача', 'СИЗ: выдача (со склада) и сроки', 'Медосмотры', 'Инциденты и расследования', 'Дашборд сроков EHS', 'KPI EHS'],
       connects: ['hr', 'staff', 'tasks', 'workflow', 'warehouse', 'competences'], in_: 'Сотрудники, работы', out: 'Инструктажи, допуски, СИЗ, инциденты'
     },
     {
-      id: 'holding', icon: '🏢', title: '🆕 Холдинг (CPM)', href: 'apps/holding/index.html', guest: false, roles: ['admin', 'owner'], group: 'platform',
+      id: 'holding', icon: '🏢', title: '🆕 Холдинг (CPM)', href: 'apps/holding/index.html', guest: false, audience: 'user', roles: ['admin', 'owner'], group: 'platform',
       desc: 'Площадки группы, снимки KPI, консолидация с учётом доли.',
       purpose: 'Управление группой: площадки (код/регион/доля), снимки KPI (выручка/себестоимость/прибыль за период), консолидированная отчётность с учётом доли участия, KPI группы. Мультизаводская аналитика.',
       features: ['Площадки группы и доли', 'Снимки KPI по периодам', 'Консолидация с долей', 'KPI группы'],
       connects: ['platform', 'finance', 'bi', 'economics', 'reports'], in_: 'Площадки, KPI', out: 'Консолидированная отчётность'
     },
     {
-      id: 'projbudget', icon: '💰', title: '🆕 Бюджет проектов', href: 'apps/projbudget/index.html', guest: false, roles: ['admin', 'owner', 'manager'], group: 'economics',
+      id: 'projbudget', icon: '💰', title: '🆕 Бюджет проектов', href: 'apps/projbudget/index.html', guest: false, audience: 'user', roles: ['admin', 'owner', 'manager'], group: 'economics',
       desc: 'Смета проекта, план-факт по статьям, освоение (EVM: PV/AC/EV, CPI/SPI, EAC).',
       purpose: 'Бюджетирование проектов: смета (версии, статусы), строки по статьям план/факт, план-факт, освоение по методу EVM (PV/AC/EV, CPI/SPI, EAC — задел), KPI по сметам. Дашборды — через «Отчёты/BI».',
       features: ['Смета проекта и версии', 'Строки: план/факт по статьям', 'План-факт и отклонения', 'Освоение EVM (CPI/SPI/EAC)', 'KPI по сметам'],
       connects: ['finance', 'economics', 'tasks', 'bi'], in_: 'Проект, факт затрат', out: 'План-факт, прогноз'
     },
     {
-      id: 'pmo', icon: '🗃️', title: '🆕 Портфель проектов (PMO)', href: 'apps/pmo/index.html', guest: false, roles: ['admin', 'owner', 'manager'], group: 'production',
+      id: 'pmo', icon: '🗃️', title: '🆕 Портфель проектов (PMO)', href: 'apps/pmo/index.html', guest: false, audience: 'user', roles: ['admin', 'owner', 'manager'], group: 'production',
       desc: 'Портфели, вехи проектов, реестр рисков; KPI.',
       purpose: 'Управление проектами (PMO): портфели и состав (приоритет/вес), вехи проекта (сроки/статусы/прогресс), реестр рисков (вероятность×влияние = серьёзность, план мероприятий), KPI портфеля.',
       features: ['Портфели проектов и состав', 'Вехи и статусы', 'Реестр рисков (severity)', 'План мероприятий по рискам', 'KPI PMO'],
       connects: ['tasks', 'economics', 'projbudget', 'production'], in_: 'Проекты, задачи', out: 'Портфель, вехи, риски'
     },
     {
-      id: 'logistics', icon: '🚚', title: '🆕 Логистика (TMS)', href: 'apps/logistics/index.html', guest: false, roles: ['admin', 'owner', 'manager'], group: 'production',
+      id: 'logistics', icon: '🚚', title: '🆕 Логистика (TMS)', href: 'apps/logistics/index.html', guest: false, audience: 'user', roles: ['admin', 'owner', 'manager'], group: 'production',
       desc: 'Перевозчики и заявки на перевозку (рейсы) со статусами; KPI.',
       purpose: 'Управление транспортом: перевозчики (ИНН/контакт/тариф), заявки на перевозку (направление in/out, груз/вес, маршрут, даты, перевозчик/ТС/водитель, стоимость, статусы planned→in_transit→done/cancelled), KPI.',
       features: ['Перевозчики и тарифы', 'Заявки на перевозку (рейсы)', 'Маршрут и даты', 'Статусы рейсов', 'KPI логистики'],
       connects: ['procurement', 'warehouse', 'orders', 'finance'], in_: 'Заявки, грузы', out: 'Рейсы, стоимость доставки'
     },
     {
-      id: 'itsm', icon: '🖥️', title: '🆕 ИТ-сервисы (ITSM)', href: 'apps/itsm/index.html', guest: false, roles: ['admin', 'owner', 'manager'], group: 'platform',
+      id: 'itsm', icon: '🖥️', title: '🆕 ИТ-сервисы (ITSM)', href: 'apps/itsm/index.html', guest: false, audience: 'user', roles: ['admin', 'owner', 'manager'], group: 'platform',
       desc: 'Каталог ИТ-услуг, заявки/инциденты со SLA; KPI.',
       purpose: 'ITSM/ITIL: каталог ИТ-услуг (категория/владелец/SLA), заявки и инциденты (услуга/приоритет/исполнитель, SLA-срок, статусы new→in_progress→resolved/closed), KPI (открытые, нарушение SLA).',
       features: ['Каталог ИТ-услуг и SLA', 'Заявки/инциденты', 'Статусы и исполнители', 'SLA-срок и просрочка', 'KPI ITSM'],
       connects: ['support', 'issues', 'access', 'tasks', 'announcements'], in_: 'Обращения, ИТ-услуги', out: 'Заявки, SLA'
     },
     {
-      id: 'elearning', icon: '🎓', title: '🆕 Обучение (e-Learning)', href: 'apps/elearning/index.html', guest: false, roles: ['admin', 'owner', 'manager'], group: 'platform',
+      id: 'elearning', icon: '🎓', title: '🆕 Обучение (e-Learning)', href: 'apps/elearning/index.html', guest: false, audience: 'user', roles: ['admin', 'owner', 'manager'], group: 'platform',
       desc: 'Курсы и уроки, назначения с прогрессом, тесты и попытки; KPI.',
       purpose: 'Обучение персонала: курсы и уроки, назначения сотрудникам с прогрессом и оценкой, тесты (порог/вопросы) и попытки, KPI (назначения, доля сдачи). Матрица компетенций — через «Компетенции/HR».',
       features: ['Курсы и уроки', 'Назначения и прогресс', 'Авто-назначение по дефициту компетенций', 'Тесты и попытки', 'Доля сдачи', 'KPI обучения'],
       connects: ['hr', 'staff', 'competences', 'safety', 'tasks'], in_: 'Сотрудники, курсы', out: 'Обучение, аттестация'
     },
     {
-      id: 'accounting', icon: '📒', title: '🆕 Бухгалтерия (задел)', href: 'apps/accounting/index.html', guest: false, roles: ['admin', 'owner'], group: 'economics',
+      id: 'accounting', icon: '📒', title: '🆕 Бухгалтерия (задел)', href: 'apps/accounting/index.html', guest: false, audience: 'user', roles: ['admin', 'owner'], group: 'economics',
       desc: 'План счетов, проводки Дт/Кт, оборотно-сальдовая ведомость (задел).',
       purpose: 'Бухгалтерский/налоговый учёт (задел): план счетов (актив/пассив/доход/расход/капитал), проводки Дт/Кт с привязкой к объекту, оборотно-сальдовая ведомость за период, KPI. Обмен с 1С-бухгалтерией — через интеграции.',
       features: ['План счетов', 'Проводки Дт/Кт', 'Оборотно-сальдовая ведомость', 'KPI учёта'],

@@ -15,6 +15,7 @@ global.window = {};
 require(path.join(root, 'assets/js/catalog.js'));
 const C = global.window.AppCatalog;
 const A = require(path.join(root, 'tools', 'modules-analysis.js'));
+const PROPOSALS = require(path.join(root, 'tools', 'proposals.js'));
 
 const OUT = path.resolve(root, '..', 'modules.html');
 const AUD = { guest: 'гость', user: 'пользователь', client_admin: 'админ клиента', saas_admin: 'SaaS-админ', developer: 'разработчик' };
@@ -285,8 +286,26 @@ const protoBlock = '<details class="panel"><summary class="panel-sum"><b>Про�
   '<p class="note" style="margin:8px 0;">Сопоставление 72 прототипов eco/apps с реализованными модулями: что было в прототипе → что стало в сервисе.</p>' + protoTable +
   '<h4 style="margin:12px 0 6px;font-size:.8rem;">Прототипы без прямой реализации</h4><ul>' + PROTO_OPEN.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></details>';
 
-const generated = new Date().toISOString().slice(0, 10);
+/* ---------- Предложения по изменениям (tools/proposals.js) ---------- */
+function propCard(p) {
+  const pc = p.prio === 'P1' ? 'high' : p.prio === 'P2' ? 'mid' : 'low';
+  return '<div class="prop' + (p.status === 'done' ? ' is-done' : '') + '">' +
+    '<div class="prop-h"><span class="b b-pri pri-' + pc + '">' + esc(p.prio) + '</span>' +
+    '<span class="tag">' + esc(p.area) + '</span><b>' + esc(p.title) + '</b>' +
+    (p.status === 'done' ? '<span class="tag s-done">✅ выполнено</span>' : '') + '</div>' +
+    '<div class="prop-p">' + esc(p.problem) + '</div>' +
+    '<div class="prop-a"><b>Что сделать:</b> ' + esc(p.action) + '</div>' +
+    '<div class="prop-e muted">' + esc(p.evidence) + ' · оценка: ' + (p.effort === 'S' ? 'малая' : p.effort === 'M' ? 'средняя' : 'крупная') + ' · ' + esc(p.id) + '</div></div>';
+}
+const propCounts = { P1: 0, P2: 0, P3: 0, done: 0 };
+PROPOSALS.forEach(p => { if (propCounts[p.prio] != null) propCounts[p.prio]++; if (p.status === 'done') propCounts.done++; });
+const proposalsBlock = '<details class="panel" open><summary class="panel-sum"><b>Предложения по изменениям</b> <span class="cnt">' + PROPOSALS.length + '</span> <span class="muted">· по итогам аудита — развернуть</span></summary>' +
+  '<p class="note" style="margin:8px 0;">Рекомендации по итогам большого аудита проекта (каталог, UX, производительность, API, документация, доступность, безопасность). Источник — <code>tools/proposals.js</code> (единый список для дашборда).</p>' +
+  '<div class="legend" style="margin-bottom:10px;"><span><b>P1</b> · ' + propCounts.P1 + '</span><span><b>P2</b> · ' + propCounts.P2 + '</span><span><b>P3</b> · ' + propCounts.P3 + '</span><span>✅ выполнено · ' + propCounts.done + '</span></div>' +
+  ['P1', 'P2', 'P3'].map(k => '<h4 style="margin:12px 0 6px;font-size:.82rem;">' + k + ' · ' + propCounts[k] + '</h4>' + PROPOSALS.filter(p => p.prio === k).map(propCard).join('')).join('') +
+  '</details>';
 
+const generated = new Date().toISOString().slice(0, 10);
 const html = `<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -440,6 +459,14 @@ ul.feat li::before{content:'✓';position:absolute;left:0;color:var(--accent-700
 .prirow{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;flex-wrap:wrap}
 .prirow .b{flex:0 0 auto}
 
+.prop{border:1px solid var(--border);border-radius:var(--r2);padding:10px 12px;margin-bottom:8px;background:var(--surface)}
+.prop.is-done{opacity:.7}
+.prop-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
+.prop-p{font-size:.82rem;color:var(--text)}
+.prop-a{font-size:.82rem;margin-top:4px}
+.prop-e{font-size:.72rem;margin-top:4px}
+.s-done{background:#ecfdf5 !important;border-color:#a7f3d0 !important;color:#047857 !important;font-weight:700}
+
 .foot{color:var(--muted);font-size:.78rem;margin-top:30px;border-top:1px solid var(--border);padding-top:14px}
 .hidden{display:none !important}
 @media (max-width:820px){.mc-cols,.analysis{grid-template-columns:1fr}.dash{grid-template-columns:1fr}.wrap{padding:18px 12px 50px}.hero h1{font-size:1.4rem}}
@@ -469,6 +496,7 @@ ul.feat li::before{content:'✓';position:absolute;left:0;color:var(--accent-700
     <div class="stat"><b style="color:#b45309">${stats.status.partial}</b><span>◐ частично</span></div>
     <div class="stat"><b>${remainTotal}</b><span>пунктов плана без ✅</span></div>
     <div class="stat"><b>${stats.groups}</b><span>контуров</span></div>
+    <div class="stat"><b>${PROPOSALS.length}</b><span>предложений по изменениям</span></div>
   </div>
 
   <div class="panel">
@@ -519,6 +547,8 @@ ul.feat li::before{content:'✓';position:absolute;left:0;color:var(--accent-700
   </details>
 
   ${protoBlock}
+
+  ${proposalsBlock}
 
   <div class="toolbar" id="toolbar">
     <input type="search" id="q" placeholder="Поиск: модуль, функция, связь…">
