@@ -287,23 +287,28 @@ const protoBlock = '<details class="panel"><summary class="panel-sum"><b>Про�
   '<h4 style="margin:12px 0 6px;font-size:.8rem;">Прототипы без прямой реализации</h4><ul>' + PROTO_OPEN.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></details>';
 
 /* ---------- Предложения по изменениям (tools/proposals.js) ---------- */
+const WAVE_TITLE = { R1: 'Приоритетные контуры', R2: 'Поперечные и надёжность', R3: 'Гигиена и развитие' };
 function propCard(p) {
   const pc = p.prio === 'P1' ? 'high' : p.prio === 'P2' ? 'mid' : 'low';
+  const mods = (p.modules || []).filter(Boolean).join(', ');
   return '<div class="prop' + (p.status === 'done' ? ' is-done' : '') + '">' +
     '<div class="prop-h"><span class="b b-pri pri-' + pc + '">' + esc(p.prio) + '</span>' +
     '<span class="tag">' + esc(p.area) + '</span><b>' + esc(p.title) + '</b>' +
     (p.status === 'done' ? '<span class="tag s-done">✅ выполнено</span>' : '') + '</div>' +
     '<div class="prop-p">' + esc(p.problem) + '</div>' +
     '<div class="prop-a"><b>Что сделать:</b> ' + esc(p.action) + '</div>' +
+    (p.dod ? '<div class="prop-a"><b>DoD:</b> ' + esc(p.dod) + '</div>' : '') +
+    (mods ? '<div class="prop-e muted">Модули: ' + esc(mods) + '</div>' : '') +
     '<div class="prop-e muted">' + esc(p.evidence) + ' · оценка: ' + (p.effort === 'S' ? 'малая' : p.effort === 'M' ? 'средняя' : 'крупная') + ' · ' + esc(p.id) + '</div></div>';
 }
 const propCounts = { P1: 0, P2: 0, P3: 0, done: 0 };
 PROPOSALS.forEach(p => { if (propCounts[p.prio] != null) propCounts[p.prio]++; if (p.status === 'done') propCounts.done++; });
-const proposalsBlock = '<details class="panel" open><summary class="panel-sum"><b>Предложения по изменениям</b> <span class="cnt">' + PROPOSALS.length + '</span> <span class="muted">· по итогам аудита — развернуть</span></summary>' +
-  '<p class="note" style="margin:8px 0;">Рекомендации по итогам большого аудита проекта (каталог, UX, производительность, API, документация, доступность, безопасность). Источник — <code>tools/proposals.js</code> (единый список для дашборда).</p>' +
-  '<div class="legend" style="margin-bottom:10px;"><span><b>P1</b> · ' + propCounts.P1 + '</span><span><b>P2</b> · ' + propCounts.P2 + '</span><span><b>P3</b> · ' + propCounts.P3 + '</span><span>✅ выполнено · ' + propCounts.done + '</span></div>' +
-  ['P1', 'P2', 'P3'].map(k => '<h4 style="margin:12px 0 6px;font-size:.82rem;">' + k + ' · ' + propCounts[k] + '</h4>' + PROPOSALS.filter(p => p.prio === k).map(propCard).join('')).join('') +
+const proposalsBlock = '<details class="panel" open><summary class="panel-sum"><b>Предложения по изменениям</b> <span class="cnt">' + PROPOSALS.length + '</span> <span class="muted">· план по волнам R1–R3 — развернуть</span></summary>' +
+  '<p class="note" style="margin:8px 0;">Рекомендации по итогам большого аудита, сведённые в план (волны). Полный план — <code>docs/ROADMAP.md</code>; источник — <code>tools/proposals.js</code>.</p>' +
+  '<div class="legend" style="margin-bottom:10px;"><span><b>R1</b> Приоритетные контуры · ' + PROPOSALS.filter(p => p.wave === 'R1').length + '</span><span><b>R2</b> Поперечные · ' + PROPOSALS.filter(p => p.wave === 'R2').length + '</span><span><b>R3</b> Гигиена/развитие · ' + PROPOSALS.filter(p => p.wave === 'R3').length + '</span><span>P1 · ' + propCounts.P1 + '</span><span>P2 · ' + propCounts.P2 + '</span><span>P3 · ' + propCounts.P3 + '</span><span>✅ ' + propCounts.done + '</span></div>' +
+  ['R1', 'R2', 'R3'].map(w => '<h4 style="margin:12px 0 6px;font-size:.85rem;">' + w + ' — ' + (WAVE_TITLE[w] || '') + ' <span class="muted" style="font-weight:400">· ' + PROPOSALS.filter(p => p.wave === w).length + '</span></h4>' + PROPOSALS.filter(p => p.wave === w).map(propCard).join('')).join('') +
   '</details>';
+
 
 const generated = new Date().toISOString().slice(0, 10);
 const html = `<!DOCTYPE html>
