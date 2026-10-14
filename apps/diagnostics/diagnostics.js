@@ -21,7 +21,7 @@
       ['Организация (tenant)', function () { return rpc('app_tenant_info', { p_token: token }).then(function (d) { var r = d && d[0]; if (!r) throw new Error('нет данных'); return r.name; }); }],
       ['Заявки', function () { return rpc('app_order_list', { p_token: token }).then(function (d) { return (d || []).length + ' зап.'; }); }],
       ['Экономика / KPI', function () { return rpc('app_economics', { p_token: token }).then(function (d) { if (!d || !d[0]) throw new Error('нет ответа'); return 'ок'; }); }],
-      ['Аналитика (app_bi)', function () { return rpc('app_bi', { p_token: token }).then(function (d) { if (!d) throw new Error('нет ответа'); return 'ок'; }); }],
+      ['Аналитика', function () { return rpc('app_bi', { p_token: token }).then(function (d) { if (!d) throw new Error('нет ответа'); return 'ок'; }); }],
       ['Диспетчерская (MES)', function () { return rpc('app_mes_board', { p_token: token }).then(function (d) { return (d || []).length + ' заданий'; }); }],
       ['Качество / СМК', function () { return rpc('app_quality_kpi', { p_token: token }).then(function (d) { if (!d || !d[0]) throw new Error('нет ответа'); return 'ок'; }); }],
       ['База знаний', function () { return rpc('app_kb_list', { p_token: token }).then(function (d) { return (d || []).length + ' записей'; }); }]

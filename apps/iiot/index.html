@@ -21,7 +21,7 @@
   </header>
 
   <main class="wrap fluid">
-    <div class="hero"><h1>IIoT и DNC (B13/B18 · W9)</h1><p>Телеметрия станков, коннекторы (OPC UA/MTConnect/Modbus), OEE онлайн, износ инструмента и очередь передачи УП (DNC).</p></div>
+    <div class="hero"><h1>IIoT и DNC (B13/B18)</h1><p>Телеметрия станков, коннекторы (OPC UA/MTConnect/Modbus), OEE онлайн, износ инструмента и очередь передачи УП (DNC).</p></div>
     <div class="kpi-row" id="kpis"></div>
     <div class="sv-actions" style="margin:10px 0;"><button class="btn secondary" data-report="iiot" data-title="IIoT - телеметрия">Отчёт PDF</button></div>
 
@@ -62,7 +62,7 @@
     <section class="screen" id="scr-conn">
       <div class="card">
         <div class="toolbar"><button class="btn" id="cNew" data-cap="edit" style="width:auto;padding:8px 14px;">＋ Новый коннектор</button>
-          <span class="note" style="margin-left:auto;">Реальный опрос выполняет внешний воркер (backend-example); приём — app_iiot_ingest.</span></div>
+          <span class="note" style="margin-left:auto;">Внешний воркер выполняет реальный опрос; приём телеметрии — автоматически.</span></div>
         <div class="msg" id="cMsg"></div>
         <div id="conns" class="mt"><span class="note">Загрузка…</span></div>
       </div>

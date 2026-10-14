@@ -140,7 +140,7 @@
   }
   function demoOp(fn, mod) { rpc(fn, { p_token: token, p_module: mod }).then(function (r) { var x = r && r[0]; ui.toast((x && x.message) || '', x && x.ok ? 'ok' : 'err'); loadDemo(); loadReady(); }); }
   $('#seedAll').addEventListener('click', function () { demoOp('app_demo_seed', 'all'); });
-  $('#resetAll').addEventListener('click', function () { if (!window.confirm('Удалить ВСЕ демо-данные (по флагу is_demo)? Реальные данные не затрагиваются.')) return; demoOp('app_demo_reset', 'all'); });
+  $('#resetAll').addEventListener('click', function () { if (!window.confirm('Удалить ВСЕ демо-данные? Реальные данные не затрагиваются.')) return; demoOp('app_demo_reset', 'all'); });
 
   /* ---------- Мастер настройки (отдельная процедура) ---------- */
   function runWizard() { window.AppSetupWizard.open(token, { onDone: function () { loadReady(); loadDemo(); loadModules(); } }); }
