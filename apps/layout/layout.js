@@ -15,7 +15,7 @@
   function deep(o) { return JSON.parse(JSON.stringify(o)); }
   function uid(p) { return (p || 'i') + Date.now().toString(36) + Math.floor(Math.random() * 1000); }
 
-  var token = null, planId = null, zoom = 1, tool = 'sel', mode = 'edit', sel = null, anim = null;
+  var token = null, planId = null, zoom = 1, tool = 'sel', mode = 'edit', sel = null, anim = null, baseline = null;
   var W = 12000, H = 8000, GRID = 100, phase = 0;
   var history = [], redo = [];
   var stage = 'new';
@@ -262,7 +262,7 @@
     });
   }
   var KINDS = { shop: 'Цех', office: 'Офис', compressor: 'Компрессорная', line: 'Линия', other: 'Другое' };
-  function openPlan(id) { return rpc('app_layout_plan_get', { p_token: token, p_id: id }).then(function (r) { var p = r && r[0]; if (!p) return; planId = p.id; $('#proj').value = p.name || ''; $('#kind').value = p.kind || 'shop'; applyData(p.data || {}); fitZoom(); draw(); centerView(); loadList(); }); }
+  function openPlan(id) { return rpc('app_layout_plan_get', { p_token: token, p_id: id }).then(function (r) { var p = r && r[0]; if (!p) return; planId = p.id; $('#proj').value = p.name || ''; $('#kind').value = p.kind || 'shop'; applyData(p.data || {}); fitZoom(); draw(); centerView(); baseline = deep(S); loadList(); }); }
   function save() {
     var name = $('#proj').value.trim(); if (!name) { toast('Укажите название', 'err'); return; }
     rpc('app_layout_plan_save', { p_token: token, p_id: planId, p_name: name, p_kind: $('#kind').value, p_data: S, p_note: null })
@@ -280,7 +280,7 @@
   }
   function exportHtml() { dl(($('#proj').value || 'layout') + '.html', '<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>' + esc($('#proj').value) + '</title><style>body{margin:0}#cv{width:100%;height:auto}</style></head><body>' + svgString() + '</body></html>', 'text/html'); }
   function exportJson() { dl(($('#proj').value || 'layout') + '.json', JSON.stringify({ name: $('#proj').value, kind: $('#kind').value, w: S.w, h: S.h, items: S.items, notes: S.notes, links: S.links, routes: S.routes, utils: S.utils }, null, 2), 'application/json'); }
-  function importJson(file) { var fr = new FileReader(); fr.onload = function () { try { var d = JSON.parse(fr.result); if (d.name) $('#proj').value = d.name; if (d.kind) $('#kind').value = d.kind; applyData(d); toast('Импортировано'); } catch (e) { toast('Некорректный JSON', 'err'); } }; fr.readAsText(file); }
+  function importJson(file) { var fr = new FileReader(); fr.onload = function () { try { var d = JSON.parse(fr.result); if (d.name) $('#proj').value = d.name; if (d.kind) $('#kind').value = d.kind; applyData(d); baseline = deep(S); toast('Импортировано'); } catch (e) { toast('Некорректный JSON', 'err'); } }; fr.readAsText(file); }
   function exportNotes() { dl('notes.txt', S.notes.map(function (n, i) { return (i + 1) + '. ' + (n.text || '') + ' @(' + Math.round(n.x) + ',' + Math.round(n.y) + ')'; }).join('\n'), 'text/plain'); }
   function exportLinks() { dl('links.csv', 'A,B\n' + S.links.map(function (l) { var a = byId(l.a), b = byId(l.b); return '"' + ((a && a.name) || '') + '","' + ((b && b.name) || '') + '"'; }).join('\n'), 'text/csv'); }
   function exportRoutes() { dl('routes.csv', S.routes.map(function (r, i) { return 'Маршрут ' + (i + 1) + ': ' + r.pts.map(function (p) { return p[0] + ',' + p[1]; }).join(' '); }).join('\n'), 'text/csv'); }
@@ -442,16 +442,61 @@
   DEMO.items = DEMO.items.filter(function (i) { return i.w > 0; });
   if ($('#demoBtn')) $('#demoBtn').onclick = function () {
     snapshot(); planId = null; $('#proj').value = 'Демо: линия (из robot)'; $('#kind').value = 'line';
-    applyData(deep(DEMO)); fitZoom(); draw(); centerView(); logEvent('Загружен демо-проект (robot)');
+    applyData(deep(DEMO)); fitZoom(); draw(); centerView(); baseline = deep(S); logEvent('Загружен демо-проект (robot)');
   };
   document.addEventListener('fullscreenchange', function () { setTimeout(function () { fitZoom(); draw(); centerView(); }, 60); });
+  function renderVersions(host) {
+    rpc('app_layout_plan_version_list', { p_token: token, p_layout_id: planId }).then(function (rows) {
+      rows = rows || [];
+      host.innerHTML = rows.length ? rows.map(function (v) { return '<div class="plrow"><b>v' + v.version + '</b> <small>' + (v.name ? esc(v.name) + ' · ' : '') + new Date(v.at).toLocaleString('ru-RU') + ' · ' + esc(v.created_by || '') + '</small><span class="pl-act"><button class="act" data-restore="' + v.id + '">Откатить</button></span></div>'; }).join('') : '<span class="note">Версий нет.</span>';
+      Array.prototype.forEach.call(host.querySelectorAll('[data-restore]'), function (b) {
+        b.onclick = function () {
+          rpc('app_layout_plan_version_get', { p_token: token, p_version_id: b.dataset.restore }).then(function (d) {
+            var x = d && d[0]; if (!x) return; snapshot(); applyData(x.data || {}); fitZoom(); draw(); centerView(); toast('Восстановлена версия v' + x.version);
+          });
+        };
+      });
+    }).catch(function (e) { host.innerHTML = '<span class="note">Ошибка: ' + esc(e.message) + '</span>'; });
+  }
+  if ($('#histBtn')) $('#histBtn').onclick = function () {
+    if (!planId) { toast('Сохраните планировку, чтобы вести историю'); return; }
+    ui.dialog({ title: 'История версий', html: true, cancelText: 'Закрыть', body: '<button class="btn secondary" id="verSave" style="width:auto">＋ Сохранить версию</button><div id="verList" class="mlist" style="margin-top:8px"></div>' });
+    var host = document.getElementById('verList'); renderVersions(host);
+    var vs = document.getElementById('verSave');
+    if (vs) vs.onclick = function () {
+      rpc('app_layout_plan_version_save', { p_token: token, p_layout_id: planId, p_name: prompt('Название версии (необязательно):', '') })
+        .then(function (d) { var x = d && d[0]; toast((x && x.message) || 'Готово'); renderVersions(host); })
+        .catch(function (e) { toast('Ошибка: ' + e.message, 'err'); });
+    };
+  };
+  if ($('#setBtn')) $('#setBtn').onclick = function () {
+    var html = '<label>Скорость потока</label><select id="setSpd">' + [['900', 'медленно'], ['1800', 'обычно'], ['3600', 'быстро']].map(function (o) { return '<option value="' + o[0] + '"' + (String(flow.spd) === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>' +
+      '<label class="ck" style="display:flex;gap:6px;align-items:center;margin-top:8px"><input type="checkbox" id="setGrid" ' + ($('#gridChk').checked ? 'checked' : '') + '> Сетка</label>' +
+      '<label class="ck" style="display:flex;gap:6px;align-items:center;margin-top:6px"><input type="checkbox" id="setSnap" ' + ($('#snapChk').checked ? 'checked' : '') + '> Привязка</label>' +
+      '<div class="btn-row mt" style="flex-wrap:wrap"><button class="btn secondary" id="setRestore" style="width:auto">↺ Вернуть исходную схему</button><button class="btn secondary" id="setClear" style="width:auto">✕ Очистить</button><button class="btn secondary" id="setReset" style="width:auto">⟲ Полный сброс</button></div>';
+    ui.dialog({ title: 'Настройки', html: true, cancelText: 'Закрыть', body: html });
+    var sp = document.getElementById('setSpd'); if (sp) sp.onchange = function () { flow.spd = Number(this.value); };
+    var g = document.getElementById('setGrid'); if (g) g.onchange = function () { $('#gridChk').checked = this.checked; draw(); };
+    var sn = document.getElementById('setSnap'); if (sn) sn.onchange = function () { $('#snapChk').checked = this.checked; };
+    var rr = document.getElementById('setRestore'); if (rr) rr.onclick = function () { if (!baseline) { toast('Нет исходной схемы'); return; } snapshot(); applyData(deep(baseline)); fitZoom(); draw(); centerView(); toast('Возвращена исходная схема'); };
+    var cc = document.getElementById('setClear'); if (cc) cc.onclick = function () { $('#clearBtn').click(); };
+    var rs = document.getElementById('setReset'); if (rs) rs.onclick = function () { $('#resetBtn').click(); };
+  };
+  if ($('#helpBtn')) $('#helpBtn').onclick = function () {
+    ui.dialog({ title: 'Как работает редактор', html: true, cancelText: 'Понятно', body:
+      '<p><b>Инструменты:</b> ↖ выделение (V), ✋ рука (H), 💬 метка (C), 〰 маршрут, 🔗 связь.</p>' +
+      '<p><b>Маршрут:</b> включите инструмент, кликайте точки (можно по оборудованию), «Завершить» (Enter). <b>Связь:</b> выберите два элемента.</p>' +
+      '<p><b>Коммуникации:</b> вкладка «Связи» → вид (Питание/Воздух/Вода/Газ/Сеть) → «Проложить» → кликайте точки → «Завершить».</p>' +
+      '<p><b>Демонстрация:</b> режим «Демонстрация» показывает движение по маршруту (▶/◀, скорость в настройках).</p>' +
+      '<p><b>Экспорт/печать:</b> JSON/SVG/PNG/HTML и «Печать/PDF». История версий — 🕘.</p>' });
+  };
   $('#logout').onclick = function () { window.Auth.logout(); location.href = '../../index.html'; };
 
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     token = s.token; $('#who').textContent = s.login + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     setTheme(localStorage.getItem('layout-theme') || 'dark');
-    palette(); fitZoom(); draw(); centerView(); prop(); renderLists(); loadList().catch(function () {});
+    palette(); fitZoom(); draw(); centerView(); prop(); renderLists(); loadList().catch(function () {}); baseline = deep(S);
     logEvent('Проект загружен');
     window.addEventListener('resize', function () { fitZoom(); draw(); centerView(); });
   });
