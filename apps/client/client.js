@@ -78,12 +78,30 @@
   });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
+  function loadChat() {
+    if (!$('#chatList')) return;
+    rpc('app_client_chat_list', { p_token: token, p_customer_id: null, p_order_id: null }).then(function (rows) {
+      rows = rows || [];
+      $('#chatList').innerHTML = rows.length ? rows.map(function (m) {
+        var mine = m.direction === 'client';
+        return '<div style="display:flex;margin:4px 0;justify-content:' + (mine ? 'flex-end' : 'flex-start') + '"><div style="max-width:75%;padding:8px 11px;border-radius:12px;font-size:.85rem;background:' + (mine ? 'var(--accent-100)' : '#f1f5f9') + '"><div>' + esc(m.body) + '</div><div class="note" style="font-size:.68rem">' + esc(m.by_login || '') + ' · ' + new Date(m.at).toLocaleString('ru-RU') + '</div></div></div>';
+      }).join('') : '<span class="note">Сообщений нет. Напишите менеджеру.</span>';
+    }).catch(function (e) { $('#chatList').innerHTML = '<span class="note">Ошибка: ' + esc(e.message) + '</span>'; });
+  }
+  if ($('#chatSend')) $('#chatSend').addEventListener('click', function () {
+    var b = $('#chatInput').value.trim(); if (!b) return;
+    rpc('app_client_chat_post', { p_token: token, p_customer_id: null, p_order_id: null, p_body: b })
+      .then(function (d) { var x = d && d[0]; if (x && x.ok === false) { $('#chatMsg').className = 'msg show err'; $('#chatMsg').textContent = x.message; return; } $('#chatInput').value = ''; loadChat(); })
+      .catch(function (e) { $('#chatMsg').className = 'msg show err'; $('#chatMsg').textContent = e.message; });
+  });
+  if ($('#chatInput')) $('#chatInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('#chatSend').click(); });
+
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     if (s.role !== 'client' && s.role !== 'admin') { location.href = '../dashboard/index.html'; return; }
     me = s; token = s.token;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('Supabase не подключён.', 'err'); return; }
-    load();
+    load(); loadChat();
   });
 })();
