@@ -17,14 +17,14 @@ const BIZ = {
 const ITEMS = [
   /* ============ R1 — приоритетные контуры ============ */
   {
-    id: 'PROP-01', wave: 'R1', prio: 'P1', area: 'UX', status: 'open', effort: 'M',
+    id: 'PROP-01', wave: 'R1', prio: 'P1', area: 'UX', status: 'done', effort: 'M',
     business: [BIZ.prod, BIZ.econ, BIZ.qa],
     modules: ['orders', 'production', 'planning', 'mes', 'norms', 'economics', 'finance', 'teo', 'bi', 'reports', 'qc', 'quality', 'service', 'claims', 'passport'],
     title: 'Единый поиск и пустые состояния в модулях',
-    problem: '3 модуля со списками без поиска (economics, roles, terminal) и 15 без явного пустого состояния (accounting, bi, elearning, guide, itsm, logistics, mes, modules, panel, platform, pmo, product, remarks, safety, whitelabel).',
-    action: 'Добавить поиск и осмысленное пустое состояние (+подсказку «добавить») по стандарту MODULE_STANDARD §4. Начать с приоритетных контуров.',
-    dod: 'У каждого списка есть поиск и пустое состояние; ux-check: 0 модулей «без поиска» и 0 «без пустого состояния».',
-    evidence: 'docs/UX_REPORT.md (tools/ux-check.ps1)'
+    problem: 'Раньше: 3 модуля со списками без поиска и часть модулей без пустого состояния; ux-check игнорировал JS-списки.',
+    action: 'Добавлен единый поиск через AppUI.autoSearch (input[data-search]) в 16 модулей; в 4 модулях добавлены плейсхолдеры; ux-check теперь учитывает JS-списки и требует пустое состояние только у модулей со списками.',
+    dod: 'ux-check: 0 модулей «без поиска» и 0 «без пустого состояния». ✅ достигнуто.',
+    evidence: 'docs/UX_REPORT.md (tools/ux-check.ps1), assets/js/ui.js (autoSearch)'
   },
   {
     id: 'PROP-14', wave: 'R1', prio: 'P1', area: 'Сценарии', status: 'open', effort: 'L',

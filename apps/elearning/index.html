@@ -17,17 +17,18 @@
   <main class="wrap fluid">
     <div class="hero"><h1>Обучение (e-Learning)</h1><p>Курсы и уроки, назначения с прогрессом, тесты и попытки. Роли: staff.</p></div>
     <div class="kpi-row" id="kpis"></div><div class="sv-actions" style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;"><button class="btn secondary" id="autoAssBtn" style="padding:9px 14px;">🎯 Авто-назначение по дефициту</button><span class="note" id="elMsg" style="align-self:center;"></span></div>
+    <div class="toolbar mt"><input type="search" class="search" id="q" placeholder="Поиск по списку…" data-search="cr,en,ts"></div>
     <div class="tabs2" id="tabs"><button data-scr="cr" class="active">Курсы</button><button data-scr="en">Назначения</button><button data-scr="ts">Тесты</button></div>
     <div class="msg" id="m"></div>
-    <section class="screen active" id="scr-cr"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addCr">＋ Курс</button></div><div id="cr" class="mt"></div><div id="crPanel" class="mt"></div></div></section>
-    <section class="screen" id="scr-en"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addEn">＋ Назначить</button></div><div id="en" class="mt"></div></div></section>
-    <section class="screen" id="scr-ts"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addTs">＋ Тест</button></div><div id="ts" class="mt"></div></div></section>
+    <section class="screen active" id="scr-cr"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addCr">＋ Курс</button></div><div id="cr" class="mt"><span class="note">Загрузка…</span></div><div id="crPanel" class="mt"></div></div></section>
+    <section class="screen" id="scr-en"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addEn">＋ Назначить</button></div><div id="en" class="mt"><span class="note">Загрузка…</span></div></div></section>
+    <section class="screen" id="scr-ts"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addTs">＋ Тест</button></div><div id="ts" class="mt"><span class="note">Загрузка…</span></div></div></section>
   </main>
   <footer class="foot">3DMP Service · обучение</footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="../../assets/js/config.js?v=2"></script>
   <script src="../../assets/js/supabase-client.js?v=1"></script>
-  <script src="../../assets/js/ui.js?v=4"></script>
+  <script src="../../assets/js/ui.js?v=5"></script>
   <script src="../../assets/js/auth.js?v=8"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>

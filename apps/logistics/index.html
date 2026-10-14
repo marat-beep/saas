@@ -17,16 +17,17 @@
   <main class="wrap fluid">
     <div class="hero"><h1>Логистика (TMS)</h1><p>Перевозчики и заявки на перевозку (рейсы). Роли: staff.</p></div>
     <div class="kpi-row" id="kpis"></div>
+    <div class="toolbar mt"><input type="search" class="search" id="q" placeholder="Поиск по списку…" data-search="ord,car"></div>
     <div class="tabs2" id="tabs"><button data-scr="ord" class="active">Рейсы</button><button data-scr="car">Перевозчики</button></div>
     <div class="msg" id="m"></div>
-    <section class="screen active" id="scr-ord"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addOrd">＋ Заявка</button></div><div id="ord" class="mt"></div></div></section>
-    <section class="screen" id="scr-car"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addCar">＋ Перевозчик</button></div><div id="car" class="mt"></div></div></section>
+    <section class="screen active" id="scr-ord"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addOrd">＋ Заявка</button></div><div id="ord" class="mt"><span class="note">Загрузка…</span></div></div></section>
+    <section class="screen" id="scr-car"><div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addCar">＋ Перевозчик</button></div><div id="car" class="mt"><span class="note">Загрузка…</span></div></div></section>
   </main>
   <footer class="foot">3DMP Service · логистика</footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="../../assets/js/config.js?v=2"></script>
   <script src="../../assets/js/supabase-client.js?v=1"></script>
-  <script src="../../assets/js/ui.js?v=4"></script>
+  <script src="../../assets/js/ui.js?v=5"></script>
   <script src="../../assets/js/auth.js?v=8"></script>
   <script src="../../assets/js/notify.js?v=3"></script>
   <script src="../../assets/js/support-widget.js?v=1"></script>

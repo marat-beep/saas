@@ -164,6 +164,20 @@
     if (window.MutationObserver) { try { new MutationObserver(function () { apply(); }).observe(host, { childList: true, subtree: true }); } catch (e) {} }
     return apply;
   }
+  // Автоподключение поиска: любой <input data-search="id1,id2"> фильтрует указанные списки.
+  // Достаточно в разметке: <input type="search" class="search" id="q" data-search="cap,orders">.
+  function autoSearch(root) {
+    qsa('input[data-search]', root || document).forEach(function (inp) {
+      if (inp.__qsBound) return; inp.__qsBound = true;
+      (inp.getAttribute('data-search') || '').split(',').forEach(function (id) {
+        id = id.trim(); if (id) quickSearch(inp, id);
+      });
+    });
+  }
+  (function () {
+    function init() { try { autoSearch(); } catch (e) {} }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+  })();
   // Поисковый селект (комбо) для форм/мастеров. HTML + инициализация.
   // Использование: container.innerHTML += AppUI.comboHtml('code', [{value,label,info,icon}], sel, 'поиск…'); AppUI.initCombos(container).
   function comboHtml(name, options, selected, placeholder) {
@@ -197,5 +211,5 @@
       });
     });
   }
-  g.AppUI = { qs: qs, qsa: qsa, esc: esc, toast: toast, fmtDate: fmtDate, dialog: dialog, formDialog: formDialog, confirmDialog: confirmDialog, quickSearch: quickSearch, comboHtml: comboHtml, initCombos: initCombos };
+  g.AppUI = { qs: qs, qsa: qsa, esc: esc, toast: toast, fmtDate: fmtDate, dialog: dialog, formDialog: formDialog, confirmDialog: confirmDialog, quickSearch: quickSearch, autoSearch: autoSearch, comboHtml: comboHtml, initCombos: initCombos };
 })(window);
