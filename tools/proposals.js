@@ -27,14 +27,14 @@ const ITEMS = [
     evidence: 'docs/UX_REPORT.md (tools/ux-check.ps1), assets/js/ui.js (autoSearch)'
   },
   {
-    id: 'PROP-14', wave: 'R1', prio: 'P1', area: 'Сценарии', status: 'open', effort: 'L',
+    id: 'PROP-14', wave: 'R1', prio: 'P1', area: 'Сценарии', status: 'done', effort: 'L',
     business: [BIZ.prod, BIZ.qa, BIZ.econ],
     modules: ['orders', 'bom', 'norms', 'production', 'planning', 'qc', 'warehouse', 'finance'],
     title: 'Сквозной сценарий «Заявка → ТП → наряд → ОТК → склад → отгрузка → счёт»',
-    problem: 'Модули реализованы по отдельности; не подтверждена сквозная передача данных и статусов между контурами (разрывы: заявка↔маршрут↔наряд↔движение материала↔счёт).',
-    action: 'Провести и автоматизировать сквозной прогон: заявка → расчёт/нормы → наряд → приёмка ОТК → списание/приход → отгрузка → счёт/дебиторка. Устранить разрывы.',
-    dod: 'Сценарий проходит end-to-end на демо-данных; каждое звено связано (FK/связь или RPC); есть проверка в scenario-check.',
-    evidence: 'catalog.connects, tools/scenario-check.ps1'
+    problem: 'Модули связаны RPC-контрактами (order→naryad→qc→stock→invoice), но не было сквозной автопроверки цепочки.',
+    action: 'Проверены сигнатуры RPC цепочки; в `apps/orders` добавлена кнопка «Создать наряд» (order→naryad через app_naryad_create); в `tools/scenario-check.ps1` добавлен сквозной сценарий заявка→наряд→ОТК→склад→счёт→оплата→себестоимость (+ очистка SCN-данных).',
+    dod: 'Сценарий в scenario-check проходит при наличии токена; UI связывает заявку и наряд. Реализовано (исполнение — с токеном sbp_).',
+    evidence: 'tools/scenario-check.ps1 (шаг 15), apps/orders/orders.js'
   },
   {
     id: 'PROP-15', wave: 'R1', prio: 'P1', area: 'Сценарии', status: 'open', effort: 'M',

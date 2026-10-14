@@ -148,6 +148,33 @@ Step 'НСИ: позиция' "select * from public.app_master_item_save('$t',nu
 $life = Step 'инструмент: ресурс' "select (select id from public.app_tool_life limit 1) as v"
 if ($life -and $life[0].v) { Step 'инструмент: экземпляр' "select * from public.app_tool_item_save('$t',null,'$($life[0].v)','SCN-TOOL',null,100,'SCN')" | Out-Null }
 
+# 15. сквозной сценарий PROP-14: заявка → наряд → ОТК → склад → счёт → оплата → себестоимость
+$oid = $null; if ($o -and $o.Count) { $oid = $o[0].v }
+if ($oid) {
+  $n2 = Step 'цепочка: наряд из заявки' "select id as v from public.app_naryad_create('$t','$oid','SCN-CHAIN наряд',null,'manager','2026-12-31','high',null)"
+  if (ExpectV 'цепочка: наряд из заявки' $n2 'id') {
+    $nid = $n2[0].v
+    Step 'цепочка: наряд ↔ заявка' "select v from (select count(*)::text as v from public.app_order_naryads('$t','$oid')) z" | Out-Null
+    $op = Step 'цепочка: операция наряда' "select id as v from public.app_naryad_add_op('$t','$nid','SCN операция','manager',2,null,null)"
+    if ($op -and $op.Count -and $op[0].v) { Step 'цепочка: операция выполнена' "select * from public.app_naryad_op_done('$t','$($op[0].v)',2,true)" | Out-Null }
+    Step 'цепочка: закрытие наряда' "select * from public.app_naryad_close('$t','$nid')" | Out-Null
+    $q2 = Step 'цепочка: ОТК по наряду' "select id as v from public.app_qc_create('$t','$nid','$oid','SCN цепочка изделие','admin',10,10)"
+    if ($q2 -and $q2.Count -and $q2[0].v) {
+      Step 'цепочка: строка ОТК' "select * from public.app_qc_add_line('$t','$($q2[0].v)','Ra','3.2','1.6','ok')" | Out-Null
+      Step 'цепочка: статус ОТК' "select * from public.app_qc_set_status('$t','$($q2[0].v)','passed','SCN')" | Out-Null
+      Step 'цепочка: трассируемость ОТК' "select v from (select count(*)::text as v from public.app_qc_trace('$t','$($q2[0].v)')) z" | Out-Null
+    }
+    if ($mat -and $mat[0].v) { Step 'цепочка: движение материала по заявке' "select * from public.app_stock_move('$t','$($mat[0].v)','out',1,0,'SCN цепочка','chain','$oid','$nid')" | Out-Null }
+    $inv2 = Step 'цепочка: счёт по заявке' "select id as v from public.app_invoice_create('$t','$oid','SCN цепочка клиент',1000,'2026-12-31','SCN цепочка')"
+    if ($inv2 -and $inv2.Count -and $inv2[0].v) {
+      Step 'цепочка: выставление счёта' "select * from public.app_invoice_set_status('$t','$($inv2[0].v)','sent')" | Out-Null
+      Step 'цепочка: оплата' "select * from public.app_payment_add('$t','$($inv2[0].v)',1000,'bank','SCN цепочка оплата')" | Out-Null
+      Step 'цепочка: счёт ↔ заявка' "select v from (select count(*)::text as v from public.app_order_invoices('$t','$oid')) z" | Out-Null
+    }
+    Step 'цепочка: себестоимость заявки' "select v from (select count(*)::text as v from public.app_order_cost_plan_fact('$t','$oid')) z" | Out-Null
+  }
+} else { Add-F 'C' 'Info' 'Сквозной сценарий PROP-14 пропущен (нет заявки)' 'Пропуск.' 'scenario-check' 2 1 }
+
 # --- cleanup ---
 $cleanup = @'
 delete from public.app_order_items where order_id in (select id from public.app_orders where title like 'SCN-%');
@@ -174,6 +201,12 @@ delete from public.app_events where (detail like '%SCN%' or action in ('Расс
 delete from public.app_qc_measures where param='Ra' and value=1.5 and ts >= now() - interval '30 minutes' and created_login='admin';
 '@
 $del = @(
+  "delete from public.app_qc_lines where check_id in (select id from public.app_qc_checks where product like 'SCN-%')",
+  "delete from public.app_qc_checks where product like 'SCN-%'",
+  "delete from public.app_naryad_ops where naryad_id in (select id from public.app_naryads where title like 'SCN-%')",
+  "delete from public.app_payments where note like 'SCN%'",
+  "delete from public.app_invoices where customer like 'SCN%'",
+  "delete from public.app_stock_moves where note like 'SCN%'",
   "delete from public.app_traceability where item like 'SCN-%'",
   "delete from public.app_trainings where title like 'SCN-%'",
   "delete from public.app_training_plan where employee_id in (select id from public.app_employees where full_name like 'SCN-%')",

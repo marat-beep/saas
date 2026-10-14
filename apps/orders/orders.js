@@ -126,12 +126,20 @@
         kv('Автор', o.created_login) + kv('Создана', fmt(o.created_at)) + kv('Обновлена', fmt(o.updated_at)) +
         '<div class="toolbar wrap mt"><button class="btn secondary" data-cap="edit" id="mkQuote" style="width:auto;padding:9px 16px;">Создать КП</button>' +
         '<button class="btn secondary" data-cap="edit" id="mkInv" style="width:auto;padding:9px 16px;">Создать счёт</button>' +
+        '<button class="btn secondary" data-cap="edit" id="mkNar" style="width:auto;padding:9px 16px;">Создать наряд</button>' +
         '<a class="btn secondary" style="width:auto;padding:9px 16px;" href="../client/index.html" target="_blank">🏢 Клиент ↗</a>' +
         '<a class="btn secondary" style="width:auto;padding:9px 16px;" href="../service/index.html" target="_blank">🧑‍🔧 Сервис ↗</a></div>';
       $('#stStatus').value = o.status;
       var qb = $('#mkQuote'), ib = $('#mkInv');
       if (qb) qb.addEventListener('click', function () { mkDoc('app_order_create_quote', 'КП'); });
       if (ib) ib.addEventListener('click', function () { mkDoc('app_order_create_invoice', 'Счёт'); });
+      var nb = $('#mkNar');
+      if (nb) nb.addEventListener('click', function () {
+        nb.disabled = true;
+        rpc('app_naryad_create', { p_token: token, p_order_id: cur.id, p_title: (cur.title || 'Наряд по заявке'), p_wc_id: null, p_assignee: null, p_due_date: null, p_priority: 'normal' })
+          .then(function () { msg('#stMsg', 'Наряд создан (см. «Производство»)', 'ok'); openDetail(cur.id); })
+          .catch(function (e) { msg('#stMsg', 'Ошибка: ' + e.message, 'err'); nb.disabled = false; });
+      });
       renderItems(r[2] || []);
       renderLinks(r[3] || [], r[4] || [], r[5] || [], r[6] || []);
       if (window.AppFiles) window.AppFiles.mount({ token: token, entityType: 'order', entityId: cur.id, el: '#filesBox' });
