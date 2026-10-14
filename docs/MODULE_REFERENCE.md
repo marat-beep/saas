@@ -76,11 +76,11 @@
 - ИИ-помощник — `apps/assistant`
 - Калькуляторы — `apps/calc`
 - Конфигуратор — `apps/config`
-- Нормирование PRO — `apps/norms`
+- Нормирование операций — `apps/norms`
 - Реверс-инжиниринг — `apps/reverse`
 - Спецификации (BOM) — `apps/bom`
 - Справочники — `apps/registry`
-- УП/NC — `apps/nc`
+- Управляющие программы — `apps/nc`
 
 ### economics
 - Аналитика — `apps/bi`

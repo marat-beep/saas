@@ -6,7 +6,7 @@
 (function (g) {
   'use strict';
   var SELF = document.currentScript;
-  var CATALOG_V = '126'; // версия каталога для внешних страниц
+  var CATALOG_V = '127'; // версия каталога для внешних страниц
 
   function esc(v) { return (g.AppUI && g.AppUI.esc) ? g.AppUI.esc(v) : String(v == null ? '' : v); }
   function ready(fn) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn); else fn(); }
@@ -103,7 +103,7 @@
 
     /* ---------- Мастер настройки (отдельная процедура) + подсказки модулей ---------- */
     (function wizardAndTips() {
-      function loadWizard(cb) { if (g.AppSetupWizard) { cb(); return; } if (document.getElementById('shWizLd')) { var t = setInterval(function () { if (g.AppSetupWizard) { clearInterval(t); cb(); } }, 80); return; } var s = document.createElement('script'); s.id = 'shWizLd'; s.src = ROOT + 'assets/js/setup-wizard.js?v=6'; s.onload = function () { cb(); }; s.onerror = function () {}; document.head.appendChild(s); }
+      function loadWizard(cb) { if (g.AppSetupWizard) { cb(); return; } if (document.getElementById('shWizLd')) { var t = setInterval(function () { if (g.AppSetupWizard) { clearInterval(t); cb(); } }, 80); return; } var s = document.createElement('script'); s.id = 'shWizLd'; s.src = ROOT + 'assets/js/setup-wizard.js?v=7'; s.onload = function () { cb(); }; s.onerror = function () {}; document.head.appendChild(s); }
       if ((role === 'admin' || role === 'owner') && bar && !document.getElementById('shWizBtn')) {
         var wb = document.createElement('button'); wb.id = 'shWizBtn'; wb.className = 'tbtn'; wb.type = 'button'; wb.title = 'Мастер настройки'; wb.textContent = '🧭';
         wb.addEventListener('click', function () { loadWizard(function () { if (g.AppSetupWizard) g.AppSetupWizard.start(); }); });

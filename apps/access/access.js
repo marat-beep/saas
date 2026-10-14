@@ -7,7 +7,7 @@
   var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa, SB = window.SB;
   var token = null, me = null, isAdmin = false;
   var sets = [], dels = [], routes = [], reqs = [], myAppr = [], pols = [], users = [];
-  var ROLES = ['admin', 'owner', 'manager', 'director', 'chief', 'master', 'technologist', 'operator', 'supply', 'qc', 'economist', 'support', 'supplier', 'client'];
+  var ROLES = (window.Auth && Auth.ROLES) ? Auth.ROLES.slice() : ['admin', 'owner', 'manager', 'director', 'chief', 'master', 'technologist', 'operator', 'supply', 'qc', 'economist', 'support', 'supplier', 'client'];
 
   function esc(v) { return ui.esc(v); }
   function rpc(n, a) { return SB.rpc(n, a).then(function (r) { if (r.error) throw new Error(r.error.message); return r.data; }); }

@@ -311,7 +311,7 @@
     ensureStyle();
     var list = current();
     if (!list.length) { box.innerHTML = ''; return; }
-    box.innerHTML = '<div class="mhead"><h2>Мастера быстрого ввода</h2><span class="note">клик по плитке — пошаговый ввод</span></div>' +
+    box.innerHTML = '<div class="mhead"><h2>Быстрое создание</h2><span class="note">клик по плитке — пошаговый ввод</span></div>' +
       '<div class="mtiles">' + list.map(function (d) {
         return '<button class="mtile" type="button" data-mst="' + d.id + '"><span class="mi">' + d.icon + '</span><b>' + esc(d.title) + '</b><span class="md">' + esc(d.desc) + '</span></button>';
       }).join('') + '</div>';

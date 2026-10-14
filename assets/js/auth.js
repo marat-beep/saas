@@ -82,12 +82,15 @@
   Auth.STAFF = ['admin', 'owner', 'manager', 'director', 'chief', 'master', 'technologist', 'operator', 'supply', 'qc', 'economist', 'support'];
   Auth.ROLE_LABELS = {
     admin: 'Администратор платформы', owner: 'Владелец организации', manager: 'Менеджер',
-    supplier: 'Поставщик', dealer: 'Дилер', director: 'Директор', chief: 'Начальник цеха/участка', master: 'Мастер/бригадир',
+    supplier: 'Поставщик', dealer: 'Дилер', client: 'Заказчик', director: 'Директор', chief: 'Начальник цеха/участка', master: 'Мастер/бригадир',
     technologist: 'Технолог/инженер', operator: 'Оператор ЧПУ', supply: 'Снабженец',
-    qc: 'ОТК/метролог', economist: 'Экономист/бухгалтер', support: 'Служба поддержки'
+    qc: 'ОТК/метролог', economist: 'Экономист/бухгалтер', support: 'Служба поддержки', hr: 'Кадры'
   };
   Auth.isStaff = function (role) { return Auth.STAFF.indexOf(role || Auth.role()) >= 0; };
   Auth.roleLabel = function (r) { return Auth.ROLE_LABELS[r || Auth.role()] || (r || ''); };
+  /* W8: единый справочник ролей (источник правды — здесь). Порядок: платформа → внутренние → внешние. */
+  Auth.ROLES = ['admin', 'owner', 'director', 'chief', 'manager', 'master', 'technologist', 'operator', 'qc', 'supply', 'economist', 'support', 'hr', 'supplier', 'dealer', 'client'];
+  Auth.roleOptions = function () { return Auth.ROLES.slice().map(function (r) { return { value: r, label: Auth.ROLE_LABELS[r] || r }; }); };
 
   Auth.KEY = KEY;
   g.Auth = Auth;
