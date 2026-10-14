@@ -25,8 +25,10 @@
       '.wz-x{border:0;background:transparent;color:var(--muted);font-size:1.05rem;cursor:pointer;line-height:1;padding:4px 6px;border-radius:8px}' +
       '.wz-x:hover{color:var(--danger);background:rgba(15,23,42,.05)}' +
       '.wz-progress{display:flex;align-items:center;gap:6px;padding:10px 16px 0}' +
-      '.wz-dot{width:22px;height:5px;border-radius:999px;background:var(--border,#e2e8f0)}' +
+      '.wz-dot{width:22px;height:5px;border-radius:999px;background:var(--border,#e2e8f0);border:0;padding:0;cursor:pointer;transition:background .15s}' +
+      '.wz-dot[disabled]{cursor:default;opacity:.65}' +
       '.wz-dot.cur{background:var(--accent,#10b981)}.wz-dot.done{background:var(--accent-700,#059669)}' +
+      '.wz-dot:not([disabled]):hover{background:var(--accent-700,#059669)}' +
       '.wz-count{margin-left:auto;font-size:.72rem;color:var(--muted)}' +
       '.wz-body{padding:14px 16px;overflow:auto}' +
       '.wz-step-t{font-weight:800;margin-bottom:4px}' +
@@ -56,9 +58,18 @@
 
   function open(cfg) {
     ensureStyle();
-    var key = '3dmp:wiz:' + cfg.id, draft = {}, restored = false;
-    try { var s = localStorage.getItem(key); if (s) { draft = JSON.parse(s) || {}; restored = true; } } catch (e) {}
-    var i = 0, steps = cfg.steps || [];
+    var key = '3dmp:wiz:' + cfg.id, draft = {}, restored = false, startStep = 0;
+    try {
+      var s = localStorage.getItem(key);
+      if (s) {
+        draft = JSON.parse(s) || {};
+        restored = Object.keys(draft).some(function (k) { return k !== '__step' && draft[k] !== '' && draft[k] != null && draft[k] !== false; });
+        if (typeof draft.__step === 'number') startStep = draft.__step;
+      }
+    } catch (e) {}
+    var steps = cfg.steps || [];
+    var i = (startStep >= 0 && startStep < steps.length) ? startStep : 0;   // W5: помним шаг черновика
+    var maxReached = i;
     var overlay = document.createElement('div'); overlay.className = 'wz-overlay';
     overlay.innerHTML =
       '<div class="wz-modal" role="dialog" aria-modal="true" aria-label="' + esc(cfg.title || 'Мастер') + '">' +
@@ -86,10 +97,19 @@
     }
     function saveDraft() { try { localStorage.setItem(key, JSON.stringify(draft)); } catch (e) {} }
     function clearDraft() { try { localStorage.removeItem(key); } catch (e) {} }
+    function hasData() { return Object.keys(draft).some(function (k) { return k !== '__step' && draft[k] !== '' && draft[k] != null && draft[k] !== false; }); }
     function progress() {
       $('.wz-progress').innerHTML = steps.map(function (s, idx) {
-        return '<span class="wz-dot' + (idx < i ? ' done' : (idx === i ? ' cur' : '')) + '"></span>';
+        return '<button class="wz-dot' + (idx < i ? ' done' : (idx === i ? ' cur' : '')) + '" type="button" data-step="' + idx + '"' +
+          (idx > maxReached ? ' disabled' : '') + ' title="Шаг ' + (idx + 1) + '"></button>';
       }).join('') + '<span class="wz-count">Шаг ' + (i + 1) + ' из ' + steps.length + '</span>';
+      Array.prototype.forEach.call($('.wz-progress').querySelectorAll('.wz-dot'), function (d) {
+        d.addEventListener('click', function () {
+          var idx = Number(d.getAttribute('data-step'));
+          if (idx > maxReached || idx === i) return;
+          capture(); i = idx; render();
+        });
+      });
     }
     function render() {
       var st = steps[i] || {};
@@ -100,29 +120,48 @@
       $('[data-wz="back"]').style.display = i > 0 ? '' : 'none';
       $('[data-wz="next"]').textContent = (i === steps.length - 1) ? (cfg.submitText || 'Готово') : 'Далее →';
       progress(); setMsg('');
+      /* W5: автофокус первого поля */
+      var f = body.querySelector('input:not([type=checkbox]):not([type=hidden]):not([type=file]), select, textarea');
+      if (f && !f.disabled) { try { f.focus(); } catch (e) {} }
     }
-    function close() { overlay.remove(); document.removeEventListener('keydown', onKey); }
+    function liveValidate() {
+      var st = steps[i] || {}; if (!st.validate) return;
+      capture(); if (!st.validate(draft)) setMsg('');
+    }
+    function close(force) {
+      if (!force && hasData() && !window.confirm('Закрыть мастер? Черновик сохранён — можно продолжить позже.')) return;
+      if (!force) { capture(); draft.__step = i; saveDraft(); }
+      overlay.remove(); document.removeEventListener('keydown', onKey);
+    }
     function onKey(e) { if (e.key === 'Escape') close(); }
     function next() {
       var st = steps[i] || {}; capture();
       if (st.validate) { var e = st.validate(draft); if (e) { setMsg(e, true); return; } }
-      if (i < steps.length - 1) { i++; render(); return; }
+      if (i < steps.length - 1) { i++; if (i > maxReached) maxReached = i; draft.__step = i; saveDraft(); render(); return; }
       var btn = $('[data-wz="next"]'); btn.disabled = true;
       Promise.resolve().then(function () { return cfg.onSubmit ? cfg.onSubmit(draft) : null; }).then(function (res) {
         btn.disabled = false;
         if (res) { setMsg(res, true); return; }
-        clearDraft(); close(); toast(cfg.doneText || 'Готово');
+        clearDraft(); close(true); toast(cfg.doneText || 'Готово');
         if (cfg.onDone) { try { cfg.onDone(); } catch (e) {} }
       }).catch(function (e) { btn.disabled = false; setMsg((e && e.message) || String(e), true); });
     }
 
     $('.wz-x').addEventListener('click', close);
-    $('[data-wz="back"]').addEventListener('click', function () { if (i > 0) { capture(); i--; render(); } });
+    $('[data-wz="back"]').addEventListener('click', function () { if (i > 0) { capture(); i--; draft.__step = i; saveDraft(); render(); } });
     $('[data-wz="next"]').addEventListener('click', next);
-    $('[data-wz="draft"]').addEventListener('click', function () { capture(); saveDraft(); toast('Черновик сохранён'); });
+    $('[data-wz="draft"]').addEventListener('click', function () { capture(); draft.__step = i; saveDraft(); toast('Черновик сохранён'); });
+    /* W5: Enter → Далее; инлайновая валидация по вводу */
+    body.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && e.target && e.target.tagName !== 'TEXTAREA' && e.target.type !== 'checkbox' && e.target.type !== 'button') {
+        e.preventDefault(); next();
+      }
+    });
+    body.addEventListener('input', liveValidate);
+    body.addEventListener('change', liveValidate);
     document.addEventListener('keydown', onKey);
     render();
-    if (restored) setMsg('Черновик восстановлен — можно продолжить или изменить шаги.', false);
+    if (restored) setMsg('Черновик восстановлен (шаг ' + (i + 1) + ') — можно продолжить или изменить.', false);
     return { close: close };
   }
 

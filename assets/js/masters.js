@@ -25,10 +25,17 @@
     document.head.appendChild(st);
   }
 
+  /* W5: поисковый селект-комбо вместо <select> (AppUI.comboHtml) с фолбэком. */
   function opts(list, name, sel, empty) {
+    if (g.AppUI && g.AppUI.comboHtml) {
+      var options = (list || []).map(function (x) { return { value: x.code, label: x.name, info: x.info || '' }; });
+      return g.AppUI.comboHtml(name, options, sel, empty || 'поиск…');
+    }
     return '<select name="' + name + '"><option value="">' + esc(empty || '— выберите —') + '</option>' +
       (list || []).map(function (x) { return '<option value="' + esc(x.code) + '"' + (sel && String(x.code) === String(sel) ? ' selected' : '') + '>' + esc(x.name) + (x.info ? ' · ' + esc(x.info) : '') + '</option>'; }).join('') + '</select>';
   }
+  /* Инициализация комбо на шаге мастера (вызывается из onShow). */
+  function comboShow(box) { if (g.AppUI && g.AppUI.initCombos) { try { g.AppUI.initCombos(box); } catch (e) {} } }
   function requiresWizard() { if (!g.AppWizard) { toast('Движок мастера не подключён (wizard.js)', 'err'); return true; } return false; }
 
   /* ---------- Мастер: деталь → техпроцесс → задание/наряд/документ ---------- */
@@ -40,13 +47,24 @@
       rpc('app_tech_wizard_options', { p_token: ctx.token, p_kind: 'operation' }).catch(function () { return []; })
     ]).then(function (r) {
       var parts = r[0] || [], mats = r[1] || [], ops = r[2] || [];
-      if (!parts.length) { toast('Нет типовых маршрутов — заполните «Справочники → Типовые маршруты»', 'err'); return; }
+      if (!parts.length) {
+        /* W5: без типовых маршрутов — не тупик, а подсказка с переходом в справочник */
+        g.AppWizard.open({
+          id: 'mfg-empty', title: 'Мастер производства', icon: '🧭', submitText: 'Понятно', doneText: 'Ок',
+          steps: [{ title: 'Нужны типовые маршруты', hint: 'Мастер собирает техпроцесс из типовых маршрутов.', html: function () {
+            return '<p class="note">Типовые маршруты пока не заведены. Добавьте их в «Справочники → Типовые маршруты» (или загрузите машиностроительные: вал, фланец, втулка, корпус…), после чего мастер соберёт маршрут, наряд и техкарту автоматически.</p>' +
+              '<p><a class="btn" href="../../apps/registry/index.html">Открыть Справочники → Типовые маршруты</a></p>';
+          } }],
+          onSubmit: function () { return null; }
+        });
+        return;
+      }
       g.AppWizard.open({
         id: 'mfg', title: 'Мастер производства: деталь → техпроцесс', icon: '🧭', submitText: 'Создать', doneText: 'Создано',
         steps: [
-          { title: '1. Тип детали', hint: 'Типовая деталь → подбирается типовой маршрут.', html: function (d) { return '<label>Тип детали <span class="wz-req">*</span></label>' + opts(parts, 'code', d.code); }, validate: function (d) { return d.code ? null : 'Выберите тип детали'; } },
-          { title: '2. Материал, партия и масса', html: function (d) { return '<label>Материал</label>' + opts(mats, 'material', d.material) + '<label>Количество, шт</label><input name="qty" type="number" min="1" value="' + esc(d.qty || 1) + '"><label>Масса, кг</label><input name="weight" type="number" min="0" step="0.1" value="' + esc(d.weight || '') + '">'; } },
-          { title: '3. Уточняющая операция', hint: 'Необязательно — добавится в маршрут.', html: function (d) { return '<label>Операция</label>' + opts(ops, 'operation', d.operation, '— без уточнения —'); } },
+          { title: '1. Тип детали', hint: 'Типовая деталь → подбирается типовой маршрут.', onShow: comboShow, html: function (d) { return '<label>Тип детали <span class="wz-req">*</span></label>' + opts(parts, 'code', d.code); }, validate: function (d) { return d.code ? null : 'Выберите тип детали'; } },
+          { title: '2. Материал, партия и масса', onShow: comboShow, html: function (d) { return '<label>Материал</label>' + opts(mats, 'material', d.material) + '<label>Количество, шт</label><input name="qty" type="number" min="1" value="' + esc(d.qty || 1) + '"><label>Масса, кг</label><input name="weight" type="number" min="0" step="0.1" value="' + esc(d.weight || '') + '">'; } },
+          { title: '3. Уточняющая операция', hint: 'Необязательно — добавится в маршрут.', onShow: comboShow, html: function (d) { return '<label>Операция</label>' + opts(ops, 'operation', d.operation, '— без уточнения —'); } },
           { title: '4. Задание, наряд и документ', html: function (d) {
               return '<label>Название <span class="wz-req">*</span></label><input name="title" value="' + esc(d.title || '') + '">' +
                 '<label>Срок наряда</label><input name="due" type="date" value="' + esc(d.due || '') + '">' +
@@ -101,7 +119,7 @@
       if (!centers.length) { toast('Нет рабочих центров', 'err'); return; }
       g.AppWizard.open({
         id: 'cap', title: 'Ёмкость рабочего центра', icon: '⚙', submitText: 'Сохранить', doneText: 'Сохранено',
-        steps: [{ title: 'Ёмкость на дату', html: function (d) {
+        steps: [{ title: 'Ёмкость на дату', onShow: comboShow, html: function (d) {
           return '<label>Рабочий центр</label>' + opts(centers, 'wc', d.wc) +
             '<label>Дата</label><input name="date" type="date" value="' + esc(d.date || new Date().toISOString().slice(0, 10)) + '">' +
             '<label>Часов</label><input name="hours" type="number" value="' + esc(d.hours || 8) + '">';
@@ -122,7 +140,7 @@
       if (!tools.length) { toast('Нет инструмента', 'err'); return; }
       g.AppWizard.open({
         id: 'tool', title: 'Наработка инструмента', icon: '🛠', submitText: 'Учесть', doneText: 'Учтено',
-        steps: [{ title: 'Списать наработку', html: function (d) {
+        steps: [{ title: 'Списать наработку', onShow: comboShow, html: function (d) {
           return '<label>Инструмент</label>' + opts(tools, 'tool', d.tool) + '<label>Минут</label><input name="minutes" type="number" min="1" value="' + esc(d.minutes || 30) + '">';
         }, validate: function (d) { return d.tool ? null : 'Выберите инструмент'; } }],
         onSubmit: function (d) {
@@ -235,7 +253,7 @@
       var mats = (rows || []).map(function (m) { return { code: m.id, name: m.grade + (m.group_code ? ' (' + m.group_code + ')' : '') }; });
       g.AppWizard.open({
         id: 'pr', title: 'Заявка на закупку', icon: '📦', submitText: 'Создать', doneText: 'Заявка создана',
-        steps: [{ title: 'Заявка', html: function (d) {
+        steps: [{ title: 'Заявка', onShow: comboShow, html: function (d) {
           return '<label>Название <span class="wz-req">*</span></label><input name="title" value="' + esc(d.title || '') + '">' +
             '<label>Материал (из справочника)</label>' + opts(mats, 'material', d.material, '— без привязки —') +
             '<label>Количество</label><input name="qty" type="number" value="' + esc(d.qty || 1) + '">' +
