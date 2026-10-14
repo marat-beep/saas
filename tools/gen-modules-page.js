@@ -218,6 +218,73 @@ function priRow(k, label) {
   return `<div class="prirow"><span class="b b-pri pri-${k}">${label} · ${arr.length}</span><div class="chips">${arr.map(a => `<a class="chip" href="#m-${attr(a.id)}" data-target="${attr(a.id)}">${esc(a.title)}</a>`).join('')}</div></div>`;
 }
 
+/* ---------- прототипы eco/apps → реализация ---------- */
+const PROTO = [
+  ['A1 Калькулятор заказа; B21/B25/B26/B28/B34', 'calc, orders'],
+  ['A2 Мастер подбора технологии', 'assistant, calc'],
+  ['A3 Кабинет заказчика', 'client'],
+  ['A4/B29 Заявка на сервис / АРМ инженера', 'service, dealer'],
+  ['A6 Реверс-инжиниринг', 'reverse'],
+  ['A7 Портал закупок', 'supplier'],
+  ['A8 Конфигуратор спец-технологий', 'config'],
+  ['A9 Заказ документации', 'docbuilder, docs'],
+  ['A10 Измерения как услуга', 'quality, qc'],
+  ['A11 Поставки оборудования', 'equipment'],
+  ['A13 Отраслевые решения', 'industry'],
+  ['A14 CRM клиента и доступы', 'client, access'],
+  ['B1 Канбан', 'mes, production'],
+  ['B2 Библиотека техпроцессов', 'registry'],
+  ['B3 Мобильный ОТК', 'qc'],
+  ['B4 База знаний', 'assistant, elearning'],
+  ['B5 Вакансии/онбординг', 'staff, hr'],
+  ['B6 Цифровой паспорт', 'passport'],
+  ['B7 Бережливое производство', 'lean'],
+  ['B8/B14 Нормирование/склад+закупки', 'norms, warehouse, procurement'],
+  ['B9 Спецификации/BOM', 'bom'],
+  ['B10 Планирование и Гант', 'planning'],
+  ['B11 Наряды', 'production'],
+  ['B12 CRM и воронка', 'crm'],
+  ['B13/B18/B19/B27 Инструмент/NC/G-код', 'tooling, nc, iiot'],
+  ['B15/B20 ТОиР/наладка', 'maintenance, setup'],
+  ['B16 Диспетчер обращений', 'tasks, support'],
+  ['B17 Монитор станков OEE', 'oee, iiot'],
+  ['B22 Мобильный пульт', 'terminal'],
+  ['B23 Дашборд руководителя', 'bi, dashboard'],
+  ['B24 Эскалация', 'issues'],
+  ['B30 КД и изменения', 'plm, docbuilder'],
+  ['B31 Экономика заказа', 'economics, teo'],
+  ['B32 Маркировка/QR', 'labels, passport'],
+  ['B33 Конструктор документов', 'docbuilder, templates'],
+  ['B35 Справочники', 'registry, dicts, mdm'],
+  ['B37 Кадры: личные дела', 'hr, staff'],
+  ['B38 Производственный календарь', 'calendar'],
+  ['B39 Прогноз загрузки', 'forecast'],
+  ['C1 Портал поставщика', 'supplier'],
+  ['C2 Партнёрский кабинет', 'partners'],
+  ['C3 Клуб поставщиков', 'suppliers'],
+  ['P1 3DMP Cloud', 'platform, billing'],
+  ['P2 App Builder', 'builder'],
+  ['P3 Отраслевая аналитика', 'industry'],
+  ['P4 Public API', 'api, integrations'],
+  ['P5 Платежи/эскроу', 'escrow, finance'],
+  ['P6 White-label', 'whitelabel'],
+  ['P7 Финансы предприятия', 'finance, accounting'],
+  ['P8 Доступ и роли', 'roles, access'],
+  ['P9 Административная панель', 'admin, org'],
+  ['P10 Диагностика', 'diagnostics, scale'],
+  ['P11 Инструкция', 'guide'],
+  ['P13 Подразделения', 'departments'],
+  ['P14 Нормирование PRO', 'norms'],
+  ['P15 Центр экспорта/отчётов', 'reports'],
+  ['M1 Маркетплейс мощностей', 'marketplace']
+];
+const PROTO_OPEN = ['A5 Аудит цифровой зрелости (частично diagnostics)', 'A12 АРМ (частично terminal/service)', 'B36 ИТ-инфраструктура (частично iiot)', 'P12 Технологический путь (частично guide/diagnostics)'];
+const protoTable = '<table class="mini"><thead><tr><th>Прототип (eco/apps)</th><th>Реализация (apps)</th></tr></thead><tbody>' +
+  PROTO.map(function (r) { return '<tr><td>' + esc(r[0]) + '</td><td><b>' + esc(r[1]) + '</b></td></tr>'; }).join('') + '</tbody></table>';
+const protoBlock = '<details class="panel"><summary class="panel-sum"><b>Прототипы → реализация</b> <span class="cnt">' + PROTO.length + '</span> <span class="muted">· без прямой реализации: ' + PROTO_OPEN.length + ' — развернуть</span></summary>' +
+  '<p class="note" style="margin:8px 0;">Сопоставление 72 прототипов eco/apps с реализованными модулями: что было в прототипе → что стало в сервисе.</p>' + protoTable +
+  '<h4 style="margin:12px 0 6px;font-size:.8rem;">Прототипы без прямой реализации</h4><ul>' + PROTO_OPEN.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></details>';
+
 const generated = new Date().toISOString().slice(0, 10);
 
 const html = `<!DOCTYPE html>
@@ -450,6 +517,8 @@ ul.feat li::before{content:'✓';position:absolute;left:0;color:var(--accent-700
     <summary class="panel-sum"><b>Направления объединения и встраивания</b> <span class="cnt">${stats.merges}</span> <span class="muted">— развернуть</span></summary>
     <div class="merge-grid" style="margin-top:12px">${mergeList}</div>
   </details>
+
+  ${protoBlock}
 
   <div class="toolbar" id="toolbar">
     <input type="search" id="q" placeholder="Поиск: модуль, функция, связь…">
