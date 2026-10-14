@@ -151,13 +151,30 @@
         '<rect x="0" y="0" width="' + it.w + '" height="' + it.h + '" rx="' + (GRID / 2) + '" fill="' + (isz ? 'rgba(16,185,129,.08)' : c + '22') + '" stroke="' + (collHighlight.indexOf(it.id) >= 0 ? '#ef4444' : c) + '" stroke-width="' + (collHighlight.indexOf(it.id) >= 0 ? GRID / 2 : (sel === it.id ? GRID / 2 : GRID / 4)) + '"' + (isz ? ' stroke-dasharray="' + GRID / 2 + ' ' + GRID / 3 + '"' : '') + '/>' +
         glyph(it) +
         '<text x="' + (it.w / 2) + '" y="' + (it.h / 2 + Math.max(70, Math.min(it.w, it.h) / 3.4)) + '" text-anchor="middle" font-size="' + Math.max(130, Math.min(it.w, it.h) / 9) + '" class="ln">' + esc(it.name) + '</text>' +
+        ($('#dimChk') && $('#dimChk').checked ? '<text x="' + (it.w / 2) + '" y="' + (it.h / 2 - Math.max(70, Math.min(it.w, it.h) / 3.4)) + '" text-anchor="middle" font-size="' + Math.max(115, Math.min(it.w, it.h) / 11) + '" fill="#64748b">' + Math.round(it.w) + '×' + Math.round(it.h) + '</text>' : '') +
         (isz ? '' : '<circle cx="0" cy="' + (it.h / 2) + '" r="' + (GRID * 0.6) + '" fill="#0ea5e9"/><circle cx="' + it.w + '" cy="' + (it.h / 2) + '" r="' + (GRID * 0.6) + '" fill="#0ea5e9"/>') +
         (sel === it.id ? (function () {
-          var R = GRID * 1.2;
-          return ['nw', 'ne', 'sw', 'se'].map(function (d) {
+          var R = GRID * 1.2, m = GRID * 1.8, hd = GRID * 1.1, t = Math.max(130, Math.min(it.w, it.h) / 12);
+          var s = '';
+          /* L2: размерные линии выбранного узла (ширина сверху, высота слева) */
+          s += '<g stroke="#0ea5e9" stroke-width="' + (GRID / 6) + '">' +
+            '<line x1="0" y1="' + (-m) + '" x2="' + it.w + '" y2="' + (-m) + '"/>' +
+            '<line x1="0" y1="' + (-m - hd) + '" x2="0" y2="' + (-m + hd) + '"/>' +
+            '<line x1="' + it.w + '" y1="' + (-m - hd) + '" x2="' + it.w + '" y2="' + (-m + hd) + '"/>' +
+            '<line x1="' + (-m) + '" y1="0" x2="' + (-m) + '" y2="' + it.h + '"/>' +
+            '<line x1="' + (-m - hd) + '" y1="0" x2="' + (-m + hd) + '" y2="0"/>' +
+            '<line x1="' + (-m - hd) + '" y1="' + it.h + '" x2="' + (-m + hd) + '" y2="' + it.h + '"/></g>' +
+            '<text x="' + (it.w / 2) + '" y="' + (-m - GRID * 0.4) + '" text-anchor="middle" font-size="' + t + '" fill="#0284c7">' + Math.round(it.w) + ' мм</text>' +
+            '<text x="' + (-m - GRID * 0.5) + '" y="' + (it.h / 2) + '" text-anchor="middle" font-size="' + t + '" fill="#0284c7" transform="rotate(-90 ' + (-m - GRID * 0.5) + ' ' + (it.h / 2) + ')">' + Math.round(it.h) + ' мм</text>' +
+            (it.rot ? '<text x="' + (it.w / 2) + '" y="' + (-m - GRID * 2.4) + '" text-anchor="middle" font-size="' + t + '" fill="#0284c7">' + Math.round(it.rot) + '°</text>' : '') +
+            /* маркер поворота */
+            '<line x1="' + (it.w / 2) + '" y1="0" x2="' + (it.w / 2) + '" y2="' + (-GRID * 3.4) + '" stroke="#10b981" stroke-width="' + (GRID / 6) + '"/>' +
+            '<circle class="rh" data-h="rot" cx="' + (it.w / 2) + '" cy="' + (-GRID * 3.8) + '" r="' + (GRID * 0.7) + '" fill="#10b981" stroke="#fff" stroke-width="' + (GRID / 5) + '" style="cursor:grab"/>';
+          s += ['nw', 'ne', 'sw', 'se'].map(function (d) {
             var cx = d.indexOf('e') >= 0 ? it.w : 0, cy = d.indexOf('s') >= 0 ? it.h : 0;
             return '<rect class="rz" data-h="' + d + '" x="' + (cx - R) + '" y="' + (cy - R) + '" width="' + (R * 2) + '" height="' + (R * 2) + '" rx="' + (R / 2) + '" fill="#10b981" stroke="#fff" stroke-width="' + (GRID / 5) + '" style="cursor:' + (d === 'nw' || d === 'se' ? 'nwse-resize' : 'nesw-resize') + '"/>';
           }).join('');
+          return s;
         })() : '') +
         '</g>';
     }).join('');
@@ -193,7 +210,7 @@
     svg.onmousemove = function (e) { svg.__ptr = stagePct(e); stat(); };
     $$('#cv .li').forEach(function (gEl) {
       gEl.onmousedown = function (e) {
-        if (e.target.classList && e.target.classList.contains('rz')) return;
+        if (e.target.classList && (e.target.classList.contains('rz') || e.target.classList.contains('rh'))) return;
         var id = gEl.getAttribute('data-id');
         if (tool === 'route') { var p = stagePct(e); routePts.push(p); previewRoute(); e.preventDefault(); return; }
         if (tool === 'util') { utilPts.push(stagePct(e)); draw(); e.preventDefault(); return; }
@@ -242,6 +259,22 @@
       });
     });
     $$('#cv .nt').forEach(function (gEl) { gEl.onclick = function (e) { var id = gEl.getAttribute('data-note'); var n = S.notes.filter(function (x) { return x.id === id; })[0]; if (n) alert('Комментарий: ' + (n.text || '(пусто)')); e.stopPropagation(); }; });
+    /* L2: поворот выбранного узла за маркер (привязка к 15°) */
+    $$('#cv .rh').forEach(function (h) {
+      h.addEventListener('mousedown', function (e) {
+        e.preventDefault(); e.stopPropagation();
+        var it = byId(sel); if (!it) return;
+        var r = $('#cv').getBoundingClientRect();
+        function mv(ev) {
+          var cx = (ev.clientX - r.left) / r.width * S.w, cy = (ev.clientY - r.top) / r.height * S.h;
+          var deg = Math.atan2(cy - (it.y + it.h / 2), cx - (it.x + it.w / 2)) * 180 / Math.PI + 90;
+          if ($('#snapChk') && $('#snapChk').checked) deg = Math.round(deg / 15) * 15;
+          it.rot = ((Math.round(deg) % 360) + 360) % 360; draw();
+        }
+        function up() { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); snapshot(); prop(); }
+        document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
+      });
+    });
   }
   function stagePct(e) { var r = $('#cv').getBoundingClientRect(); return [ (e.clientX - r.left) / r.width * S.w, (e.clientY - r.top) / r.height * S.h ]; }
   function previewRoute() { draw(); var svg = $('#cv'); if (!routePts.length) return; svg.insertAdjacentHTML('beforeend', '<polyline points="' + routePts.map(function (p) { return p[0] + ',' + p[1]; }).join(' ') + '" fill="none" stroke="#2563eb" stroke-width="' + GRID / 2 + '" stroke-dasharray="' + GRID + '"/>'); }
@@ -254,12 +287,14 @@
       '<label>Название</label><input id="pName" value="' + esc(it.name) + '">' +
       '<label>Стадия</label><select id="pStage">' + Object.keys(STAGES).map(function (k) { return '<option value="' + k + '"' + (it.stage === k ? ' selected' : '') + '>' + STAGES[k].l + '</option>'; }).join('') + '</select>' +
       '<div class="grid2"><div><label>X, мм</label><input id="pX" type="number" value="' + it.x + '"></div><div><label>Y, мм</label><input id="pY" type="number" value="' + it.y + '"></div></div>' +
-      '<div class="grid2"><div><label>Ширина</label><input id="pW" type="number" value="' + it.w + '"></div><div><label>Высота</label><input id="pH" type="number" value="' + it.h + '"></div></div>' +
-      '<div class="btn-row mt"><button class="btn secondary" id="pRot">↻ 90°</button><button class="btn secondary" id="pDup">⧉ Копия</button><button class="btn secondary" id="pDel">✕ Удалить</button></div>';
+      '<div class="grid2"><div><label>Ширина, мм</label><input id="pW" type="number" value="' + it.w + '"></div><div><label>Высота, мм</label><input id="pH" type="number" value="' + it.h + '"></div></div>' +
+      '<div class="grid2"><div><label>Поворот, °</label><input id="pRot" type="number" min="0" max="359" step="15" value="' + (it.rot || 0) + '"></div><div style="display:flex;align-items:flex-end"><button class="btn secondary" id="pRot90" style="width:auto">↻ 90°</button></div></div>' +
+      '<div class="btn-row mt"><button class="btn secondary" id="pDup">⧉ Копия</button><button class="btn secondary" id="pDel">✕ Удалить</button></div>';
     $('#pName').oninput = function () { it.name = this.value; draw(); };
     $('#pStage').onchange = function () { it.stage = this.value; draw(); };
     ['pX:x', 'pY:y', 'pW:w', 'pH:h'].forEach(function (pp) { var id = pp.split(':')[0], k = pp.split(':')[1]; $('#' + id).onchange = function () { it[k] = Number(this.value) || 0; draw(); }; });
-    $('#pRot').onclick = function () { it.rot = ((it.rot || 0) + 90) % 360; draw(); };
+    $('#pRot90').onclick = function () { it.rot = ((it.rot || 0) + 90) % 360; draw(); prop(); };
+    $('#pRot').onchange = function () { it.rot = ((Math.round(Number(this.value) || 0) % 360) + 360) % 360; draw(); };
     $('#pDup').onclick = function () { snapshot(); var c = deep(it); c.id = uid(); c.x += GRID * 3; c.y += GRID * 3; S.items.push(c); sel = c.id; draw(); prop(); };
     $('#pDel').onclick = function () { snapshot(); S.items = S.items.filter(function (x) { return x.id !== sel; }); sel = null; draw(); prop(); };
   }
@@ -379,7 +414,7 @@
   $('#undoBtn').onclick = undo; $('#redoBtn').onclick = redoFn;
   $('#zi').onclick = function () { zoom = Math.min(4, zoom * 1.2); draw(); }; $('#zo').onclick = function () { zoom = Math.max(0.2, zoom / 1.2); draw(); };
   $('#zFit').onclick = function () { zoom = 1; draw(); };
-  $('#gridChk').onchange = draw; $('#snapChk').onchange = draw;
+  $('#gridChk').onchange = draw; $('#snapChk').onchange = draw; if ($('#dimChk')) $('#dimChk').onchange = draw;
   $('#palBtn').onclick = function () { $('#editor').classList.toggle('no-pal'); };
   $('#propsBtn').onclick = function () { $('#editor').classList.toggle('no-props'); };
   $('#soloBtn').onclick = function () { $('#editor').classList.toggle('solo'); };
@@ -533,6 +568,7 @@
     var html = '<label>Скорость потока</label><select id="setSpd">' + [['900', 'медленно'], ['1800', 'обычно'], ['3600', 'быстро']].map(function (o) { return '<option value="' + o[0] + '"' + (String(flow.spd) === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>' +
       '<label class="ck" style="display:flex;gap:6px;align-items:center;margin-top:8px"><input type="checkbox" id="setGrid" ' + ($('#gridChk').checked ? 'checked' : '') + '> Сетка</label>' +
       '<label class="ck" style="display:flex;gap:6px;align-items:center;margin-top:6px"><input type="checkbox" id="setSnap" ' + ($('#snapChk').checked ? 'checked' : '') + '> Привязка</label>' +
+      '<label class="ck" style="display:flex;gap:6px;align-items:center;margin-top:6px"><input type="checkbox" id="setDim" ' + ($('#dimChk') && $('#dimChk').checked ? 'checked' : '') + '> Размеры на плане</label>' +
       '<label style="margin-top:8px">Прозрачность подложки</label><input type="range" id="setBgOp" min="5" max="100" value="' + Math.round(((S.bg && S.bg.opacity != null ? S.bg.opacity : 0.5)) * 100) + '">' +
       '<div class="btn-row mt" style="flex-wrap:wrap"><button class="btn secondary" id="setBgOff" style="width:auto">Убрать подложку</button><button class="btn secondary" id="setRestore" style="width:auto">↺ Вернуть исходную схему</button><button class="btn secondary" id="setClear" style="width:auto">✕ Очистить</button><button class="btn secondary" id="setReset" style="width:auto">⟲ Полный сброс</button></div>';
     ui.dialog({ title: 'Настройки', html: true, cancelText: 'Закрыть', body: html });
@@ -541,6 +577,7 @@
     var sp = document.getElementById('setSpd'); if (sp) sp.onchange = function () { flow.spd = Number(this.value); };
     var g = document.getElementById('setGrid'); if (g) g.onchange = function () { $('#gridChk').checked = this.checked; draw(); };
     var sn = document.getElementById('setSnap'); if (sn) sn.onchange = function () { $('#snapChk').checked = this.checked; };
+    var dm = document.getElementById('setDim'); if (dm) dm.onchange = function () { if ($('#dimChk')) $('#dimChk').checked = this.checked; draw(); };
     var rr = document.getElementById('setRestore'); if (rr) rr.onclick = function () { if (!baseline) { toast('Нет исходной схемы'); return; } snapshot(); applyData(deep(baseline)); fitZoom(); draw(); centerView(); toast('Возвращена исходная схема'); };
     var cc = document.getElementById('setClear'); if (cc) cc.onclick = function () { $('#clearBtn').click(); };
     var rs = document.getElementById('setReset'); if (rs) rs.onclick = function () { $('#resetBtn').click(); };
@@ -567,6 +604,7 @@
       '<p><b>Инструменты:</b> ↖ выделение (V), ✋ рука (H), 💬 метка (C), 〰 маршрут, 🔗 связь.</p>' +
       '<p><b>Маршрут:</b> включите инструмент, кликайте точки (можно по оборудованию), «Завершить» (Enter). <b>Связь:</b> выберите два элемента.</p>' +
       '<p><b>Коммуникации:</b> вкладка «Связи» → вид (Питание/Воздух/Вода/Газ/Сеть) → «Проложить» → кликайте точки → «Завершить».</p>' +
+      '<p><b>Узлы:</b> включите «Размеры» — показываются габариты (мм). У выбранного узла — размерные линии и маркер поворота (зелёный круг сверху): тяните для поворота (привязка 15°), либо задайте угол в свойствах.</p>' +
       '<p><b>Демонстрация:</b> режим «Демонстрация» показывает движение по маршруту (▶/◀, скорость в настройках).</p>' +
       '<p><b>Экспорт/печать:</b> JSON/SVG/PNG/HTML и «Печать/PDF». История версий — 🕘.</p>' });
   };
