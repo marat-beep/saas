@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Кадры — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 <style>
   .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
   .kpi{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:14px}
@@ -55,7 +55,7 @@
       <div class="card">
         <div class="toolbar">
           <input type="search" class="search" id="eq" placeholder="Поиск: ФИО, должность, отдел, логин…">
-          <button class="btn" data-cap="edit" id="eAdd" style="width:auto;padding:8px 14px;">＋ Сотрудник</button>
+          <button class="btn" data-cap="edit" id="eAdd">＋ Сотрудник</button>
         </div>
         <h2>Сотрудники <span class="note" id="empCount"></span></h2><div id="emps"></div>
       </div>
@@ -65,7 +65,7 @@
       <div class="card">
         <div class="toolbar">
           <span class="note">Штатное расписание: плановая численность по должностям; факт — по активным сотрудникам подразделения.</span>
-          <button class="btn" data-cap="edit" id="stAdd" style="width:auto;padding:8px 14px;margin-left:auto;">＋ Строка штата</button>
+          <button class="btn" data-cap="edit" id="stAdd" style="padding:8px 14px;margin-left:auto;">＋ Строка штата</button>
         </div>
         <div id="staffing"></div>
       </div>
@@ -75,8 +75,8 @@
       <div class="card">
         <div class="toolbar">
           <input type="date" id="scFrom"> <span class="note">—</span> <input type="date" id="scTo">
-          <button class="btn secondary" id="scLoad" style="width:auto;padding:8px 14px;">Показать</button>
-          <button class="btn" data-cap="edit" id="scAdd" style="width:auto;padding:8px 14px;margin-left:auto;">＋ Смена</button>
+          <button class="btn secondary" id="scLoad">Показать</button>
+          <button class="btn" data-cap="edit" id="scAdd" style="padding:8px 14px;margin-left:auto;">＋ Смена</button>
         </div>
         <div id="sched" class="mt"><span class="note">Загрузка…</span></div>
       </div>
@@ -88,7 +88,7 @@
           <select id="abStatus" style="padding:9px;border:1px solid var(--border);border-radius:9px;">
             <option value="">Все</option><option value="requested">Запрошено</option><option value="approved">Утверждено</option><option value="rejected">Отклонено</option><option value="closed">Закрыто</option>
           </select>
-          <button class="btn" data-cap="edit" id="abAdd" style="width:auto;padding:8px 14px;margin-left:auto;">＋ Отсутствие</button>
+          <button class="btn" data-cap="edit" id="abAdd" style="padding:8px 14px;margin-left:auto;">＋ Отсутствие</button>
         </div>
         <div id="abs"></div>
       </div>
@@ -98,7 +98,7 @@
       <div class="card">
         <div class="toolbar">
           <span class="note">Табель — фактически отработанные смены и часы.</span>
-          <button class="btn" data-cap="edit" id="tbAdd" style="width:auto;padding:8px 14px;margin-left:auto;">＋ Запись табеля</button>
+          <button class="btn" data-cap="edit" id="tbAdd" style="padding:8px 14px;margin-left:auto;">＋ Запись табеля</button>
         </div>
         <div id="tabel"></div>
       </div>
@@ -108,7 +108,7 @@
       <div class="card">
         <div class="toolbar">
           <span class="note">Обучение (план/пройдено). Профили должностей и сертификаты — в модуле «Компетенции».</span>
-          <button class="btn" data-cap="edit" id="trAdd" style="width:auto;padding:8px 14px;margin-left:auto;">＋ Обучение</button>
+          <button class="btn" data-cap="edit" id="trAdd" style="padding:8px 14px;margin-left:auto;">＋ Обучение</button>
         </div>
         <div id="train"></div>
       </div>

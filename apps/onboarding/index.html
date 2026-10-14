@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Мастер настройки — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 <style>.bar{height:8px;background:#e5e7eb;border-radius:6px;overflow:hidden}.bar>i{display:block;height:100%;background:var(--accent,#10b981)}</style>
 </head>
 <body>
@@ -20,9 +20,9 @@
     <div class="kpi-row" id="kpis"></div>
 
     <div class="sv-actions" style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;">
-      <button class="btn" id="wizBtn" style="width:auto;padding:9px 14px;">🚀 Запустить мастер настройки</button>
+      <button class="btn" id="wizBtn" style="padding:9px 14px;">🚀 Запустить мастер настройки</button>
       <label class="btn secondary" style="width:auto;padding:9px 14px;cursor:pointer;">👥 Импорт пользователей (CSV)<input type="file" id="usersCsv" accept=".csv,text/csv" style="display:none;"></label>
-      <a class="btn secondary" id="usersTpl" href="#" style="width:auto;padding:9px 14px;">⬇ Шаблон CSV</a>
+      <a class="btn secondary" id="usersTpl" href="#" style="padding:9px 14px;">⬇ Шаблон CSV</a>
       <span class="note" id="msg" style="align-self:center;"></span>
     </div>
 
@@ -50,8 +50,8 @@
       <div class="card"><h2>Демо-данные</h2>
         <p class="note">Демо-строки можно удалить целиком — реальные данные не затрагиваются.</p>
         <div class="toolbar" style="gap:8px;">
-          <button class="btn" id="seedAll" style="width:auto;padding:8px 14px;">Заполнить всё демо</button>
-          <button class="btn secondary" id="resetAll" style="width:auto;padding:8px 14px;">Удалить все демо-данные</button>
+          <button class="btn" id="seedAll">Заполнить всё демо</button>
+          <button class="btn secondary" id="resetAll">Удалить все демо-данные</button>
         </div>
         <div id="demo" class="mt"><span class="note">Загрузка…</span></div></div>
     </section>
@@ -60,7 +60,7 @@
       <div class="card"><h2>Конфигурация организации</h2>
         <p class="note">Экспорт/импорт настроек модулей, включённости модулей и шагов мастера (формат <b>3dmp-config</b>, без секретов).</p>
         <div class="toolbar" style="gap:10px;align-items:center;">
-          <button class="btn" id="cfgExport" style="width:auto;padding:8px 14px;">⬇ Выгрузить конфигурацию</button>
+          <button class="btn" id="cfgExport">⬇ Выгрузить конфигурацию</button>
           <label class="btn secondary" style="width:auto;padding:8px 14px;cursor:pointer;">⬆ Загрузить из файла<input type="file" id="cfgFile" accept="application/json,.json" style="display:none;"></label>
           <span class="note" id="cfgMsg"></span>
         </div>

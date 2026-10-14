@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IIoT и DNC — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 <style>
   .bar{height:9px;border-radius:6px;background:#eef2f7;overflow:hidden;min-width:70px}
   .bar i{display:block;height:100%;background:var(--accent)}
@@ -61,7 +61,7 @@
 
     <section class="screen" id="scr-conn">
       <div class="card">
-        <div class="toolbar"><button class="btn" id="cNew" data-cap="edit" style="width:auto;padding:8px 14px;">＋ Новый коннектор</button>
+        <div class="toolbar"><button class="btn" id="cNew" data-cap="edit">＋ Новый коннектор</button>
           <span class="note" style="margin-left:auto;">Внешний воркер выполняет реальный опрос; приём телеметрии — автоматически.</span></div>
         <div class="msg" id="cMsg"></div>
         <div id="conns" class="mt"><span class="note">Загрузка…</span></div>
@@ -70,7 +70,7 @@
 
     <section class="screen" id="scr-oee">
       <div class="card">
-        <div class="toolbar"><button class="btn secondary" id="oeeBtn" style="width:auto;padding:8px 14px;">Обновить</button>
+        <div class="toolbar"><button class="btn secondary" id="oeeBtn">Обновить</button>
           <span class="note" style="margin-left:auto;">OEE онлайн — по последней смене на каждое оборудование.</span></div>
         <div class="msg" id="oMsg"></div>
         <div id="oee" class="mt"><span class="note">Загрузка…</span></div>
@@ -79,7 +79,7 @@
 
     <section class="screen" id="scr-wear">
       <div class="card">
-        <div class="toolbar"><button class="btn secondary" id="wearBtn" style="width:auto;padding:8px 14px;">Обновить</button>
+        <div class="toolbar"><button class="btn secondary" id="wearBtn">Обновить</button>
           <span class="note" style="margin-left:auto;">Порог износа — 85% ресурса / достигнут лимит заточек.</span></div>
         <div class="msg" id="wMsg"></div>
         <div id="wear" class="mt"><span class="note">Загрузка…</span></div>

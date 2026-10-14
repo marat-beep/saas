@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Документооборот (ЭДО) — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 <style>.num{text-align:right;font-variant-numeric:tabular-nums}</style>
 </head>
 <body>
@@ -45,7 +45,7 @@
           <select id="status" style="padding:9px;border:1px solid var(--border);border-radius:9px;">
             <option value="">Все статусы</option><option value="draft">Черновик</option><option value="registered">Зарегистрирован</option><option value="in_work">В работе</option><option value="closed">Закрыт</option><option value="cancelled">Отменён</option>
           </select>
-          <button class="btn" data-cap="edit" id="add" style="width:auto;padding:8px 14px;">＋ Документ</button>
+          <button class="btn" data-cap="edit" id="add">＋ Документ</button>
         </div>
         <div id="list" class="mt"><span class="note">Загрузка…</span></div>
       </div>
@@ -53,7 +53,7 @@
 
     <section class="screen" id="scr-exchange">
       <div class="card">
-        <div class="toolbar"><button class="btn secondary" id="exReload" style="width:auto;padding:8px 14px;">Обновить</button>
+        <div class="toolbar"><button class="btn secondary" id="exReload">Обновить</button>
           <span class="note" style="margin-left:auto;">Внешний обмен: документ → ЭДО-оператор → контрагент. Отправка — из карточки документа («Отправить контрагенту»).</span></div>
         <div id="exchange" class="mt"><span class="note">Загрузка…</span></div>
       </div>
@@ -61,7 +61,7 @@
 
     <section class="screen" id="scr-res">
       <div class="card">
-        <div class="toolbar"><button class="btn secondary" id="resReload" style="width:auto;padding:8px 14px;">Обновить</button>
+        <div class="toolbar"><button class="btn secondary" id="resReload">Обновить</button>
           <span class="note" style="margin-left:auto;">Открытые поручения по документам. Срок (SLA) задаётся в карточке документа.</span></div>
         <div id="res" class="mt"><span class="note">Загрузка…</span></div>
       </div>
@@ -69,7 +69,7 @@
 
     <section class="screen" id="scr-nom">
       <div class="card">
-        <div class="toolbar"><button class="btn" data-cap="edit" id="addNom" style="width:auto;padding:8px 14px;">＋ Дело</button>
+        <div class="toolbar"><button class="btn" data-cap="edit" id="addNom">＋ Дело</button>
           <span class="note" style="margin-left:auto;">Номенклатура дел и архив: документ относится к делу (закрывается).</span></div>
         <div id="nom" class="mt"><span class="note">Загрузка…</span></div>
       </div>

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Обслуживание и ремонт — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 <style>
   .tabs2{display:flex;gap:4px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:4px;margin:14px 0;width:fit-content;flex-wrap:wrap}
   .tabs2 button{padding:8px 16px;border:none;background:transparent;border-radius:8px;font-weight:600;font-size:.82rem;color:var(--muted);cursor:pointer}
@@ -23,7 +23,7 @@
     <div class="hero"><h1>Обслуживание и ремонт (ТОиР)</h1><p>Планы ТО/ППР по оборудованию, регистрация работ и история. Процессы ПР.17/ПР.19 — снижение простоев.</p></div>
     <div class="kpi-row" id="kpis"></div>
     <div class="sv-actions" style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;">
-      <button class="btn secondary" id="autoplanBtn" style="width:auto;padding:9px 14px;">🤖 Автоплан по предиктиву</button><button class="btn secondary" id="cardBtn" style="width:auto;padding:9px 14px;">📋 Карточка станка</button>
+      <button class="btn secondary" id="autoplanBtn" style="padding:9px 14px;">🤖 Автоплан по предиктиву</button><button class="btn secondary" id="cardBtn" style="padding:9px 14px;">📋 Карточка станка</button>
       <span class="note" id="apMsg" style="align-self:center;"></span>
     </div>
 
@@ -119,8 +119,8 @@
     <section id="t-reports" style="display:none;">
       <div class="card">
         <div class="toolbar"><h2 style="margin:0;flex:1;">Отчёты ТОиР</h2>
-          <button class="btn secondary" id="mrepCsv" style="width:auto;padding:9px 14px;">CSV</button>
-          <button class="btn" id="mrepPdf" style="width:auto;padding:9px 14px;">📄 PDF</button>
+          <button class="btn secondary" id="mrepCsv" style="padding:9px 14px;">CSV</button>
+          <button class="btn" id="mrepPdf" style="padding:9px 14px;">📄 PDF</button>
         </div>
         <div class="form-grid">
           <div class="field"><label>С даты</label><input type="date" id="mrepFrom"></div>
@@ -133,7 +133,7 @@
     </section>
 
     <div class="card">
-      <div class="toolbar"><h2 style="margin:0;flex:1;">ТОиР по наработке</h2><button class="btn secondary" data-cap="edit" id="autoBtn" style="width:auto;padding:8px 14px;">⚙ Сформировать наряды по наработке</button></div>
+      <div class="toolbar"><h2 style="margin:0;flex:1;">ТОиР по наработке</h2><button class="btn secondary" data-cap="edit" id="autoBtn">⚙ Сформировать наряды по наработке</button></div>
       <p class="note">Наработка с последнего ТО (из журнала OEE) против нормы (period_hours или период×8 ч); статус: в норме / скоро / просрочено.</p>
       <div class="msg" id="autoMsg"></div>
       <div id="runtime" style="overflow:auto;"><span class="note">Загрузка…</span></div>

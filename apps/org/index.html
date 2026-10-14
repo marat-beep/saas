@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Админ-панель клиента — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 <style>
   .tab2 { width:100%;border-collapse:collapse }
   .tab2 th,.tab2 td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--border);font-size:.83rem}
@@ -56,9 +56,9 @@
       <div class="card">
         <h2>Быстрые переходы</h2>
         <div class="toolbar">
-          <a class="btn secondary" href="../roles/index.html" style="width:auto;padding:10px 16px;">🔑 Роли и права</a>
-          <a class="btn secondary" href="../hr/index.html" style="width:auto;padding:10px 16px;">👥 Кадры</a>
-          <a class="btn secondary" href="../finance/index.html" style="width:auto;padding:10px 16px;">💵 Финансы</a>
+          <a class="btn secondary" href="../roles/index.html" style="padding:10px 16px;">🔑 Роли и права</a>
+          <a class="btn secondary" href="../hr/index.html" style="padding:10px 16px;">👥 Кадры</a>
+          <a class="btn secondary" href="../finance/index.html" style="padding:10px 16px;">💵 Финансы</a>
         </div>
       </div>
     </section>
@@ -121,9 +121,9 @@
             </div>
             <div class="field"><label>Код 2FA</label><input type="text" id="sec2faCode" inputmode="numeric" placeholder="6 цифр"></div>
             <div class="toolbar">
-              <button class="btn secondary" id="sec2faPrep" data-cap="edit" style="width:auto;padding:8px 12px;">Настроить</button>
-              <button class="btn" id="sec2faOn" data-cap="edit" style="width:auto;padding:8px 12px;">Включить</button>
-              <button class="btn secondary" id="sec2faOff" data-cap="edit" style="width:auto;padding:8px 12px;">Отключить</button>
+              <button class="btn secondary" id="sec2faPrep" data-cap="edit" style="padding:8px 12px;">Настроить</button>
+              <button class="btn" id="sec2faOn" data-cap="edit" style="padding:8px 12px;">Включить</button>
+              <button class="btn secondary" id="sec2faOff" data-cap="edit" style="padding:8px 12px;">Отключить</button>
             </div>
           </div>
           <div>
@@ -167,8 +167,8 @@
       <h2>Гейтинг данных по подразделению</h2>
       <div class="note">При включении пользователи видят заказы и наряды только своего подразделения (admin/owner/manager — все; записи без отдела не ограничиваются).</div>
       <div class="msg" id="scopeMsg"></div>
-      <div class="toolbar"><button class="btn" id="scopeOn" data-cap="edit" style="width:auto;padding:8px 14px;">Включить</button>
-        <button class="btn secondary" id="scopeOff" data-cap="edit" style="width:auto;padding:8px 14px;">Выключить</button>
+      <div class="toolbar"><button class="btn" id="scopeOn" data-cap="edit">Включить</button>
+        <button class="btn secondary" id="scopeOff" data-cap="edit">Выключить</button>
         <span class="note" id="scopeState" style="margin-left:auto;"></span></div>
     </div>
   </main>

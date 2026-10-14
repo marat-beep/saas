@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Заявки — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 </head>
 <body>
   <header class="topbar">
@@ -39,14 +39,14 @@
             <option value="tooling">Оснастка/штамп</option>
             <option value="engineering">Инжиниринг/НИОКР</option>
           </select>
-          <button class="btn secondary" data-cap="reports" id="repBtn" style="width:auto;padding:11px 16px;">📄 Отчёт PDF</button>
-          <button class="btn secondary" id="pipeBtn" style="width:auto;padding:11px 16px;">🗂 Конвейер</button>
-          <button class="btn" data-cap="edit" id="toCreate" style="width:auto;padding:11px 18px;">＋ Новая заявка</button>
+          <button class="btn secondary" data-cap="reports" id="repBtn" style="padding:11px 16px;">📄 Отчёт PDF</button>
+          <button class="btn secondary" id="pipeBtn" style="padding:11px 16px;">🗂 Конвейер</button>
+          <button class="btn" data-cap="edit" id="toCreate" style="padding:11px 18px;">＋ Новая заявка</button>
         </div>
         <div id="listMsg"></div>
         <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
       <div class="card mt">
-        <div class="toolbar"><h2 style="margin:0;">Заявки с сайта (публичная форма)</h2><a class="btn secondary" href="public.html" target="_blank" rel="noopener" style="width:auto;padding:8px 14px;margin-left:auto;">Открыть форму →</a><button class="btn secondary" id="prReload" style="width:auto;padding:8px 14px;">Обновить</button></div>
+        <div class="toolbar"><h2 style="margin:0;">Заявки с сайта (публичная форма)</h2><a class="btn secondary" href="public.html" target="_blank" rel="noopener" style="padding:8px 14px;margin-left:auto;">Открыть форму →</a><button class="btn secondary" id="prReload">Обновить</button></div>
         <p class="note">Заявки, отправленные без входа (страница <code>public.html</code>). Кнопка «В заявку» создаёт заявку системы.</p>
         <div id="prList"><span class="note">Загрузка…</span></div>
       </div>
@@ -117,7 +117,7 @@
           <input type="text" id="itQty" inputmode="decimal" placeholder="Кол-во" style="width:90px;padding:9px;border:1px solid var(--border);border-radius:9px;">
           <input type="text" id="itUnit" placeholder="Ед." style="width:70px;padding:9px;border:1px solid var(--border);border-radius:9px;">
           <input type="text" id="itPrice" inputmode="decimal" placeholder="Цена, ₽" style="width:110px;padding:9px;border:1px solid var(--border);border-radius:9px;">
-          <button class="btn secondary" data-cap="edit" id="itAdd" style="width:auto;padding:9px 14px;" title="Добавить позицию в заявку">＋ Добавить</button>
+          <button class="btn secondary" data-cap="edit" id="itAdd" style="padding:9px 14px;" title="Добавить позицию в заявку">＋ Добавить</button>
         </div>
         <span class="hint">Наименование, количество, единица и цена. Сумма по позициям уточняет стоимость заявки.</span>
         <div class="msg" id="itMsg"></div>

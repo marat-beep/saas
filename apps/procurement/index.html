@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Закупки — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 <style>
   .bid { border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:10px; }
   .bid.best { border-color:var(--accent); background:#f0fdf4; }
@@ -24,7 +24,7 @@
     <div id="masters" class="mt"></div>
       <div class="kpi-row" id="kpis"></div>
     <div class="sv-actions" style="margin-top:10px;">
-      <button class="btn secondary" data-cap="reports" id="repBtn">📄 Отчёт PDF</button><button class="btn secondary" id="cmpBtn" style="width:auto;padding:9px 14px;">📊 Сравнить КП</button><button class="btn secondary" id="rankBtn" style="width:auto;padding:9px 14px;">🏆 Ранжировать КП</button>
+      <button class="btn secondary" data-cap="reports" id="repBtn">📄 Отчёт PDF</button><button class="btn secondary" id="cmpBtn" style="padding:9px 14px;">📊 Сравнить КП</button><button class="btn secondary" id="rankBtn" style="padding:9px 14px;">🏆 Ранжировать КП</button>
       <button class="btn secondary" data-cap="edit" id="reorderBtn">🧮 Автозакупка (минимум)</button>
       <button class="btn secondary" data-cap="edit" id="bomBtn">📋 Из BOM</button>
       <button class="btn secondary" id="prBtn">📑 Заявки на закупку</button>
@@ -39,7 +39,7 @@
             <span class="chip active" data-f="">Все</span><span class="chip" data-f="open">Открытые</span>
             <span class="chip" data-f="awarded">С победителем</span><span class="chip" data-f="closed">Закрытые</span>
           </div>
-          <button class="btn" data-cap="edit" id="toCreate" style="width:auto;padding:11px 18px;">＋ Новая закупка</button>
+          <button class="btn" data-cap="edit" id="toCreate" style="padding:11px 18px;">＋ Новая закупка</button>
         </div>
         <div id="listMsg"></div>
         <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>

@@ -9,9 +9,9 @@
   function rpc(n, a) { return SB.rpc(n, a).then(function (r) { if (r.error) throw new Error(r.error.message); return r.data; }); }
   function msg(t, k) { var e = $('#anaMsg'); if (e) { e.className = 'msg show ' + (k || 'info'); e.textContent = t; } }
   function table(cols, rows) {
-    return '<table class="atbl"><thead><tr>' + cols.map(function (c) { return '<th>' + esc(c) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+    return '<div class="tbl-wrap"><table class="atbl"><thead><tr>' + cols.map(function (c) { return '<th>' + esc(c) + '</th>'; }).join('') + '</tr></thead><tbody>' +
       ((rows && rows.length) ? rows.map(function (r) { return '<tr>' + r.map(function (v) { return '<td>' + esc(v == null ? '' : v) + '</td>'; }).join('') + '</tr>'; }).join('')
-        : '<tr><td colspan="' + cols.length + '" class="note">Нет данных</td></tr>') + '</tbody></table>';
+        : '<tr><td colspan="' + cols.length + '" class="note">Нет данных</td></tr>') + '</tbody></table></div>';
   }
   function aps() {
     rpc('app_aps_optimize', { p_token: token }).then(function (l) {

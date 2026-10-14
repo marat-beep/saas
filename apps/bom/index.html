@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Спецификации — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 <style>
   .line { display:grid; grid-template-columns:120px 1fr 70px 70px 80px 34px; gap:8px; align-items:center; padding:8px 0; border-top:1px solid var(--border); }
   .line:first-child{border-top:none}
@@ -28,7 +28,7 @@
       <div class="card mt">
         <div class="toolbar">
           <input type="search" class="search" id="q" placeholder="Поиск: изделие, код, заявка…">
-          <button class="btn" id="toForm" style="width:auto;padding:11px 18px;">＋ Новая спецификация</button>
+          <button class="btn" id="toForm" style="padding:11px 18px;">＋ Новая спецификация</button>
         </div>
         <div id="listMsg"></div>
         <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
@@ -42,7 +42,7 @@
         <div class="msg" id="fMsg"></div>
         <div class="toolbar" style="align-items:flex-end;">
           <div class="field" style="flex:1;"><label>Техпроцесс (для автозаполнения)</label><select id="bTemplate"><option value="">— выбрать шаблон —</option></select><span class="hint">Выберите шаблон или оставьте пусто — заполните позиции вручную.</span></div>
-          <button class="btn secondary" id="fromTplBtn" style="width:auto;padding:10px 16px;">Создать из техпроцесса</button>
+          <button class="btn secondary" id="fromTplBtn" style="padding:10px 16px;">Создать из техпроцесса</button>
         </div>
         <div class="grid2c">
           <div class="field"><label>Изделие *</label><input type="text" id="bProduct" placeholder="Кронштейн"><span class="hint">Название изделия/узла, для которого считаем состав.</span></div>

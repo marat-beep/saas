@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Отчёты и экспорт — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 <style>
   .toolbar2 { display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin-bottom:6px; }
   .toolbar2 .field { margin:0; min-width:180px; }
@@ -65,7 +65,7 @@
     <div class="card">
       <div class="toolbar">
         <h2 style="margin:0;">Дашборд новых модулей</h2>
-        <button class="btn secondary" id="dashBtn" type="button" style="width:auto;padding:8px 14px;margin-left:auto;">🔄 Обновить</button>
+        <button class="btn secondary" id="dashBtn" type="button" style="padding:8px 14px;margin-left:auto;">🔄 Обновить</button>
       </div>
       <p class="note">Количество записей по модулям волн v2/v3 (инструмент, НСИ, PLM, ЭДО, КЭДО, EAM, EHS, холдинг, сметы, PMO, TMS, ITSM, обучение, бухгалтерия, задачи, CRM-напоминания).</p>
       <div id="dash" class="mt"><span class="note">Нажмите «Обновить».</span></div>
@@ -74,7 +74,7 @@
     <div class="card">
       <div class="toolbar">
         <h2 style="margin:0;">Дашборд по контурам</h2>
-        <button class="btn secondary" id="kpiBtn" type="button" style="width:auto;padding:8px 14px;margin-left:auto;">🔄 Показать KPI</button>
+        <button class="btn secondary" id="kpiBtn" type="button" style="padding:8px 14px;margin-left:auto;">🔄 Показать KPI</button>
       </div>
       <p class="note">Ключевые показатели по контурам.</p>
       <div id="kpiContours" class="mt"><span class="note">Нажмите «Показать KPI».</span></div>
@@ -83,7 +83,7 @@
     <div class="card">
       <div class="toolbar">
         <h2 style="margin:0;">Расписание рассылки отчётов</h2>
-        <button class="btn secondary" id="scRunDue" type="button" style="width:auto;padding:8px 14px;margin-left:auto;">▶ Обработать очередь (due)</button>
+        <button class="btn secondary" id="scRunDue" type="button" style="padding:8px 14px;margin-left:auto;">▶ Обработать очередь (due)</button>
       </div>
       <div class="msg" id="scMsg"></div>
       <div class="grid2c">
@@ -107,7 +107,7 @@
     <div class="card">
       <div class="toolbar">
         <h2 style="margin:0;">Конструктор отчётов <span class="note" id="defsCnt"></span></h2>
-        <button class="btn" id="newDef" style="width:auto;padding:8px 14px;margin-left:auto;">＋ Новый отчёт</button>
+        <button class="btn" id="newDef" style="padding:8px 14px;margin-left:auto;">＋ Новый отчёт</button>
       </div>
       <p class="note">Сохраняемые отчёты: набор данных, колонки, фильтры (статус/поиск/период), группировка и агрегация, тип графика. Запуск и выгрузка PDF/CSV.</p>
       <div class="msg" id="defMsg"></div>

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Сервис и ремонт — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 <style>
   .badge.p-critical { background:#fef2f2; color:#b91c1c; border-color:#fca5a5; }
   .badge.p-high { background:#fffbeb; color:#b45309; border-color:#fcd34d; }
@@ -144,7 +144,7 @@
         <div id="visits"><span class="note">—</span></div>
       </div>
       <div class="card">
-        <div class="toolbar"><h2 style="margin:0;flex:1;">Запчасти по заявке</h2><button class="btn secondary" data-cap="parts" id="partAdd" style="width:auto;padding:8px 14px;">＋ Запчасть</button></div>
+        <div class="toolbar"><h2 style="margin:0;flex:1;">Запчасти по заявке</h2><button class="btn secondary" data-cap="parts" id="partAdd">＋ Запчасть</button></div>
         <div id="parts"><span class="note">—</span></div>
       </div>
       <div class="card">
@@ -167,28 +167,28 @@
     <!-- ГАРАНТИИ И КОНТРАКТЫ -->
     <section class="screen" id="s-refs" data-cap="refs">
       <div class="card">
-        <div class="toolbar"><h2 style="margin:0;flex:1;">Гарантии</h2><button class="btn secondary" data-cap="refs" id="warrAdd" style="width:auto;padding:8px 14px;">＋ Гарантия</button></div>
+        <div class="toolbar"><h2 style="margin:0;flex:1;">Гарантии</h2><button class="btn secondary" data-cap="refs" id="warrAdd">＋ Гарантия</button></div>
         <div class="msg" id="refMsg"></div>
-        <div id="warrList" style="overflow:auto;"><span class="note">Загрузка…</span></div>
+        <div id="warrList" class="tbl-wrap"><span class="note">Загрузка…</span></div>
       </div>
       <div class="card">
-        <div class="toolbar"><h2 style="margin:0;flex:1;">Сервисные контракты</h2><button class="btn secondary" data-cap="refs" id="conAdd" style="width:auto;padding:8px 14px;">＋ Контракт</button></div>
-        <div id="conList" style="overflow:auto;"><span class="note">Загрузка…</span></div>
+        <div class="toolbar"><h2 style="margin:0;flex:1;">Сервисные контракты</h2><button class="btn secondary" data-cap="refs" id="conAdd">＋ Контракт</button></div>
+        <div id="conList" class="tbl-wrap"><span class="note">Загрузка…</span></div>
       </div>
       <div class="card">
-        <div class="toolbar"><h2 style="margin:0;flex:1;">Правила авто-тикетов IIoT</h2><button class="btn secondary" data-cap="rules" id="ruleAdd" style="width:auto;padding:8px 14px;">＋ Правило</button></div>
+        <div class="toolbar"><h2 style="margin:0;flex:1;">Правила авто-тикетов IIoT</h2><button class="btn secondary" data-cap="rules" id="ruleAdd">＋ Правило</button></div>
         <p class="note">Метрика + порог → авто-заявка (приоритет/вид). Скан — кнопкой «IIoT → заявки».</p>
-        <div id="ruleList" style="overflow:auto;"><span class="note">Загрузка…</span></div>
+        <div id="ruleList" class="tbl-wrap"><span class="note">Загрузка…</span></div>
       </div>
       <div class="card">
-        <div class="toolbar"><h2 style="margin:0;flex:1;">Шаблоны (чек-листы, работы, акты)</h2><button class="btn secondary" data-cap="refs" id="tplAdd" style="width:auto;padding:8px 14px;">＋ Шаблон</button></div>
+        <div class="toolbar"><h2 style="margin:0;flex:1;">Шаблоны (чек-листы, работы, акты)</h2><button class="btn secondary" data-cap="refs" id="tplAdd">＋ Шаблон</button></div>
         <p class="note">Шаблон применяется к заявке кнопкой «📎 Шаблон» (чек-лист попадает в историю).</p>
-        <div id="tplList" style="overflow:auto;"><span class="note">Загрузка…</span></div>
+        <div id="tplList" class="tbl-wrap"><span class="note">Загрузка…</span></div>
       </div>
       <div class="card">
         <h2>База знаний</h2>
         <p class="note">Поиск по базе знаний (инструкции, регламенты, гарантийные случаи).</p>
-        <div class="toolbar"><input class="search" id="kbQ" placeholder="Что искать: шпиндель, регламент ТО, гарантия…"><button class="btn" id="kbGo" style="width:auto;padding:10px 16px;">Найти</button></div>
+        <div class="toolbar"><input class="search" id="kbQ" placeholder="Что искать: шпиндель, регламент ТО, гарантия…"><button class="btn" id="kbGo" style="padding:10px 16px;">Найти</button></div>
         <div id="kbRes" style="overflow:auto;"><span class="note">Введите запрос и нажмите «Найти».</span></div>
       </div>
       <div class="card">
@@ -202,9 +202,9 @@
       <div class="kpi-row" id="repKpis"></div>
       <div class="card mt">
         <div class="toolbar"><h2 style="margin:0;flex:1;">Отчёты сервиса</h2>
-          <button class="btn secondary" id="repCsv" style="width:auto;padding:9px 14px;">CSV</button>
-          <button class="btn secondary" id="repDoc" style="width:auto;padding:9px 14px;">DOC</button>
-          <button class="btn" id="repPdf" style="width:auto;padding:9px 14px;">📄 PDF</button>
+          <button class="btn secondary" id="repCsv" style="padding:9px 14px;">CSV</button>
+          <button class="btn secondary" id="repDoc" style="padding:9px 14px;">DOC</button>
+          <button class="btn" id="repPdf" style="padding:9px 14px;">📄 PDF</button>
         </div>
         <div class="form-grid">
           <div class="field"><label>С даты</label><input type="date" id="repFrom"></div>
@@ -219,7 +219,7 @@
     <section class="screen" id="s-proc" data-cap="list">
       <div class="card">
         <div class="toolbar"><h2 style="margin:0;flex:1;">Процессный подход: от рабочего до директора</h2>
-          <button class="btn secondary" id="procPdf" style="width:auto;padding:9px 14px;">📄 Процесс в PDF</button>
+          <button class="btn secondary" id="procPdf" style="padding:9px 14px;">📄 Процесс в PDF</button>
         </div>
         <p class="note">Сквозной процесс сервиса: кто, что делает, где это в системе и где учитываются затраты, закупка, гарантия и KPI. Пример: на станке загудел шпиндель.</p>
         <div id="procFlow"><span class="note">Загрузка…</span></div>
@@ -231,7 +231,7 @@
       <div class="card">
         <h2>Матрица доступа: роли и разделы сервиса</h2>
         <p class="note">Какие дашборды и разделы видит каждая роль службы (по оргструктуре предприятия).</p>
-        <div id="accessMatrix" style="overflow:auto;"><span class="note">Загрузка…</span></div>
+        <div id="accessMatrix" class="tbl-wrap"><span class="note">Загрузка…</span></div>
       </div>
     </section>
 
@@ -254,7 +254,7 @@
       <div class="card">
         <h2>Поиск станков и гарантий</h2>
         <p class="note">Поиск по названию, инвентарному коду, номеру гарантии или лицензии (WR-…). Из результата — переход в паспорт станка.</p>
-        <div class="toolbar"><input class="search" id="eqQ" placeholder="Станок, код, WR-…, гарантия…"><button class="btn" id="eqFindGo" style="width:auto;padding:10px 16px;">Найти</button></div>
+        <div class="toolbar"><input class="search" id="eqQ" placeholder="Станок, код, WR-…, гарантия…"><button class="btn" id="eqFindGo" style="padding:10px 16px;">Найти</button></div>
         <div class="msg" id="eqMsg"></div>
         <div id="eqRes" style="overflow:auto;"><span class="note">Введите запрос и нажмите «Найти».</span></div>
       </div>
@@ -266,7 +266,7 @@
       <div class="card" id="passport"><span class="note">Загрузка…</span></div>
       <div class="card">
         <div class="toolbar"><h2 style="margin:0;flex:1;">Открытые заявки по станку</h2>
-          <button class="btn secondary" data-cap="new" id="eqNewReq" style="width:auto;padding:8px 14px;">＋ Заявка по станку</button>
+          <button class="btn secondary" data-cap="new" id="eqNewReq">＋ Заявка по станку</button>
         </div>
         <div id="eqOpen" style="overflow:auto;"><span class="note">—</span></div>
       </div>
@@ -297,3 +297,4 @@
   <script src="../../assets/js/module-info.js?v=2"></script>
 </body>
 </html>
+html>

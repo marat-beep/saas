@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Кадры (КЭДО) — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 </head>
 <body>
   <header class="topbar">
@@ -42,7 +42,7 @@
           <select id="status" style="padding:9px;border:1px solid var(--border);border-radius:9px;">
             <option value="">Все</option><option value="draft">Черновик</option><option value="sent">Отправлен</option><option value="signed">Подписан</option><option value="declined">Отклонён</option><option value="archived">Архив</option>
           </select>
-          <button class="btn" data-cap="edit" id="add" style="width:auto;padding:8px 14px;">＋ Документ</button>
+          <button class="btn" data-cap="edit" id="add">＋ Документ</button>
         </div>
         <div id="docs" class="mt"><span class="note">Загрузка…</span></div>
       </div>
@@ -52,7 +52,7 @@
       <div class="card">
         <div class="toolbar">
           <span class="note">Массовое ознакомление: по списку сотрудников создаются документы, подпись отслеживается по каждому.</span>
-          <button class="btn" data-cap="edit" id="bulkAdd" style="width:auto;padding:8px 14px;margin-left:auto;">＋ Ознакомление</button>
+          <button class="btn" data-cap="edit" id="bulkAdd" style="padding:8px 14px;margin-left:auto;">＋ Ознакомление</button>
         </div>
         <div id="bulks" class="mt"><span class="note">Загрузка…</span></div>
       </div>
@@ -62,7 +62,7 @@
       <div class="card">
         <div class="toolbar">
           <span class="note">Маршруты кадровых документов (движок согласований). Мои этапы — ниже.</span>
-          <button class="btn" data-cap="edit" id="routeAdd" style="width:auto;padding:8px 14px;margin-left:auto;">＋ Маршрут</button>
+          <button class="btn" data-cap="edit" id="routeAdd" style="padding:8px 14px;margin-left:auto;">＋ Маршрут</button>
         </div>
         <div id="routes" class="mt"><span class="note">Загрузка…</span></div>
         <h2 class="mt">Мои этапы согласования</h2>
@@ -71,18 +71,18 @@
     </section>
 
     <section class="screen" id="scr-me">
-      <div class="card"><div class="toolbar"><button class="btn secondary" id="meBtn" style="width:auto;padding:8px 14px;">Обновить</button>
+      <div class="card"><div class="toolbar"><button class="btn secondary" id="meBtn">Обновить</button>
         <span class="note" style="margin-left:auto;">Документы, адресованные вам: ознакомление и подпись.</span></div>
         <div id="my" class="mt"><span class="note">Загрузка…</span></div></div>
     </section>
 
     <section class="screen" id="scr-tpl">
-      <div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addTpl" style="width:auto;padding:8px 14px;">＋ Шаблон</button></div>
+      <div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addTpl">＋ Шаблон</button></div>
         <div id="tpl" class="mt"><span class="note">Загрузка…</span></div></div>
     </section>
 
     <section class="screen" id="scr-mchd">
-      <div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addMchd" style="width:auto;padding:8px 14px;">＋ МЧД</button></div>
+      <div class="card"><div class="toolbar"><button class="btn" data-cap="edit" id="addMchd">＋ МЧД</button></div>
         <div id="mchd" class="mt"><span class="note">Загрузка…</span></div></div>
     </section>
   </main>

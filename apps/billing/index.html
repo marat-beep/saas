@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Биллинг и подписки — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 <style>
   .bl-prog { height:8px; border-radius:999px; background:#eef2f7; overflow:hidden; margin-top:5px; }
   .bl-prog > i { display:block; height:100%; border-radius:999px; background:var(--accent); }
@@ -52,7 +52,7 @@
           <h2>Подписка организации</h2>
           <div id="sub"></div>
           <div class="sv-actions mt">
-            <button class="btn" id="btnSub" data-cap="edit" style="width:auto;padding:9px 16px;">Изменить подписку</button>
+            <button class="btn" id="btnSub" data-cap="edit" style="padding:9px 16px;">Изменить подписку</button>
           </div>
         </div>
         <div class="card" id="usageCard" style="display:none;">
@@ -76,8 +76,8 @@
     <section class="screen" id="scr-invoices">
       <div class="card">
         <div class="toolbar">
-          <button class="btn" id="btnInv" data-cap="platform" style="width:auto;padding:9px 16px;">＋ Счёт</button>
-          <button class="btn" id="btnGen" data-cap="platform" style="width:auto;padding:9px 16px;">Сформировать за период</button>
+          <button class="btn" id="btnInv" data-cap="platform" style="padding:9px 16px;">＋ Счёт</button>
+          <button class="btn" id="btnGen" data-cap="platform" style="padding:9px 16px;">Сформировать за период</button>
           <button class="act" id="btnInvPdf">Отчёт PDF</button>
           <button class="act" id="btnInvCsv">CSV</button>
           <span class="note" style="margin-left:auto;">Номера: PLT-ГГГГ-NNNNN. Статусы: черновик → выставлен → оплачен / просрочен.</span>
@@ -93,7 +93,7 @@
     <section class="screen" id="scr-health">
       <div class="card">
         <div class="toolbar">
-          <button class="btn" id="btnScan" style="width:auto;padding:9px 16px;">↻ Проверить сейчас</button>
+          <button class="btn" id="btnScan" style="padding:9px 16px;">↻ Проверить сейчас</button>
           <span class="note" style="margin-left:auto;">Проверки: БД, таблицы, функции, Realtime, очередь интеграций, просрочка счетов.</span>
         </div>
         <div class="msg" id="hMsg"></div>

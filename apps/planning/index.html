@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Планирование — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 <style>
   .tabs2 { display:flex; gap:4px; background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:4px; margin-bottom:14px; width:fit-content; }
   .tabs2 button { padding:8px 16px; border:none; background:transparent; border-radius:8px; font-weight:600; font-size:.82rem; color:var(--muted); cursor:pointer; }
@@ -90,8 +90,8 @@
     <section class="tab" id="t-aps" style="display:none;">
       <div class="card">
         <div class="toolbar">
-          <button class="btn secondary" id="apsBuild" style="width:auto;padding:8px 14px;">Построить план</button>
-          <button class="btn" id="apsApply" style="width:auto;padding:8px 14px;">Применить план</button>
+          <button class="btn secondary" id="apsBuild">Построить план</button>
+          <button class="btn" id="apsApply">Применить план</button>
           <span class="note" style="margin-left:auto;">Распределение нарядов по слотам с учётом мощности и сроков; при риске просрочки — отметка «риск».</span>
         </div>
         <div class="msg" id="aMsg"></div>
@@ -105,9 +105,9 @@
     <section class="tab" id="t-ana" style="display:none;">
       <div class="card">
         <div class="toolbar">
-          <button class="btn secondary" id="anaAps" style="width:auto;padding:8px 14px;">APS-очередь</button>
-          <button class="btn secondary" id="anaMnt" style="width:auto;padding:8px 14px;">Предиктив ТОиР</button>
-          <button class="btn secondary" id="anaSpc" style="width:auto;padding:8px 14px;">SPC-сигналы</button>
+          <button class="btn secondary" id="anaAps">APS-очередь</button>
+          <button class="btn secondary" id="anaMnt">Предиктив ТОиР</button>
+          <button class="btn secondary" id="anaSpc">SPC-сигналы</button>
           <span class="note" style="margin-left:auto;">Аналитика производства: очередь с приоритетами, риск оборудования, сигналы ОТК.</span>
         </div>
         <div class="msg" id="anaMsg"></div>
@@ -118,19 +118,19 @@
     <section class="tab" id="t-scn" style="display:none;">
       <div class="msg" id="scnMsg"></div>
       <div class="card">
-        <div class="toolbar"><h2 style="margin:0;">Сценарии APS</h2><button class="btn secondary" id="scnAdd" style="width:auto;padding:8px 14px;margin-left:auto;">＋ Сценарий</button></div>
+        <div class="toolbar"><h2 style="margin:0;">Сценарии APS</h2><button class="btn secondary" id="scnAdd" style="padding:8px 14px;margin-left:auto;">＋ Сценарий</button></div>
         <p class="note">Именованные сценарии планирования (дата старта, горизонт). «Построить» — показать план по сценарию, «Применить» — записать плановые сроки нарядов.</p>
         <div id="scnList"><span class="note">Загрузка…</span></div>
         <h3 class="mt">План по сценарию</h3>
         <div id="scnOut"><span class="note">Выберите «Построить» у сценария.</span></div>
       </div>
       <div class="card">
-        <div class="toolbar"><h2 style="margin:0;">Переналадки (нормы)</h2><button class="btn secondary" id="coAdd" style="width:auto;padding:8px 14px;margin-left:auto;">＋ Переналадка</button></div>
+        <div class="toolbar"><h2 style="margin:0;">Переналадки (нормы)</h2><button class="btn secondary" id="coAdd" style="padding:8px 14px;margin-left:auto;">＋ Переналадка</button></div>
         <p class="note">Время перехода между семействами деталей (мин). Используется в расчёте при смене группы.</p>
         <div id="coList"><span class="note">Загрузка…</span></div>
       </div>
       <div class="card">
-        <div class="toolbar"><h2 style="margin:0;">Зависимости Ганта</h2><button class="btn secondary" id="depAdd" style="width:auto;padding:8px 14px;">＋ Связь</button><button class="btn secondary" id="depCheckBtn" style="width:auto;padding:8px 14px;">Проверить нарушения</button></div>
+        <div class="toolbar"><h2 style="margin:0;">Зависимости Ганта</h2><button class="btn secondary" id="depAdd">＋ Связь</button><button class="btn secondary" id="depCheckBtn">Проверить нарушения</button></div>
         <p class="note">Связь «наряд → предшественник» с лагом в днях. Проверка показывает, где план нарушает последовательность.</p>
         <div id="depList" class="mt"><span class="note">Загрузка…</span></div>
         <div id="depCheck" class="mt"></div>

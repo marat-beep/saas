@@ -129,12 +129,12 @@
       return true;
     });
     $('#refCnt').textContent = '(' + list.length + ')';
-    $('#refList').innerHTML = '<table class="tab"><thead><tr><th>Марка</th><th>Группа</th><th>ГОСТ</th><th>ρ, г/см³</th><th>σв, МПа</th><th>HB/HRC</th><th>₽/кг</th><th>Применение</th></tr></thead><tbody>' +
+    $('#refList').innerHTML = '<div class="tbl-wrap"><table class="tab"><thead><tr><th>Марка</th><th>Группа</th><th>ГОСТ</th><th>ρ, г/см³</th><th>σв, МПа</th><th>HB/HRC</th><th>₽/кг</th><th>Применение</th></tr></thead><tbody>' +
       (list.length ? list.map(function (g) {
         return '<tr><td><b>' + esc(g.grade) + '</b></td><td><span class="b">' + esc(GRP[g.group_code] || g.group_code) + '</span></td>' +
           '<td>' + esc(g.standard || '—') + '</td><td>' + num(g.density) + '</td><td>' + num(g.tensile) + '</td>' +
           '<td>' + num(g.hardness) + '</td><td>' + fmt(g.price) + '</td><td>' + esc(g.note || '') + '</td></tr>';
-      }).join('') : '<tr><td colspan="8"><span class="note">Ничего не найдено.</span></td></tr>') + '</tbody></table>';
+      }).join('') : '<tr><td colspan="8"><span class="note">Ничего не найдено.</span></td></tr>') + '</tbody></table></div>';
   }
 
   var TCOL = {
@@ -169,14 +169,14 @@
       return cols.map(function (c) { var v = row[c[0]]; return v == null ? '' : String(v); }).join(' ').toLowerCase().indexOf(s) >= 0;
     });
     $('#techCnt').textContent = rows.length + ' записей';
-    $('#techList').innerHTML = '<table class="tab"><thead><tr>' + cols.map(function (c) { return '<th>' + esc(c[1]) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+    $('#techList').innerHTML = '<div class="tbl-wrap"><table class="tab"><thead><tr>' + cols.map(function (c) { return '<th>' + esc(c[1]) + '</th>'; }).join('') + '</tr></thead><tbody>' +
       (rows.length ? rows.map(function (row) {
         return '<tr>' + cols.map(function (c) {
           var v = row[c[0]];
           var strong = (c[0] === 'code' || c[0] === 'model' || c[0] === 'designation' || c[0] === 'name' || c[0] === 'kind');
           return '<td>' + (strong && v ? '<b>' + cellV(v) + '</b>' : cellV(v)) + '</td>';
         }).join('') + '</tr>';
-      }).join('') : '<tr><td colspan="' + cols.length + '"><span class="note">Ничего не найдено.</span></td></tr>') + '</tbody></table>';
+      }).join('') : '<tr><td colspan="' + cols.length + '"><span class="note">Ничего не найдено.</span></td></tr>') + '</tbody></table></div>';
   }
 
   function openTp(id) {

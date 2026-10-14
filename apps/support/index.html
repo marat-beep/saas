@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Служба поддержки — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 <style>
   .msg-row{border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin:6px 0;background:#fff}
   .msg-row.int{border-color:var(--warning,#f59e0b);background:#fffbeb}
@@ -41,7 +41,7 @@
         <select id="fStatus" style="padding:9px;border:1px solid var(--border);border-radius:9px;"><option value="">Все статусы</option><option value="new">Новые</option><option value="open">Открытые</option><option value="in_progress">В работе</option><option value="waiting">Ожидание</option><option value="resolved">Решённые</option><option value="closed">Закрытые</option></select>
         <select id="fScope" style="padding:9px;border:1px solid var(--border);border-radius:9px;"><option value="">Все уровни</option><option value="internal">Внутренние</option><option value="platform">Платформа</option></select>
         <label class="note"><input type="checkbox" id="fMine"> Только мои</label>
-        <button class="btn secondary" id="scanBtn" style="width:auto;padding:8px 14px;">Проверить SLA</button>
+        <button class="btn secondary" id="scanBtn">Проверить SLA</button>
       </div>
       <h2>Тикеты <span class="note" id="cnt"></span></h2>
       <div id="list" class="mt"><span class="note">Загрузка…</span></div>
@@ -54,10 +54,10 @@
       <div class="note" id="cIssue"></div>
       <div class="toolbar mt">
         <select id="cStatus" style="padding:9px;border:1px solid var(--border);border-radius:9px;"><option value="open">Открыт</option><option value="in_progress">В работе</option><option value="waiting">Ожидание</option><option value="resolved">Решён</option><option value="closed">Закрыт</option></select>
-        <button class="btn secondary" id="cSet" style="width:auto;padding:8px 14px;">Сменить статус</button>
-        <button class="btn secondary" id="cAssign" style="width:auto;padding:8px 14px;">Назначить</button>
-        <button class="btn secondary" id="cEsc" style="width:auto;padding:8px 14px;">Эскалировать</button>
-        <button class="btn secondary" id="cCsat" style="width:auto;padding:8px 14px;">Оценить (CSAT)</button>
+        <button class="btn secondary" id="cSet">Сменить статус</button>
+        <button class="btn secondary" id="cAssign">Назначить</button>
+        <button class="btn secondary" id="cEsc">Эскалировать</button>
+        <button class="btn secondary" id="cCsat">Оценить (CSAT)</button>
       </div>
       <div id="messages" class="mt"></div>
       <div class="field mt"><label>Ответ</label><textarea id="cBody" rows="3" style="width:100%;padding:9px;border:1px solid var(--border);border-radius:9px;"></textarea></div>

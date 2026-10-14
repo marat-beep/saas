@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Инструмент и стойкость — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 <style>
   .life{height:10px;border-radius:6px;background:#eef2f7;overflow:hidden;margin-top:6px}
   .life i{display:block;height:100%}
@@ -73,19 +73,19 @@
       <div class="msg" id="t2m"></div>
 
       <section class="screen t2scr active" id="t2-items">
-        <div class="toolbar"><button class="btn" data-cap="edit" id="t2add" style="width:auto;padding:8px 14px;">＋ Экземпляр</button>
+        <div class="toolbar"><button class="btn" data-cap="edit" id="t2add">＋ Экземпляр</button>
           <span class="note" style="margin-left:auto;">Выдача/возврат/установка на станок, история и наработка по каждому экземпляру.</span></div>
         <div id="t2items" class="mt"><span class="note">Загрузка…</span></div>
       </section>
 
       <section class="screen t2scr" id="t2-catalog">
-        <div class="toolbar"><button class="btn" data-cap="edit" id="t2addCat" style="width:auto;padding:8px 14px;">＋ Позиция каталога</button>
+        <div class="toolbar"><button class="btn" data-cap="edit" id="t2addCat">＋ Позиция каталога</button>
           <span class="note" style="margin-left:auto;">Цифровой каталог производителей с аналогами.</span></div>
         <div id="t2cat" class="mt"><span class="note">Загрузка…</span></div>
       </section>
 
       <section class="screen t2scr" id="t2-inv">
-        <div class="toolbar"><button class="btn" data-cap="edit" id="t2invStart" style="width:auto;padding:8px 14px;">Начать инвентаризацию</button>
+        <div class="toolbar"><button class="btn" data-cap="edit" id="t2invStart">Начать инвентаризацию</button>
           <span class="note" style="margin-left:auto;">Скан по серийному номеру/метке; расхождения фиксируются.</span></div>
         <div id="t2inv" class="mt"><span class="note">Загрузка…</span></div>
         <div id="t2invPanel" class="mt"></div>
@@ -95,7 +95,7 @@
         <div class="toolbar">
           <label class="note">Маршрут:</label><select id="t2routeSel" style="padding:9px;border:1px solid var(--border);border-radius:9px;min-width:220px;"></select>
           <label class="note">Операция:</label><select id="t2stepSel" style="padding:9px;border:1px solid var(--border);border-radius:9px;min-width:200px;"></select>
-          <button class="btn" data-cap="edit" id="t2addRt" style="width:auto;padding:8px 14px;">＋ Инструмент</button>
+          <button class="btn" data-cap="edit" id="t2addRt">＋ Инструмент</button>
         </div>
         <div id="t2rtools" class="mt"><span class="note">Загрузка…</span></div>
       </section>

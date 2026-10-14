@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Диагностика — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 <style>
   .checks{list-style:none}
   .chk{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--border);font-size:.84rem}
@@ -34,8 +34,8 @@
     <div class="card mt">
       <h2>Проверки</h2>
       <div class="btn-row" style="margin-bottom:8px;">
-        <button class="btn" id="run" style="width:auto;padding:11px 18px;">Запустить проверку</button>
-        <button class="btn secondary" id="copy" style="width:auto;padding:11px 18px;">Скопировать отчёт</button>
+        <button class="btn" id="run" style="padding:11px 18px;">Запустить проверку</button>
+        <button class="btn secondary" id="copy" style="padding:11px 18px;">Скопировать отчёт</button>
       </div>
       <ul class="checks" id="checks"><li class="chk wait"><span class="mark">…</span><span>Ожидание запуска</span></li></ul>
       <div class="msg" id="msg"></div>
@@ -44,8 +44,8 @@
     <div class="card mt">
       <h2>Мониторинг доступности (SLA платформы)</h2>
       <div class="btn-row" style="margin-bottom:8px;align-items:center;">
-        <button class="btn" id="mScan" style="width:auto;padding:11px 18px;">Проверить сейчас</button>
-        <button class="btn secondary" id="mRefresh" style="width:auto;padding:11px 18px;">Обновить</button>
+        <button class="btn" id="mScan" style="padding:11px 18px;">Проверить сейчас</button>
+        <button class="btn secondary" id="mRefresh" style="padding:11px 18px;">Обновить</button>
         <span class="note" id="mWhen" style="margin-left:auto;">—</span>
       </div>
       <div class="kpi" id="mKpis"></div>

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Процессы и автоматизация — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 <style>
   .num{text-align:right;font-variant-numeric:tabular-nums}
   .chip{display:inline-block;font-size:.72rem;padding:2px 8px;border-radius:999px;background:#f1f5f9;border:1px solid var(--border);margin:0 4px 4px 0}
@@ -31,7 +31,7 @@
 
     <section class="screen active" id="scr-defs">
       <div class="card">
-        <div class="toolbar"><button class="btn" id="newDef" data-cap="edit" style="width:auto;padding:8px 14px;">＋ Процесс</button>
+        <div class="toolbar"><button class="btn" id="newDef" data-cap="edit">＋ Процесс</button>
           <span class="note" style="margin-left:auto;">Шаги: роль/исполнитель, срок (SLA, ч). Запуск создаёт задачи этапов.</span></div>
         <div class="msg" id="dMsg"></div>
         <div id="defs" class="mt"><span class="note">Загрузка…</span></div>
@@ -40,7 +40,7 @@
 
     <section class="screen" id="scr-my">
       <div class="card">
-        <div class="toolbar"><button class="btn secondary" id="myBtn" style="width:auto;padding:8px 14px;">Обновить</button></div>
+        <div class="toolbar"><button class="btn secondary" id="myBtn">Обновить</button></div>
         <div class="msg" id="mMsg"></div>
         <div id="my" class="mt"><span class="note">Загрузка…</span></div>
       </div>
@@ -50,14 +50,14 @@
       <div class="card">
         <div class="toolbar"><select id="iStatus" style="padding:9px;border:1px solid var(--border);border-radius:9px;">
           <option value="">Все</option><option value="running">В работе</option><option value="done">Завершены</option><option value="rejected">Отклонены</option><option value="cancelled">Отменены</option>
-        </select><button class="btn secondary" id="instBtn" style="width:auto;padding:8px 14px;">Обновить</button></div>
+        </select><button class="btn secondary" id="instBtn">Обновить</button></div>
         <div id="inst" class="mt"><span class="note">Загрузка…</span></div>
       </div>
     </section>
 
     <section class="screen" id="scr-rules">
       <div class="card">
-        <div class="toolbar"><button class="btn" id="newRule" data-cap="edit" style="width:auto;padding:8px 14px;">＋ Правило</button>
+        <div class="toolbar"><button class="btn" id="newRule" data-cap="edit">＋ Правило</button>
           <span class="note" style="margin-left:auto;">Событие + условие (field/op/value) + действия (notify/audit/start_process).</span></div>
         <div class="msg" id="rMsg"></div>
         <div id="rules" class="mt"><span class="note">Загрузка…</span></div>
@@ -66,7 +66,7 @@
 
     <section class="screen" id="scr-forms">
       <div class="card">
-        <div class="toolbar"><button class="btn" id="newForm" data-cap="edit" style="width:auto;padding:8px 14px;">＋ Форма</button>
+        <div class="toolbar"><button class="btn" id="newForm" data-cap="edit">＋ Форма</button>
           <span class="note" style="margin-left:auto;">Кастомные поля карточек модулей (без миграций).</span></div>
         <div class="msg" id="fMsg"></div>
         <div id="forms" class="mt"><span class="note">Загрузка…</span></div>

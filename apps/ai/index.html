@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ИИ-помощник — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 <style>
   .ai-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
   .ai-card{border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:#fff}
@@ -39,8 +39,8 @@
 
     <section class="screen active" id="scr-norm">
       <div class="card">
-        <div class="toolbar"><button class="btn secondary" id="normBtn" style="width:auto;padding:8px 14px;">Рассчитать</button>
-          <button class="btn" id="normApply" style="width:auto;padding:8px 14px;">Применить выбранные</button>
+        <div class="toolbar"><button class="btn secondary" id="normBtn">Рассчитать</button>
+          <button class="btn" id="normApply">Применить выбранные</button>
           <span class="note" style="margin-left:auto;">Предложение по нормам: из действующих норм и среднего факта; confidence растёт с числом наблюдений.</span></div>
         <div class="msg" id="nMsg"></div>
         <div id="norm" class="mt"><span class="note">Нажмите «Рассчитать».</span></div>
@@ -50,7 +50,7 @@
     <section class="screen" id="scr-cv">
       <div class="card">
         <div class="toolbar"><label class="note">Проверка ОТК:</label><select id="cvSel" style="padding:9px;border:1px solid var(--border);border-radius:9px;min-width:260px;"></select>
-          <button class="btn" id="cvBtn" style="width:auto;padding:8px 14px;">Оценить</button>
+          <button class="btn" id="cvBtn">Оценить</button>
           <span class="note" style="margin-left:auto;">Пилот CV-ОТК: доля брака по чек-листу и фото; реальная CV-модель подключается через интеграции.</span></div>
         <div class="msg" id="cMsg"></div>
         <div id="cvRes" class="mt"><span class="note">Выберите проверку и нажмите «Оценить».</span></div>
@@ -59,7 +59,7 @@
 
     <section class="screen" id="scr-twin">
       <div class="card">
-        <div class="toolbar"><button class="btn secondary" id="twinBtn" style="width:auto;padding:8px 14px;">Обновить</button>
+        <div class="toolbar"><button class="btn secondary" id="twinBtn">Обновить</button>
           <span class="note" style="margin-left:auto;">Цифровой двойник: узкие места по срокам, запасам, инструменту и загрузке.</span></div>
         <div class="msg" id="tMsg"></div>
         <div class="ai-grid mt" id="twin"></div>
@@ -69,7 +69,7 @@
     <section class="screen" id="scr-ask">
       <div class="card">
         <div class="toolbar"><input type="text" class="search" id="askQ" placeholder="Вопрос по работе сервиса…" style="flex:1;min-width:220px;">
-          <button class="btn" id="askBtn" style="width:auto;padding:9px 16px;">Спросить</button></div>
+          <button class="btn" id="askBtn" style="padding:9px 16px;">Спросить</button></div>
         <div class="msg" id="aMsg"></div>
         <div id="askRes" class="mt"></div>
       </div>
@@ -79,7 +79,7 @@
       <div class="card">
         <div class="toolbar"><label class="note">Тип:</label><select id="jKind" style="padding:9px;border:1px solid var(--border);border-radius:9px;">
           <option value="">Все</option><option value="norming">Нормирование</option><option value="cv_qc">CV-ОТК</option><option value="twin">Двойник</option><option value="llm">Помощник</option>
-        </select><button class="btn secondary" id="jobsBtn" style="width:auto;padding:8px 14px;">Обновить</button></div>
+        </select><button class="btn secondary" id="jobsBtn">Обновить</button></div>
         <div id="jobs" class="mt"><span class="note">Загрузка…</span></div>
       </div>
     </section>

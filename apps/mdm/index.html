@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>НСИ / Мастер-данные — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 <style>.num{text-align:right;font-variant-numeric:tabular-nums}</style>
 </head>
 <body>
@@ -34,7 +34,7 @@
             <option value="">Все типы</option><option value="material">Материалы</option><option value="product">Изделия</option>
             <option value="service">Услуги</option><option value="equipment">Оборудование</option><option value="tool">Инструмент</option><option value="other">Прочее</option>
           </select>
-          <button class="btn" data-cap="edit" id="add" style="width:auto;padding:8px 14px;">＋ Позиция</button>
+          <button class="btn" data-cap="edit" id="add">＋ Позиция</button>
           <button class="act" id="expCsv">CSV</button><button class="act" id="expPdf">PDF</button>
         </div>
         <div id="list" class="mt"><span class="note">Загрузка…</span></div>
@@ -43,7 +43,7 @@
 
     <section class="screen" id="scr-dup">
       <div class="card">
-        <div class="toolbar"><button class="btn secondary" id="dupBtn" style="width:auto;padding:8px 14px;">Обновить</button>
+        <div class="toolbar"><button class="btn secondary" id="dupBtn">Обновить</button>
           <span class="note" style="margin-left:auto;">Группы позиций с одинаковым наименованием. Слияние переносит коды/атрибуты и архивирует дубль.</span></div>
         <div id="dups" class="mt"><span class="note">Загрузка…</span></div>
       </div>
@@ -51,7 +51,7 @@
 
     <section class="screen" id="scr-imp">
       <div class="card">
-        <div class="toolbar"><button class="btn" data-cap="edit" id="impBtn" style="width:auto;padding:8px 14px;">Импортировать</button></div>
+        <div class="toolbar"><button class="btn" data-cap="edit" id="impBtn">Импортировать</button></div>
         <p class="note">JSON-массив: [{"code":"MAT-1","name":"...","item_type":"material","unit":"кг","external":{"1c":"00-1"}}]. Upsert по коду.</p>
         <div class="field"><textarea id="imp" rows="8" style="width:100%;font-family:monospace;"></textarea></div>
       </div>

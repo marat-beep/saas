@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Права и согласования — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 <style>
   .badge.on{background:#dcfce7;color:#166534}.badge.off{background:#fee2e2;color:#991b1b}
   .num{text-align:right;font-variant-numeric:tabular-nums}
@@ -32,7 +32,7 @@
 
     <section class="screen active" id="scr-sets">
       <div class="card">
-        <div class="toolbar"><button class="btn" id="newSet" style="width:auto;padding:8px 14px;">＋ Новый набор</button>
+        <div class="toolbar"><button class="btn" id="newSet">＋ Новый набор</button>
           <span class="note" style="margin-left:auto;">Права наборов дополняют матрицу ролей и действуют на роль/пользователя/подразделение.</span></div>
         <div class="msg" id="sMsg"></div>
         <div id="sets" class="mt"><span class="note">Загрузка…</span></div>
@@ -46,7 +46,7 @@
 
     <section class="screen" id="scr-deleg">
       <div class="card">
-        <div class="toolbar"><button class="btn" id="newDel" style="width:auto;padding:8px 14px;">＋ Делегировать полномочия</button>
+        <div class="toolbar"><button class="btn" id="newDel">＋ Делегировать полномочия</button>
           <span class="note" style="margin-left:auto;">Пока делегирование активно, получатель обладает указанными правами (учитывается при проверке прав).</span></div>
         <div class="msg" id="dMsg"></div>
         <div id="dels" class="mt"><span class="note">Загрузка…</span></div>
@@ -55,8 +55,8 @@
 
     <section class="screen" id="scr-approve">
       <div class="card">
-        <div class="toolbar"><button class="btn" id="newRoute" style="width:auto;padding:8px 14px;">＋ Маршрут</button>
-          <button class="btn secondary" id="newReq" style="width:auto;padding:8px 14px;">Отправить на согласование</button></div>
+        <div class="toolbar"><button class="btn" id="newRoute">＋ Маршрут</button>
+          <button class="btn secondary" id="newReq">Отправить на согласование</button></div>
         <div class="msg" id="aMsg"></div>
         <h3>Мои согласования</h3>
         <div id="myAppr" class="mt"><span class="note">Загрузка…</span></div>
@@ -69,7 +69,7 @@
 
     <section class="screen" id="scr-audit">
       <div class="card">
-        <div class="toolbar"><button class="btn" id="newPol" style="width:auto;padding:8px 14px;">＋ Политика аудита</button>
+        <div class="toolbar"><button class="btn" id="newPol">＋ Политика аудита</button>
           <span class="note" style="margin-left:auto;">Расширенный аудит: политики по подразделениям/модулям + журнал событий.</span></div>
         <div class="msg" id="auMsg"></div>
         <h3>Политики</h3>

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Склад — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 <style>
   .mcard.low { border-left:4px solid var(--danger); }
 </style>
@@ -41,8 +41,8 @@
             <span class="chip active" data-f="">Все</span>
             <span class="chip" data-f="low">Ниже минимума</span>
           </div>
-          <button class="btn secondary" data-cap="edit" id="toWms" style="width:auto;padding:11px 18px;">🏬 Адреса и партии</button>
-          <button class="btn" data-cap="edit" id="toForm" style="width:auto;padding:11px 18px;">＋ Новый материал</button>
+          <button class="btn secondary" data-cap="edit" id="toWms" style="padding:11px 18px;">🏬 Адреса и партии</button>
+          <button class="btn" data-cap="edit" id="toForm" style="padding:11px 18px;">＋ Новый материал</button>
         </div>
         <div id="listMsg"></div>
         <div class="olist mt" id="list"><span class="note">Загрузка…</span></div>
@@ -94,13 +94,13 @@
       <div class="kpi-row" id="wmsKpis"></div>
 
       <div class="card mt">
-        <div class="toolbar"><h2 style="margin:0;flex:1;">Адреса хранения</h2><button class="btn secondary" data-cap="edit" id="addrAdd" style="width:auto;padding:8px 14px;">＋ Адрес</button></div>
+        <div class="toolbar"><h2 style="margin:0;flex:1;">Адреса хранения</h2><button class="btn secondary" data-cap="edit" id="addrAdd">＋ Адрес</button></div>
         <div class="msg" id="wmsMsg"></div>
         <div id="addrList" class="mt"><span class="note">—</span></div>
       </div>
 
       <div class="card">
-        <div class="toolbar"><h2 style="margin:0;flex:1;">Остатки по адресам</h2><button class="btn" data-cap="edit" id="placeBtn" style="width:auto;padding:8px 14px;">＋ Разместить</button></div>
+        <div class="toolbar"><h2 style="margin:0;flex:1;">Остатки по адресам</h2><button class="btn" data-cap="edit" id="placeBtn">＋ Разместить</button></div>
         <div class="form-grid">
           <div class="field"><label>Материал</label><select id="stMat"><option value="">— все —</option></select></div>
           <div class="field"><label>Адрес</label><select id="stAddr"><option value="">— все —</option></select></div>
@@ -118,7 +118,7 @@
       <div class="note">Прослеживаемость «партия → движение → наряд → паспорт».</div>
       <div class="toolbar" style="margin-top:8px;"><label class="note">Партия:</label>
         <select id="genLot" style="padding:9px;border:1px solid var(--border);border-radius:9px;min-width:240px;"></select>
-        <button class="btn secondary" id="genBtn" style="width:auto;padding:8px 14px;">Показать</button></div>
+        <button class="btn secondary" id="genBtn">Показать</button></div>
       <div class="msg" id="genMsg"></div>
       <div id="genChain" class="mt"></div>
       <h3 class="mt">Связи партии (наряд/паспорт)</h3>

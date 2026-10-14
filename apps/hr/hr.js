@@ -271,9 +271,9 @@
   /* ---------- Доступ по ролям ---------- */
   function renderCaps() {
     var rows = ['admin', 'owner', 'director', 'manager', 'chief', 'hr', 'support'];
-    $('#caps').innerHTML = '<table class="matrix"><thead><tr><th>Роль</th><th>Правка</th><th>Отчёты</th></tr></thead><tbody>' +
+    $('#caps').innerHTML = '<div class="tbl-wrap"><table class="matrix"><thead><tr><th>Роль</th><th>Правка</th><th>Отчёты</th></tr></thead><tbody>' +
       rows.map(function (r) { var c = CAPS[r] || {}; return '<tr><td>' + esc(role(r)) + '</td><td>' + (c.edit ? '✔' : '—') + '</td><td>' + (c.reports ? '✔' : '—') + '</td></tr>'; }).join('') +
-      '</tbody></table>';
+      '</tbody></table></div>';
   }
 
   /* ---------- Отчёт ---------- */

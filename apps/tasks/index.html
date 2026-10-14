@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Задачи и проекты — 3DMP Service</title>
-<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
 <style>
   .num{text-align:right;font-variant-numeric:tabular-nums}
   .kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
@@ -37,7 +37,7 @@
     <section class="screen active" id="scr-prj">
       <div class="card">
         <div class="toolbar"><input type="search" class="search" id="pq" placeholder="Поиск проекта…">
-          <button class="btn" data-cap="edit" id="addPrj" style="width:auto;padding:8px 14px;">＋ Проект</button></div>
+          <button class="btn" data-cap="edit" id="addPrj">＋ Проект</button></div>
         <div id="projects" class="mt"><span class="note">Загрузка…</span></div>
       </div>
     </section>
@@ -45,13 +45,13 @@
     <section class="screen" id="scr-board">
       <div class="card">
         <div class="toolbar"><label class="note">Проект:</label><select id="prjSel" style="padding:9px;border:1px solid var(--border);border-radius:9px;min-width:220px;"></select>
-          <button class="btn" data-cap="edit" id="addTask" style="width:auto;padding:8px 14px;">＋ Задача</button></div>
+          <button class="btn" data-cap="edit" id="addTask">＋ Задача</button></div>
         <div class="kanban mt" id="board"><span class="note">Выберите проект.</span></div>
       </div>
     </section>
 
     <section class="screen" id="scr-my">
-      <div class="card"><div class="toolbar"><button class="btn secondary" id="myBtn" style="width:auto;padding:8px 14px;">Обновить</button></div>
+      <div class="card"><div class="toolbar"><button class="btn secondary" id="myBtn">Обновить</button></div>
         <div id="my" class="mt"><span class="note">Загрузка…</span></div></div>
     </section>
 
@@ -59,7 +59,7 @@
       <div class="card">
         <div class="toolbar"><select id="ibStatus" style="padding:9px;border:1px solid var(--border);border-radius:9px;">
           <option value="">Все</option><option value="new">Новые</option><option value="assigned">Назначенные</option><option value="closed">Закрытые</option></select>
-          <button class="btn" data-cap="edit" id="addIb" style="width:auto;padding:8px 14px;">＋ Обращение</button></div>
+          <button class="btn" data-cap="edit" id="addIb">＋ Обращение</button></div>
         <div id="inbox" class="mt"><span class="note">Загрузка…</span></div>
       </div>
     </section>
