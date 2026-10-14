@@ -15,7 +15,7 @@
   function deep(o) { return JSON.parse(JSON.stringify(o)); }
   function uid(p) { return (p || 'i') + Date.now().toString(36) + Math.floor(Math.random() * 1000); }
 
-  var token = null, planId = null, zoom = 1, tool = 'sel', mode = 'edit', sel = null, anim = null, baseline = null;
+  var token = null, planId = null, zoom = 1, tool = 'sel', mode = 'edit', sel = null, anim = null, baseline = null, collHighlight = [];
   var W = 12000, H = 8000, GRID = 100, phase = 0;
   var history = [], redo = [];
   var stage = 'new';
@@ -121,6 +121,7 @@
     svg.style.width = (S.w * zoom) + 'px'; svg.style.height = (S.h * zoom) + 'px';
     var zs = $('#zSlider'); if (zs) zs.value = Math.round(zoom * 100);
     var g = '<defs><marker id="ah" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 z" fill="#0ea5e9"/></marker><marker id="ahr" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 z" fill="#2563eb"/></marker></defs>';
+    if (S.bg && S.bg.href) g += '<image href="' + S.bg.href + '" x="0" y="0" width="' + S.w + '" height="' + S.h + '" opacity="' + (S.bg.opacity != null ? S.bg.opacity : 0.5) + '" preserveAspectRatio="none"/>';
     if ($('#gridChk') && $('#gridChk').checked) {
       for (var x = 0; x <= S.w; x += GRID * 5) g += '<line x1="' + x + '" y1="0" x2="' + x + '" y2="' + S.h + '" class="gl" stroke-width="' + (GRID / 12) + '"/>';
       for (var y = 0; y <= S.h; y += GRID * 5) g += '<line x1="0" y1="' + y + '" x2="' + S.w + '" y2="' + y + '" class="gl" stroke-width="' + (GRID / 12) + '"/>';
@@ -132,7 +133,7 @@
     g += S.items.map(function (it) {
       var c = (STAGES[it.stage] || STAGES['new']).c, isz = it.type === 'zone' || it.type === 'aisle';
       return '<g class="li" data-id="' + it.id + '" transform="translate(' + it.x + ',' + it.y + ') rotate(' + (it.rot || 0) + ',' + (it.w / 2) + ',' + (it.h / 2) + ')">' +
-        '<rect x="0" y="0" width="' + it.w + '" height="' + it.h + '" rx="' + (GRID / 2) + '" fill="' + (isz ? 'rgba(16,185,129,.08)' : c + '22') + '" stroke="' + c + '" stroke-width="' + (sel === it.id ? GRID / 2 : GRID / 4) + '"' + (isz ? ' stroke-dasharray="' + GRID / 2 + ' ' + GRID / 3 + '"' : '') + '/>' +
+        '<rect x="0" y="0" width="' + it.w + '" height="' + it.h + '" rx="' + (GRID / 2) + '" fill="' + (isz ? 'rgba(16,185,129,.08)' : c + '22') + '" stroke="' + (collHighlight.indexOf(it.id) >= 0 ? '#ef4444' : c) + '" stroke-width="' + (collHighlight.indexOf(it.id) >= 0 ? GRID / 2 : (sel === it.id ? GRID / 2 : GRID / 4)) + '"' + (isz ? ' stroke-dasharray="' + GRID / 2 + ' ' + GRID / 3 + '"' : '') + '/>' +
         glyph(it) +
         '<text x="' + (it.w / 2) + '" y="' + (it.h / 2 + Math.max(70, Math.min(it.w, it.h) / 3.4)) + '" text-anchor="middle" font-size="' + Math.max(130, Math.min(it.w, it.h) / 9) + '" class="ln">' + esc(it.name) + '</text>' +
         (isz ? '' : '<circle cx="0" cy="' + (it.h / 2) + '" r="' + (GRID * 0.6) + '" fill="#0ea5e9"/><circle cx="' + it.w + '" cy="' + (it.h / 2) + '" r="' + (GRID * 0.6) + '" fill="#0ea5e9"/>') +
@@ -184,7 +185,17 @@
         sel = id; prop(); draw();
         var it = byId(id); if (!it) return;
         var sx = e.clientX, sy = e.clientY, ox = it.x, oy = it.y, sc = 1 / zoom, moved = 0;
-        function mv(ev) { moved = 1; it.x = snapv(ox + (ev.clientX - sx) * sc); it.y = snapv(oy + (ev.clientY - sy) * sc); draw(); }
+        function mv(ev) {
+          moved = 1; var nx = snapv(ox + (ev.clientX - sx) * sc), ny = snapv(oy + (ev.clientY - sy) * sc);
+          if ($('#snapChk') && $('#snapChk').checked) {
+            S.items.forEach(function (o) {
+              if (o === it) return;
+              if (Math.abs(nx - (o.x + o.w)) < GRID * 3 && Math.abs((ny + it.h / 2) - (o.y + o.h / 2)) < GRID * 3) { nx = o.x + o.w; ny = o.y + o.h / 2 - it.h / 2; }
+              else if (Math.abs((nx + it.w) - o.x) < GRID * 3 && Math.abs((ny + it.h / 2) - (o.y + o.h / 2)) < GRID * 3) { nx = o.x - it.w; ny = o.y + o.h / 2 - it.h / 2; }
+            });
+          }
+          it.x = nx; it.y = ny; draw();
+        }
         function up() { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); if (moved) { snapshot(); } }
         document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up); e.preventDefault();
       };
@@ -473,14 +484,34 @@
     var html = '<label>Скорость потока</label><select id="setSpd">' + [['900', 'медленно'], ['1800', 'обычно'], ['3600', 'быстро']].map(function (o) { return '<option value="' + o[0] + '"' + (String(flow.spd) === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>' +
       '<label class="ck" style="display:flex;gap:6px;align-items:center;margin-top:8px"><input type="checkbox" id="setGrid" ' + ($('#gridChk').checked ? 'checked' : '') + '> Сетка</label>' +
       '<label class="ck" style="display:flex;gap:6px;align-items:center;margin-top:6px"><input type="checkbox" id="setSnap" ' + ($('#snapChk').checked ? 'checked' : '') + '> Привязка</label>' +
-      '<div class="btn-row mt" style="flex-wrap:wrap"><button class="btn secondary" id="setRestore" style="width:auto">↺ Вернуть исходную схему</button><button class="btn secondary" id="setClear" style="width:auto">✕ Очистить</button><button class="btn secondary" id="setReset" style="width:auto">⟲ Полный сброс</button></div>';
+      '<label style="margin-top:8px">Прозрачность подложки</label><input type="range" id="setBgOp" min="5" max="100" value="' + Math.round(((S.bg && S.bg.opacity != null ? S.bg.opacity : 0.5)) * 100) + '">' +
+      '<div class="btn-row mt" style="flex-wrap:wrap"><button class="btn secondary" id="setBgOff" style="width:auto">Убрать подложку</button><button class="btn secondary" id="setRestore" style="width:auto">↺ Вернуть исходную схему</button><button class="btn secondary" id="setClear" style="width:auto">✕ Очистить</button><button class="btn secondary" id="setReset" style="width:auto">⟲ Полный сброс</button></div>';
     ui.dialog({ title: 'Настройки', html: true, cancelText: 'Закрыть', body: html });
+    var bo = document.getElementById('setBgOp'); if (bo) bo.oninput = function () { if (!S.bg) S.bg = { href: null }; S.bg.opacity = Number(this.value) / 100; draw(); };
+    var bof = document.getElementById('setBgOff'); if (bof) bof.onclick = function () { S.bg = null; draw(); toast('Подложка убрана'); };
     var sp = document.getElementById('setSpd'); if (sp) sp.onchange = function () { flow.spd = Number(this.value); };
     var g = document.getElementById('setGrid'); if (g) g.onchange = function () { $('#gridChk').checked = this.checked; draw(); };
     var sn = document.getElementById('setSnap'); if (sn) sn.onchange = function () { $('#snapChk').checked = this.checked; };
     var rr = document.getElementById('setRestore'); if (rr) rr.onclick = function () { if (!baseline) { toast('Нет исходной схемы'); return; } snapshot(); applyData(deep(baseline)); fitZoom(); draw(); centerView(); toast('Возвращена исходная схема'); };
     var cc = document.getElementById('setClear'); if (cc) cc.onclick = function () { $('#clearBtn').click(); };
     var rs = document.getElementById('setReset'); if (rs) rs.onclick = function () { $('#resetBtn').click(); };
+  };
+  function bbox(i) { var w = (i.rot % 180 === 90) ? i.h : i.w, h = (i.rot % 180 === 90) ? i.w : i.h; return { x: i.x, y: i.y, w: w, h: h }; }
+  function overlaps(a, b) { var A = bbox(a), B = bbox(b); return A.x < B.x + B.w && A.x + A.w > B.x && A.y < B.y + B.h && A.y + A.h > B.y; }
+  if ($('#collBtn')) $('#collBtn').onclick = function () {
+    var list = S.items.filter(function (i) { return i.type !== 'zone' && i.type !== 'aisle' && i.type !== 'label'; });
+    var pairs = []; var ids = {};
+    for (var i = 0; i < list.length; i++) for (var j = i + 1; j < list.length; j++) if (overlaps(list[i], list[j])) { pairs.push([list[i], list[j]]); ids[list[i].id] = 1; ids[list[j].id] = 1; }
+    collHighlight = Object.keys(ids); draw();
+    ui.dialog({ title: 'Проверка коллизий', html: true, cancelText: 'Закрыть', body:
+      (pairs.length ? '<p><b>Пересечений: ' + pairs.length + '</b> (подсвечены красным на плане)</p><ul>' + pairs.map(function (p) { return '<li>' + esc(p[0].name) + ' ↔ ' + esc(p[1].name) + '</li>'; }).join('') + '</ul>'
+        : '<p>Коллизий не обнаружено. Оборудование не пересекается.</p>') });
+    logEvent('Проверка коллизий: ' + pairs.length + ' пересечений');
+  };
+  if ($('#bgBtn')) $('#bgBtn').onclick = function () { var f = $('#bgFile'); if (f) f.click(); };
+  if ($('#bgFile')) $('#bgFile').onchange = function () {
+    var file = this.files[0]; this.value = ''; if (!file) return;
+    var fr = new FileReader(); fr.onload = function () { S.bg = { href: fr.result, opacity: 0.5 }; draw(); toast('Подложка добавлена'); logEvent('Подложка загружена'); }; fr.readAsDataURL(file);
   };
   if ($('#helpBtn')) $('#helpBtn').onclick = function () {
     ui.dialog({ title: 'Как работает редактор', html: true, cancelText: 'Понятно', body:
