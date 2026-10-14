@@ -57,14 +57,14 @@ const ITEMS = [
     evidence: 'supabase/migrations/0256_cost_consistency.sql, tools/scenario-check.ps1 (шаг 17)'
   },
   {
-    id: 'PROP-04', wave: 'R1', prio: 'P1', area: 'Производительность', status: 'open', effort: 'M',
+    id: 'PROP-04', wave: 'R1', prio: 'P1', area: 'Производительность', status: 'done', effort: 'M',
     business: [BIZ.prod, BIZ.econ, BIZ.qa],
     modules: ['orders', 'production', 'qc', 'tasks', 'integrations'],
     title: 'Индексы и пагинация горячих списков',
-    problem: 'Большое число RPC (≈1282); крупные списки (orders, naryads, qc_measures, tasks, integration_log, sessions) без явной пагинации/индексов.',
-    action: 'Добавить индексы по горячим фильтрам/сортировке и limit/offset (keyset) для крупных списков приоритетных контуров.',
-    dod: 'Индексы созданы миграцией; списки лимитированы; проверка планов запросов пройдена.',
-    evidence: 'audit/checks/perf.json (F-0001)'
+    problem: 'Крупные списки (orders, naryads, qc_measures, tasks, integration_log, sessions) без tenant-scoped индексов и без серверного лимита.',
+    action: 'Миграция 0257: добавлены индексы (orders/naryads/qc_measures/tasks/integration_log/sessions) и серверный limit 2000 для app_order_list/app_naryad_list.',
+    dod: 'Индексы созданы идемпотентно; крупные списки лимитированы; apply_all синхронизирован (248/248). Реализовано.',
+    evidence: 'supabase/migrations/0257_hot_indexes.sql'
   },
   {
     id: 'PROP-02', wave: 'R1', prio: 'P1', area: 'Каталог', status: 'done', effort: 'S',
