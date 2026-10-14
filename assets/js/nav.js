@@ -29,7 +29,14 @@
       '.nav-grp .navgrp-t:hover{background:var(--accent-100,#e8f5ee);color:var(--text)}' +
       '.nav-grp .nav-cv{font-style:normal;transition:transform .15s;display:inline-block}' +
       '.nav-grp.open .nav-cv{transform:rotate(180deg)}' +
-      '.nav-grp .nav-body a{display:block}';
+      '.nav-grp .nav-body a{display:block}' +
+      /* W4: хлебные крошки на гостевых страницах (те же стили, что в shell.js) */
+      '.sh-crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:7px;padding:8px 16px;font-size:.8rem;color:var(--muted);border-bottom:1px solid var(--border);background:var(--surface,#fff)}' +
+      '.sh-crumbs a{color:var(--accent-700);text-decoration:none}' +
+      '.sh-crumbs a:hover{text-decoration:underline}' +
+      '.sh-crumbs .sep{opacity:.5}' +
+      '.sh-crumbs .cur{font-weight:700;color:var(--text)}' +
+      '@media(max-width:680px){.sh-crumbs{font-size:.74rem;padding:7px 12px}}';
     document.head.appendChild(st);
   }
 
@@ -91,6 +98,11 @@
     ensureStyle();
 
     var role = (g.Auth && g.Auth.role) ? g.Auth.role() : null;
+    var logged = !!(g.Auth && g.Auth.token && g.Auth.token());
+
+    // W4: единый каркас. При входе навигацию даёт shell.js (боковой сайдбар),
+    // поэтому верхнее меню nav.js не дублируем — только элементы шапки (тема/сервер/вход/пользователь).
+    if (logged) { setupPills(document.querySelector('.topbar') || bar, ROOT); return; }
 
     function link(a) {
       var st = (g.AppCatalog && g.AppCatalog.statusOf) ? g.AppCatalog.statusOf(a.id) : 'done';
@@ -118,12 +130,32 @@
 
     // Фолбэк, пока каталог не загружен
     var FALLBACK =
-      '<a href="' + ROOT + 'index.html">🏠 Главная</a>' +
+      '<a href="' + ROOT + 'index.html">🏠 Хаб</a>' +
       '<a href="' + ROOT + 'apps/product/index.html">💳 Продукт и цены</a>' +
       '<a href="' + ROOT + 'apps/panel/index.html">🎛 Пульт управления</a>' +
       '<a href="' + ROOT + 'apps/dashboard/index.html">📊 Личный кабинет</a>' +
       '<a href="' + ROOT + 'apps/orders/index.html">📥 Заявки</a>' +
       '<a href="' + ROOT + 'apps/guide/index.html">📖 Гид по системе</a>';
+
+    /* W4: хлебные крошки на гостевых страницах (для вошедших их даёт shell.js) */
+    function guestCrumbs(cat) {
+      var here = location.href.substring(ROOT.length).split(/[?#]/)[0];
+      if (here.indexOf('apps/') !== 0) return;
+      var seg = (here.match(/^apps\/([\w-]+)\//) || [])[1];
+      if (!seg || seg === 'auth') return;                      // страница входа — без крошек
+      if (document.querySelector('.sh-crumbs')) return;
+      var cur = (cat.apps || []).filter(function (a) { return a.id === seg; })[0];
+      var gid = cur ? cur.group : null, gtitle = '', gicon = '';
+      (cat.groups || []).forEach(function (gr) { if (gr.id === gid) { gtitle = gr.title; gicon = gr.icon; } });
+      var parts = ['<a href="' + ROOT + 'index.html">🏠 Хаб</a>'];
+      if (cur && gid) parts.push('<a href="' + ROOT + 'index.html#group/' + gid + '">' + gicon + ' ' + esc(gtitle) + '</a>');
+      if (cur) parts.push('<span class="cur">' + cur.icon + ' ' + esc(cur.title) + '</span>');
+      else parts.push('<span class="cur">' + esc((document.title || '').split(/[·|]/)[0].trim()) + '</span>');
+      var crumb = document.createElement('div'); crumb.className = 'sh-crumbs';
+      crumb.innerHTML = parts.join('<span class="sep">›</span>');
+      var tb = document.querySelector('.topbar');
+      if (tb && tb.parentNode) tb.parentNode.insertBefore(crumb, tb.nextSibling);
+    }
 
     var rest = location.href.substring(ROOT.length).split(/[?#]/)[0];
     var isHub = (rest === '' || rest === 'index.html');
@@ -161,7 +193,7 @@
     }
 
     function upgrade() {
-      if (d && g.AppCatalog && g.AppCatalog.apps) { d.innerHTML = buildFromCatalog(g.AppCatalog); bindGroups(); }
+      if (d && g.AppCatalog && g.AppCatalog.apps) { d.innerHTML = buildFromCatalog(g.AppCatalog); bindGroups(); guestCrumbs(g.AppCatalog); }
     }
 
     if (g.AppCatalog && g.AppCatalog.apps) { upgrade(); }

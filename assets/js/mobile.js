@@ -39,7 +39,24 @@
   function cat() { return g.AppCatalog || {}; }
   function moduleId() { return (location.pathname.match(/\/apps\/([\w-]+)\//) || [])[1]; }
   function rootPrefix() { return location.pathname.indexOf('/apps/') >= 0 ? '../../' : ''; }
-  function quickFor(id) { return (cat().quick && cat().quick[id]) || null; }
+  function quickFor(id) {
+    var q = (cat().quick && cat().quick[id]) || null;
+    if (q && q.length) return q;
+    /* W4: быстрые действия для ВСЕХ модулей — синтезируем по связям каталога */
+    var apps = (cat().apps) || [], byId = {}, me = null;
+    apps.forEach(function (a) { byId[a.id] = a; if (a.id === id) me = a; });
+    var out = [];
+    if (me && me.connects) me.connects.slice(0, 3).forEach(function (cid) {
+      var a = byId[cid]; if (a) out.push({ label: a.title, icon: a.icon || '🔗', href: a.href });
+    });
+    if (!out.length && me) out.push({ label: 'Открыть модуль', icon: me.icon || '📄', href: me.href });
+    return out;
+  }
+  function hrefFor(h) {
+    if (!h) return rootPrefix() + 'index.html';
+    if (/^(https?:|mailto:|#)/i.test(h)) return h;
+    return rootPrefix() + h.replace(/^\//, '');
+  }
 
   function prefOn() { try { return localStorage.getItem(PREF) === '1'; } catch (e) { return false; } }
   function setPref(on) { try { localStorage.setItem(PREF, on ? '1' : '0'); } catch (e) {} }
@@ -150,7 +167,7 @@
       if (a.scan) return '<button class="mb-btn" type="button" data-mb="scan" data-i="' + idx + '"><span class="mb-ic">' + ic + '</span>' + esc(a.label) + '</button>';
       if (a.photo) return '<button class="mb-btn" type="button" data-mb="photo" data-i="' + idx + '"><span class="mb-ic">' + ic + '</span>' + esc(a.label) + '</button>';
       if (a.rpc) return '<button class="mb-btn" type="button" data-mb="rpc" data-i="' + idx + '"><span class="mb-ic">' + ic + '</span>' + esc(a.label) + '</button>';
-      var href = a.href || (rootPrefix() + 'index.html');
+      var href = hrefFor(a.href);
       return '<a class="mb-btn" href="' + href + '"><span class="mb-ic">' + ic + '</span>' + esc(a.label) + '</a>';
     }).join('');
     bar.innerHTML = home + list + '<button class="mb-btn" type="button" data-mb="off"><span class="mb-ic">🖥</span>Обычный</button>';

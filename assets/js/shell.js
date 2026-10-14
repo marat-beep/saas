@@ -57,7 +57,7 @@
       });
       bar.insertBefore(back, btn);
 
-      var parts = ['<a href="' + ROOT + 'index.html">🏠 Каталог</a>'];
+      var parts = ['<a href="' + ROOT + 'index.html">🏠 Хаб</a>'];
       if (cur && gid) parts.push('<a href="' + ROOT + 'index.html#group/' + gid + '">' + gicon + ' ' + esc(gtitle) + '</a>');
       if (cur) parts.push('<span class="cur">' + cur.icon + ' ' + esc(cur.title) + '</span>');
       else { var t = (document.title || '').split(/[·|]/)[0].trim(); parts.push('<span class="cur">' + esc(t) + '</span>'); }
@@ -306,7 +306,7 @@
     } catch (e) {}
 
     /* W31: мини-мобильный режим модулей (нижняя панель быстрых действий) */
-    if (!g.AppMobile) { var mjs = document.createElement('script'); mjs.src = ROOT + 'assets/js/mobile.js?v=3'; document.head.appendChild(mjs); }
+    if (!g.AppMobile) { var mjs = document.createElement('script'); mjs.src = ROOT + 'assets/js/mobile.js?v=4'; document.head.appendChild(mjs); }
     /* W36: офлайн-кэш чтения (справочники/списки) */
     if (!g.AppOfflineCache) { var ojs = document.createElement('script'); ojs.src = ROOT + 'assets/js/offline-cache.js?v=1'; document.head.appendChild(ojs); }
 
