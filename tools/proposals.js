@@ -47,14 +47,14 @@ const ITEMS = [
     evidence: 'tools/scenario-check.ps1 (шаг 16), apps/claims/claims.js'
   },
   {
-    id: 'PROP-16', wave: 'R1', prio: 'P1', area: 'Экономика', status: 'open', effort: 'M',
+    id: 'PROP-16', wave: 'R1', prio: 'P1', area: 'Экономика', status: 'done', effort: 'M',
     business: [BIZ.econ, BIZ.prod],
     modules: ['economics', 'teo', 'finance', 'projbudget', 'reports', 'bi'],
     title: 'Согласованность расчётов себестоимости, план-факта и бюджетов',
-    problem: 'Себестоимость, ТЭО, финансы и бюджеты проектов могут считать разными формулами/ставками; нет единой гарантии совпадения итогов.',
-    action: 'Сверить методики (ставки, накладные, K-коэффициенты), вывести единые показатели, добавить контрольную сверку план-факт.',
-    dod: 'Итог расчёта по заказу совпадает в economics/teo/finance; есть отчёт сверки план-факт без расхождений.',
-    evidence: 'apps/economics, apps/teo, apps/finance, apps/projbudget'
+    problem: 'app_order_cost (ставка: операция.base_rate → центр.cost_hour) и app_order_cost_plan_fact (ставка: шаг маршрута; план-труд из BOM) использовали разные базы ставок.',
+    action: 'Миграция 0256: app_order_cost_plan_fact приведён к единой базе ставок с app_order_cost (операция → центр, фолбэк — маршрут); план/факт труда по одной ставке, отклонение = (факт−план)×ставка. Добавлена проверка в scenario-check.',
+    dod: 'Обе функции используют одну ставку; сценарий сверки в scenario-check. Реализовано (миграция идемпотентна, apply_all синхронизирован 247/247).',
+    evidence: 'supabase/migrations/0256_cost_consistency.sql, tools/scenario-check.ps1 (шаг 17)'
   },
   {
     id: 'PROP-04', wave: 'R1', prio: 'P1', area: 'Производительность', status: 'open', effort: 'M',

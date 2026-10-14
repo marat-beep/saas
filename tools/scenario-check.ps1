@@ -188,6 +188,12 @@ if ($clm -and $clm.Count -and $clm[0].v) {
   Step 'качество-цепочка: отчёт претензий' "select v from (select count(*)::text as v from public.app_claims_report('$t',null,null)) z" | Out-Null
 } else { Add-F 'C' 'Info' 'Сценарий PROP-15 пропущен (нет претензии)' 'Пропуск.' 'scenario-check' 2 1 }
 
+# 17. PROP-16: согласованность себестоимости (app_order_cost и app_order_cost_plan_fact — одна база ставок)
+if ($oid) {
+  Step 'себестоимость: app_order_cost' "select v from (select count(*)::text as v from public.app_order_cost('$t','$oid')) z" | Out-Null
+  Step 'себестоимость: plan_fact' "select v from (select count(*)::text as v from public.app_order_cost_plan_fact('$t','$oid')) z" | Out-Null
+} else { Add-F 'C' 'Info' 'Проверка себестоимости пропущена (нет заявки)' 'Пропуск.' 'scenario-check' 2 1 }
+
 # --- cleanup ---
 $cleanup = @'
 delete from public.app_order_items where order_id in (select id from public.app_orders where title like 'SCN-%');
