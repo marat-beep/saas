@@ -73,39 +73,39 @@
   function renderEq() {
     $('#eqCnt').textContent = '(' + eq.length + ')';
     $('#eqList').innerHTML = '<thead><tr><th>Код</th><th>Название</th><th>Модель</th><th>Тип</th><th>Габариты</th><th>Точн.</th><th>₽/ч</th><th>Опер.</th><th>Статус</th></tr></thead><tbody>' +
-      eq.map(function (e) {
+      (eq.length ? eq.map(function (e) {
         return '<tr><td>' + esc(e.code || '—') + '</td><td><b>' + esc(e.name) + '</b></td><td>' + esc(e.model || '—') + '</td>' +
           '<td><span class="b">' + kLabel(e.kind) + '</span></td>' +
           '<td>' + (e.max_x ? num(e.max_x) + '×' + num(e.max_y) + '×' + num(e.max_z) : '—') + '</td>' +
           '<td>' + (e.accuracy != null ? '±' + num(e.accuracy) : '—') + '</td><td>' + fmt(e.cost_hour) + '</td>' +
           '<td>' + e.ops_count + '</td><td>' + (e.status === 'active' ? 'работает' : e.status) + '</td></tr>';
-      }).join('') + '</tbody>';
+      }).join('') : '<tr><td colspan="9"><span class="note">Оборудование пока не заведено — добавьте в форме выше.</span></td></tr>') + '</tbody>';
   }
   function renderMat() {
     $('#matCnt').textContent = '(' + mats.length + ')';
     $('#matList').innerHTML = '<thead><tr><th>Код</th><th>Материал</th><th>Группа</th><th>Марка</th><th>Стандарт</th><th>Плотн.</th><th>Ед.</th><th>Цена</th><th>Остаток</th></tr></thead><tbody>' +
-      mats.map(function (m) {
+      (mats.length ? mats.map(function (m) {
         return '<tr><td>' + esc(m.code || '—') + '</td><td><b>' + esc(m.name) + '</b></td><td>' + esc(m.material_group || '—') + '</td>' +
           '<td>' + esc(m.grade || '—') + '</td><td>' + esc(m.standard || '—') + '</td><td>' + (m.density != null ? num(m.density) : '—') + '</td>' +
           '<td>' + esc(m.unit || '') + '</td><td>' + fmt(m.price) + '</td><td>' + num(m.qty) + '</td></tr>';
-      }).join('') + '</tbody>';
+      }).join('') : '<tr><td colspan="9"><span class="note">Материалов пока нет — заведите в «Закупках» или в настраиваемых справочниках.</span></td></tr>') + '</tbody>';
   }
   function renderOp() {
     $('#opCnt').textContent = '(' + ops.length + ')';
     $('#opList').innerHTML = '<thead><tr><th>Код</th><th>Операция</th><th>Тип оборудования</th><th>Подг., мин</th><th>На ед., мин</th><th>₽/ч</th><th>Оборудования</th></tr></thead><tbody>' +
-      ops.map(function (o) {
+      (ops.length ? ops.map(function (o) {
         return '<tr><td>' + esc(o.code || '—') + '</td><td><b>' + esc(o.name) + '</b></td><td><span class="b">' + kLabel(o.kind) + '</span></td>' +
           '<td>' + num(o.setup_min) + '</td><td>' + num(o.unit_min) + '</td><td>' + fmt(o.base_rate) + '</td><td>' + o.equipment_count + '</td></tr>';
-      }).join('') + '</tbody>';
+      }).join('') : '<tr><td colspan="7"><span class="note">Операций пока нет — добавьте в форме выше.</span></td></tr>') + '</tbody>';
   }
   function renderTp() {
     $('#tpCnt').textContent = '(' + tps.length + ')';
     $('#tpList').innerHTML = '<thead><tr><th>Код</th><th>Техпроцесс</th><th>Тип изделия</th><th>Материал</th><th>Шагов</th><th></th></tr></thead><tbody>' +
-      tps.map(function (t) {
+      (tps.length ? tps.map(function (t) {
         return '<tr><td>' + esc(t.code || '—') + '</td><td><b>' + esc(t.name) + '</b></td><td>' + esc(t.product_type || '—') + '</td>' +
           '<td>' + esc(t.material_name || '—') + '</td><td>' + t.steps_count + '</td>' +
           '<td><button class="act" data-open="' + t.id + '">Шаги</button></td></tr>';
-      }).join('') + '</tbody>';
+      }).join('') : '<tr><td colspan="6"><span class="note">Техпроцессов пока нет — создайте шаблон в форме выше.</span></td></tr>') + '</tbody>';
     $$('#tpList [data-open]').forEach(function (b) { b.addEventListener('click', function () { openTp(b.dataset.open); }); });
   }
   var RT_STATUS = { draft: 'черновик', active: 'в работе', done: 'завершён' };
@@ -334,6 +334,17 @@
   });
   $('#refQ').addEventListener('input', function () { refQ = this.value; renderRef(); });
   $('#refGroup').addEventListener('change', function () { refGroup = this.value; renderRef(); });
+  /* W6: единый поиск по спискам справочников (клиентская фильтрация строк) */
+  function bindFilter(qId, listId) {
+    var q = document.getElementById(qId); if (!q) return;
+    q.addEventListener('input', function () {
+      var s = this.value.trim().toLowerCase();
+      $$('#' + listId + ' tbody tr').forEach(function (tr) {
+        tr.style.display = (!s || (tr.textContent || '').toLowerCase().indexOf(s) >= 0) ? '' : 'none';
+      });
+    });
+  }
+  [['eqQ', 'eqList'], ['matQ', 'matList'], ['opQ', 'opList'], ['tpQ', 'tpList'], ['rtQ', 'rtList']].forEach(function (p) { bindFilter(p[0], p[1]); });
   $('#techSeg').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     $$('#techSeg button').forEach(function (x) { x.classList.toggle('active', x === b); });

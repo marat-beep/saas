@@ -36,7 +36,7 @@
   </header>
 
   <main class="wrap fluid">
-    <div class="sv-actions" style="margin:10px 0;"><button class="btn" id="twBtn" style="padding:9px 16px;">🧭 Мастер техпроцесса</button><button class="btn secondary" data-report="routes" data-title="Маршруты">Отчёт PDF</button></div>
+    <div class="sv-actions" style="margin:10px 0;"><button class="btn" id="twBtn" style="padding:9px 16px;">🧭 Мастер техпроцесса</button><button class="btn secondary" data-report="routes" data-title="Маршруты">Отчёт PDF</button><a class="btn secondary" href="../dicts/index.html">🗂 Настраиваемые справочники ↗</a></div>
 
     <div class="hero"><h1>Справочники</h1><p>Связная модель: оборудование, материалы, операции, шаблоны техпроцессов.</p></div>
     <div id="masters" class="mt"></div>
@@ -47,7 +47,7 @@
       <button data-t="op">Операции</button>
       <button data-t="tp">Техпроцессы</button>
       <button data-t="rt">Маршруты</button>
-      <button data-t="ref">Марки</button>
+      <button data-t="ref">Марки материалов</button>
       <button data-t="tech">Техданные</button>
     </div>
 
@@ -65,11 +65,11 @@
         </div>
         <button class="btn" id="eqAdd">Добавить</button>
       </div>
-      <div class="card"><h2>Оборудование <span class="note" id="eqCnt"></span></h2><div class="tbl-wrap"><table class="tab" id="eqList"></table></div></div>
+      <div class="card"><div class="toolbar"><h2 style="margin:0;">Оборудование <span class="note" id="eqCnt"></span></h2><input type="search" class="search" id="eqQ" placeholder="Поиск: код, название, тип…" style="margin-left:auto;max-width:320px;"></div><div class="tbl-wrap"><table class="tab" id="eqList"></table></div></div>
     </section>
 
     <section class="tab-pane" id="p-mat" style="display:none;">
-      <div class="card"><h2>Материалы <span class="note" id="matCnt"></span></h2><div class="tbl-wrap"><table class="tab" id="matList"></table></div></div>
+      <div class="card"><div class="toolbar"><h2 style="margin:0;">Материалы <span class="note" id="matCnt"></span></h2><input type="search" class="search" id="matQ" placeholder="Поиск: код, материал, марка…" style="margin-left:auto;max-width:320px;"></div><div class="tbl-wrap"><table class="tab" id="matList"></table></div></div>
     </section>
 
     <section class="tab-pane" id="p-op" style="display:none;">
@@ -86,7 +86,7 @@
         </div>
         <button class="btn" id="opAdd">Добавить</button>
       </div>
-      <div class="card"><h2>Операции <span class="note" id="opCnt"></span></h2><div class="tbl-wrap"><table class="tab" id="opList"></table></div></div>
+      <div class="card"><div class="toolbar"><h2 style="margin:0;">Операции <span class="note" id="opCnt"></span></h2><input type="search" class="search" id="opQ" placeholder="Поиск: код, операция…" style="margin-left:auto;max-width:320px;"></div><div class="tbl-wrap"><table class="tab" id="opList"></table></div></div>
     </section>
 
     <section class="tab-pane" id="p-tp" style="display:none;">
@@ -100,7 +100,7 @@
         </div>
         <button class="btn" id="tpAdd">Создать шаблон</button>
       </div>
-      <div class="card"><h2>Техпроцессы <span class="note" id="tpCnt"></span></h2><div class="tbl-wrap"><table class="tab" id="tpList"></table></div></div>
+      <div class="card"><div class="toolbar"><h2 style="margin:0;">Техпроцессы <span class="note" id="tpCnt"></span></h2><input type="search" class="search" id="tpQ" placeholder="Поиск: код, техпроцесс…" style="margin-left:auto;max-width:320px;"></div><div class="tbl-wrap"><table class="tab" id="tpList"></table></div></div>
       <div class="card" id="tpDetail" style="display:none;">
         <h2>Шаги: <span id="tpTitle"></span></h2>
         <div id="steps"></div>
@@ -134,7 +134,7 @@
         </div>
         <div id="rtPreview" class="mt"></div>
       </div>
-      <div class="card"><h2>Маршруты <span class="note" id="rtCnt"></span></h2><div class="tbl-wrap"><table class="tab" id="rtList"></table></div></div>
+      <div class="card"><div class="toolbar"><h2 style="margin:0;">Маршруты <span class="note" id="rtCnt"></span></h2><input type="search" class="search" id="rtQ" placeholder="Поиск: №, маршрут, заказ…" style="margin-left:auto;max-width:320px;"></div><div class="tbl-wrap"><table class="tab" id="rtList"></table></div></div>
       <div class="card" id="rtDetail" style="display:none;">
         <h2 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">Маршрут: <span id="rtTitle"></span> <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;"><button class="act" id="rtPrint">🖨 МК</button><button class="act" id="rtPrintOk">🖨 ОК</button><button class="act" id="rtPrintVo">🖨 ВО</button></span></h2>
         <div id="rtSummary" class="sum"></div>
@@ -183,18 +183,43 @@
 
     <section class="tab-pane" id="p-tech" style="display:none;">
       <div class="card">
-        <div class="seg" id="techSeg" style="flex-wrap:wrap;">
-          <button class="active" data-cat="cutting">Режимы резания</button>
-          <button data-cat="tools">Инструмент</button>
-          <button data-cat="machines">Оборудование</button>
-          <button data-cat="fits">Посадки ISO 286</button>
-          <button data-cat="tolerances">Допуски IT</button>
-          <button data-cat="threads">Резьбы</button><button data-cat="roughness">Шероховатость</button><button data-cat="hardness">Твёрдость</button><button data-cat="coatings">Покрытия</button><button data-cat="estd">ЕСТД</button><button data-cat="tech_routes">Типовые маршруты</button><button data-cat="edm">Электроды ЭЭО</button><button data-cat="fixtures">Оснастка</button><button data-cat="casting">Литьё</button><button data-cat="forging">Ковка/штамповка</button><button data-cat="welding">Сварка</button>
-          <button data-cat="fasteners">Крепёж</button>
-          <button data-cat="heat">Термо/покрытия</button>
-          <button data-cat="fluids">СОЖ/смазки</button>
-          <button data-cat="processes">Процессы</button>
-          <button data-cat="opnorms">Нормы времени</button>
+        <div id="techSeg">
+          <div class="note" style="margin:8px 0 2px;font-weight:700;">Резание и инструмент</div>
+          <div class="seg" style="flex-wrap:wrap;">
+            <button class="active" data-cat="cutting">Режимы резания</button>
+            <button data-cat="tools">Инструмент</button>
+            <button data-cat="machines">Оборудование</button>
+          </div>
+          <div class="note" style="margin:10px 0 2px;font-weight:700;">Точность и соединения</div>
+          <div class="seg" style="flex-wrap:wrap;">
+            <button data-cat="fits">Посадки ISO 286</button>
+            <button data-cat="tolerances">Допуски IT</button>
+            <button data-cat="threads">Резьбы</button>
+            <button data-cat="fasteners">Крепёж</button>
+          </div>
+          <div class="note" style="margin:10px 0 2px;font-weight:700;">Поверхность и материалы</div>
+          <div class="seg" style="flex-wrap:wrap;">
+            <button data-cat="roughness">Шероховатость</button>
+            <button data-cat="hardness">Твёрдость</button>
+            <button data-cat="coatings">Покрытия</button>
+            <button data-cat="heat">Термообработка</button>
+            <button data-cat="fluids">СОЖ/смазки</button>
+          </div>
+          <div class="note" style="margin:10px 0 2px;font-weight:700;">Техпроцессы и стандарты</div>
+          <div class="seg" style="flex-wrap:wrap;">
+            <button data-cat="processes">Процессы</button>
+            <button data-cat="tech_routes">Типовые маршруты</button>
+            <button data-cat="estd">ЕСТД</button>
+            <button data-cat="edm">Электроды ЭЭО</button>
+            <button data-cat="fixtures">Оснастка</button>
+            <button data-cat="opnorms">Нормы времени</button>
+          </div>
+          <div class="note" style="margin:10px 0 2px;font-weight:700;">Литьё, ковка, сварка</div>
+          <div class="seg" style="flex-wrap:wrap;">
+            <button data-cat="casting">Литьё</button>
+            <button data-cat="forging">Ковка/штамповка</button>
+            <button data-cat="welding">Сварка</button>
+          </div>
         </div>
         <div class="toolbar mt">
           <input type="search" class="search" id="techQ" placeholder="Поиск по разделу…">
@@ -221,7 +246,7 @@
   <script src="../../assets/js/wizard.js?v=2"></script>
   <script src="../../assets/js/tech-wizard.js?v=5"></script>
   <script src="../../assets/js/masters.js?v=6"></script>
-  <script src="registry.js?v=12"></script>
+  <script src="registry.js?v=13"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=2"></script>
 </body>
