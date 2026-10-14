@@ -37,14 +37,14 @@ const ITEMS = [
     evidence: 'tools/scenario-check.ps1 (шаг 15), apps/orders/orders.js'
   },
   {
-    id: 'PROP-15', wave: 'R1', prio: 'P1', area: 'Сценарии', status: 'open', effort: 'M',
+    id: 'PROP-15', wave: 'R1', prio: 'P1', area: 'Сценарии', status: 'done', effort: 'M',
     business: [BIZ.qa],
     modules: ['claims', 'issues', 'service', 'passport', 'qc', 'quality'],
     title: 'Сквозной сценарий «Рекламация/CAPA → наряд → паспорт → KPI»',
-    problem: 'Рекламации, CAPA, сервисные наряды и цифровой паспорт существуют раздельно; не прослеживается «дефект → мероприятие → исправление → паспорт».',
-    action: 'Связать рекламацию/дефект с CAPA-мероприятием, сервисным нарядом и записью в паспорте изделия; вывести в KPI качества.',
-    dod: 'Цепочка рекламация→CAPA→наряд→паспорт проходит; KPI качества считаются из этих данных.',
-    evidence: 'apps/claims, apps/issues, apps/service, apps/passport'
+    problem: 'Рекламации, CAPA, сервисные заявки и паспорт изделия были связаны слабо (нет прямой связи претензия↔сервис).',
+    action: 'В `apps/claims` добавлена кнопка «Создать сервисную заявку» (claim→service через app_service_save); в `tools/scenario-check.ps1` добавлен сценарий претензия→CAPA→сервис→паспорт→KPI качества.',
+    dod: 'Сценарий в scenario-check проходит (с токеном); UI связывает претензию и сервисную заявку. Реализовано.',
+    evidence: 'tools/scenario-check.ps1 (шаг 16), apps/claims/claims.js'
   },
   {
     id: 'PROP-16', wave: 'R1', prio: 'P1', area: 'Экономика', status: 'open', effort: 'M',

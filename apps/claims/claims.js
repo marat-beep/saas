@@ -110,10 +110,19 @@
       '<h1 style="font-size:1.1rem;margin:10px 0;">' + esc(cur.reason || 'Претензия') + '</h1>' +
       kv('Заказчик', cur.customer) + kv('Изделие', cur.product) + kv('Количество', cur.qty) +
       kv('Ответственный', cur.assigned_login) + kv('Заявка', cur.order_number) +
-      kv('Связанная проблема', cur.issue_title) + kv('Создана', fmt(cur.created_at));
+      kv('Связанная проблема', cur.issue_title) + kv('Создана', fmt(cur.created_at)) +
+      '<div class="toolbar wrap mt"><button class="btn secondary" data-cap="edit" id="mkSrv" style="width:auto;padding:9px 16px;">Создать сервисную заявку</button></div>';
     $('#stSel').value = cur.status;
     clearMsg('#iMsg');
     loadCapa();
+    var sb = $('#mkSrv');
+    if (sb) sb.addEventListener('click', function () {
+      sb.disabled = true;
+      rpc('app_service_save', { p_token: token, p_id: null, p_customer_id: null, p_equipment_id: null, p_title: (cur.product ? ('Рекламация: ' + cur.product) : 'Рекламация'), p_kind: 'repair', p_scheduled_date: null, p_engineer: cur.assigned_login || null, p_works: '', p_cost: null, p_note: 'Претензия ' + (cur.number || ''), p_priority: 'high', p_is_warranty: true })
+        .then(function () { msg('#iMsg', 'Сервисная заявка создана (см. «Сервис»)'); })
+        .catch(function (e) { msg('#iMsg', 'Ошибка: ' + e.message, 'err'); })
+        .then(function () { sb.disabled = false; });
+    });
     screens.go('s-item');
   }
   function loadCapa() {

@@ -175,6 +175,19 @@ if ($oid) {
   }
 } else { Add-F 'C' 'Info' 'Сквозной сценарий PROP-14 пропущен (нет заявки)' 'Пропуск.' 'scenario-check' 2 1 }
 
+# 16. сквозной сценарий PROP-15: рекламация → CAPA → сервисная заявка → паспорт → KPI
+if ($clm -and $clm.Count -and $clm[0].v) {
+  $cid = $clm[0].v
+  Step 'качество-цепочка: CAPA по претензии' "select * from public.app_capa_save('$t',null,'$cid','corrective','SCN CAPA цепочка','manager','2026-11-15','open','')" | Out-Null
+  Step 'качество-цепочка: список CAPA' "select v from (select count(*)::text as v from public.app_capa_list('$t','$cid')) z" | Out-Null
+  $srv = Step 'качество-цепочка: сервисная заявка' "select id as v from public.app_service_save('$t',null,null,null,'SCN сервис по претензии','repair',null,'manager','',0,'Претензия SCN','high',null,true,null,null,null)"
+  if ($srv -and $srv.Count -and $srv[0].v) { Step 'качество-цепочка: выполнение сервиса' "select * from public.app_service_complete('$t','$($srv[0].v)','SCN работы','SCN решение',2,0,0)" | Out-Null }
+  $ps = Step 'качество-цепочка: паспорт изделия' "select id as v from public.app_passport_create('$t',null,'SCN цепочка изделие',null,'{}'::jsonb,null,'SN-SCN-CH',1)"
+  if ($ps -and $ps.Count -and $ps[0].v) { Step 'качество-цепочка: чтение паспорта' "select v from (select count(*)::text as v from public.app_passport_get('$t','$($ps[0].v)')) z" | Out-Null }
+  Step 'качество-цепочка: KPI качества' "select v from (select count(*)::text as v from public.app_quality_kpi('$t')) z" | Out-Null
+  Step 'качество-цепочка: отчёт претензий' "select v from (select count(*)::text as v from public.app_claims_report('$t',null,null)) z" | Out-Null
+} else { Add-F 'C' 'Info' 'Сценарий PROP-15 пропущен (нет претензии)' 'Пропуск.' 'scenario-check' 2 1 }
+
 # --- cleanup ---
 $cleanup = @'
 delete from public.app_order_items where order_id in (select id from public.app_orders where title like 'SCN-%');
@@ -201,6 +214,10 @@ delete from public.app_events where (detail like '%SCN%' or action in ('Расс
 delete from public.app_qc_measures where param='Ra' and value=1.5 and ts >= now() - interval '30 minutes' and created_login='admin';
 '@
 $del = @(
+  "delete from public.app_service_history where request_id in (select id from public.app_service_requests where title like 'SCN-%')",
+  "delete from public.app_service_visits where request_id in (select id from public.app_service_requests where title like 'SCN-%')",
+  "delete from public.app_service_parts where request_id in (select id from public.app_service_requests where title like 'SCN-%')",
+  "delete from public.app_service_requests where title like 'SCN-%'",
   "delete from public.app_qc_lines where check_id in (select id from public.app_qc_checks where product like 'SCN-%')",
   "delete from public.app_qc_checks where product like 'SCN-%'",
   "delete from public.app_naryad_ops where naryad_id in (select id from public.app_naryads where title like 'SCN-%')",
