@@ -146,7 +146,7 @@
           <div id="log"></div>
         </section>
         <aside class="eprops">
-          <div class="tabs" id="tabs"><button class="active" data-tab="prop">Свойства</button><button data-tab="notes">Метки</button><button data-tab="links">Связи</button><button data-tab="flow">Поток</button></div>
+          <div class="tabs" id="tabs"><button class="active" data-tab="prop">Свойства</button><button data-tab="notes">Метки</button><button data-tab="links">Связи</button><button data-tab="flow">Поток</button><button data-tab="layers">Слои</button></div>
           <div id="tab-prop"><div id="prop"><span class="hintbar">Выберите элемент на плане.</span></div></div>
           <div id="tab-notes" style="display:none;"><button class="btn secondary" id="noteAdd" style="width:auto">＋ Метка</button><div id="notesList" class="mlist"></div><button class="btn secondary" id="noteExport" style="width:auto;margin-top:6px">Экспорт меток</button></div>
           <div id="tab-links" style="display:none;">
@@ -162,6 +162,10 @@
             <button class="btn secondary" id="routeDone" style="width:auto;margin-top:6px">Завершить</button>
             <div id="routeList" class="mlist"></div>
             <button class="btn secondary" id="routeExport" style="width:auto;margin-top:6px">Экспорт маршрутов</button>
+          </div>
+          <div id="tab-layers" style="display:none;">
+            <div class="hintbar">Видимость слоёв и легенда. Скрытые слои не отображаются и не экспортируются в PNG/SVG.</div>
+            <div id="layersPanel" class="mlist"></div>
           </div>
           <div class="grip left" id="gripProps" title="Тяните, чтобы изменить ширину"></div>
         </aside>
@@ -182,7 +186,7 @@
   <script src="../../assets/js/nav.js?v=109"></script>
   <script src="../../assets/js/shell.js?v=76"></script>
   <script src="../../assets/js/module-report.js?v=3"></script>
-  <script src="layout.js?v=11"></script>
+  <script src="layout.js?v=12"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=2"></script>
 </body>

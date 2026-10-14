@@ -22,6 +22,21 @@
   var STAGES = { exist: { l: 'Действующее', c: '#94a3b8' }, 'new': { l: 'Новое', c: '#10b981' }, future: { l: 'Будущее', c: '#8b95a3' } };
   var S = { w: W, h: H, items: [], notes: [], links: [], routes: [], utils: [] };
   var linkFrom = null, routePts = [], utilPts = [], utilKind = null, flow = { spd: 1800, playing: false, t: 0 }, flowBase = false;
+  /* L1: слои — видимость категорий объектов на плане */
+  var LAYERS = [
+    { k: 'equip', l: 'Оборудование', ic: '🌀' },
+    { k: 'walls', l: 'Стены и перегородки', ic: '🧱' },
+    { k: 'zones', l: 'Зоны и проезды', ic: '⬜' },
+    { k: 'labels', l: 'Подписи', ic: '🏷' },
+    { k: 'utils', l: 'Коммуникации', ic: '〰' },
+    { k: 'routes', l: 'Маршруты потока', ic: '➡️' },
+    { k: 'links', l: 'Связи', ic: '🔗' },
+    { k: 'notes', l: 'Метки', ic: '💬' }
+  ];
+  var layers = (function () { try { var s = localStorage.getItem('layout-layers'); if (s) return JSON.parse(s); } catch (e) {} return {}; })();
+  LAYERS.forEach(function (x) { if (layers[x.k] == null) layers[x.k] = true; });
+  function layerOf(t) { if (t === 'wall' || t === 'door') return 'walls'; if (t === 'zone' || t === 'aisle') return 'zones'; if (t === 'label') return 'labels'; return 'equip'; }
+  function saveLayers() { try { localStorage.setItem('layout-layers', JSON.stringify(layers)); } catch (e) {} }
   var UTILS = [
     { k: 'electric', l: 'Питание (электр.)', c: '#ef4444' }, { k: 'air', l: 'Воздух', c: '#06b6d4' },
     { k: 'water', l: 'Вода', c: '#3b82f6' }, { k: 'gas', l: 'Газ', c: '#f59e0b' }, { k: 'net', l: 'Сеть / данные', c: '#22c55e' }
@@ -126,11 +141,11 @@
       for (var x = 0; x <= S.w; x += GRID * 5) g += '<line x1="' + x + '" y1="0" x2="' + x + '" y2="' + S.h + '" class="gl" stroke-width="' + (GRID / 12) + '"/>';
       for (var y = 0; y <= S.h; y += GRID * 5) g += '<line x1="0" y1="' + y + '" x2="' + S.w + '" y2="' + y + '" class="gl" stroke-width="' + (GRID / 12) + '"/>';
     }
-    g += S.links.map(function (l) { var a = byId(l.a), b = byId(l.b); if (!a || !b) return ''; return '<line class="lk" x1="' + (a.x + a.w) + '" y1="' + (a.y + a.h / 2) + '" x2="' + b.x + '" y2="' + (b.y + b.h / 2) + '" marker-end="url(#ah)" data-lk="' + l.id + '"/>'; }).join('');
-    g += S.routes.map(function (r) { return '<polyline class="rt" marker-end="url(#ahr)" data-rt="' + r.id + '" points="' + r.pts.map(function (p) { return p[0] + ',' + p[1]; }).join(' ') + '"/>'; }).join('');
-    g += (S.utils || []).map(function (u) { var kk = UTILS.filter(function (x) { return x.k === u.kind; })[0] || { c: '#888' }; return '<polyline data-ut="' + u.id + '" fill="none" stroke="' + kk.c + '" stroke-width="' + (GRID * 0.45) + '" stroke-dasharray="' + (GRID * 2) + ' ' + (GRID) + '" stroke-linejoin="round" points="' + u.pts.map(function (p) { return p[0] + ',' + p[1]; }).join(' ') + '"/>'; }).join('');
+    g += (layers.links ? S.links : []).map(function (l) { var a = byId(l.a), b = byId(l.b); if (!a || !b) return ''; return '<line class="lk" x1="' + (a.x + a.w) + '" y1="' + (a.y + a.h / 2) + '" x2="' + b.x + '" y2="' + (b.y + b.h / 2) + '" marker-end="url(#ah)" data-lk="' + l.id + '"/>'; }).join('');
+    g += (layers.routes ? S.routes : []).map(function (r) { return '<polyline class="rt" marker-end="url(#ahr)" data-rt="' + r.id + '" points="' + r.pts.map(function (p) { return p[0] + ',' + p[1]; }).join(' ') + '"/>'; }).join('');
+    g += (layers.utils ? (S.utils || []) : []).map(function (u) { var kk = UTILS.filter(function (x) { return x.k === u.kind; })[0] || { c: '#888' }; return '<polyline data-ut="' + u.id + '" fill="none" stroke="' + kk.c + '" stroke-width="' + (GRID * 0.45) + '" stroke-dasharray="' + (GRID * 2) + ' ' + (GRID) + '" stroke-linejoin="round" points="' + u.pts.map(function (p) { return p[0] + ',' + p[1]; }).join(' ') + '"/>'; }).join('');
     if (utilPts.length && utilKind) { var kc = (UTILS.filter(function (x) { return x.k === utilKind; })[0] || {}).c; g += '<polyline fill="none" stroke="' + kc + '" stroke-width="' + (GRID * 0.45) + '" stroke-dasharray="' + (GRID) + '" points="' + utilPts.map(function (p) { return p[0] + ',' + p[1]; }).join(' ') + '"/>'; }
-    g += S.items.map(function (it) {
+    g += S.items.filter(function (it) { return layers[layerOf(it.type)]; }).map(function (it) {
       var c = (STAGES[it.stage] || STAGES['new']).c, isz = it.type === 'zone' || it.type === 'aisle';
       return '<g class="li" data-id="' + it.id + '" transform="translate(' + it.x + ',' + it.y + ') rotate(' + (it.rot || 0) + ',' + (it.w / 2) + ',' + (it.h / 2) + ')">' +
         '<rect x="0" y="0" width="' + it.w + '" height="' + it.h + '" rx="' + (GRID / 2) + '" fill="' + (isz ? 'rgba(16,185,129,.08)' : c + '22') + '" stroke="' + (collHighlight.indexOf(it.id) >= 0 ? '#ef4444' : c) + '" stroke-width="' + (collHighlight.indexOf(it.id) >= 0 ? GRID / 2 : (sel === it.id ? GRID / 2 : GRID / 4)) + '"' + (isz ? ' stroke-dasharray="' + GRID / 2 + ' ' + GRID / 3 + '"' : '') + '/>' +
@@ -146,7 +161,7 @@
         })() : '') +
         '</g>';
     }).join('');
-    g += S.notes.map(function (n) { return '<g class="nt" data-note="' + n.id + '" transform="translate(' + n.x + ',' + n.y + ')"><circle r="' + GRID * 0.9 + '" fill="#f59e0b" stroke="#fff" stroke-width="' + GRID / 6 + '"/><text y="' + GRID * 0.35 + '" text-anchor="middle" font-size="' + GRID * 1.1 + '" fill="#fff">!</text></g>'; }).join('');
+    g += (layers.notes ? S.notes : []).map(function (n) { return '<g class="nt" data-note="' + n.id + '" transform="translate(' + n.x + ',' + n.y + ')"><circle r="' + GRID * 0.9 + '" fill="#f59e0b" stroke="#fff" stroke-width="' + GRID / 6 + '"/><text y="' + GRID * 0.35 + '" text-anchor="middle" font-size="' + GRID * 1.1 + '" fill="#fff">!</text></g>'; }).join('');
     var mark = flowMark(); if (mark) g += '<circle class="fm" cx="' + mark[0] + '" cy="' + mark[1] + '" r="' + GRID * 0.9 + '" fill="#2563eb" stroke="#fff" stroke-width="' + GRID / 6 + '"/>';
     svg.innerHTML = g;
     var eh = $('#emptyHint'); if (eh) eh.style.display = S.items.length ? 'none' : '';
@@ -267,6 +282,22 @@
     $$('#utilsList [data-util]').forEach(function (b) { b.onclick = function () { utilKind = b.dataset.util; utilPts = []; tool = 'util'; toast('Кликайте точки коммуникации; «Завершить» — сохранить'); }; });
   }
 
+  /* ---------- L1: слои и легенда ---------- */
+  function renderLayers() {
+    var host = $('#layersPanel'); if (!host) return;
+    host.innerHTML =
+      '<div class="btn-row" style="gap:6px;margin-bottom:6px"><button class="btn secondary" id="lyAll" style="width:auto">Показать всё</button><button class="btn secondary" id="lyNone" style="width:auto">Скрыть всё</button></div>' +
+      LAYERS.map(function (x) { return '<label class="utrow" style="cursor:pointer"><input type="checkbox" data-ly="' + x.k + '" style="width:auto;flex:0 0 auto"' + (layers[x.k] ? ' checked' : '') + '> <span>' + x.ic + ' ' + x.l + '</span></label>'; }).join('') +
+      '<div class="pal-g" style="margin-top:10px">Этапы</div>' +
+      Object.keys(STAGES).map(function (k) { return '<div class="utrow"><span class="utsw" style="background:' + STAGES[k].c + '"></span><span>' + STAGES[k].l + '</span></div>'; }).join('') +
+      '<div class="pal-g" style="margin-top:10px">Коммуникации</div>' +
+      UTILS.map(function (u) { return '<div class="utrow"><span class="utsw" style="background:' + u.c + '"></span><span>' + u.l + '</span></div>'; }).join('');
+    $$('#layersPanel [data-ly]').forEach(function (c) { c.onchange = function () { layers[this.dataset.ly] = this.checked; saveLayers(); draw(); }; });
+    var a = document.getElementById('lyAll'), n = document.getElementById('lyNone');
+    if (a) a.onclick = function () { LAYERS.forEach(function (x) { layers[x.k] = true; }); saveLayers(); renderLayers(); draw(); };
+    if (n) n.onclick = function () { LAYERS.forEach(function (x) { layers[x.k] = false; }); saveLayers(); renderLayers(); draw(); };
+  }
+
   /* ---------- палитра ---------- */
   function palette() {
     $('#palette').innerHTML = TYPES.map(function (grp, gi) {
@@ -353,7 +384,7 @@
   $('#propsBtn').onclick = function () { $('#editor').classList.toggle('no-props'); };
   $('#soloBtn').onclick = function () { $('#editor').classList.toggle('solo'); };
   $('#themeBtn').onclick = toggleTheme;
-  $$('#tabs button').forEach(function (b) { b.onclick = function () { $$('#tabs button').forEach(function (x) { x.classList.toggle('active', x === b); }); var id = b.dataset.tab; ['prop', 'notes', 'links', 'flow'].forEach(function (k) { $('#tab-' + k).style.display = k === id ? '' : 'none'; }); }; });
+  $$('#tabs button').forEach(function (b) { b.onclick = function () { $$('#tabs button').forEach(function (x) { x.classList.toggle('active', x === b); }); var id = b.dataset.tab; ['prop', 'notes', 'links', 'flow', 'layers'].forEach(function (k) { $('#tab-' + k).style.display = k === id ? '' : 'none'; }); if (id === 'layers') renderLayers(); }; });
   $('#noteAdd').onclick = function () { setTool('note'); toast('Кликните место метки'); };
   $('#noteExport').onclick = exportNotes;
   $('#linkExport').onclick = exportLinks;
@@ -545,7 +576,7 @@
     if (!s) return;
     token = s.token; $('#who').textContent = s.login + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     setTheme(localStorage.getItem('layout-theme') || 'dark');
-    palette(); fitZoom(); draw(); centerView(); prop(); renderLists(); loadList().catch(function () {}); baseline = deep(S);
+    palette(); fitZoom(); draw(); centerView(); prop(); renderLists(); renderLayers(); loadList().catch(function () {}); baseline = deep(S);
     logEvent('Проект загружен');
     window.addEventListener('resize', function () { fitZoom(); draw(); centerView(); });
   });
