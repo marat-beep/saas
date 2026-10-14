@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Отправить заявку — 3DMP</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=36">
+<style>
+  body{background:#f1f5f9}
+  .pub{max-width:640px;margin:0 auto;padding:28px 16px 60px}
+  .pub .card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:22px}
+  .pub h1{font-size:1.4rem;margin-bottom:6px}
+  .pub p.lead{color:var(--muted);margin-bottom:16px}
+  .pub .field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+  .pub label{font-size:.8rem;font-weight:700}
+  .pub input,.pub textarea{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:10px;font:inherit}
+  .pub .ok{background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;border-radius:10px;padding:12px;margin-top:12px}
+  .pub .err{color:#b91c1c;font-size:.84rem;margin-top:8px}
+</style>
+</head>
+<body>
+  <div class="pub">
+    <div class="card">
+      <h1>Отправить заявку</h1>
+      <p class="lead">Опишите задачу — менеджер свяжется с вами. Вход не требуется.</p>
+      <div id="form">
+        <div class="field"><label>Ваше имя</label><input id="pName" placeholder="Иван"></div>
+        <div class="field"><label>Контакт (телефон / e-mail)</label><input id="pContact" placeholder="+7… / mail@…"></div>
+        <div class="field"><label>Тема заявки <span style="color:#b91c1c">*</span></label><input id="pTitle" placeholder="Изготовление штампа, партия деталей…"></div>
+        <div class="field"><label>Описание</label><textarea id="pDesc" rows="4" placeholder="Материал, размеры, количество, сроки…"></textarea></div>
+        <div class="field"><label>Ориентировочный бюджет, ₽</label><input id="pBudget" inputmode="numeric" placeholder="необязательно"></div>
+        <button class="btn" id="pSend">Отправить заявку</button>
+        <div id="pMsg" class="err" style="display:none"></div>
+      </div>
+    </div>
+    <p style="text-align:center;color:var(--muted);font-size:.78rem;margin-top:14px;">3DMP Service · публичная форма заявок</p>
+  </div>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script>
+  (function(){
+    var SB = window.SB;
+    function msg(t, ok){ var m=document.getElementById('pMsg'); m.style.display='block'; m.className = ok ? 'ok' : 'err'; m.textContent=t; }
+    document.getElementById('pSend').addEventListener('click', function(){
+      var title=(document.getElementById('pTitle').value||'').trim();
+      if(!title){ msg('Укажите тему заявки'); return; }
+      if(!SB){ msg('Сервис недоступен'); return; }
+      SB.rpc('app_public_request_add', { p_name: document.getElementById('pName').value, p_contact: document.getElementById('pContact').value,
+        p_title: title, p_description: document.getElementById('pDesc').value, p_budget: Number((document.getElementById('pBudget').value||'').replace(',','.'))||null })
+        .then(function(r){ var x=r && r.data && r.data[0]; if(r.error){ msg('Ошибка: '+r.error.message); return; } if(!x || x.ok===false){ msg((x&&x.message)||'Не удалось отправить'); return; }
+          document.getElementById('form').innerHTML = '<div class="ok"><b>Заявка отправлена!</b><br>Номер: '+ (x.number||'') +'. Мы свяжемся с вами.</div>';
+        }).catch(function(e){ msg('Ошибка: '+e.message); });
+    });
+  })();
+  </script>
+</body>
+</html>

@@ -319,6 +319,22 @@
   $('#repBtn').addEventListener('click', reportPdf);
 
   /* ---------- Старт ---------- */
+  function loadPublic() {
+    if (!$('#prList')) return Promise.resolve();
+    return rpc('app_public_request_list', { p_token: token }).then(function (rows) {
+      rows = rows || [];
+      var st = { 'new': 'новая', accepted: 'принята', rejected: 'отклонена', converted: 'конвертирована' };
+      $('#prList').innerHTML = rows.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Дата</th><th>Номер</th><th>Имя</th><th>Контакт</th><th>Тема</th><th>Статус</th><th></th></tr></thead><tbody>' +
+        rows.map(function (r) { return '<tr><td class="muted">' + new Date(r.at).toLocaleDateString('ru-RU') + '</td><td>' + esc(r.number || '') + '</td><td>' + esc(r.name || '') + '</td><td>' + esc(r.contact || '') + '</td><td>' + esc(r.title || '') + '</td><td>' + esc(st[r.status] || r.status) + '</td>' +
+          '<td>' + (r.status === 'converted' ? '<span class="note">' + esc(r.order_number || '') + '</span>' : '<button class="act" data-conv="' + r.id + '">В заявку</button>') + '</td></tr>'; }).join('') + '</tbody></table></div>'
+        : '<span class="note">Заявок с формы нет.</span>';
+      $$('#prList [data-conv]').forEach(function (b) { b.addEventListener('click', function () {
+        rpc('app_public_request_convert', { p_token: token, p_id: b.dataset.conv }).then(function (d) { var x = d && d[0]; ui.toast((x && x.message) || 'Готово', x && x.ok === false ? 'err' : 'ok'); loadPublic(); load(); }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+      }); });
+    }).catch(function (e) { $('#prList').innerHTML = '<span class="note">Ошибка: ' + esc(e.message) + '</span>'; });
+  }
+  if ($('#prReload')) $('#prReload').addEventListener('click', loadPublic);
+
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     me = s; token = s.token;
@@ -326,5 +342,6 @@
     applyCaps();
     if (!SB) { msg('#listMsg', 'Supabase не подключён.', 'err'); return; }
     load();
+    loadPublic();
   });
 })();
