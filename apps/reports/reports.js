@@ -507,7 +507,7 @@
         list.map(function (s) {
           return '<tr><td>' + esc(s.name) + '</td><td>' + esc(s.module) + '</td><td>' + esc(s.format) + '</td><td>' + esc(s.period) + '</td><td>' + esc(s.channel) + '</td>' +
             '<td class="note">' + esc(String(s.next_run_at || '').substring(0, 16).replace('T', ' ')) + '</td>' +
-            '<td><button class="act" data-sc-run="' + s.id + '">▶</button> <button class="act danger" data-sc-del="' + s.id + '">✕</button></td></tr>';
+            '<td><button class="act" data-sc-run="' + s.id + '" aria-label="Запустить" title="Запустить">▶</button> <button class="act danger" data-sc-del="' + s.id + '" aria-label="Удалить" title="Удалить">✕</button></td></tr>';
         }).join('') + '</tbody></table>' : '<span class="note">Расписаний нет.</span>';
       $$('#schedList [data-sc-run]').forEach(function (b) { b.addEventListener('click', function () { runSched(b.dataset.scRun); }); });
       $$('#schedList [data-sc-del]').forEach(function (b) { b.addEventListener('click', function () { delSched(b.dataset.scDel); }); });

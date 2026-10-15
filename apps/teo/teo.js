@@ -61,7 +61,7 @@
     $('#lines').innerHTML = '<table class="mini"><thead><tr><th>Вид</th><th>Наименование</th><th class="num">Кол-во</th><th class="num">Цена</th><th class="num">Сумма</th><th></th></tr></thead><tbody>' +
       (lines.length ? lines.map(function (l) {
         return '<tr><td>' + esc(KIND[l.kind] || l.kind) + '</td><td>' + esc(l.name) + '</td><td class="num">' + (l.qty || 0) + '</td><td class="num">' + money(l.price) + '</td><td class="num">' + money(l.amount) + '</td>' +
-          '<td><button class="btn secondary" data-dl="' + l.id + '" style="width:auto;padding:3px 8px;font-size:.72rem;">×</button></td></tr>';
+          '<td><button class="btn secondary" data-dl="' + l.id + '" style="width:auto;padding:3px 8px;font-size:.72rem;" aria-label="Удалить" title="Удалить">×</button></td></tr>';
       }).join('') : '<tr><td colspan="6" class="note">Статей нет.</td></tr>') +
       '</tbody><tfoot><tr><th colspan="4">ИТОГО</th><th class="num">' + money(total) + '</th><th></th></tr></tfoot></table>';
     $$('#lines [data-dl]').forEach(function (b) { b.addEventListener('click', function () {

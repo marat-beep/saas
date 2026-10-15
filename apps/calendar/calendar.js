@@ -31,7 +31,7 @@
       list.map(function (c) {
         return '<tr style="border-bottom:1px solid var(--border)"><td><b>' + fmt(c.cal_date) + '</b></td>' +
           '<td><span class="badge ' + (c.kind === 'holiday' ? 'cancelled' : c.kind === 'short' ? 'in_progress' : 'done') + '">' + (KIND[c.kind] || c.kind) + '</span></td>' +
-          '<td>' + esc(c.name || '') + '</td><td><button class="chip" data-del="' + c.id + '">✕</button></td></tr>';
+          '<td>' + esc(c.name || '') + '</td><td><button class="chip" data-del="' + c.id + '" aria-label="Удалить" title="Удалить">✕</button></td></tr>';
       }).join('') + '</tbody></table>' : '<span class="note">Записей нет.</span>';
     $$('#list [data-del]').forEach(function (b) {
       b.addEventListener('click', function () { rpc('app_calendar_delete', { p_token: token, p_id: b.dataset.del }).then(function () { window.Auth.log('Календарь удалён', b.dataset.del); load(); }); });

@@ -33,7 +33,7 @@
       rows.map(function (f) {
         return '<tr><td>' + esc(f.name) + '</td><td>' + esc(f.entity_type) + '</td><td>' + kb(f.size_bytes) + '</td><td>' + esc(f.uploaded_by || '') + '</td><td>' + new Date(f.created_at).toLocaleDateString('ru-RU') + '</td>' +
           '<td style="white-space:nowrap;"><a class="btn secondary" href="' + esc(f.url) + '" target="_blank" style="width:auto;padding:4px 9px;font-size:.72rem;text-decoration:none;">Открыть</a> ' +
-          '<button class="btn secondary" data-del="' + f.id + '" data-path="' + esc(f.path) + '" style="width:auto;padding:4px 9px;font-size:.72rem;">×</button></td></tr>';
+          '<button class="btn secondary" data-del="' + f.id + '" data-path="' + esc(f.path) + '" style="width:auto;padding:4px 9px;font-size:.72rem;" aria-label="Удалить" title="Удалить">×</button></td></tr>';
       }).join('') + '</tbody></table>' : '<span class="note">Файлов нет.</span>';
     $$('#list [data-del]').forEach(function (b) { b.addEventListener('click', function () {
       rpc('app_file_delete', { p_token: token, p_id: b.dataset.del }).then(function () {

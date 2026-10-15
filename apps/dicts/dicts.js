@@ -43,7 +43,7 @@
   function renderItems() {
     $('#iList').innerHTML = items.length ? '<table class="mini"><thead><tr><th>Значение</th><th>Название</th><th>Порядок</th><th></th></tr></thead><tbody>' +
       items.map(function (i) { return '<tr><td>' + esc(i.value) + '</td><td>' + esc(i.label) + '</td><td>' + i.sort + '</td>' +
-        '<td><button class="btn secondary" data-idel="' + i.id + '" style="width:auto;padding:3px 8px;font-size:.72rem;">×</button></td></tr>'; }).join('') + '</tbody></table>'
+        '<td><button class="btn secondary" data-idel="' + i.id + '" style="width:auto;padding:3px 8px;font-size:.72rem;" aria-label="Удалить" title="Удалить">×</button></td></tr>'; }).join('') + '</tbody></table>'
       : '<span class="note">Значений нет.</span>';
     $$('#iList [data-idel]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_dict_item_delete', { p_token: token, p_id: b.dataset.idel }).then(function () { open(cur.id); load(); }); }); });
   }

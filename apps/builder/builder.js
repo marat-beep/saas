@@ -40,7 +40,7 @@
     $('#fields').innerHTML = fields.length ? '<table class="mini"><thead><tr><th>Название</th><th>Код</th><th>Тип</th><th></th></tr></thead><tbody>' +
       fields.map(function (f) {
         return '<tr><td>' + esc(f.name) + (f.required ? ' *' : '') + '</td><td>' + esc(f.code) + '</td><td>' + esc(f.field_type) + (f.options ? ' (' + esc(f.options) + ')' : '') + '</td>' +
-          '<td><button class="btn secondary" data-fd="' + f.id + '" style="width:auto;padding:3px 8px;font-size:.72rem;">×</button></td></tr>';
+          '<td><button class="btn secondary" data-fd="' + f.id + '" style="width:auto;padding:3px 8px;font-size:.72rem;" aria-label="Удалить" title="Удалить">×</button></td></tr>';
       }).join('') + '</tbody></table>' : '<span class="note">Полей нет — добавьте первое поле.</span>';
     $$('#fields [data-fd]').forEach(function (b) { b.addEventListener('click', function () {
       rpc('app_entity_field_delete', { p_token: token, p_id: b.dataset.fd }).then(function () { open(cur.id); });
@@ -77,7 +77,7 @@
           var v = r.data ? r.data[f.code] : '';
           if (typeof v === 'boolean') v = v ? '✓' : '';
           return '<td>' + esc(v == null ? '' : v) + '</td>';
-        }).join('') + '<td><button class="btn secondary" data-rd="' + r.id + '" style="width:auto;padding:3px 8px;font-size:.72rem;">×</button></td></tr>';
+        }).join('') + '<td><button class="btn secondary" data-rd="' + r.id + '" style="width:auto;padding:3px 8px;font-size:.72rem;" aria-label="Удалить" title="Удалить">×</button></td></tr>';
       }).join('') + '</tbody></table>' : '<span class="note">Записей нет.</span>';
     $$('#records [data-rd]').forEach(function (b) { b.addEventListener('click', function () {
       rpc('app_entity_record_delete', { p_token: token, p_id: b.dataset.rd }).then(function () { open(cur.id); });

@@ -105,7 +105,7 @@
         var steps = (x.steps || []).map(function (s) { return (s.name || s.role || 'шаг'); }).join(' → ');
         return '<div class="kvr"><b>' + esc(x.name) + '</b><span class="note">' + esc(steps) + '</span>' +
           '<span class="badge ' + (x.active ? 'done' : 'cancelled') + '">' + (x.active ? 'активен' : 'выкл') + '</span>' +
-          '<span class="m"><button class="act" data-redit="' + x.id + '">✎</button></span></div>';
+          '<span class="m"><button class="act" data-redit="' + x.id + '" aria-label="Изменить" title="Изменить">✎</button></span></div>';
       }).join('') : '<span class="note">Маршрутов нет.</span>';
       $$('#routes [data-redit]').forEach(function (b) { b.addEventListener('click', function () { routeForm(routes.filter(function (z) { return z.id === b.dataset.redit; })[0]); }); });
     });

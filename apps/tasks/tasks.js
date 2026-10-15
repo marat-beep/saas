@@ -72,7 +72,7 @@
           return '<div class="kcard"><div class="k-t">' + esc(t.title) + '</div>' +
             '<div class="note">' + esc(t.assignee_login || '—') + (t.due_date ? ' · до ' + dd(t.due_date) : '') + (t.fact_hours ? ' · ' + t.fact_hours + 'ч' : '') + '</div>' +
             '<div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap;"><button class="act" data-open="' + t.id + '">Открыть</button>' +
-            (c.s !== 'done' ? '<button class="act" data-next="' + t.id + '">→</button>' : '') + '</div></div>';
+            (c.s !== 'done' ? '<button class="act" data-next="' + t.id + '" aria-label="Далее" title="Далее">→</button>' : '') + '</div></div>';
         }).join('') : '<div class="note" style="padding:6px;">—</div>') + '</div>';
       }).join('');
       $$('#board [data-open]').forEach(function (b) { b.addEventListener('click', function () { openTask(tasks.filter(function (t) { return t.id === b.dataset.open; })[0]); }); });

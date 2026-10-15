@@ -109,8 +109,8 @@
         '<span class="badge">' + fact + ' / ' + plan + '</span>' +
         (dev < 0 ? '<span class="badge cancelled">недобор ' + (-dev) + '</span>' : (dev > 0 ? '<span class="badge done">сверх ' + dev + '</span>' : '')) +
         '<span class="m note">' + (s.rate ? 'ставка ' + num(s.rate) : '') + (s.salary ? ' · оклад ' + num(s.salary) + ' ₽' : '') + (s.note ? ' · ' + esc(s.note) : '') + '</span>' +
-        '<button class="act" data-stedit="' + s.id + '">✎</button>' +
-        (can('edit') ? '<button class="act danger" data-stdel="' + s.id + '">✕</button>' : '') + '</div>';
+        '<button class="act" data-stedit="' + s.id + '" aria-label="Изменить" title="Изменить">✎</button>' +
+        (can('edit') ? '<button class="act danger" data-stdel="' + s.id + '" aria-label="Удалить" title="Удалить">✕</button>' : '') + '</div>';
     }).join('') : '<span class="note">Штатное расписание пусто.</span>';
     $$('#staffing [data-stedit]').forEach(function (b) { b.addEventListener('click', function () { editStaffing(b.dataset.stedit); }); });
     $$('#staffing [data-stdel]').forEach(function (b) { b.addEventListener('click', function () { delStaffing(b.dataset.stdel); }); });
@@ -147,7 +147,7 @@
         '<span class="badge">' + (SHIFTS[s.shift_type] || s.shift_type) + ' · ' + num(s.hours) + ' ч</span>' +
         (s.absence ? '<span class="badge cancelled">отсутствие: ' + esc(ABS[s.absence] || s.absence) + '</span>' : '') +
         '<span class="m">' + (s.note ? '<span class="note">' + esc(s.note) + '</span>' : '') +
-        (can('edit') ? '<button class="act danger" data-scdel="' + s.id + '">✕</button>' : '') + '</span></div>';
+        (can('edit') ? '<button class="act danger" data-scdel="' + s.id + '" aria-label="Удалить" title="Удалить">✕</button>' : '') + '</span></div>';
     }).join('') : '<span class="note">Смен в периоде нет.</span>';
     $$('#sched [data-scdel]').forEach(function (b) { b.addEventListener('click', function () {
       rpc('app_shift_schedule_delete', { p_token: token, p_id: b.dataset.scdel }).then(function (d) { var r = d && d[0]; ui.toast((r && r.message) || 'Готово', r && r.ok ? 'ok' : 'err'); if (r && r.ok) load(); }); }); });
@@ -183,7 +183,7 @@
         '<span class="m">' +
         (can('edit') && a.status !== 'approved' ? '<button class="act" data-abok="' + a.id + '">Утвердить</button>' : '') +
         (can('edit') && a.status !== 'rejected' ? '<button class="act danger" data-abno="' + a.id + '">Отклонить</button>' : '') +
-        (can('edit') ? '<button class="act" data-absedit="' + a.id + '">✎</button>' : '') + '</span></div>';
+        (can('edit') ? '<button class="act" data-absedit="' + a.id + '" aria-label="Изменить" title="Изменить">✎</button>' : '') + '</span></div>';
     }).join('') : '<span class="note">Отсутствий нет.</span>';
     $$('#abs [data-abok]').forEach(function (b) { b.addEventListener('click', function () { setAbs(b.dataset.abok, 'approved'); }); });
     $$('#abs [data-abno]').forEach(function (b) { b.addEventListener('click', function () { setAbs(b.dataset.abno, 'rejected'); }); });
@@ -222,7 +222,7 @@
     $('#tabel').innerHTML = shifts.length ? shifts.slice(0, 80).map(function (s) {
       return '<div class="kvr"><span class="note">' + fmt(s.shift_date) + '</span><b>' + esc(s.employee) + '</b>' +
         '<span class="note">' + (KINDS[s.kind] || s.kind) + ' · ' + num(s.hours) + ' ч</span>' +
-        (can('edit') ? '<span class="m"><button class="act danger" data-tbdel="' + s.id + '">✕</button></span>' : '') + '</div>';
+        (can('edit') ? '<span class="m"><button class="act danger" data-tbdel="' + s.id + '" aria-label="Удалить" title="Удалить">✕</button></span>' : '') + '</div>';
     }).join('') : '<span class="note">Записей табеля нет.</span>';
     $$('#tabel [data-tbdel]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_shift_delete', { p_token: token, p_id: b.dataset.tbdel }).then(function () { ui.toast('Удалено'); load(); }); }); });
   }

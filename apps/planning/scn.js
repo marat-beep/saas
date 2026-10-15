@@ -29,7 +29,7 @@
     $('#scnList').innerHTML = list.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Название</th><th>Старт</th><th class="num">Дней</th><th>Создан</th><th>Действия</th></tr></thead><tbody>' +
       list.map(function (s) {
         return '<tr><td><b>' + esc(s.name) + '</b>' + (s.note ? ' <span class="note">' + esc(s.note) + '</span>' : '') + '</td><td>' + dd(s.from_date) + '</td><td class="num">' + s.days + '</td><td class="muted">' + dd(s.created_at) + '</td>' +
-          '<td><button class="act" data-run="' + s.id + '">Построить</button> <button class="act" data-apply="' + s.id + '" data-from="' + s.from_date + '" data-days="' + s.days + '">Применить</button> <button class="act" data-del="' + s.id + '">✕</button></td></tr>';
+          '<td><button class="act" data-run="' + s.id + '">Построить</button> <button class="act" data-apply="' + s.id + '" data-from="' + s.from_date + '" data-days="' + s.days + '">Применить</button> <button class="act" data-del="' + s.id + '" aria-label="Удалить" title="Удалить">✕</button></td></tr>';
       }).join('') + '</tbody></table></div>' : '<span class="note">Сценариев нет. Сохраните текущие параметры APS как сценарий.</span>';
     $$('#scnList [data-run]').forEach(function (b) { b.addEventListener('click', function () { run(b.dataset.run); }); });
     $$('#scnList [data-apply]').forEach(function (b) { b.addEventListener('click', function () {
@@ -53,13 +53,13 @@
 
   function renderCo(list) {
     $('#coList').innerHTML = list.length ? '<table class="mini"><thead><tr><th>Из семейства</th><th>В семейство</th><th class="num">Мин</th><th></th></tr></thead><tbody>' +
-      list.map(function (c) { return '<tr><td>' + esc(c.from_family || '—') + '</td><td>' + esc(c.to_family) + '</td><td class="num">' + num(c.minutes) + '</td><td><button class="act" data-codel="' + c.id + '">✕</button></td></tr>'; }).join('') + '</tbody></table>' : '<span class="note">Переналадки не заданы (0 мин по умолчанию).</span>';
+      list.map(function (c) { return '<tr><td>' + esc(c.from_family || '—') + '</td><td>' + esc(c.to_family) + '</td><td class="num">' + num(c.minutes) + '</td><td><button class="act" data-codel="' + c.id + '" aria-label="Удалить" title="Удалить">✕</button></td></tr>'; }).join('') + '</tbody></table>' : '<span class="note">Переналадки не заданы (0 мин по умолчанию).</span>';
     $$('#coList [data-codel]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_changeover_delete', { p_token: token(), p_id: b.dataset.codel }).then(function () { toast('Удалено'); load(); }); }); });
   }
 
   function renderDep(list) {
     $('#depList').innerHTML = list.length ? '<table class="mini"><thead><tr><th>Наряд</th><th>После</th><th class="num">Лаг, дн</th><th></th></tr></thead><tbody>' +
-      list.map(function (d) { return '<tr><td>' + esc(d.naryad) + '</td><td>' + esc(d.pred) + '</td><td class="num">' + d.lag_days + '</td><td><button class="act" data-ddel="' + d.id + '">✕</button></td></tr>'; }).join('') + '</tbody></table>' : '<span class="note">Зависимостей нет.</span>';
+      list.map(function (d) { return '<tr><td>' + esc(d.naryad) + '</td><td>' + esc(d.pred) + '</td><td class="num">' + d.lag_days + '</td><td><button class="act" data-ddel="' + d.id + '" aria-label="Удалить" title="Удалить">✕</button></td></tr>'; }).join('') + '</tbody></table>' : '<span class="note">Зависимостей нет.</span>';
     $$('#depList [data-ddel]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_plan_dep_delete', { p_token: token(), p_id: b.dataset.ddel }).then(function () { toast('Удалено'); load(); }); }); });
   }
 

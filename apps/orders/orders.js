@@ -156,7 +156,7 @@
       (items.length ? items.map(function (i) {
         return '<tr><td>' + esc(i.name) + '</td><td>' + (Number(i.qty) || 0) + '</td><td>' + esc(i.unit || '') + '</td>' +
           '<td>' + money(i.price) + '</td><td>' + money(i.amount) + '</td>' +
-          '<td><button class="chip" data-del="' + i.id + '">✕</button></td></tr>';
+          '<td><button class="chip" data-del="' + i.id + '" aria-label="Удалить" title="Удалить">✕</button></td></tr>';
       }).join('') : '<tr><td colspan="6"><span class="note">Позиций нет.</span></td></tr>') + '</tbody>';
     $$('#items [data-del]').forEach(function (b2) {
       b2.addEventListener('click', function () {
@@ -219,7 +219,7 @@
       var html = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Заявка</th><th>Заказчик</th><th>Стадия</th><th class="num">Сумма</th><th>Продвинуть</th></tr></thead><tbody>' +
         (rows.length ? rows.map(function (r) {
           return '<tr><td><b>' + esc(r.number) + '</b> ' + esc(r.title) + '</td><td>' + esc(r.customer || '') + '</td><td>' + esc(STL[r.stage] || r.stage) + '</td><td class="num">' + (Number(r.amount) || 0).toLocaleString('ru-RU') + ' ₽</td>' +
-            '<td><select id="stg_' + r.order_id + '">' + stages.map(function (s) { return '<option value="' + s + '"' + (s === r.stage ? ' selected' : '') + '>' + STL[s] + '</option>'; }).join('') + '</select> <button class="act" data-adv="' + r.order_id + '">→</button></td></tr>';
+            '<td><select id="stg_' + r.order_id + '">' + stages.map(function (s) { return '<option value="' + s + '"' + (s === r.stage ? ' selected' : '') + '>' + STL[s] + '</option>'; }).join('') + '</select> <button class="act" data-adv="' + r.order_id + '" aria-label="Далее" title="Далее">→</button></td></tr>';
         }).join('') : '<tr><td colspan="5" class="note">Заявок нет</td></tr>') + '</tbody></table></div>';
       ui.dialog({ title: 'Конвейер продаж: заявка → КП → договор → счёт → оплата', body: html, html: true, cancelText: 'Закрыть', onOpen: function (back) {
         back.querySelectorAll('[data-adv]').forEach(function (b) {

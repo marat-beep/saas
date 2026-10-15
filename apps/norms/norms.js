@@ -61,7 +61,7 @@
     if (host.innerHTML) { host.innerHTML = ''; return; }
     rpc('app_norms_rates_list', { p_token: token, p_operation_id: opId }).then(function (rs) {
       host.innerHTML = '<table class="mini mt"><thead><tr><th>Сложность</th><th class="num">Мин</th><th class="num">Макс</th><th class="num">cost ratio</th><th></th></tr></thead><tbody>' +
-        (rs || []).map(function (r) { return '<tr><td>' + esc(r.complexity) + '</td><td class="num">' + r.sale_min + '</td><td class="num">' + r.sale_max + '</td><td class="num">' + r.cost_ratio + '</td><td><button class="btn secondary" data-rdel="' + r.id + '" style="width:auto;padding:3px 8px;font-size:.72rem;">×</button></td></tr>'; }).join('') +
+        (rs || []).map(function (r) { return '<tr><td>' + esc(r.complexity) + '</td><td class="num">' + r.sale_min + '</td><td class="num">' + r.sale_max + '</td><td class="num">' + r.cost_ratio + '</td><td><button class="btn secondary" data-rdel="' + r.id + '" style="width:auto;padding:3px 8px;font-size:.72rem;" aria-label="Удалить" title="Удалить">×</button></td></tr>'; }).join('') +
         '</tbody></table><button class="btn secondary mt" data-radd="' + opId + '" style="width:auto;padding:6px 11px;">+ Ставка</button>';
       $$('#rates_' + opId + ' [data-rdel]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_norms_rate_delete', { p_token: token, p_id: b.dataset.rdel }).then(function () { host.innerHTML = ''; toggleRates(opId); }); }); });
       $$('#rates_' + opId + ' [data-radd]').forEach(function (b) { b.addEventListener('click', function () { addRate(opId); }); });
@@ -94,7 +94,7 @@
       kfactors = r || []; fillKSelects();
       var byCat = { material: 'Материал', accuracy: 'Точность', geometry: 'Геометрия', fixture: 'Оснастка' };
       $('#kList').innerHTML = '<table class="mini"><thead><tr><th>Категория</th><th>Название</th><th class="num">K</th><th></th></tr></thead><tbody>' +
-        kfactors.map(function (k) { return '<tr><td>' + esc(byCat[k.category] || k.category) + '</td><td>' + esc(k.name) + '</td><td class="num">' + k.value + '</td><td><button class="btn secondary" data-kdel="' + k.id + '" style="width:auto;padding:3px 8px;font-size:.72rem;">×</button></td></tr>'; }).join('') + '</tbody></table>';
+        kfactors.map(function (k) { return '<tr><td>' + esc(byCat[k.category] || k.category) + '</td><td>' + esc(k.name) + '</td><td class="num">' + k.value + '</td><td><button class="btn secondary" data-kdel="' + k.id + '" style="width:auto;padding:3px 8px;font-size:.72rem;" aria-label="Удалить" title="Удалить">×</button></td></tr>'; }).join('') + '</tbody></table>';
       $$('#kList [data-kdel]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_norms_k_delete', { p_token: token, p_id: b.dataset.kdel }).then(function () { loadK(); }); }); });
     });
   }
@@ -111,7 +111,7 @@
     return rpc('app_analogs_list', { p_token: token, p_q: q || null }).then(function (r) {
       analogs = r || [];
       $('#aList').innerHTML = analogs.length ? '<table class="mini"><thead><tr><th>Название</th><th>Материал</th><th>Операция</th><th class="num">Масса</th><th class="num">Норма</th><th></th></tr></thead><tbody>' +
-        analogs.map(function (a) { return '<tr><td>' + esc(a.name) + '</td><td>' + esc(a.material || '') + '</td><td>' + esc(a.operation || '') + '</td><td class="num">' + (a.weight == null ? '' : a.weight) + '</td><td class="num">' + (a.norm_base == null ? '' : a.norm_base) + '</td><td><button class="btn secondary" data-adel="' + a.id + '" style="width:auto;padding:3px 8px;font-size:.72rem;">×</button></td></tr>'; }).join('') + '</tbody></table>' : '<span class="note">Аналогов нет.</span>';
+        analogs.map(function (a) { return '<tr><td>' + esc(a.name) + '</td><td>' + esc(a.material || '') + '</td><td>' + esc(a.operation || '') + '</td><td class="num">' + (a.weight == null ? '' : a.weight) + '</td><td class="num">' + (a.norm_base == null ? '' : a.norm_base) + '</td><td><button class="btn secondary" data-adel="' + a.id + '" style="width:auto;padding:3px 8px;font-size:.72rem;" aria-label="Удалить" title="Удалить">×</button></td></tr>'; }).join('') + '</tbody></table>' : '<span class="note">Аналогов нет.</span>';
       $$('#aList [data-adel]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_analog_delete', { p_token: token, p_id: b.dataset.adel }).then(function () { loadAnalogs($('#aQ').value); }); }); });
     });
   }

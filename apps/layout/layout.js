@@ -407,7 +407,7 @@
       '<label>Стадия</label><select id="pStage">' + Object.keys(STAGES).map(function (k) { return '<option value="' + k + '"' + (it.stage === k ? ' selected' : '') + '>' + STAGES[k].l + '</option>'; }).join('') + '</select>' +
       '<div class="grid2"><div><label>X, мм</label><input id="pX" type="number" value="' + it.x + '"></div><div><label>Y, мм</label><input id="pY" type="number" value="' + it.y + '"></div></div>' +
       '<div class="grid2"><div><label>Ширина, мм</label><input id="pW" type="number" value="' + it.w + '"></div><div><label>Высота, мм</label><input id="pH" type="number" value="' + it.h + '"></div></div>' +
-      '<div class="grid2"><div><label>Поворот, °</label><input id="pRot" type="number" min="0" max="359" step="15" value="' + (it.rot || 0) + '"></div><div style="display:flex;align-items:flex-end"><button class="btn secondary" id="pRot90" style="width:auto">↻ 90°</button></div></div>' +
+      '<div class="grid2"><div><label>Поворот, °</label><input id="pRot" type="number" min="0" max="359" step="15" value="' + (it.rot || 0) + '"></div><div style="display:flex;align-items:flex-end"><button class="btn secondary" id="pRot90" style="width:auto" aria-label="Повернуть на 90°" title="Повернуть на 90°">↻ 90°</button></div></div>' +
       '<div class="btn-row mt"><button class="btn secondary" id="pDup">⧉ Копия</button><button class="btn secondary" id="pDel">✕ Удалить</button></div>';
     $('#pName').oninput = function () { it.name = this.value; draw(); };
     $('#pStage').onchange = function () { it.stage = this.value; draw(); };
@@ -418,9 +418,9 @@
     $('#pDel').onclick = function () { snapshot(); S.items = S.items.filter(function (x) { return x.id !== sel; }); sel = null; draw(); prop(); };
   }
   function renderLists() {
-    var nl = $('#notesList'); if (nl) nl.innerHTML = S.notes.length ? S.notes.map(function (n) { return '<div class="lkrow"><span>' + esc(n.text || 'метка') + '</span><button class="act" data-ndel="' + n.id + '">✕</button></div>'; }).join('') : '<span class="note">Меток нет.</span>';
-    var ll = $('#linksList'); if (ll) ll.innerHTML = S.links.length ? S.links.map(function (l) { var a = byId(l.a), b = byId(l.b); return '<div class="lkrow"><span>' + esc((a && a.name) || '?') + ' ↔ ' + esc((b && b.name) || '?') + '</span><button class="act" data-ldel="' + l.id + '">✕</button></div>'; }).join('') : '<span class="note">Связей нет.</span>';
-    var rl = $('#routeList'); if (rl) rl.innerHTML = S.routes.length ? S.routes.map(function (r, i) { return '<div class="lkrow"><span>Маршрут ' + (i + 1) + ' · ' + r.pts.length + ' тчк</span><button class="act" data-rdel="' + r.id + '">✕</button></div>'; }).join('') : '<span class="note">Маршрутов нет.</span>';
+    var nl = $('#notesList'); if (nl) nl.innerHTML = S.notes.length ? S.notes.map(function (n) { return '<div class="lkrow"><span>' + esc(n.text || 'метка') + '</span><button class="act" data-ndel="' + n.id + '" aria-label="Удалить" title="Удалить">✕</button></div>'; }).join('') : '<span class="note">Меток нет.</span>';
+    var ll = $('#linksList'); if (ll) ll.innerHTML = S.links.length ? S.links.map(function (l) { var a = byId(l.a), b = byId(l.b); return '<div class="lkrow"><span>' + esc((a && a.name) || '?') + ' ↔ ' + esc((b && b.name) || '?') + '</span><button class="act" data-ldel="' + l.id + '" aria-label="Удалить" title="Удалить">✕</button></div>'; }).join('') : '<span class="note">Связей нет.</span>';
+    var rl = $('#routeList'); if (rl) rl.innerHTML = S.routes.length ? S.routes.map(function (r, i) { return '<div class="lkrow"><span>Маршрут ' + (i + 1) + ' · ' + r.pts.length + ' тчк</span><button class="act" data-rdel="' + r.id + '" aria-label="Удалить" title="Удалить">✕</button></div>'; }).join('') : '<span class="note">Маршрутов нет.</span>';
     $$('[data-ndel]').forEach(function (b) { b.onclick = function () { snapshot(); S.notes = S.notes.filter(function (x) { return x.id !== b.dataset.ndel; }); renderLists(); draw(); }; });
     $$('[data-ldel]').forEach(function (b) { b.onclick = function () { snapshot(); S.links = S.links.filter(function (x) { return x.id !== b.dataset.ldel; }); renderLists(); draw(); }; });
     $$('[data-rdel]').forEach(function (b) { b.onclick = function () { snapshot(); S.routes = S.routes.filter(function (x) { return x.id !== b.dataset.rdel; }); renderLists(); draw(); }; });
@@ -470,7 +470,7 @@
   function loadList() {
     return rpc('app_layout_plan_list', { p_token: token }).then(function (rows) {
       rows = rows || [];
-      $('#plans').innerHTML = rows.length ? rows.map(function (p) { return '<div class="plrow' + (p.id === planId ? ' on' : '') + '" data-open="' + p.id + '"><b>' + esc(p.name) + '</b><small>' + esc(KINDS[p.kind] || p.kind) + ' · ' + p.items + ' эл.</small><span class="pl-act"><button class="act" data-del="' + p.id + '">✕</button></span></div>'; }).join('') : '<span class="note">Проектов нет.</span>';
+      $('#plans').innerHTML = rows.length ? rows.map(function (p) { return '<div class="plrow' + (p.id === planId ? ' on' : '') + '" data-open="' + p.id + '"><b>' + esc(p.name) + '</b><small>' + esc(KINDS[p.kind] || p.kind) + ' · ' + p.items + ' эл.</small><span class="pl-act"><button class="act" data-del="' + p.id + '" aria-label="Удалить" title="Удалить">✕</button></span></div>'; }).join('') : '<span class="note">Проектов нет.</span>';
       $$('#plans [data-open]').forEach(function (r) { r.onclick = function (e) { if (e.target.dataset.del) return; openPlan(r.dataset.open); }; });
       $$('#plans [data-del]').forEach(function (b) { b.onclick = function () { rpc('app_layout_plan_delete', { p_token: token, p_id: b.dataset.del }).then(function () { toast('Удалено'); if (b.dataset.del === planId) { planId = null; applyData({}); } loadList(); }); }; });
     });

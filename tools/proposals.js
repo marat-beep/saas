@@ -96,13 +96,13 @@ const ITEMS = [
     evidence: 'supabase/migrations/0258_rls_hardening.sql'
   },
   {
-    id: 'PROP-08', wave: 'R2', prio: 'P2', area: 'Доступность', status: 'open', effort: 'M',
+    id: 'PROP-08', wave: 'R2', prio: 'P2', area: 'Доступность', status: 'done', effort: 'M',
     business: [BIZ.common], modules: [],
     title: 'aria-label для иконочных кнопок',
-    problem: 'Тулбары модулей используют только символы (↶ ↷ ✋ 🔗 …) без текста скринридеру.',
-    action: 'Добавить aria-label (и title) всем кнопкам без текста; начать с приоритетных модулей.',
-    dod: 'У иконочных кнопок есть доступное имя; ручная проверка ключевых экранов.',
-    evidence: 'apps/**/index.html, assets/js/*.js'
+    problem: '36 кнопок-иконок (✕ × ✎ ✓ ▶ → ← ↻) не имели доступного имени для скринридеров.',
+    action: 'Добавлены aria-label и title всем иконочным кнопкам (удалить/изменить/сохранить/запустить/далее/назад/повернуть) в 18 модулях; подписи prev/next уточнены в scale. Реконструкция — probe-скриптом (0 остатка).',
+    dod: 'Иконочные кнопки имеют доступное имя (probe: 0 без имени). Реализовано.',
+    evidence: 'apps/**/*.js, apps/**/index.html (v365)'
   },
   {
     id: 'PROP-17', wave: 'R2', prio: 'P2', area: 'Метрика', status: 'open', effort: 'M',

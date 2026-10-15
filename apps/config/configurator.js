@@ -61,7 +61,7 @@
       rows = rows || [];
       $('#presets').innerHTML = rows.length ? rows.map(function (p) {
         return '<div class="opt" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><b>' + esc(p.name) + '</b><span class="note">опций ' + p.cnt + ' · ' + money(p.total) + '</span>' +
-          '<span style="margin-left:auto;display:flex;gap:6px;"><button class="act" data-load="' + p.id + '">Загрузить</button><button class="act" data-q="' + p.id + '">КП</button><button class="act" data-del="' + p.id + '">✕</button></span></div>';
+          '<span style="margin-left:auto;display:flex;gap:6px;"><button class="act" data-load="' + p.id + '">Загрузить</button><button class="act" data-q="' + p.id + '">КП</button><button class="act" data-del="' + p.id + '" aria-label="Удалить" title="Удалить">✕</button></span></div>';
       }).join('') : '<span class="note">Шаблонов нет.</span>';
       $$('#presets [data-load]').forEach(function (b) { b.addEventListener('click', function () {
         var p = rows.filter(function (x) { return x.id === b.dataset.load; })[0]; if (!p) return;

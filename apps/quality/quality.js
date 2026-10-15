@@ -38,7 +38,7 @@
         '<b>' + esc(t.name) + '</b><span class="note">' + (t.serial ? esc(t.serial) + ' · ' : '') + (t.tool_type ? esc(t.tool_type) + ' · ' : '') + (t.location ? esc(t.location) : '') + '</span>' +
         '<span class="note" style="margin-left:auto;">поверка: ' + fmt(t.next_verified) + (t.days_left != null ? ' (' + (t.days_left < 0 ? 'просрочено ' + (-t.days_left) + ' дн.' : 'через ' + t.days_left + ' дн.') + ')' : '') + '</span>' +
         '<button class="chip" data-vs="' + t.id + '">Поверка</button>' +
-        '<button class="chip" data-del="' + t.id + '">✕</button></div>';
+        '<button class="chip" data-del="' + t.id + '" aria-label="Удалить" title="Удалить">✕</button></div>';
     }).join('') : '<span class="note">СИ нет.</span>';
     $$('#tools [data-del]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_tool_delete', { p_token: token, p_id: b.dataset.del }).then(function () { window.Auth.log('Удалено СИ', b.dataset.del); ui.toast('Удалено'); load(); }); }); });
     $$('#tools [data-vs]').forEach(function (b) { b.addEventListener('click', function () { $('#vTool').value = b.dataset.vs; $('#vMsg').className = 'msg'; window.scrollTo(0, 0); }); });

@@ -84,7 +84,7 @@
         '<div>' + esc(n.number) + ' · ' + esc(n.title) + ' <span class="note">(' + (ST[n.status] || n.status) + ')</span></div>' +
         '<input type="date" data-k="s" value="' + (n.plan_start || '') + '">' +
         '<input type="date" data-k="e" value="' + (n.plan_end || '') + '">' +
-        '<button class="btn secondary" data-save="' + n.id + '" style="width:auto;padding:7px 10px;">✓</button></div>';
+        '<button class="btn secondary" data-save="' + n.id + '" style="width:auto;padding:7px 10px;" aria-label="Сохранить" title="Сохранить">✓</button></div>';
     }).join('');
     $$('#sched [data-save]').forEach(function (b) {
       b.addEventListener('click', function () {

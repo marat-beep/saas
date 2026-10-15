@@ -31,8 +31,8 @@
           return '<tr><td>' + esc(s.slot_date) + '</td><td>' + esc(s.center) + '</td><td>' + esc(s.shift) + '</td>' +
             '<td class="num">' + s.capacity_hours + '</td><td class="num">' + s.used_hours + '</td>' +
             '<td style="min-width:90px;"><div class="bar"><i style="width:' + Math.min(pct, 100) + '%"></i></div><span class="note">' + pct + '% · свободно ' + s.free_hours + '</span></td>' +
-            '<td><button class="btn secondary" data-edit="' + s.id + '" style="width:auto;padding:3px 8px;font-size:.72rem;">✎</button> ' +
-            '<button class="btn secondary" data-del="' + s.id + '" style="width:auto;padding:3px 8px;font-size:.72rem;">×</button></td></tr>';
+            '<td><button class="btn secondary" data-edit="' + s.id + '" style="width:auto;padding:3px 8px;font-size:.72rem;" aria-label="Изменить" title="Изменить">✎</button> ' +
+            '<button class="btn secondary" data-del="' + s.id + '" style="width:auto;padding:3px 8px;font-size:.72rem;" aria-label="Удалить" title="Удалить">×</button></td></tr>';
         }).join('') + '</tbody></table>' : '<span class="note">Слотов нет.</span>';
       $$('#list [data-del]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_slot_delete', { p_token: token, p_id: b.dataset.del }).then(function () { loadSlots(); loadKpi(); }); }); });
       $$('#list [data-edit]').forEach(function (b) { b.addEventListener('click', function () {

@@ -109,7 +109,7 @@
         '<input type="text" data-i="' + i + '" data-k="qty" inputmode="decimal" value="' + num(l.qty) + '">' +
         '<input type="text" data-i="' + i + '" data-k="unit" value="' + esc(l.unit || '') + '" placeholder="ед.">' +
         '<input type="text" data-i="' + i + '" data-k="norm_hours" inputmode="decimal" value="' + num(l.norm_hours) + '">' +
-        '<button class="rm" data-rm="' + i + '">✕</button></div>';
+        '<button class="rm" data-rm="' + i + '" aria-label="Удалить" title="Удалить">✕</button></div>';
     }).join('');
     $$('#lines [data-k]').forEach(function (el) {
       el.addEventListener('change', function () {
