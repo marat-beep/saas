@@ -114,13 +114,13 @@ const ITEMS = [
     evidence: 'tools/maturity.js, tools/gen-modules-page.js (v366)'
   },
   {
-    id: 'PROP-18', wave: 'R2', prio: 'P2', area: 'Тесты', status: 'open', effort: 'M',
+    id: 'PROP-18', wave: 'R2', prio: 'P2', area: 'Тесты', status: 'done', effort: 'M',
     business: [BIZ.prod, BIZ.qa, BIZ.econ], modules: [],
     title: 'Автотесты сквозных сценариев',
-    problem: 'scenario-check проверяет RPC по одному, но не сквозные бизнес-цепочки из R1.',
-    action: 'Добавить сценарные кейсы (заявка→…→счёт; рекламация→…→паспорт) в scenario-check/db-smoke.',
-    dod: 'Сквозные кейсы зелёные в scenario-check; регрессы ловятся автоматически.',
-    evidence: 'tools/scenario-check.ps1, tools/db-smoke.ps1'
+    problem: 'scenario-check проверял RPC по одному, без сквозных цепочек и инвариантов.',
+    action: 'В scenario-check добавлены сквозные цепочки (заявка→наряд→ОТК→склад→счёт→оплата, претензия→CAPA→сервис→паспорт, себестоимость) с проверками-инвариантами (наряд привязан к заявке, ОТК пройден, оплата учтена) и блок инвариантов (индексы PROP-04, RLS tenders, аудит заказов).',
+    dod: 'Сквозные кейсы и инварианты зелёные в scenario-check (исполнение — с токеном). Реализовано.',
+    evidence: 'tools/scenario-check.ps1 (шаги 15–18)'
   },
   {
     id: 'PROP-09', wave: 'R2', prio: 'P2', area: 'Прототипы', status: 'open', effort: 'L',

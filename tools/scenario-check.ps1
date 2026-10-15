@@ -155,6 +155,7 @@ if ($oid) {
   if (ExpectV 'цепочка: наряд из заявки' $n2 'id') {
     $nid = $n2[0].v
     Step 'цепочка: наряд ↔ заявка' "select v from (select count(*)::text as v from public.app_order_naryads('$t','$oid')) z" | Out-Null
+    ExpectV 'цепочка: наряд привязан к заявке' (Step 'цепочка: инвариант наряда' "select v from (select count(*)::text as v from public.app_naryads where order_id='$oid' and title like 'SCN-%') z") 'count' | Out-Null
     $op = Step 'цепочка: операция наряда' "select id as v from public.app_naryad_add_op('$t','$nid','SCN операция','manager',2,null,null)"
     if ($op -and $op.Count -and $op[0].v) { Step 'цепочка: операция выполнена' "select * from public.app_naryad_op_done('$t','$($op[0].v)',2,true)" | Out-Null }
     Step 'цепочка: закрытие наряда' "select * from public.app_naryad_close('$t','$nid')" | Out-Null
@@ -162,6 +163,7 @@ if ($oid) {
     if ($q2 -and $q2.Count -and $q2[0].v) {
       Step 'цепочка: строка ОТК' "select * from public.app_qc_add_line('$t','$($q2[0].v)','Ra','3.2','1.6','ok')" | Out-Null
       Step 'цепочка: статус ОТК' "select * from public.app_qc_set_status('$t','$($q2[0].v)','passed','SCN')" | Out-Null
+      ExpectV 'цепочка: ОТК пройден' (Step 'цепочка: инвариант ОТК' "select v from (select status as v from public.app_qc_checks where id='$($q2[0].v)') z") 'status' | Out-Null
       Step 'цепочка: трассируемость ОТК' "select v from (select count(*)::text as v from public.app_qc_trace('$t','$($q2[0].v)')) z" | Out-Null
     }
     if ($mat -and $mat[0].v) { Step 'цепочка: движение материала по заявке' "select * from public.app_stock_move('$t','$($mat[0].v)','out',1,0,'SCN цепочка','chain','$oid','$nid')" | Out-Null }
@@ -169,6 +171,7 @@ if ($oid) {
     if ($inv2 -and $inv2.Count -and $inv2[0].v) {
       Step 'цепочка: выставление счёта' "select * from public.app_invoice_set_status('$t','$($inv2[0].v)','sent')" | Out-Null
       Step 'цепочка: оплата' "select * from public.app_payment_add('$t','$($inv2[0].v)',1000,'bank','SCN цепочка оплата')" | Out-Null
+      ExpectV 'цепочка: оплата учтена' (Step 'цепочка: инвариант оплаты' "select v from (select count(*)::text as v from public.app_payments where invoice_id='$($inv2[0].v)') z") 'count' | Out-Null
       Step 'цепочка: счёт ↔ заявка' "select v from (select count(*)::text as v from public.app_order_invoices('$t','$oid')) z" | Out-Null
     }
     Step 'цепочка: себестоимость заявки' "select v from (select count(*)::text as v from public.app_order_cost_plan_fact('$t','$oid')) z" | Out-Null
@@ -193,6 +196,11 @@ if ($oid) {
   Step 'себестоимость: app_order_cost' "select v from (select count(*)::text as v from public.app_order_cost('$t','$oid')) z" | Out-Null
   Step 'себестоимость: plan_fact' "select v from (select count(*)::text as v from public.app_order_cost_plan_fact('$t','$oid')) z" | Out-Null
 } else { Add-F 'C' 'Info' 'Проверка себестоимости пропущена (нет заявки)' 'Пропуск.' 'scenario-check' 2 1 }
+
+# 18. PROP-18: регрессия инвариантов (миграции применены, защита прав)
+ExpectV 'инвариант: индексы PROP-04' (Step 'инвариант: индексы горячих таблиц' "select v from (select count(*)::text as v from pg_indexes where schemaname='public' and indexname in ('ix_orders_tenant_created','ix_naryads_tenant_order','ix_tasks_tenant_status')) z") 'count' | Out-Null
+Step 'инвариант: RLS на tenders' "select v from (select count(*)::text as v from pg_policies where schemaname='public' and tablename='tenders' and cmd='SELECT') z" | Out-Null
+Step 'инвариант: аудит заказов' "select v from (select count(*)::text as v from public.app_order_history) z" | Out-Null
 
 # --- cleanup ---
 $cleanup = @'
