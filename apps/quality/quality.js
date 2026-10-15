@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa, SB = window.SB;
-  var token = null, me = null, tools = [], trace = [], orders = [], q = '';
+  var token = null, me = null, tools = [], trace = [], orders = [], certs = [], q = '';
 
   var STAT = { ok: 'в норме', due: 'истекает', expired: 'просрочено', none: 'нет даты' };
   var BADGE = { ok: 'done', due: 'in_progress', expired: 'cancelled', none: '' };
@@ -85,5 +85,35 @@
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#tMsg', 'Supabase не подключён.', 'err'); return; }
     load();
+    loadCerts();
   });
+  /* R4·PROP-26: сертификаты/декларации и протоколы испытаний (LIMS-lite) */
+  function loadCerts() {
+    return rpc('app_certificate_list', { p_token: token }).then(function (r) { certs = r || []; renderCerts(); })
+      .catch(function () { var h = $('#certs'); if (h) h.innerHTML = ''; });
+  }
+  function renderCerts() {
+    var host = $('#certs'); if (!host) return;
+    var K = { certificate: 'Сертификат', declaration: 'Декларация', protocol: 'Протокол испытаний' };
+    var expired = certs.filter(function (c) { return c.expired; }).length;
+    var expiring = certs.filter(function (c) { return c.expiring; }).length;
+    host.innerHTML = '<div class="card"><h2>Сертификаты и декларации</h2>' +
+      '<div class="kpi-row"><div class="kpi"><small>Всего</small><b>' + certs.length + '</b></div>' +
+      '<div class="kpi"><small>Истекли</small><b' + (expired ? ' style="color:#b91c1c"' : '') + '>' + expired + '</b></div>' +
+      '<div class="kpi"><small>Истекают ≤30 дн</small><b' + (expiring ? ' style="color:#b45309"' : '') + '>' + expiring + '</b></div></div>' +
+      '<div class="grid3"><div class="field"><label>Вид</label><select id="ceKind"><option value="certificate">Сертификат</option><option value="declaration">Декларация</option><option value="protocol">Протокол испытаний</option></select></div>' +
+      '<div class="field"><label>Номер *</label><input type="text" id="ceNum"></div><div class="field"><label>Кем выдан</label><input type="text" id="ceBy"></div></div>' +
+      '<div class="grid3"><div class="field"><label>Изделие/продукция</label><input type="text" id="ceProd"></div><div class="field"><label>Действует с</label><input type="date" id="ceFrom"></div><div class="field"><label>Действует до</label><input type="date" id="ceTo"></div></div>' +
+      '<div class="btn-row"><button class="btn" id="ceSave">Добавить</button></div>' +
+      (certs.length ? '<div class="tbl-wrap mt"><table class="tbl"><thead><tr><th>Вид</th><th>Номер</th><th>Изделие</th><th>Кем выдан</th><th>До</th><th>Статус</th><th></th></tr></thead><tbody>' +
+        certs.map(function (c) { return '<tr><td>' + esc(K[c.kind] || c.kind) + '</td><td><b>' + esc(c.number) + '</b></td><td>' + esc(c.product || '—') + '</td><td>' + esc(c.issued_by || '—') + '</td><td>' + (c.valid_to || '—') + '</td>' +
+          '<td>' + (c.expired ? '<span class="badge cancelled">истёк</span>' : c.expiring ? '<span class="badge" style="background:#f59e0b">истекает</span>' : 'действует') + '</td>' +
+          '<td><button class="act danger" data-cedel="' + c.id + '" aria-label="Удалить" title="Удалить">✕</button></td></tr>'; }).join('') + '</tbody></table></div>'
+        : '<span class="note">Сертификатов нет — добавьте в форме выше.</span>') + '</div>';
+    var s = $('#ceSave'); if (s) s.addEventListener('click', function () {
+      rpc('app_certificate_save', { p_token: token, p_id: null, p_kind: $('#ceKind').value, p_number: $('#ceNum').value.trim(), p_issued_by: $('#ceBy').value.trim() || null, p_product: $('#ceProd').value.trim() || null, p_valid_from: $('#ceFrom').value || null, p_valid_to: $('#ceTo').value || null, p_note: null })
+        .then(function (r) { var x = r && r[0]; ui.toast(x ? x.message : ''); if (x && x.ok) loadCerts(); }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+    });
+    $$('#certs [data-cedel]').forEach(function (b) { b.addEventListener('click', function () { if (!confirm('Удалить запись?')) return; rpc('app_certificate_delete', { p_token: token, p_id: b.dataset.cedel }).then(loadCerts); }); });
+  }
 })();

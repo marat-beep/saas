@@ -255,13 +255,13 @@ const ITEMS = [
     evidence: 'ref: Wikipedia ERP (Project management — WBS, time and expense)'
   },
   {
-    id: 'PROP-26', wave: 'R4', prio: 'P3', area: 'Качество', status: 'open', effort: 'M',
+    id: 'PROP-26', wave: 'R4', prio: 'P3', area: 'Качество', status: 'done', effort: 'M',
     business: [BIZ.qa], modules: ['quality', 'passport', 'qc'],
     title: 'Сертификаты/декларации и элементы LIMS',
-    problem: 'PLM/QMS-контур рынка требует сертификатов соответствия и лабораторных данных; у нас есть СИ и паспорт, но нет сертификатов/деклараций и LIMS.',
-    action: 'Добавить реестр сертификатов/деклараций (срок действия, алерты), протоколы испытаний и связь с паспортом изделия.',
-    dod: 'Сертификат ведётся со сроком и алертом; протокол испытаний связан с изделием/партией.',
-    evidence: 'ref: Wikipedia PLM (compliance), MES (LIMS)'
+    problem: 'Не было реестра сертификатов/деклараций и протоколов испытаний со сроками действия.',
+    action: 'Миграция 0264: таблица `app_certificates` (вид: сертификат/декларация/протокол, номер, орган, изделие, сроки) + RPC list/save/delete с признаками «истёк/истекает 30 дн». В «Качестве» — панель **«Сертификаты и декларации»** с алертами по срокам.',
+    dod: 'Сертификаты ведутся со сроками и алертами. Реализовано (apply_all 255).',
+    evidence: 'supabase/migrations/0264_quality_docs.sql, apps/quality (v388)'
   },
   {
     id: 'PROP-27', wave: 'R4', prio: 'P3', area: 'IIoT', status: 'open', effort: 'M',
