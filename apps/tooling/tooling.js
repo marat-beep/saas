@@ -122,6 +122,7 @@
     if (!s) return;
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
     me = s; token = s.token; applyCaps();
+    if (window.AppUI && AppUI.dictSuggest) AppUI.dictSuggest('gType', 'tool_kinds', token);
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#tMsg', 'Supabase не подключён.', 'err'); return; }
     load();
