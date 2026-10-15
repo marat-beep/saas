@@ -2,7 +2,7 @@
 
 _Автогенерация `tools/gen-roadmap.js` из `tools/proposals.js` — единый источник правды. Не редактировать вручную._
 
-Дата: 2026-10-15. Всего пунктов: **19** (выполнено: 14).
+Дата: 2026-10-15. Всего пунктов: **19** (выполнено: 15).
 
 ## Принципы и порядок
 
@@ -165,15 +165,15 @@ _Автогенерация `tools/gen-roadmap.js` из `tools/proposals.js` —
 - **DoD:** BACKLOG обозрим (60 записей §5), архив доступен и связан указателем. Реализовано.
 - **Обоснование:** docs/BACKLOG.md, docs/BACKLOG_ARCHIVE.md (v370)
 
-### PROP-12 · Автопроверки в CI
+### PROP-12 · Автопроверки в CI ✅
 
 - **Приоритет:** P3 (низкий) · **Область:** CI · **Оценка:** S (малая)
 - **Контуры:** Общее
 - **Модули:** —
-- **Проблема:** Есть .github/workflows (audit.yml, checks.yml) — нужно подтвердить, что offline-проверки гоняются на push/PR.
-- **Что сделать:** Проверить/дополнить workflow: audit.ps1 + security/ux/perf; падать при регрессах; бейдж.
-- **DoD:** CI запускает проверки и краснеет на регрессах.
-- **Обоснование:** .github/workflows/
+- **Проблема:** checks.yml запускал только audit.ps1 и db-smoke; offline-проверки (integrity/security/perf/ux/api/trace) в CI не гонялись, «краснел» только аудит.
+- **Что сделать:** В `.github/workflows/checks.yml` добавлены шаги offline-проверок и **gate**, который валит сборку при находках Critical/Major в `audit/checks/*.json`. Триггеры: push/PR/schedule.
+- **DoD:** CI запускает audit + offline-проверки и краснеет при Critical/Major. Реализовано.
+- **Обоснование:** .github/workflows/checks.yml (v371)
 
 ### PROP-13 · Осмысленные быстрые действия (mobile)
 

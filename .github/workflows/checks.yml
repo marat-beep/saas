@@ -1,7 +1,9 @@
 name: checks
 
 # Эксплуатационные проверки 3DMP Service:
-# локальный аудит (каталог/версии/shell/синтаксис) и смоук БД (если задан секрет).
+# локальный аудит (каталог/версии/shell/синтаксис), offline-проверки
+# (целостность БД, безопасность, производительность, UX, API-поверхность, трассировка)
+# и смоук БД (если задан секрет). Краснеет при регрессах (Critical/Major находки).
 # ВАЖНО: контекст `secrets` нельзя использовать в `if` — workflow станет «No jobs were run».
 # Поэтому наличие токена проверяем внутри шага (env → shell).
 
@@ -32,6 +34,33 @@ jobs:
       - name: Audit (каталог / версии / shell / синтаксис)
         shell: pwsh
         run: pwsh -NoProfile -File tools/audit.ps1
+
+      - name: Offline checks (integrity / security / perf / ux / api / trace)
+        shell: pwsh
+        run: |
+          pwsh -NoProfile -File tools/db-integrity.ps1
+          pwsh -NoProfile -File tools/security-check.ps1
+          pwsh -NoProfile -File tools/perf-check.ps1
+          pwsh -NoProfile -File tools/ux-check.ps1
+          pwsh -NoProfile -File tools/api-surface.ps1
+          pwsh -NoProfile -File tools/trace-matrix.ps1
+
+      - name: Gate (красный при Critical/Major находках)
+        shell: pwsh
+        run: |
+          $bad = 0
+          Get-ChildItem -Path audit/checks/*.json -ErrorAction SilentlyContinue | ForEach-Object {
+            $file = $_.Name
+            try { $j = Get-Content $_.FullName -Raw | ConvertFrom-Json } catch { return }
+            foreach ($fnd in @($j.findings)) {
+              if ($fnd.sev -eq 'Critical' -or $fnd.sev -eq 'Major') {
+                Write-Host ("::error::$file — " + $fnd.title)
+                $bad++
+              }
+            }
+          }
+          if ($bad -gt 0) { Write-Error "Регрессии: $bad критичных находок (см. audit/checks/*.json)."; exit 1 }
+          Write-Host 'Offline-проверки: критичных находок нет.'
 
       - name: DB smoke (пропускается без секрета SUPABASE_ACCESS_TOKEN)
         shell: pwsh

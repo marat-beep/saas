@@ -152,13 +152,13 @@ const ITEMS = [
     evidence: 'docs/BACKLOG.md, docs/BACKLOG_ARCHIVE.md (v370)'
   },
   {
-    id: 'PROP-12', wave: 'R3', prio: 'P3', area: 'CI', status: 'open', effort: 'S',
+    id: 'PROP-12', wave: 'R3', prio: 'P3', area: 'CI', status: 'done', effort: 'S',
     business: [BIZ.common], modules: [],
     title: 'Автопроверки в CI',
-    problem: 'Есть .github/workflows (audit.yml, checks.yml) — нужно подтвердить, что offline-проверки гоняются на push/PR.',
-    action: 'Проверить/дополнить workflow: audit.ps1 + security/ux/perf; падать при регрессах; бейдж.',
-    dod: 'CI запускает проверки и краснеет на регрессах.',
-    evidence: '.github/workflows/'
+    problem: 'checks.yml запускал только audit.ps1 и db-smoke; offline-проверки (integrity/security/perf/ux/api/trace) в CI не гонялись, «краснел» только аудит.',
+    action: 'В `.github/workflows/checks.yml` добавлены шаги offline-проверок и **gate**, который валит сборку при находках Critical/Major в `audit/checks/*.json`. Триггеры: push/PR/schedule.',
+    dod: 'CI запускает audit + offline-проверки и краснеет при Critical/Major. Реализовано.',
+    evidence: '.github/workflows/checks.yml (v371)'
   },
   {
     id: 'PROP-13', wave: 'R3', prio: 'P3', area: 'Мобильные', status: 'open', effort: 'S',
