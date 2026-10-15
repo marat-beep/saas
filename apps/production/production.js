@@ -37,7 +37,7 @@
       $('#fWc').innerHTML = wcOpts; $('#uWc').innerHTML = wcOpts;
       $('#fOrder').innerHTML = '<option value="">— без заявки —</option>' + orders.map(function (o) { return '<option value="' + o.id + '">' + esc(o.number) + ' · ' + esc(o.title) + '</option>'; }).join('');
       $('#opSel').innerHTML = '<option value="">— вручную —</option>' + ops.map(function (o) { return '<option value="' + o.id + '">' + esc(o.name) + '</option>'; }).join('');
-      renderKpi(); renderList();
+      renderKpi(); renderList(); renderRisks();
     }).catch(function (e) { msg('#listMsg', 'Ошибка: ' + e.message, 'err'); });
   }
   function renderKpi() {
@@ -54,6 +54,21 @@
       if (!s) return true;
       return [n.number, n.title, n.wc_name, n.assignee, n.order_number, n.route_number].join(' ').toLowerCase().indexOf(s) >= 0;
     });
+  }
+  function kcell(l, v, c) { return '<div class="kpi"><small>' + l + '</small><b' + (c ? ' style="color:' + c + '"' : '') + '>' + v + '</b></div>'; }
+  function renderRisks() {
+    var host = $('#risks'); if (!host) return;
+    var today = Date.now(), rows = [];
+    naryads.forEach(function (n) {
+      if (n.status === 'closed') return;
+      var flags = [];
+      if (num(n.plan_hours) > 0 && num(n.fact_hours) > num(n.plan_hours)) flags.push('перерасход ' + (Math.round((num(n.fact_hours) - num(n.plan_hours)) * 10) / 10) + ' ч');
+      if (n.due_date) { var dd = new Date(n.due_date).getTime(); if (dd < today) flags.push('просрочен'); else if (dd - today < 3 * 86400000) flags.push('срок ≤3 дн'); }
+      if (flags.length) rows.push({ n: n, flags: flags });
+    });
+    host.innerHTML = rows.length ? '<div class="card"><h2>Узкие места и риски <span class="note">' + rows.length + '</span></h2><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Наряд</th><th>РЦ</th><th class="num">План/факт, ч</th><th>Сигналы</th></tr></thead><tbody>' +
+      rows.map(function (x) { return '<tr data-rid="' + x.n.id + '" style="cursor:pointer;"><td><b>' + esc(x.n.number) + '</b> · ' + esc(x.n.title) + '</td><td>' + esc(x.n.wc_name || '—') + '</td><td class="num">' + num(x.n.plan_hours) + ' / ' + num(x.n.fact_hours) + '</td><td>' + x.flags.map(function (f) { return '<span class="badge">' + esc(f) + '</span>'; }).join(' ') + '</td></tr>'; }).join('') + '</tbody></table></div></div>' : '';
+    $$('#risks [data-rid]').forEach(function (tr) { tr.addEventListener('click', function () { openDetail(tr.dataset.rid); }); });
   }
   function renderList() {
     var list = filtered();
@@ -80,11 +95,22 @@
     Promise.all([rpc('app_naryad_get', { p_token: token, p_id: id }), rpc('app_naryad_ops', { p_token: token, p_id: id })]).then(function (r) {
       var n = r[0] && r[0][0]; if (!n) { ui.toast('Наряд не найден'); return; }
       cur = n;
+      curOps = r[1] || [];
+      var tot = curOps.length, doneN = curOps.filter(function (o) { return o.done; }).length;
+      var fh = curOps.reduce(function (s, o) { return s + num(o.fact_hours); }, 0);
+      var ph = curOps.reduce(function (s, o) { return s + num(o.plan_hours); }, 0);
+      var prog = tot ? Math.round(doneN / tot * 100) : 0, dev = Math.round((fh - ph) * 10) / 10;
+      var slaTxt = '—', slaC = '';
+      if (n.due_date) { var dd = Math.ceil((new Date(n.due_date).getTime() - Date.now()) / 86400000); if (dd < 0) { slaTxt = 'просрочен на ' + (-dd) + ' дн'; slaC = '#b91c1c'; } else if (dd <= 3) { slaTxt = 'срок через ' + dd + ' дн'; slaC = '#b45309'; } else slaTxt = 'до срока ' + dd + ' дн'; }
       $('#detail').innerHTML =
         '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">' + stBadge(n.status) +
         '<span class="badge ' + (n.priority || 'normal') + '">' + (PR[n.priority] || n.priority || '') + '</span>' +
         '<b style="margin-left:auto;">' + esc(n.number) + '</b></div>' +
         '<h1 style="font-size:1.15rem;margin:10px 0;">' + esc(n.title) + '</h1>' +
+        '<div class="kpi-row">' + kcell('Прогресс', prog + '%') + kcell('Операций', doneN + '/' + tot) +
+        kcell('План, ч', Math.round(ph * 10) / 10) + kcell('Факт, ч', Math.round(fh * 10) / 10) +
+        kcell('Отклонение, ч', dev, dev > 0 ? '#b91c1c' : (dev < 0 ? '#15803d' : '')) +
+        kcell('Срок', slaTxt, slaC) + '</div>' +
         kv('Рабочий центр', n.wc_name) + kv('Исполнитель', n.assignee) + kv('Заявка', n.order_number) + kv('Маршрут', n.route_number) +
         kv('План-старт', fmt(n.start_date)) + kv('Срок', fmt(n.due_date)) + kv('План / факт', num(n.plan_hours) + ' / ' + num(n.fact_hours) + ' ч') +
         kv('Автор', n.created_login) + kv('Создан', fmt(n.created_at));
@@ -93,7 +119,6 @@
       $('#uDue').value = (n.due_date || '').slice ? (n.due_date || '').slice(0, 10) : ''; $('#uNote').value = n.note || '';
       $('#closeBtn').disabled = n.status === 'closed';
       clearMsg('#opMsg'); clearMsg('#uMsg');
-      curOps = r[1] || [];
       renderOps(curOps);
       renderDefects(id);
       screens.go('s-detail');
