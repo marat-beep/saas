@@ -203,6 +203,30 @@ ExpectV 'инвариант: индексы PROP-04' (Step 'инвариант: 
 Step 'инвариант: RLS на tenders' "select v from (select count(*)::text as v from pg_policies where schemaname='public' and tablename='tenders' and cmd='SELECT') z" | Out-Null
 Step 'инвариант: аудит заказов' "select v from (select count(*)::text as v from public.app_order_history) z" | Out-Null
 
+# 20. R4: поверхности новых модулей (создание → чтение); данные помечены SCN и удаляются в очистке
+Step 'R4: кампания' "select * from public.app_campaign_save('$t',null,'SCN-КАМП','email','ключевые','planned',null,0,0,0,null)" | Out-Null
+ExpectV 'R4: кампания видна' (Step 'R4: кампании список' "select v from (select count(*)::text as v from public.app_campaign_list('$t')) z") 'count' | Out-Null
+Step 'R4: ОС' "select * from public.app_fa_save('$t',null,'SCN-ОС','SCN станок','оборудование',1000000,100000,60,current_date)" | Out-Null
+Step 'R4: амортизация ОС' "select * from public.app_fa_amortize('$t',null)" | Out-Null
+ExpectV 'R4: ОС видно' (Step 'R4: ОС список' "select v from (select count(*)::text as v from public.app_fa_list('$t')) z") 'count' | Out-Null
+Step 'R4: сертификат' "select * from public.app_certificate_save('$t',null,'certificate','SCN-CERT','орган','SCN изделие',current_date,current_date+365,null)" | Out-Null
+ExpectV 'R4: сертификат виден' (Step 'R4: сертификаты список' "select v from (select count(*)::text as v from public.app_certificate_list('$t')) z") 'count' | Out-Null
+Step 'R4: WBS работа' "select * from public.app_wbs_save('$t',null,null,null,'SCN работа',1,10)" | Out-Null
+Step 'R4: табель' "select * from public.app_timesheet_save('$t',null,null,null,'SCN сотрудник',current_date,4,null)" | Out-Null
+ExpectV 'R4: WBS/табель видны' (Step 'R4: WBS список' "select v from (select count(*)::text as v from public.app_wbs_list('$t',null)) z") 'count' | Out-Null
+Step 'R4: скоринг поставщика' "select * from public.app_supplier_score_save('$t',null,(select id from public.app_suppliers limit 1),current_date,4,4,4,'SCN')" | Out-Null
+Step 'R4: отгрузка' "select * from public.app_shipment_save('$t',null,'SCN-ORD-SH','SCN клиент',1,'SCN',null)" | Out-Null
+Step 'R4: отгрузка статус' "select * from public.app_shipment_set_status('$t',(select id from public.app_shipments where order_ref='SCN-ORD-SH' limit 1),'picking')" | Out-Null
+ExpectV 'R4: отгрузки видно' (Step 'R4: отгрузки список' "select v from (select count(*)::text as v from public.app_shipment_list('$t')) z") 'count' | Out-Null
+Step 'R4: зарплата' "select * from public.app_payroll_save('$t',null,current_date,'SCN сотрудник',50000,5000,1000,null)" | Out-Null
+Step 'R4: вакансия' "select * from public.app_vacancy_save('$t',null,'SCN вакансия','цех','open')" | Out-Null
+Step 'R4: кандидат' "select * from public.app_candidate_save('$t',null,(select id from public.app_vacancies where title='SCN вакансия' limit 1),'SCN кандидат','new',null)" | Out-Null
+ExpectV 'R4: подбор виден' (Step 'R4: вакансии список' "select v from (select count(*)::text as v from public.app_vacancy_list('$t')) z") 'count' | Out-Null
+Step 'R4: ABC' "select * from public.app_abc_save('$t',null,current_date,'SCN деятельность','драйвер',10,100,null)" | Out-Null
+Step 'R4: элиминация' "select * from public.app_consol_save('$t',null,current_date,'SCN A','SCN B',1000,null)" | Out-Null
+Step 'R4: edge push' "select * from public.app_iiot_edge_push('$t','SCN','rpm',1000,'mqtt',null)" | Out-Null
+ExpectV 'R4: edge буфер' (Step 'R4: edge список' "select v from (select count(*)::text as v from public.app_iiot_edge_list('$t',false)) z") 'count' | Out-Null
+
 # --- cleanup ---
 $cleanup = @'
 delete from public.app_order_items where order_id in (select id from public.app_orders where title like 'SCN-%');
@@ -229,6 +253,19 @@ delete from public.app_events where (detail like '%SCN%' or action in ('Расс
 delete from public.app_qc_measures where param='Ra' and value=1.5 and ts >= now() - interval '30 minutes' and created_login='admin';
 '@
 $del = @(
+  "delete from public.app_campaigns where name like 'SCN%'",
+  "delete from public.app_fixed_assets where name like 'SCN%'",
+  "delete from public.app_quality_certificates where number like 'SCN%'",
+  "delete from public.app_timesheets where employee like 'SCN%'",
+  "delete from public.app_wbs where name like 'SCN%'",
+  "delete from public.app_supplier_scores where note like 'SCN%'",
+  "delete from public.app_shipments where order_ref like 'SCN%'",
+  "delete from public.app_payroll where employee like 'SCN%'",
+  "delete from public.app_candidates where name like 'SCN%'",
+  "delete from public.app_vacancies where title like 'SCN%'",
+  "delete from public.app_activity_costs where activity like 'SCN%'",
+  "delete from public.app_consol_elim where from_unit like 'SCN%'",
+  "delete from public.app_iiot_edge where machine like 'SCN%'",
   "delete from public.app_service_history where request_id in (select id from public.app_service_requests where title like 'SCN-%')",
   "delete from public.app_service_visits where request_id in (select id from public.app_service_requests where title like 'SCN-%')",
   "delete from public.app_service_parts where request_id in (select id from public.app_service_requests where title like 'SCN-%')",
