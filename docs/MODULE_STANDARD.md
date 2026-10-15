@@ -67,7 +67,7 @@ config.js → supabase-client.js → ui.js → status.js (если нужно) �
    - TimescaleDB → обычная таблица метрик (`app_iiot_metrics`), при росте — партиционирование;
    - native mobile → PWA (`sw.js`, `offline-queue.js`);
    - внешние порталы (дилер/поставщик) → отдельная роль + портал по образцу `apps/supplier`.
-5. **План фиксировать в `BACKLOG.md`** (ID, артефакты, DoD) до реализации; после — отметки в `PLAN_WAVES.md`, `STATUS/NOTES/PROMPTS`.
+5. **План фиксировать в `BACKLOG.md`** (ID, артефакты, DoD) до реализации; после — отметки в `ROADMAP.md`, `STATUS/NOTES/PROMPTS`.
 6. **DoD сверки:** все пункты ТЗ либо реализованы, либо явно вынесены в бэклог с причиной.
 
 ## 7. Проверенные приёмы и «грабли» (накоплено по волнам W1–W6)

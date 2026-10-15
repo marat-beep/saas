@@ -46,7 +46,7 @@ KPI (SLA/MTTR/MTBF/FTFR/CSAT/загрузка); правила IIoT; ППР-ав
 ### 2.6 Версии и процесс
 - Изменённые ассеты — `?v=N` на всех страницах; `CATALOG_V` в `nav.js` и `shell.js`; синхронизировать.
 - После миграций — смоук `app_smoke_test` (10/10) и `app_smoke_test_ext` (14/14); применять SQL только UTF-8 (Management API).
-- Отметки: `BACKLOG.md` (§3 статус, §5 журнал), `PLAN_WAVES.md`, `STATUS.md`, `NOTES.md`, `PROMPTS.md`.
+- Отметки: `BACKLOG.md` (§3 статус, §5 журнал), `ROADMAP.md`, `STATUS.md`, `NOTES.md`, `PROMPTS.md`.
 
 ## 3. Чек-лист применения к другому модулю
 - [ ] Прочитать ТЗ/макет; гап-анализ «есть/нет»; записать задачу в `BACKLOG`.

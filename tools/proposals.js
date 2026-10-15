@@ -134,13 +134,13 @@ const ITEMS = [
 
   /* ============ R3 — гигиена и развитие ============ */
   {
-    id: 'PROP-06', wave: 'R3', prio: 'P3', area: 'Документация', status: 'open', effort: 'S',
+    id: 'PROP-06', wave: 'R3', prio: 'P3', area: 'Документация', status: 'done', effort: 'S',
     business: [BIZ.common], modules: [],
     title: 'Консолидация планов и аудитов',
-    problem: 'Дублирующие исторические документы (PLAN_UPDATE_V2/V3/V5, PLAN_WAVES, UPDATE_PLAN, часть AUDIT_*) затрудняют навигацию.',
-    action: 'Перенести историческое в docs/archive/ с указателем; в корне docs оставить актуальное; источник правды — BACKLOG.md + ROADMAP.md.',
-    dod: 'В docs/ нет дублей; историческое — в docs/archive/ с README.',
-    evidence: 'docs/'
+    problem: 'В docs/ лежали исторические планы (PLAN_UPDATE_V2/V3/V5, PLAN_WAVES) с перекрёстными ссылками.',
+    action: 'Перенесены в `docs/archive/`: PLAN_UPDATE_V2/V3/V5, PLAN_WAVES (+ ранее V4 и промты). Все ссылки в docs обновлены на archive/. `docs/archive/README.md` описывает политику. Живые артефакты оставлены (UPDATE_PLAN.md — генератор, AUDIT_* — audit-фреймворк).',
+    dod: 'В docs/ нет дублей планов; историческое — в docs/archive/ с указателем; stale-ссылок 0. Реализовано.',
+    evidence: 'docs/archive/, docs/BACKLOG.md (v369)'
   },
   {
     id: 'PROP-07', wave: 'R3', prio: 'P3', area: 'Документация', status: 'open', effort: 'S',
