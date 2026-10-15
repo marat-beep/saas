@@ -282,13 +282,13 @@ const ITEMS = [
     evidence: 'supabase/migrations/0262_marketing.sql, apps/crm (v386)'
   },
   {
-    id: 'PROP-29', wave: 'R4', prio: 'P3', area: 'Экономика', status: 'open', effort: 'M',
+    id: 'PROP-29', wave: 'R4', prio: 'P3', area: 'Экономика', status: 'done', effort: 'M',
     business: [BIZ.econ], modules: ['economics', 'holding', 'bi'],
     title: 'ABC-костинг и консолидация группы',
-    problem: 'Управленческий учёт рынка включает activity-based costing и консолидацию; у нас есть план-факт, но нет ABC и полной консолидации.',
-    action: 'Добавить расчёт себестоимости по видам деятельности (драйверы) и консолидацию показателей группы с элиминацией внутригрупповых оборотов.',
-    dod: 'ABC-себестоимость считается по драйверам; консолидация группы формируется с элиминацией.',
-    evidence: 'ref: Wikipedia ERP (Management accounting — ABC, consolidation)'
+    problem: 'Не было себестоимости по видам деятельности (ABC) и элиминаций при консолидации группы.',
+    action: 'Миграция 0270: `app_activity_costs` (деятельность, драйвер, qty×rate → стоимость) + `app_consol_elim` (элиминации внутригрупповых оборотов) + RPC list/save/delete. Панель **«ABC-костинг»** в «Экономике»; панель **«Элиминации (консолидация группы)»** в «Холдинге».',
+    dod: 'ABC-себестоимость считается по драйверам; элиминации ведутся для консолидации. Реализовано (apply_all 261).',
+    evidence: 'supabase/migrations/0270_abc_consol.sql, apps/economics, apps/holding (v394)'
   },
 
   /* ============ R5 — CRM, BPM и справочники ============ */

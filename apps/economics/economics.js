@@ -117,10 +117,34 @@
   });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
+  /* R4·PROP-29: ABC-костинг (по видам деятельности) */
+  var abc = [];
+  function abcN(v) { return Number(v) || 0; }
+  function loadAbc() {
+    return rpc('app_abc_list', { p_token: token }).then(function (r) { abc = r || []; renderAbc(); }).catch(function () {});
+  }
+  function renderAbc() {
+    var host = $('#abc'); if (!host) return;
+    var sum = abc.reduce(function (s, a) { return s + abcN(a.cost); }, 0);
+    host.innerHTML = '<div class="card"><h2>ABC-костинг (по видам деятельности)</h2>' +
+      '<div class="kpi-row"><div class="kpi"><small>Видов деятельности</small><b>' + abc.length + '</b></div><div class="kpi"><small>Стоимость</small><b>' + sum.toLocaleString('ru-RU') + ' ₽</b></div></div>' +
+      '<div class="grid3"><div class="field"><label>Период</label><input type="date" id="abcPer"></div><div class="field"><label>Вид деятельности *</label><input type="text" id="abcAct" placeholder="Наладка оборудования"></div><div class="field"><label>Драйвер</label><input type="text" id="abcDrv" placeholder="кол-во наладок"></div></div>' +
+      '<div class="grid3"><div class="field"><label>Кол-во драйвера</label><input type="text" id="abcQty" inputmode="decimal"></div><div class="field"><label>Ставка, ₽/ед</label><input type="text" id="abcRate" inputmode="decimal"></div><div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="abcAdd" style="width:auto;">Добавить</button></div></div>' +
+      (abc.length ? '<div class="tbl-wrap mt"><table class="tbl"><thead><tr><th>Период</th><th>Деятельность</th><th>Драйвер</th><th class="num">Кол-во</th><th class="num">Ставка</th><th class="num">Стоимость</th><th></th></tr></thead><tbody>' +
+        abc.map(function (a) { return '<tr><td>' + esc(a.period) + '</td><td><b>' + esc(a.activity) + '</b></td><td>' + esc(a.driver || '—') + '</td><td class="num">' + abcN(a.qty) + '</td><td class="num">' + abcN(a.rate) + '</td><td class="num"><b>' + abcN(a.cost) + '</b></td><td><button class="act danger" data-abcdel="' + a.id + '" aria-label="Удалить" title="Удалить">✕</button></td></tr>'; }).join('') + '</tbody></table></div>'
+        : '<span class="note">Записей нет.</span>') + '</div>';
+    $('#abcAdd').addEventListener('click', function () {
+      rpc('app_abc_save', { p_token: token, p_id: null, p_period: $('#abcPer').value || null, p_activity: $('#abcAct').value.trim(), p_driver: $('#abcDrv').value.trim() || null, p_qty: parseFloat($('#abcQty').value.replace(',', '.')) || 0, p_rate: parseFloat($('#abcRate').value.replace(',', '.')) || 0, p_note: null })
+        .then(function (r) { var x = r && r[0]; ui.toast(x ? x.message : ''); if (x && x.ok) loadAbc(); }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+    });
+    ui.qsa('#abc [data-abcdel]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_abc_delete', { p_token: token, p_id: b.dataset.abcdel }).then(loadAbc); }); });
+  }
+
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
     me = s; token = s.token; applyCaps();
+    loadAbc();
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#ordersMsg', 'Supabase не подключён.', 'err'); return; }
     load();

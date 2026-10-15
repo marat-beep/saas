@@ -68,10 +68,36 @@
   $('#consBtn').addEventListener('click', loadCons);
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
+  /* R4·PROP-29: консолидация группы — элиминации внутригрупповых оборотов */
+  var elim = [];
+  function elimN(v) { return Number(v) || 0; }
+  function elimEsc(v) { return ui.esc(v); }
+  function loadElim() {
+    return rpc('app_consol_list', { p_token: token }).then(function (r) { elim = r || []; renderElim(); }).catch(function () {});
+  }
+  function renderElim() {
+    var host = $('#elim'); if (!host) return;
+    var sum = elim.reduce(function (s, e) { return s + elimN(e.amount); }, 0);
+    host.innerHTML = '<div class="card"><h2>Элиминации (консолидация группы)</h2>' +
+      '<div class="kpi-row"><div class="kpi"><small>Элиминаций</small><b>' + elim.length + '</b></div><div class="kpi"><small>Сумма элиминаций</small><b>' + sum.toLocaleString('ru-RU') + ' ₽</b></div></div>' +
+      '<div class="grid3"><div class="field"><label>Период</label><input type="date" id="elPer"></div><div class="field"><label>Откуда (юрлицо)</label><input type="text" id="elFrom"></div><div class="field"><label>Куда (юрлицо)</label><input type="text" id="elTo"></div></div>' +
+      '<div class="grid3"><div class="field"><label>Сумма, ₽</label><input type="text" id="elAmt" inputmode="decimal"></div><div class="field" style="grid-column:span 2;display:flex;align-items:flex-end;"><button class="btn" id="elAdd" style="width:auto;">Добавить элиминацию</button></div></div>' +
+      (elim.length ? '<div class="tbl-wrap mt"><table class="tbl"><thead><tr><th>Период</th><th>Откуда</th><th>Куда</th><th class="num">Сумма</th><th></th></tr></thead><tbody>' +
+        elim.map(function (e) { return '<tr><td>' + elimEsc(e.period) + '</td><td>' + elimEsc(e.from_unit || '—') + '</td><td>' + elimEsc(e.to_unit || '—') + '</td><td class="num"><b>' + elimN(e.amount) + '</b></td><td><button class="act danger" data-eldel="' + e.id + '" aria-label="Удалить" title="Удалить">✕</button></td></tr>'; }).join('') + '</tbody></table></div>'
+        : '<span class="note">Элиминаций нет.</span>') +
+      '<p class="note" style="margin-top:6px;">Консолидированный результат = сумма площадок − элиминации внутригрупповых оборотов.</p></div>';
+    $('#elAdd').addEventListener('click', function () {
+      rpc('app_consol_save', { p_token: token, p_id: null, p_period: $('#elPer').value || null, p_from: $('#elFrom').value.trim() || null, p_to: $('#elTo').value.trim() || null, p_amount: parseFloat($('#elAmt').value.replace(',', '.')) || 0, p_note: null })
+        .then(function (r) { var x = r && r[0]; ui.toast(x ? x.message : ''); if (x && x.ok) loadElim(); }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+    });
+    ui.qsa('#elim [data-eldel]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_consol_delete', { p_token: token, p_id: b.dataset.eldel }).then(loadElim); }); });
+  }
+
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
     token = s.token;
+    loadElim();
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('Supabase не подключён.', 'err'); return; }
     loadKpi(); loadUnits();
