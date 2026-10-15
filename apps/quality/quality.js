@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa, SB = window.SB;
-  var token = null, me = null, tools = [], trace = [], orders = [], certs = [], q = '';
+  var token = null, me = null, tools = [], trace = [], orders = [], certs = [], defectKpi = null, claimsRep = [], q = '';
 
   var STAT = { ok: 'в норме', due: 'истекает', expired: 'просрочено', none: 'нет даты' };
   var BADGE = { ok: 'done', due: 'in_progress', expired: 'cancelled', none: '' };
@@ -19,15 +19,31 @@
       rpc('app_tools_list', { p_token: token }),
       rpc('app_trace_list', { p_token: token }).catch(function () { return []; }),
       rpc('app_quality_kpi', { p_token: token }).catch(function () { return []; }),
-      rpc('app_order_list', { p_token: token }).catch(function () { return []; })
+      rpc('app_order_list', { p_token: token }).catch(function () { return []; }),
+      rpc('app_prod_defect_kpi', { p_token: token }).catch(function () { return []; }),
+      rpc('app_claims_report', { p_token: token, p_from: null, p_to: null }).catch(function () { return []; })
     ]).then(function (r) {
       tools = r[0] || []; trace = r[1] || []; var k = (r[2] && r[2][0]) || {}; orders = r[3] || [];
+      defectKpi = (r[4] && r[4][0]) || null; claimsRep = r[5] || [];
       $('#kpis').innerHTML = cell('СИ всего', k.tools || 0) + cell('Просрочено', k.expired || 0, (k.expired ? '#b91c1c' : '')) +
         cell('Истекает (30 дн.)', k.due || 0, (k.due ? '#92400e' : '')) + cell('Записей трассируемости', k.trace_records || 0);
       $('#vTool').innerHTML = '<option value="">— выберите СИ —</option>' + tools.map(function (t) { return '<option value="' + t.id + '">' + esc(t.name) + (t.serial ? ' (' + esc(t.serial) + ')' : '') + '</option>'; }).join('');
       $('#rOrder').innerHTML = '<option value="">— нет —</option>' + orders.map(function (o) { return '<option value="' + o.id + '">' + esc(o.number) + ' · ' + esc(o.title) + '</option>'; }).join('');
-      renderTools(); renderTrace();
+      renderTools(); renderTrace(); renderQsum();
     }).catch(function (e) { msg('#tMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
+  /* R4/углубление: сводка качества (дефекты + рекламации/CAPA) */
+  function renderQsum() {
+    var host = $('#qsum'); if (!host) return;
+    var d = defectKpi || {};
+    var capaTotal = claimsRep.reduce(function (s, c) { return s + (Number(c.capa_total) || 0); }, 0);
+    var capaDone = claimsRep.reduce(function (s, c) { return s + (Number(c.capa_done) || 0); }, 0);
+    var openClaims = claimsRep.filter(function (c) { return c.status !== 'closed' && c.status !== 'done'; }).length;
+    host.innerHTML = '<div class="card"><h2>Сводка качества</h2><div class="kpi-row">' +
+      cell('Дефектов', d.total || 0) + cell('Брак, шт', d.qty || 0) + cell('Потери, ₽', (Number(d.cost) || 0).toLocaleString('ru-RU')) +
+      cell('Критичных', d.critical || 0, (d.critical ? '#b91c1c' : '')) + cell('Открытых дефектов', d.open_count || 0) +
+      cell('Рекламаций', claimsRep.length) + cell('Открытых рекламаций', openClaims) +
+      cell('CAPA выполнено', capaDone + '/' + capaTotal, (capaTotal > capaDone ? '#b45309' : '')) + '</div></div>';
   }
   function cell(l, v, c) { return '<div class="kpi"><small>' + l + '</small><b' + (c ? ' style="color:' + c + '"' : '') + '>' + v + '</b></div>'; }
 
