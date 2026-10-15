@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa, SB = window.SB;
-  var token = null, defs = [], rules = [], forms = [];
+  var token = null, defs = [], rules = [], forms = [], myTasks = [], instList = [];
   var ST = { running: 'В работе', done: 'Завершён', rejected: 'Отклонён', cancelled: 'Отменён' };
 
   function esc(v) { return ui.esc(v); }
@@ -131,7 +131,7 @@
   /* ---------- Мои задачи ---------- */
   function loadMy() {
     return rpc('app_process_my', { p_token: token }).then(function (r) {
-      var list = r || [];
+      var list = r || []; myTasks = list;
       $('#my').innerHTML = list.length ? list.map(function (t) {
         return '<div class="ocard"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;"><b>' + esc(t.entity_title || '') + '</b>' +
           '<span class="note">' + esc(t.def_name || '') + ' · этап ' + t.step_ord + '/' + t.total_steps + ' · ' + esc(t.name || t.role || '') + (t.due_at ? ' · до ' + dt(t.due_at) : '') + '</span></div>' +
@@ -140,6 +140,7 @@
       }).join('') : '<span class="note">Задач нет.</span>';
       $$('#my [data-ok]').forEach(function (b) { b.addEventListener('click', function () { act(b.dataset.ok, 'approve'); }); });
       $$('#my [data-no]').forEach(function (b) { b.addEventListener('click', function () { act(b.dataset.no, 'reject'); }); });
+      renderMonitor();
     }).catch(function (e) { msg('#mMsg', 'Ошибка: ' + e.message, 'err'); });
   }
   function act(taskId, action) {
@@ -154,7 +155,7 @@
   function loadInst() {
     var st = $('#iStatus').value || null;
     return rpc('app_process_instances_list', { p_token: token, p_status: st }).then(function (r) {
-      var list = r || [];
+      var list = r || []; instList = list;
       $('#inst').innerHTML = list.length ? '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Объект</th><th>Процесс</th><th>Этап</th><th>Статус</th><th>Автор</th><th>Создан</th><th></th></tr></thead><tbody>' +
         list.map(function (i) {
           return '<tr><td><b>' + esc(i.entity_title || '') + '</b></td><td>' + esc(i.def_name || '') + '</td><td>' + i.current_step + '/' + i.total_steps + '</td>' +
@@ -162,7 +163,27 @@
             '<td>' + (i.status === 'running' ? '<button class="act danger" data-cancel="' + i.id + '">Отменить</button>' : '') + '</td></tr>';
         }).join('') + '</tbody></table></div>' : '<span class="note">Экземпляров нет.</span>';
       $$('#inst [data-cancel]').forEach(function (b) { b.addEventListener('click', function () { if (!confirm('Отменить процесс?')) return; rpc('app_process_cancel', { p_token: token, p_instance_id: b.dataset.cancel, p_comment: null }).then(function () { loadInst(); }); }); });
+      renderMonitor();
     });
+  }
+
+  /* R5·PROP-33: мониторинг процессов (BAM/SLA): просрочки, сроки, прогресс, статусы */
+  function renderMonitor() {
+    var host = $('#monitor'); if (!host) return;
+    if (!myTasks.length && !instList.length) { host.innerHTML = '<div class="card"><h2>Мониторинг процессов (BAM/SLA)</h2><span class="note">Нет данных — запустите процессы.</span></div>'; return; }
+    var now = Date.now(), over = 0, soon = 0;
+    myTasks.forEach(function (t) { if (!t.due_at) return; var dd = new Date(t.due_at).getTime(); if (dd < now) over++; else if (dd - now < 86400000) soon++; });
+    var byStatus = {}, progSum = 0, progN = 0;
+    instList.forEach(function (i) { byStatus[i.status] = (byStatus[i.status] || 0) + 1; if (i.total_steps) { progSum += (i.current_step || 0) / i.total_steps; progN++; } });
+    var avg = progN ? Math.round(progSum / progN * 100) : 0, run = byStatus.running || 0;
+    host.innerHTML = '<div class="card"><h2>Мониторинг процессов (BAM/SLA)</h2>' +
+      '<div class="kpi-row">' +
+      '<div class="kpi"><small>Просрочено задач</small><b' + (over ? ' style="color:#b91c1c"' : '') + '>' + over + '</b></div>' +
+      '<div class="kpi"><small>Срок ≤ 24 ч</small><b' + (soon ? ' style="color:#b45309"' : '') + '>' + soon + '</b></div>' +
+      '<div class="kpi"><small>В работе</small><b>' + run + '</b></div>' +
+      '<div class="kpi"><small>Ср. прогресс</small><b>' + avg + '%</b></div>' +
+      '<div class="kpi"><small>Всего экземпляров</small><b>' + instList.length + '</b></div></div>' +
+      '<div class="legend" style="margin-top:6px;">' + Object.keys(byStatus).map(function (k) { return '<span>' + esc(ST[k] || k) + ': <b>' + byStatus[k] + '</b></span>'; }).join('') + '</div></div>';
   }
 
   /* ---------- Правила ---------- */

@@ -320,13 +320,13 @@ const ITEMS = [
     evidence: 'apps/workflow (v383)'
   },
   {
-    id: 'PROP-33', wave: 'R5', prio: 'P2', area: 'BPM', status: 'open', effort: 'M',
+    id: 'PROP-33', wave: 'R5', prio: 'P2', area: 'BPM', status: 'done', effort: 'M',
     business: [BIZ.common], modules: ['workflow', 'tasks', 'bi'],
     title: 'Таймеры/SLA/эскалации и мониторинг процессов',
-    problem: 'В BPM-цикле важны SLA, таймеры, эскалации и мониторинг (BAM/process mining); у нас это частично.',
-    action: 'Добавить таймеры и SLA на шаги процессов с эскалацией, а также мониторинг/BAM по процессам (длительности, узкие места) и зачатки process mining.',
-    dod: 'Шаг имеет SLA/таймер и эскалацию; есть отчёт по длительностям этапов.',
-    evidence: 'ref: Wikipedia BPM (Design/SLA, Monitoring/BAM, process mining)'
+    problem: 'Не было видимости SLA/просрочек и мониторинга процессов (BAM).',
+    action: 'В workflow добавлена панель **«Мониторинг процессов (BAM/SLA)»**: просроченные задачи, срок ≤24 ч, в работе, средний прогресс, распределение по статусам (из `app_process_my` и `app_process_instances_list`). SLA на этапах уже задаётся и показывается; UI-only (`workflow.js` v2→3).',
+    dod: 'Видны просрочки/SLA и прогресс процессов. Реализовано.',
+    evidence: 'apps/workflow (v384)'
   },
   {
     id: 'PROP-34', wave: 'R5', prio: 'P2', area: 'Справочники', status: 'done', effort: 'M',
