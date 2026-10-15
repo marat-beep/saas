@@ -87,13 +87,13 @@ const ITEMS = [
     evidence: 'tools/api-surface.ps1, tools/trace-matrix.ps1, docs/API_SURFACE.md (v363)'
   },
   {
-    id: 'PROP-03', wave: 'R2', prio: 'P2', area: 'Безопасность', status: 'open', effort: 'M',
+    id: 'PROP-03', wave: 'R2', prio: 'P2', area: 'Безопасность', status: 'done', effort: 'M',
     business: [BIZ.common], modules: [],
     title: 'Харденинг RLS и грантов',
-    problem: 'Зафиксированы 2 пермиссивные INSERT-политики (tenders, profiles) и helper без явного grant.',
-    action: 'Пересмотреть WITH CHECK (роль/тенант), выдать/закрыть grant у helper; проверить default-deny у app_*.',
-    dod: 'security-check ✅; INSERT-политики ограничены ролью/тенантом; нет helper без назначения.',
-    evidence: 'docs/BACKLOG.md (v278)'
+    problem: 'Порталу закупок достаточно чтения tenders; запись в tenders/profiles шла через legacy-политики на auth.uid() (в сервисе Supabase Auth не используется). Helper app_support_ticket_link_issue не имеет grant — по замыслу (внутренний).',
+    action: 'Миграция 0258: RLS включён на tenders/profiles; у anon/authenticated отозваны insert/update/delete и выдан только select на tenders; INSERT/UPDATE-политики сделаны явно запрещающими (defense-in-depth). Подтверждено: helper намеренно без grant (вызывается внутри app_support_*).',
+    dod: 'Прямая запись клиента в tenders/profiles запрещена; запись — только через RPC (SECURITY DEFINER); apply_all синхронизирован (249/249), db-integrity ✅ 0 находок.',
+    evidence: 'supabase/migrations/0258_rls_hardening.sql'
   },
   {
     id: 'PROP-08', wave: 'R2', prio: 'P2', area: 'Доступность', status: 'open', effort: 'M',

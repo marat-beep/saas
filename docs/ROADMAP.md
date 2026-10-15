@@ -2,7 +2,7 @@
 
 _Автогенерация `tools/gen-roadmap.js` из `tools/proposals.js` — единый источник правды. Не редактировать вручную._
 
-Дата: 2026-10-15. Всего пунктов: **19** (выполнено: 7).
+Дата: 2026-10-15. Всего пунктов: **19** (выполнено: 8).
 
 ## Принципы и порядок
 
@@ -93,15 +93,15 @@ _Автогенерация `tools/gen-roadmap.js` из `tools/proposals.js` —
 - **DoD:** API_SURFACE.md отражает фактическую поверхность и объясняет backend-функции; счётчики согласованы (trace 156, api-surface 124). Реализовано.
 - **Обоснование:** tools/api-surface.ps1, tools/trace-matrix.ps1, docs/API_SURFACE.md (v363)
 
-### PROP-03 · Харденинг RLS и грантов
+### PROP-03 · Харденинг RLS и грантов ✅
 
 - **Приоритет:** P2 (средний) · **Область:** Безопасность · **Оценка:** M (средняя)
 - **Контуры:** Общее
 - **Модули:** —
-- **Проблема:** Зафиксированы 2 пермиссивные INSERT-политики (tenders, profiles) и helper без явного grant.
-- **Что сделать:** Пересмотреть WITH CHECK (роль/тенант), выдать/закрыть grant у helper; проверить default-deny у app_*.
-- **DoD:** security-check ✅; INSERT-политики ограничены ролью/тенантом; нет helper без назначения.
-- **Обоснование:** docs/BACKLOG.md (v278)
+- **Проблема:** Порталу закупок достаточно чтения tenders; запись в tenders/profiles шла через legacy-политики на auth.uid() (в сервисе Supabase Auth не используется). Helper app_support_ticket_link_issue не имеет grant — по замыслу (внутренний).
+- **Что сделать:** Миграция 0258: RLS включён на tenders/profiles; у anon/authenticated отозваны insert/update/delete и выдан только select на tenders; INSERT/UPDATE-политики сделаны явно запрещающими (defense-in-depth). Подтверждено: helper намеренно без grant (вызывается внутри app_support_*).
+- **DoD:** Прямая запись клиента в tenders/profiles запрещена; запись — только через RPC (SECURITY DEFINER); apply_all синхронизирован (249/249), db-integrity ✅ 0 находок.
+- **Обоснование:** supabase/migrations/0258_rls_hardening.sql
 
 ### PROP-08 · aria-label для иконочных кнопок
 
