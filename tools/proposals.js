@@ -329,13 +329,13 @@ const ITEMS = [
     evidence: 'ref: Wikipedia BPM (Design/SLA, Monitoring/BAM, process mining)'
   },
   {
-    id: 'PROP-34', wave: 'R5', prio: 'P2', area: 'Справочники', status: 'open', effort: 'M',
+    id: 'PROP-34', wave: 'R5', prio: 'P2', area: 'Справочники', status: 'done', effort: 'M',
     business: [BIZ.prod, BIZ.qa], modules: ['dicts', 'registry', 'iiot', 'norms'],
     title: 'Полный реестр справочников (ЧПУ, G/M-коды, стандарты, материалы)',
-    problem: 'Базовый сид (0259) покрывает 7 словарей; по реестру docs/REFERENCE_DATA.md нужны стойки ЧПУ с постпроцессорами, G/M-коды/инструкции, стандарты ЕСКД/ЕСТД, группы материалов/марки, оснастка, упаковка, разряды, причины отказа.',
-    action: 'Расширить сид и добавить справочники по docs/REFERENCE_DATA.md: типы/модели стоек ЧПУ и постпроцессоры; G/M-коды и инструкции (БЗ); стандарты; материалы/марки; оснастка; упаковка; разряды; причины отказа клиента.',
-    dod: 'Реестр из docs/REFERENCE_DATA.md доступен в системе (сид + редактирование).',
-    evidence: 'docs/REFERENCE_DATA.md (base: миграция 0259)'
+    problem: 'Базовый сид (0259) покрывал 7 словарей; по реестру docs/REFERENCE_DATA.md нужны стойки ЧПУ, G/M-коды, стандарты, материалы/марки, оснастка, упаковка, разряды, причины отказа.',
+    action: 'Миграция 0260 расширяет app_seed_reference_dicts до 22 словарей: модели стоек ЧПУ, языки/форматы УП, G-коды (ISO), M-коды, материалы режущей части, группы материалов, стандарты (ЕСКД/ЕСТД/ОРД/ISO), причины отказа, категории затрат, упаковка, разряды, единицы, валюты, налоги, Incoterms.',
+    dod: 'Реестр доступен в системе через «Загрузить базовые»; apply_all синхронизирован (251). Реализовано.',
+    evidence: 'supabase/migrations/0260_reference_dicts_ext.sql, docs/REFERENCE_DATA.md (v381)'
   },
   {
     id: 'PROP-35', wave: 'R5', prio: 'P3', area: 'Справочники', status: 'open', effort: 'M',
