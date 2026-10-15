@@ -178,6 +178,28 @@
     function init() { try { autoSearch(); } catch (e) {} }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
   })();
+  // Подсказки из настраиваемого справочника: привязывает <datalist> к текстовому полю.
+  // Значения подтягиваются из app_dict_items_by_code (кэш на страницу). Свободный ввод сохраняется.
+  var _dictCache = {};
+  function dictSuggest(el, code, token) {
+    var inp = (typeof el === 'string') ? document.getElementById(el) : el;
+    if (!inp || !inp.tagName || !code) return;
+    if (!inp.id) inp.id = 'ds_' + Math.random().toString(36).slice(2, 8);
+    var listId = inp.id + '_dl', dl = document.getElementById(listId);
+    if (!dl) { dl = document.createElement('datalist'); dl.id = listId; document.body.appendChild(dl); }
+    inp.setAttribute('list', listId);
+    var tok = token || ((g.Auth && g.Auth.token) ? g.Auth.token() : null);
+    if (!tok || !(window.SB && window.SB.rpc)) return;
+    if (!_dictCache[code]) {
+      _dictCache[code] = window.SB.rpc('app_dict_items_by_code', { p_token: tok, p_code: code })
+        .then(function (r) { return (r || []).map(function (x) { return x.label || x.value; }); })
+        .catch(function () { return []; });
+    }
+    _dictCache[code].then(function (labels) {
+      var d = document.getElementById(listId); if (!d) return;
+      d.innerHTML = labels.map(function (l) { return '<option value="' + esc(l) + '"></option>'; }).join('');
+    });
+  }
   // Поисковый селект (комбо) для форм/мастеров. HTML + инициализация.
   // Использование: container.innerHTML += AppUI.comboHtml('code', [{value,label,info,icon}], sel, 'поиск…'); AppUI.initCombos(container).
   function comboHtml(name, options, selected, placeholder) {
@@ -211,5 +233,5 @@
       });
     });
   }
-  g.AppUI = { qs: qs, qsa: qsa, esc: esc, toast: toast, fmtDate: fmtDate, dialog: dialog, formDialog: formDialog, confirmDialog: confirmDialog, quickSearch: quickSearch, autoSearch: autoSearch, comboHtml: comboHtml, initCombos: initCombos };
+  g.AppUI = { qs: qs, qsa: qsa, esc: esc, toast: toast, fmtDate: fmtDate, dialog: dialog, formDialog: formDialog, confirmDialog: confirmDialog, quickSearch: quickSearch, autoSearch: autoSearch, dictSuggest: dictSuggest, comboHtml: comboHtml, initCombos: initCombos };
 })(window);

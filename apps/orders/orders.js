@@ -346,6 +346,7 @@
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     me = s; token = s.token;
+  if (window.AppUI && AppUI.dictSuggest) AppUI.dictSuggest('fSource', 'request_sources', token);
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + (s.role ? ' · ' + s.role : '');
     applyCaps();
     if (!SB) { msg('#listMsg', 'Supabase не подключён.', 'err'); return; }

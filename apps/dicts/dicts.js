@@ -5,6 +5,22 @@
   'use strict';
   var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa, SB = window.SB;
   var token = null, dicts = [], items = [], cur = null, q = '';
+  // Карта «справочник → где используется» (доступность для пользователя)
+  var USAGE = {
+    machine_kinds: 'Справочники → Оборудование',
+    cnc_systems: 'Справочники → Оборудование (системы ЧПУ)',
+    tool_kinds: 'Инструмент, Оснастка',
+    downtime_reasons: 'OEE, MES, причины простоев',
+    defect_kinds: 'ОТК/Качество, CAPA',
+    contact_channels: 'CRM, Сервис',
+    request_sources: 'Заявки, CRM (источник)',
+    doc_type: 'Конструктор документов',
+    loss_type: 'Бережливое производство',
+    setup_type: 'Наладка',
+    supplier_category: 'Поставщики',
+    marketplace_process: 'Маркетплейс мощностей',
+    teo_line_kind: 'ТЭО'
+  };
 
   function esc(v) { return ui.esc(v); }
   function msg(id, t, k) { var e = $(id); e.className = 'msg show ' + (k || 'info'); e.textContent = t; if (!t) e.className = 'msg'; }
@@ -28,15 +44,17 @@
     var rows = dicts.filter(function (d) { return !s || (d.name + ' ' + d.code).toLowerCase().indexOf(s) >= 0; });
     $('#dList').innerHTML = rows.length ? rows.map(function (d) {
       return '<div class="ocard" data-open="' + d.id + '"><div style="display:flex;gap:8px;align-items:center;"><b>' + esc(d.name) + '</b>' +
-        '<span class="badge">' + esc(d.code) + '</span><span class="note" style="margin-left:auto;">' + d.items + ' знач.</span></div></div>';
-    }).join('') : '<span class="note">Справочников нет.</span>';
-    $$('#dList [data-open]').forEach(function (b) { b.addEventListener('click', function () { open(b.dataset.open); }); });
+        '<span class="badge">' + esc(d.code) + '</span><span class="note" style="margin-left:auto;">' + d.items + ' знач.</span>' +
+        '<button class="btn secondary" data-copy="' + esc(d.code) + '" style="width:auto;padding:2px 8px;font-size:.72rem;" aria-label="Скопировать код" title="Скопировать код">⧉ код</button></div></div>';
+    }).join('') : '<span class="note">Справочников нет. Нажмите «Загрузить базовые» или добавьте справочник выше.</span>';
+    $$('#dList [data-open]').forEach(function (b) { b.addEventListener('click', function (e) { if (e.target.dataset.copy) return; open(b.dataset.open); }); });
+    $$('#dList [data-copy]').forEach(function (b) { b.addEventListener('click', function (e) { e.stopPropagation(); var c = b.dataset.copy; if (navigator.clipboard) { navigator.clipboard.writeText(c).then(function () { ui.toast('Код скопирован: ' + c); }); } else { ui.toast(c); } }); });
   }
 
   function open(id) {
     cur = dicts.filter(function (d) { return d.id === id; })[0]; if (!cur) return;
     $('#itemsCard').style.display = 'block'; $('#emptyCard').style.display = 'none';
-    $('#dTitle').textContent = cur.name + ' · ' + cur.code;
+    $('#dTitle').textContent = cur.name + ' · ' + cur.code + (USAGE[cur.code] ? '  — используется: ' + USAGE[cur.code] : '');
     rpc('app_dict_items_list', { p_token: token, p_dict_id: id }).then(function (r) { items = r || []; renderItems(); });
   }
 
