@@ -273,13 +273,13 @@ const ITEMS = [
     evidence: 'ref: Wikipedia MES (MQTT/Sparkplug, edge/hybrid)'
   },
   {
-    id: 'PROP-28', wave: 'R4', prio: 'P3', area: 'CRM', status: 'open', effort: 'S',
+    id: 'PROP-28', wave: 'R4', prio: 'P3', area: 'CRM', status: 'done', effort: 'S',
     business: [BIZ.prod], modules: ['crm', 'client'],
     title: 'Кампании и контакт-центр',
-    problem: 'ERP/CRM-контур включает маркетинг и контакт-центр; у нас есть сделки и напоминания, но нет кампаний и обработки обращений.',
-    action: 'Добавить кампании (сегмент, рассылка по каналам, отклик) и контакт-центр (очередь обращений, SLA, маршрутизация).',
-    dod: 'Кампания запускается по сегменту; обращения обрабатываются по SLA.',
-    evidence: 'ref: Wikipedia ERP (CRM — marketing, call center)'
+    problem: 'Не было маркетинга (кампаний) и обработки обращений (контакт-центра).',
+    action: 'Миграция 0262: таблицы `app_campaigns` (канал/сегмент/статус/отправлено/отклик/бюджет) и `app_inbox` (обращения с SLA) + RPC list/save/delete/add/set_status. В CRM — панель **«Маркетинг: кампании»** (конверсия отклика) и **«Контакт-центр»** (обращения, просрочка SLA, закрытие).',
+    dod: 'Кампании ведутся с конверсией; обращения обрабатываются с SLA. Реализовано (apply_all 253).',
+    evidence: 'supabase/migrations/0262_marketing.sql, apps/crm (v386)'
   },
   {
     id: 'PROP-29', wave: 'R4', prio: 'P3', area: 'Экономика', status: 'open', effort: 'M',

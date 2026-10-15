@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa, SB = window.SB;
-  var token = null, me = null, deals = [], customers = [], q = '';
+  var token = null, me = null, deals = [], customers = [], campaigns = [], inbox = [], q = '';
 
   var STAGES = [['lead', 'Лид'], ['qualified', 'Квалифицирована'], ['proposal', 'Предложение'], ['negotiation', 'Переговоры'], ['won', 'Выиграна'], ['lost', 'Проиграна']];
   var SNAME = { lead: 'Лид', qualified: 'Квалифицирована', proposal: 'Предложение', negotiation: 'Переговоры', won: 'Выиграна', lost: 'Проиграна' };
@@ -19,13 +19,15 @@
     return Promise.all([
       rpc('app_deal_list', { p_token: token, p_q: null }),
       rpc('app_deal_kpi', { p_token: token }),
-      rpc('app_customer_list', { p_token: token }).catch(function () { return []; })
+      rpc('app_customer_list', { p_token: token }).catch(function () { return []; }),
+      rpc('app_campaign_list', { p_token: token }).catch(function () { return []; }),
+      rpc('app_inbox_list', { p_token: token }).catch(function () { return []; })
     ]).then(function (r) {
-      deals = r[0] || []; var k = (r[1] && r[1][0]) || {}; customers = r[2] || [];
+      deals = r[0] || []; var k = (r[1] && r[1][0]) || {}; customers = r[2] || []; campaigns = r[3] || []; inbox = r[4] || [];
       $('#fCust').innerHTML = '<option value="">— выберите —</option>' + customers.map(function (c) { return '<option value="' + c.id + '">' + esc(c.name) + '</option>'; }).join('');
       $('#kpis').innerHTML = cell('Сделок', num(k.deals_total)) + cell('Открытых', num(k.open_deals)) +
         cell('Воронка (взвеш.)', money(k.pipeline)) + cell('Выиграно', money(k.won_sum), '#15803d') + cell('Конверсия', num(k.conversion) + '%');
-      render(); renderCustomers(); loadReminders(); renderFunnel(); renderForecast();
+      render(); renderCustomers(); loadReminders(); renderFunnel(); renderForecast(); renderMkt();
     }).catch(function (e) { msg('#fMsg', 'Ошибка: ' + e.message, 'err'); });
   }
   /* R5·PROP-30: воронка и конверсия лид→сделка (по стадиям и источникам) */
@@ -120,6 +122,31 @@
       (order.length ? '<div class="legend" style="margin:6px 0;"><span>Прогноз всего: <b>' + money(total) + '</b></span></div>' +
         order.map(function (k) { return '<div class="kvr"><b style="min-width:110px;">' + k + '</b><span class="note">' + months[k].n + ' сд.</span><span class="badge" style="margin-left:auto;">' + money(months[k].w) + '</span></div>'; }).join('')
         : '<span class="note">Открытых сделок нет.</span>') + '</div>';
+  }
+  /* R4·PROP-28: маркетинг (кампании) + контакт-центр (обращения) */
+  function renderMkt() {
+    var host = $('#mkt'); if (!host) return;
+    var camp = campaigns.length ? '<div class="tbl-wrap mt"><table class="tbl"><thead><tr><th>Кампания</th><th>Канал</th><th>Сегмент</th><th>Статус</th><th class="num">Отпр.</th><th class="num">Отклик</th><th class="num">Конв.</th><th></th></tr></thead><tbody>' +
+      campaigns.map(function (c) { var cv = num(c.sent) ? Math.round(num(c.response) / num(c.sent) * 100) : 0; return '<tr><td><b>' + esc(c.name) + '</b></td><td>' + esc(c.channel || '—') + '</td><td>' + esc(c.segment || '—') + '</td><td>' + esc(c.status) + '</td><td class="num">' + num(c.sent) + '</td><td class="num">' + num(c.response) + '</td><td class="num">' + cv + '%</td><td><button class="act danger" data-cdel="' + c.id + '" aria-label="Удалить" title="Удалить">✕</button></td></tr>'; }).join('') + '</tbody></table></div>' : '<span class="note">Кампаний нет.</span>';
+    var inb = inbox.length ? inbox.map(function (i) { var od = i.due_at && new Date(i.due_at).getTime() < Date.now() && i.status !== 'closed'; return '<div class="kvr"><b>' + esc(i.subject || '(без темы)') + '</b><span class="note">' + esc(i.channel || '') + (i.contact ? ' · ' + esc(i.contact) : '') + (i.due_at ? ' · до ' + ui.fmtDate(i.due_at) : '') + (od ? ' · ПРОСРОЧЕНО' : '') + '</span><span class="badge" style="margin-left:auto;">' + esc(i.status) + '</span>' + (i.status !== 'closed' ? '<button class="act" data-iclose="' + i.id + '">Закрыть</button>' : '') + '</div>'; }).join('') : '<span class="note">Обращений нет.</span>';
+    host.innerHTML = '<div class="card"><h2>Маркетинг: кампании</h2>' +
+      '<div class="grid3"><div class="field"><label>Название *</label><input type="text" id="mName"></div><div class="field"><label>Канал</label><input type="text" id="mChan" placeholder="e-mail / Telegram / звонок"></div><div class="field"><label>Сегмент</label><input type="text" id="mSeg" placeholder="ключевые клиенты"></div></div>' +
+      '<div class="grid3"><div class="field"><label>Статус</label><select id="mStatus"><option value="planned">План</option><option value="active">Активна</option><option value="done">Завершена</option><option value="paused">Пауза</option></select></div><div class="field"><label>Дата</label><input type="date" id="mDate"></div><div class="field"><label>Бюджет, ₽</label><input type="text" id="mBud" inputmode="decimal"></div></div>' +
+      '<div class="btn-row"><button class="btn" id="mSave">Добавить кампанию</button></div>' + camp + '</div>' +
+      '<div class="card mt"><h2>Контакт-центр (обращения)</h2>' +
+      '<div class="grid3"><div class="field"><label>Канал</label><input type="text" id="iChan" placeholder="телефон / e-mail / сайт"></div><div class="field"><label>Контакт</label><input type="text" id="iContact"></div><div class="field"><label>Тема</label><input type="text" id="iSubj"></div></div>' +
+      '<div class="btn-row"><button class="btn" id="iAdd">Зарегистрировать обращение</button></div>' + inb + '</div>';
+    if (window.AppUI && AppUI.dictSuggest) { AppUI.dictSuggest('mChan', 'contact_channels', token); AppUI.dictSuggest('iChan', 'contact_channels', token); }
+    var ms = $('#mSave'); if (ms) ms.addEventListener('click', function () {
+      rpc('app_campaign_save', { p_token: token, p_id: null, p_name: $('#mName').value.trim(), p_channel: $('#mChan').value.trim() || null, p_segment: $('#mSeg').value.trim() || null, p_status: $('#mStatus').value, p_planned_date: $('#mDate').value || null, p_budget: parseFloat($('#mBud').value.replace(',', '.')) || null, p_sent: 0, p_response: 0, p_note: null })
+        .then(function (r) { var x = r && r[0]; ui.toast(x ? x.message : ''); if (x && x.ok) load(); }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+    });
+    $$('#mkt [data-cdel]').forEach(function (b) { b.addEventListener('click', function () { if (!confirm('Удалить кампанию?')) return; rpc('app_campaign_delete', { p_token: token, p_id: b.dataset.cdel }).then(load); }); });
+    var ia = $('#iAdd'); if (ia) ia.addEventListener('click', function () {
+      rpc('app_inbox_add', { p_token: token, p_channel: $('#iChan').value.trim() || null, p_contact: $('#iContact').value.trim() || null, p_subject: $('#iSubj').value.trim() || null, p_body: null, p_priority: 'normal', p_sla_hours: 24, p_assignee: null })
+        .then(function (r) { var x = r && r[0]; ui.toast(x ? x.message : ''); if (x && x.ok) load(); }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+    });
+    $$('#mkt [data-iclose]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_inbox_set_status', { p_token: token, p_id: b.dataset.iclose, p_status: 'closed' }).then(load); }); });
   }
 
   /* ---------- R1: напоминания ---------- */
