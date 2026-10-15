@@ -171,13 +171,13 @@ const ITEMS = [
     evidence: 'assets/js/catalog.js (quick), assets/js/mobile.js (v372)'
   },
   {
-    id: 'PROP-11', wave: 'R3', prio: 'P3', area: 'Данные', status: 'open', effort: 'M',
+    id: 'PROP-11', wave: 'R3', prio: 'P3', area: 'Данные', status: 'done', effort: 'M',
     business: [BIZ.common], modules: [],
-    title: 'Вынести крупные данные каталога',
-    problem: 'assets/js/catalog.js ≈129 КБ и tools/modules-analysis.js ≈60 КБ растут и грузятся целиком.',
-    action: 'При росте — вынести данные в JSON и грузить по требованию (или оставить, если объём приемлем).',
-    dod: 'Размер критичного бандла ясен; при выносе — данные грузятся лениво.',
-    evidence: 'assets/js/catalog.js'
+    title: 'Вынос крупных данных каталога',
+    problem: 'catalog.js ≈129 КБ, modules-analysis.js ≈59 КБ — оценить необходимость выноса.',
+    action: 'Замеры: catalog.js gzip **31 КБ** (клиент), app.css 8.3 КБ; modules-analysis.js/proposals.js — build-time (клиенту не отдаются). Решение: оставить единым файлом (обоснование — docs/PERFORMANCE.md), триггер пересмотра — >200 КБ raw / >150 модулей.',
+    dod: 'Объём оценён и обоснован (docs/PERFORMANCE.md); вынос не требуется на текущем масштабе. Реализовано.',
+    evidence: 'docs/PERFORMANCE.md (v373)'
   },
   {
     id: 'PROP-10', wave: 'R3', prio: 'P3', area: 'Планировки', status: 'open', effort: 'L',
