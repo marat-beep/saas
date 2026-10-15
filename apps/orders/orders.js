@@ -154,6 +154,7 @@
           kpiCell('Наряды', naryads.length + ' · план ' + narPlan + ' ч') +
           kpiCell('Факт часов', narFact + ' ч') +
           kpiCell('Себестоимость (план)', pfx ? money(pfx.plan_total) : '—') +
+          (function () { if (!pfx || o.amount == null || Number(o.amount) === 0) return kpiCell('Маржа (план)', '—'); var m = Number(o.amount) - Number(pfx.plan_total); return kpiCell('Маржа (план)', money(m) + ' · ' + Math.round(m / Number(o.amount) * 100) + '%', m < 0 ? '#b91c1c' : '#15803d'); })() +
         '</div>' +
         (pfx ? '<div class="card mt"><h3 style="margin:0 0 8px;font-size:.9rem;">Себестоимость (план/факт)</h3>' +
           '<div class="kpi-row">' + kpiCell('План-часы', pfx.plan_hours) + kpiCell('Факт-часы', pfx.fact_hours) + kpiCell('Отклонение, ч', pfx.hours_dev) +
