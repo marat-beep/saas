@@ -285,12 +285,17 @@ const PROTO = [
   ['P15 Центр экспорта/отчётов', 'reports'],
   ['M1 Маркетплейс мощностей', 'marketplace']
 ];
-const PROTO_OPEN = ['A5 Аудит цифровой зрелости (частично diagnostics)', 'A12 АРМ (частично terminal/service)', 'B36 ИТ-инфраструктура (частично iiot)', 'P12 Технологический путь (частично guide/diagnostics)'];
+const PROTO_OPEN = [
+  'A5 Аудит цифровой зрелости — вне периметра сервиса (консалтинговая услуга; в сервисе частично отражена «Диагностикой» и «Масштабом»).',
+  'A12 АРМ рабочего места — вне периметра как отдельный продукт (частично реализовано: «Терминал» + «Сервис»/АРМ инженера).',
+  'B36 ИТ-инфраструктура — вне периметра (инфраструктура развёртывания; частично — IIoT и мониторинг).',
+  'P12 Технологический путь — вне периметра как услуга (частично — «Гид» и «Диагностика»).'
+];
 const protoTable = '<table class="mini"><thead><tr><th>Прототип (eco/apps)</th><th>Реализация (apps)</th></tr></thead><tbody>' +
   PROTO.map(function (r) { return '<tr><td>' + esc(r[0]) + '</td><td><b>' + esc(r[1]) + '</b></td></tr>'; }).join('') + '</tbody></table>';
-const protoBlock = '<details class="panel"><summary class="panel-sum"><b>Прототипы → реализация</b> <span class="cnt">' + PROTO.length + '</span> <span class="muted">· без прямой реализации: ' + PROTO_OPEN.length + ' — развернуть</span></summary>' +
+const protoBlock = '<details class="panel"><summary class="panel-sum"><b>Прототипы → реализация</b> <span class="cnt">' + PROTO.length + '</span> <span class="muted">· вне периметра: ' + PROTO_OPEN.length + ' — развернуть</span></summary>' +
   '<p class="note" style="margin:8px 0;">Сопоставление 72 прототипов eco/apps с реализованными модулями: что было в прототипе → что стало в сервисе.</p>' + protoTable +
-  '<h4 style="margin:12px 0 6px;font-size:.8rem;">Прототипы без прямой реализации</h4><ul>' + PROTO_OPEN.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></details>';
+  '<h4 style="margin:12px 0 6px;font-size:.8rem;">Прототипы вне периметра сервиса (с обоснованием)</h4><ul>' + PROTO_OPEN.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></details>';
 
 /* ---------- Предложения по изменениям (tools/proposals.js) ---------- */
 const WAVE_TITLE = { R1: 'Приоритетные контуры', R2: 'Поперечные и надёжность', R3: 'Гигиена и развитие' };
