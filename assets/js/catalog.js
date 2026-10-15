@@ -8,7 +8,7 @@
    Новое приложение: добавить запись и создать apps/<id>/.
    ============================================================ */
 window.AppCatalog = {
-  version: '10.52',
+  version: '10.53',
   updated: '14.10.2026',
 
   /* Статусы модулей для цветных меток: done (готово) | progress (в работе) | todo (не начато).
@@ -120,7 +120,22 @@ window.AppCatalog = {
     workflow:    [{ label: 'Процессы', icon: '⚙️', href: 'apps/workflow/index.html' }, { label: '＋ Запуск', icon: '＋', wizard: 'workflow' }],
     kedo:        [{ label: 'Документы', icon: '🧑‍💼', href: 'apps/kedo/index.html' }, { label: '＋ Документ', icon: '＋', wizard: 'kedo' }],
     tasks:       [{ label: 'Задачи', icon: '✅', href: 'apps/tasks/index.html' }, { label: 'Проекты', icon: '📁', href: 'apps/tasks/index.html' }],
-    crm:         [{ label: 'Сделки', icon: '💼', href: 'apps/crm/index.html' }, { label: 'Заказчики', icon: '🏢', href: 'apps/crm/index.html' }]
+    crm:         [{ label: 'Сделки', icon: '💼', href: 'apps/crm/index.html' }, { label: 'Заказчики', icon: '🏢', href: 'apps/crm/index.html' }],
+    planning:    [{ label: 'Планирование', icon: '🗓', href: 'apps/planning/index.html' }, { label: 'Наряды', icon: '📋', href: 'apps/production/index.html' }, { label: 'Загрузка РЦ', icon: '📊', href: 'apps/planning/index.html' }],
+    finance:     [{ label: 'Счета', icon: '🧾', href: 'apps/finance/index.html' }, { label: 'Платежи', icon: '💸', href: 'apps/finance/index.html' }, { label: 'Бюджеты', icon: '📊', href: 'apps/finance/index.html' }],
+    economics:   [{ label: 'Себестоимость', icon: '💰', href: 'apps/economics/index.html' }, { label: 'Ставки', icon: '📈', href: 'apps/economics/index.html' }],
+    reports:     [{ label: 'Отчёты', icon: '📄', href: 'apps/reports/index.html' }, { label: 'Расписания', icon: '⏰', href: 'apps/reports/index.html' }],
+    hr:          [{ label: 'Сотрудники', icon: '🧑', href: 'apps/hr/index.html' }, { label: 'Смены', icon: '🗓', href: 'apps/hr/index.html' }],
+    procurement: [{ label: 'Закупки', icon: '🛒', href: 'apps/procurement/index.html' }, { label: 'Тендеры', icon: '📑', href: 'apps/procurement/index.html' }],
+    registry:    [{ label: 'Справочники', icon: '🗄', href: 'apps/registry/index.html' }, { label: 'Техсправочники', icon: '📚', href: 'apps/registry/index.html' }],
+    claims:      [{ label: 'Претензии', icon: '⚠️', href: 'apps/claims/index.html' }, { label: 'CAPA', icon: '🧰', href: 'apps/claims/index.html' }],
+    quality:     [{ label: 'СМК/СИ', icon: '📏', href: 'apps/quality/index.html' }, { label: 'Трассируемость', icon: '🔍', href: 'apps/quality/index.html' }],
+    docs:        [{ label: 'Документы', icon: '📄', href: 'apps/docs/index.html' }, { label: '＋ Документ', icon: '＋', href: 'apps/docs/index.html' }],
+    norms:       [{ label: 'Нормы', icon: '📐', href: 'apps/norms/index.html' }, { label: 'Аналоги', icon: '🔎', href: 'apps/norms/index.html' }],
+    pmo:         [{ label: 'Портфели', icon: '📁', href: 'apps/pmo/index.html' }, { label: 'Вехи', icon: '🚩', href: 'apps/pmo/index.html' }],
+    safety:      [{ label: 'Охрана труда', icon: '🦺', href: 'apps/safety/index.html' }, { label: 'Инциденты', icon: '🚨', href: 'apps/safety/index.html' }],
+    oee:         [{ label: 'OEE', icon: '📈', href: 'apps/oee/index.html' }, { label: 'Простои', icon: '⛔', href: 'apps/oee/index.html' }],
+    config:      [{ label: 'Конфигуратор', icon: '🧩', href: 'apps/config/index.html' }, { label: 'Шаблоны', icon: '📑', href: 'apps/config/index.html' }]
   },
   apps: [
     /* ---------- Ядро ---------- */

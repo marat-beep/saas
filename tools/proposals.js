@@ -161,14 +161,14 @@ const ITEMS = [
     evidence: '.github/workflows/checks.yml (v371)'
   },
   {
-    id: 'PROP-13', wave: 'R3', prio: 'P3', area: 'Мобильные', status: 'open', effort: 'S',
+    id: 'PROP-13', wave: 'R3', prio: 'P3', area: 'Мобильные', status: 'done', effort: 'S',
     business: [BIZ.prod, BIZ.qa, BIZ.econ],
     modules: ['orders', 'production', 'warehouse', 'service', 'qc', 'hr'],
     title: 'Осмысленные быстрые действия (mobile)',
-    problem: 'mobile.js синтезирует quick по связям, но для части модулей действия неочевидны.',
-    action: 'Задать явные catalog.quick для 10–15 топ-модулей.',
-    dod: 'Для топ-модулей мобильная панель содержит 2–3 осмысленных действия.',
-    evidence: 'assets/js/mobile.js, catalog.quick'
+    problem: 'catalog.quick был задан лишь для части модулей; остальные использовали синтез по связям.',
+    action: 'Заданы явные catalog.quick ещё для 15 модулей (planning, finance, economics, reports, hr, procurement, registry, claims, quality, docs, norms, pmo, safety, oee, config) — всего 30; каталог v10.53, CATALOG_V 129.',
+    dod: 'Для топ-30 модулей мобильная панель содержит осмысленные действия. Реализовано.',
+    evidence: 'assets/js/catalog.js (quick), assets/js/mobile.js (v372)'
   },
   {
     id: 'PROP-11', wave: 'R3', prio: 'P3', area: 'Данные', status: 'open', effort: 'M',
