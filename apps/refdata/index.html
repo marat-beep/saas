@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Отраслевые справочники — 3DMP Service</title>
+<link rel="stylesheet" href="../../assets/css/app.css?v=37">
+<style>
+  .cols2{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+  @media(max-width:960px){.cols2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">🛠</span> <a href="../../index.html">3DMP Service</a></div>
+    <div class="spacer"></div>
+    <span class="who" id="who">…</span>
+    <button class="tbtn" id="logout">Выйти</button>
+  </header>
+
+  <main class="wrap fluid">
+    <div class="hero"><h1>Отраслевые справочники</h1><p>Таблицы с атрибутами: стойки/станки ЧПУ (система, оси, обороты, постпроцессор) и инструмент (материал, диаметр, стойкость).</p></div>
+    <div class="sv-actions" style="margin:10px 0;"><a class="btn secondary" href="../dicts/index.html">🗂 Настраиваемые справочники ↗</a><a class="btn secondary" href="../registry/index.html">🗄 Основные справочники ↗</a><a class="btn secondary" href="../tooling/index.html">🧰 Инструмент (учёт) ↗</a></div>
+    <div class="kpi-row" id="kpis"></div>
+
+    <div class="cols2 mt">
+      <div class="card">
+        <h2>Стойки и станки ЧПУ</h2>
+        <div class="msg" id="cMsg"></div>
+        <div class="grid3">
+          <div class="field"><label>Производитель</label><input type="text" id="cVendor" placeholder="FANUC / Okuma"></div>
+          <div class="field"><label>Модель *</label><input type="text" id="cModel" placeholder="VMC-850"></div>
+          <div class="field"><label>Система ЧПУ</label><input type="text" id="cSys" placeholder="Sinumerik 840D"></div>
+        </div>
+        <div class="grid3">
+          <div class="field"><label>Осей</label><input type="number" id="cAxes" placeholder="3"></div>
+          <div class="field"><label>Макс. обороты</label><input type="number" id="cRpm" placeholder="12000"></div>
+          <div class="field"><label>Постпроцессор</label><input type="text" id="cPost" placeholder="fanuc0i"></div>
+        </div>
+        <div class="field"><label>Примечание</label><input type="text" id="cNote"></div>
+        <div class="btn-row"><button class="btn" id="cSave">Добавить</button><button class="btn secondary" id="cClear">Очистить</button></div>
+        <div class="toolbar mt"><input type="search" class="search" id="cq" placeholder="Поиск: производитель, модель, система…"></div>
+        <div id="cList" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Инструмент (каталог)</h2>
+        <div class="msg" id="tMsg"></div>
+        <div class="grid3">
+          <div class="field"><label>Тип</label><input type="text" id="tKind" placeholder="Концевая фреза"></div>
+          <div class="field"><label>Название *</label><input type="text" id="tName" placeholder="Ø12 4F"></div>
+          <div class="field"><label>Материал</label><input type="text" id="tMat" placeholder="Твёрдый сплав"></div>
+        </div>
+        <div class="grid3">
+          <div class="field"><label>Диаметр, мм</label><input type="number" id="tD" step="0.1"></div>
+          <div class="field"><label>Радиус, мм</label><input type="number" id="tR" step="0.1"></div>
+          <div class="field"><label>Стойкость, мин</label><input type="number" id="tLife"></div>
+        </div>
+        <div class="grid3">
+          <div class="field"><label>Переточек</label><input type="number" id="tResh"></div>
+          <div class="field" style="grid-column:span 2;"><label>Примечание</label><input type="text" id="tNote"></div>
+        </div>
+        <div class="btn-row"><button class="btn" id="tSave">Добавить</button><button class="btn secondary" id="tClear">Очистить</button></div>
+        <div class="toolbar mt"><input type="search" class="search" id="tq" placeholder="Поиск: тип, название, материал…"></div>
+        <div id="tList" class="mt"><span class="note">Загрузка…</span></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="foot">3DMP Service · отраслевые справочники (ЧПУ, инструмент)</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../assets/js/config.js?v=2"></script>
+  <script src="../../assets/js/supabase-client.js?v=1"></script>
+  <script src="../../assets/js/ui.js?v=6"></script>
+  <script src="../../assets/js/auth.js?v=8"></script>
+  <script src="../../assets/js/notify.js?v=3"></script>
+  <script src="../../assets/js/support-widget.js?v=1"></script>
+  <script src="../../assets/js/nav.js?v=109"></script>
+  <script src="../../assets/js/shell.js?v=76"></script>
+  <script src="refdata.js?v=1"></script>
+  <script src="../../assets/js/realtime.js?v=2"></script>
+  <script src="../../assets/js/module-info.js?v=2"></script>
+</body>
+</html>
