@@ -100,6 +100,15 @@
       openDetail(cur.id);
     }).catch(function (e) { ui.toast('Ошибка: ' + e.message); });
   }
+  var STG = { new: 'Новая', kp: 'КП', contract: 'Договор', invoice: 'Счёт', paid: 'Оплачено', done: 'Завершено' };
+  function kpiCell(l, v, c) { return '<div class="kpi"><small>' + l + '</small><b' + (c ? ' style="color:' + c + '"' : '') + '>' + v + '</b></div>'; }
+  function slaInfo(due) {
+    if (!due) return { t: 'без срока', c: '' };
+    var d = Math.ceil((new Date(due).getTime() - Date.now()) / 86400000);
+    if (d < 0) return { t: 'просрочено на ' + (-d) + ' дн', c: '#b91c1c' };
+    if (d <= 3) return { t: 'срок через ' + d + ' дн', c: '#b45309' };
+    return { t: 'до срока ' + d + ' дн', c: '' };
+  }
   function openDetail(id) {
     cur = null;
     Promise.all([
@@ -109,10 +118,20 @@
       rpc('app_order_docs', { p_token: token, p_id: id }).catch(function () { return []; }),
       rpc('app_order_routes', { p_token: token, p_id: id }).catch(function () { return []; }),
       rpc('app_order_naryads', { p_token: token, p_id: id }).catch(function () { return []; }),
-      rpc('app_order_invoices', { p_token: token, p_id: id }).catch(function () { return []; })
+      rpc('app_order_invoices', { p_token: token, p_id: id }).catch(function () { return []; }),
+      rpc('app_order_cost_plan_fact', { p_token: token, p_order_id: id }).catch(function () { return []; }),
+      rpc('app_order_pipeline', { p_token: token }).catch(function () { return []; })
     ]).then(function (r) {
       var o = r[0] && r[0][0]; if (!o) { ui.toast('Заявка не найдена'); return; }
       cur = o;
+      var naryads = r[5] || [];
+      var pfx = (r[7] && r[7][0]) || null;
+      var pipeRows = (r[8] || []).filter(function (x) { return x.order_id === id; });
+      pipeRows.sort(function (a, b) { return new Date(b.stage_at || 0) - new Date(a.stage_at || 0); });
+      var pipe = pipeRows[0] || null;
+      var narPlan = naryads.reduce(function (s, n) { return s + (Number(n.plan_hours) || 0); }, 0);
+      var narFact = naryads.reduce(function (s, n) { return s + (Number(n.fact_hours) || 0); }, 0);
+      var sla = slaInfo(o.due_date);
       $('#detail').innerHTML =
         '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">' +
           b(o.status, ST[o.status] || o.status) + b(o.priority, PR[o.priority] || o.priority) +
@@ -128,7 +147,18 @@
         '<button class="btn secondary" data-cap="edit" id="mkInv" style="width:auto;padding:9px 16px;">Создать счёт</button>' +
         '<button class="btn secondary" data-cap="edit" id="mkNar" style="width:auto;padding:9px 16px;">Создать наряд</button>' +
         '<a class="btn secondary" style="width:auto;padding:9px 16px;" href="../client/index.html" target="_blank">🏢 Клиент ↗</a>' +
-        '<a class="btn secondary" style="width:auto;padding:9px 16px;" href="../service/index.html" target="_blank">🧑‍🔧 Сервис ↗</a></div>';
+        '<a class="btn secondary" style="width:auto;padding:9px 16px;" href="../service/index.html" target="_blank">🧑‍🔧 Сервис ↗</a></div>' +
+        '<div class="kpi-row mt">' +
+          kpiCell('Этап', STG[pipe ? pipe.stage : 'new'] || '—') +
+          kpiCell('Срок', sla.t, sla.c) +
+          kpiCell('Наряды', naryads.length + ' · план ' + narPlan + ' ч') +
+          kpiCell('Факт часов', narFact + ' ч') +
+          kpiCell('Себестоимость (план)', pfx ? money(pfx.plan_total) : '—') +
+        '</div>' +
+        (pfx ? '<div class="card mt"><h3 style="margin:0 0 8px;font-size:.9rem;">Себестоимость (план/факт)</h3>' +
+          '<div class="kpi-row">' + kpiCell('План-часы', pfx.plan_hours) + kpiCell('Факт-часы', pfx.fact_hours) + kpiCell('Отклонение, ч', pfx.hours_dev) +
+          kpiCell('Ставка, ₽/ч', pfx.rate_avg) + kpiCell('Труд план', money(pfx.plan_labor)) + kpiCell('Труд факт', money(pfx.fact_labor)) +
+          kpiCell('Материалы (план)', money(pfx.plan_materials)) + kpiCell('Итог (план)', money(pfx.plan_total)) + '</div></div>' : '');
       $('#stStatus').value = o.status;
       var qb = $('#mkQuote'), ib = $('#mkInv');
       if (qb) qb.addEventListener('click', function () { mkDoc('app_order_create_quote', 'КП'); });
