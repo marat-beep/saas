@@ -16,6 +16,9 @@ require(path.join(root, 'assets/js/catalog.js'));
 const C = global.window.AppCatalog;
 const A = require(path.join(root, 'tools', 'modules-analysis.js'));
 const PROPOSALS = require(path.join(root, 'tools', 'proposals.js'));
+const MAT = require(path.join(root, 'tools', 'maturity.js')).compute(root);
+const MAT_COLOR = { 1: '#94a3b8', 2: '#b45309', 3: '#0ea5e9', 4: '#047857' };
+const MAT_TITLE = { 1: 'L1 наличие', 2: 'L2 данные+UX', 3: 'L3 сценарии', 4: 'L4 автотесты' };
 
 const OUT = path.resolve(root, '..', 'modules.html');
 const AUD = { guest: 'гость', user: 'пользователь', client_admin: 'админ клиента', saas_admin: 'SaaS-админ', developer: 'разработчик' };
@@ -133,6 +136,8 @@ function card(m) {
 
   const mergeCls = an.merge ? 'has' : 'none';
   const st = m.status;
+  const mi = MAT.byId[a.id] || { L: 1, reasons: '' };
+  const matBadge = '<span class="b" style="background:' + MAT_COLOR[mi.L] + '" title="Зрелость ' + MAT_TITLE[mi.L] + ': ' + attr(mi.reasons || '') + '">' + 'L' + mi.L + '</span>';
   const stBadge = st === 'done' ? '<span class="tag s-done">✅ реализовано</span>' : st === 'partial' ? '<span class="tag s-partial">◐ частично · осталось ' + m.remain + '</span>' : '<span class="tag s-none">без статуса</span>';
   return `
 <details class="mc" id="m-${attr(a.id)}" data-id="${attr(a.id)}" data-group="${attr(a.group || '')}" data-pri="${attr(an.pri)}" data-u="${an.u}" data-merge="${an.merge ? 1 : 0}" data-wave="${attr(an.wave || '')}" data-status="${st}" data-score="${m.score}" data-remain="${m.remain}" data-text="${attr(text)}">
@@ -142,6 +147,7 @@ function card(m) {
     <span class="badges">
       <span class="b b-score" style="background:${ST_COLOR[st]}" title="Готовность модуля">${m.score}%</span>
       <span class="b b-u" title="Полезность ${an.u}/5">${stars(an.u)}</span>
+      ${matBadge}
       <span class="b b-pri pri-${attr(an.pri)}" title="Приоритет обновления">обновление: ${esc(PRI[an.pri] || an.pri)}</span>
     </span>
     <span class="chev">⌄</span>
@@ -309,6 +315,13 @@ const proposalsBlock = '<details class="panel" open><summary class="panel-sum"><
   ['R1', 'R2', 'R3'].map(w => '<h4 style="margin:12px 0 6px;font-size:.85rem;">' + w + ' — ' + (WAVE_TITLE[w] || '') + ' <span class="muted" style="font-weight:400">· ' + PROPOSALS.filter(p => p.wave === w).length + '</span></h4>' + PROPOSALS.filter(p => p.wave === w).map(propCard).join('')).join('') +
   '</details>';
 
+
+/* ---------- Зрелость L1–L4 (PROP-17) ---------- */
+const matRow = (l) => '<div class="prirow"><span class="b" style="background:' + MAT_COLOR[l] + '">' + MAT_TITLE[l] + ' · ' + (MAT.counts['L' + l] || 0) + '</span><div class="chips">' +
+  C.apps.filter(a => (MAT.byId[a.id] || {}).L === l).map(a => '<a class="chip" href="#m-' + attr(a.id) + '" data-target="' + attr(a.id) + '">' + esc(a.title) + '</a>').join('') + '</div></div>';
+const maturityBlock = '<div class="panel"><h2>Зрелость модулей (L1–L4)</h2>' +
+  '<p class="note" style="margin:6px 0;">Уровни: <b>L1</b> наличие · <b>L2</b> данные+UX (RPC, поиск/пустое состояние, связи) · <b>L3</b> сценарии (связи ≥3) · <b>L4</b> автотесты (покрытие scenario-check). Источник — <code>tools/maturity.js</code>.</p>' +
+  [4, 3, 2, 1].map(matRow).join('') + '</div>';
 
 const generated = new Date().toISOString().slice(0, 10);
 const html = `<!DOCTYPE html>
@@ -538,6 +551,8 @@ ul.feat li::before{content:'✓';position:absolute;left:0;color:var(--accent-700
   </div>
 
   ${remainPanel}
+
+  ${maturityBlock}
 
   <div class="panel">
     <h2>Приоритеты обновления</h2>
