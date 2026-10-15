@@ -197,9 +197,101 @@ const ITEMS = [
     action: 'IIoT: тренды по метрикам (sparkline) + экспорт показаний CSV. Конфигуратор: экспорт выбранной конфигурации в CSV. Нормирование/ИИ-помощник уже усилены ранее (мастера, поиск, подсказки). IIoT `iiot.js` v2→3, config `configurator.js` v3→4.',
     dod: 'IIoT показывает тренды и экспорт; конфигуратор экспортирует выбор. Реализовано (без новых RPC).',
     evidence: 'apps/iiot, apps/config (v375)'
+  },
+
+  /* ============ R4 — по сравнению с рынком (ERP/MES/PLM/EAM) ============ */
+  {
+    id: 'PROP-20', wave: 'R4', prio: 'P2', area: 'Финансы', status: 'open', effort: 'M',
+    business: [BIZ.econ], modules: ['accounting', 'finance', 'economics'],
+    title: 'Основные средства и амортизация',
+    problem: 'В ERP финансовый модуль обязательно ведёт основные средства и амортизацию; у нас `accounting` — задел без ОС.',
+    action: 'Добавить учёт ОС (карточка, группа, срок, норма), начисление амортизации (линейная/уменьшаемый остаток), выбытие; проводки в GL.',
+    dod: 'ОС заводится, амортизация начисляется периодом, формируются проводки и ведомость ОС.',
+    evidence: 'ref: Wikipedia ERP (Financial accounting — fixed assets)'
+  },
+  {
+    id: 'PROP-21', wave: 'R4', prio: 'P2', area: 'Персонал', status: 'open', effort: 'M',
+    business: [BIZ.common], modules: ['hr', 'staff', 'kedo'],
+    title: 'Расчёт зарплаты и подбор персонала',
+    problem: 'ERP-контур HR включает payroll и recruiting; у нас есть кадры/смены/КЭДО, но нет расчёта зарплаты и подбора.',
+    action: 'Добавить расчёт зарплаты (оклады/сдельно по нарядам, удержания, ведомость) и модуль подбора (вакансии, кандидаты, этапы).',
+    dod: 'Зарплатная ведомость считается по периодам; подбор ведёт воронку кандидатов.',
+    evidence: 'ref: Wikipedia ERP (Human resources — payroll, recruiting)'
+  },
+  {
+    id: 'PROP-22', wave: 'R4', prio: 'P2', area: 'Продажи', status: 'open', effort: 'M',
+    business: [BIZ.prod], modules: ['orders', 'crm', 'client', 'config'],
+    title: 'CPQ: конфигуратор предложения, кредитный лимит, ATP',
+    problem: 'ERP order processing включает кредитную проверку, ценообразование и ATP; клиентского конфигуратора предложения нет.',
+    action: 'Добавить: лимит/долг клиента и блокировку при превышении; доступность к обещанию (ATP по складу/производству); клиентский конфигуратор (выбор опций → КП).',
+    dod: 'Заказ проверяет кредитный лимит и ATP; КП формируется из конфигуратора.',
+    evidence: 'ref: Wikipedia ERP (Order processing — credit checking, ATP, product configurator)'
+  },
+  {
+    id: 'PROP-23', wave: 'R4', prio: 'P2', area: 'Склад', status: 'open', effort: 'M',
+    business: [BIZ.prod], modules: ['warehouse', 'logistics', 'orders'],
+    title: 'Отгрузочные задания: сборка, упаковка, отгрузка',
+    problem: 'ERP warehousing включает receiving/putaway/picking/packing; у нас адресное хранение есть, а сборка/упаковка заказа — нет.',
+    action: 'Добавить отгрузочное задание по заказу: резерв, маршрут сборки по ячейкам, упаковка, ТТН/накладная, статусы.',
+    dod: 'По заказу формируется задание сборки и упаковки, списываются лоты, печатается накладная.',
+    evidence: 'ref: Wikipedia ERP (SCM — warehousing: picking, packing)'
+  },
+  {
+    id: 'PROP-24', wave: 'R4', prio: 'P2', area: 'Закупки', status: 'open', effort: 'M',
+    business: [BIZ.prod, BIZ.econ], modules: ['procurement', 'suppliers', 'finance'],
+    title: 'Планирование закупок, скоринг поставщиков, 3-way match',
+    problem: 'SRM-контур рынка включает планирование закупок и сопоставление «заказ–приёмка–счёт»; у нас этого нет.',
+    action: 'Добавить план закупок под потребность (MRP-lite), скоринг поставщиков (сроки/качество/цена) и 3-way match (PO–GRN–invoice) с автопроверкой расхождений.',
+    dod: 'Потребность формирует предложения закупки; поставщик имеет рейтинг; расхождения PO/приёмка/счёт выявляются.',
+    evidence: 'ref: Wikipedia ERP (SRM, purchasing)'
+  },
+  {
+    id: 'PROP-25', wave: 'R4', prio: 'P2', area: 'Проекты', status: 'open', effort: 'M',
+    business: [BIZ.prod, BIZ.econ], modules: ['pmo', 'tasks', 'projbudget'],
+    title: 'WBS и учёт времени (timesheets)',
+    problem: 'В ERP-проектах есть WBS и time&expense; у нас проекты/вехи/задачи есть, иерархии работ и табелей времени нет.',
+    action: 'Добавить WBS (иерархия работ проекта) и учёт времени по задачам (табель, стоимость по ставке), связь с себестоимостью проекта.',
+    dod: 'Проект имеет WBS; время учитывается по задачам и попадает в проектную себестоимость.',
+    evidence: 'ref: Wikipedia ERP (Project management — WBS, time and expense)'
+  },
+  {
+    id: 'PROP-26', wave: 'R4', prio: 'P3', area: 'Качество', status: 'open', effort: 'M',
+    business: [BIZ.qa], modules: ['quality', 'passport', 'qc'],
+    title: 'Сертификаты/декларации и элементы LIMS',
+    problem: 'PLM/QMS-контур рынка требует сертификатов соответствия и лабораторных данных; у нас есть СИ и паспорт, но нет сертификатов/деклараций и LIMS.',
+    action: 'Добавить реестр сертификатов/деклараций (срок действия, алерты), протоколы испытаний и связь с паспортом изделия.',
+    dod: 'Сертификат ведётся со сроком и алертом; протокол испытаний связан с изделием/партией.',
+    evidence: 'ref: Wikipedia PLM (compliance), MES (LIMS)'
+  },
+  {
+    id: 'PROP-27', wave: 'R4', prio: 'P3', area: 'IIoT', status: 'open', effort: 'M',
+    business: [BIZ.prod], modules: ['iiot', 'integrations', 'mes'],
+    title: 'MQTT/Sparkplug и edge-профиль',
+    problem: 'Современный IIoT использует MQTT/Sparkplug и буферизацию на edge; у нас подключены OPC-UA/MTConnect/Modbus.',
+    action: 'Добавить коннектор MQTT (Sparkplug B), edge-буфер (store-and-forward) на случай обрыва сети, дедупликацию и метки времени источника.',
+    dod: 'Телеметрия принимается по MQTT; при обрыве данные буферизуются на edge и доставляются после восстановления.',
+    evidence: 'ref: Wikipedia MES (MQTT/Sparkplug, edge/hybrid)'
+  },
+  {
+    id: 'PROP-28', wave: 'R4', prio: 'P3', area: 'CRM', status: 'open', effort: 'S',
+    business: [BIZ.prod], modules: ['crm', 'client'],
+    title: 'Кампании и контакт-центр',
+    problem: 'ERP/CRM-контур включает маркетинг и контакт-центр; у нас есть сделки и напоминания, но нет кампаний и обработки обращений.',
+    action: 'Добавить кампании (сегмент, рассылка по каналам, отклик) и контакт-центр (очередь обращений, SLA, маршрутизация).',
+    dod: 'Кампания запускается по сегменту; обращения обрабатываются по SLA.',
+    evidence: 'ref: Wikipedia ERP (CRM — marketing, call center)'
+  },
+  {
+    id: 'PROP-29', wave: 'R4', prio: 'P3', area: 'Экономика', status: 'open', effort: 'M',
+    business: [BIZ.econ], modules: ['economics', 'holding', 'bi'],
+    title: 'ABC-костинг и консолидация группы',
+    problem: 'Управленческий учёт рынка включает activity-based costing и консолидацию; у нас есть план-факт, но нет ABC и полной консолидации.',
+    action: 'Добавить расчёт себестоимости по видам деятельности (драйверы) и консолидацию показателей группы с элиминацией внутригрупповых оборотов.',
+    dod: 'ABC-себестоимость считается по драйверам; консолидация группы формируется с элиминацией.',
+    evidence: 'ref: Wikipedia ERP (Management accounting — ABC, consolidation)'
   }
 ];
 
 module.exports = ITEMS;
 module.exports.BIZ = BIZ;
-module.exports.META = { version: '1.0', waves: { R1: 'Приоритетные контуры', R2: 'Поперечные и надёжность', R3: 'Гигиена и развитие' } };
+module.exports.META = { version: '1.0', waves: { R1: 'Приоритетные контуры', R2: 'Поперечные и надёжность', R3: 'Гигиена и развитие', R4: 'По сравнению с рынком (ERP/MES/PLM/EAM)' } };

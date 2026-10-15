@@ -298,7 +298,8 @@ const protoBlock = '<details class="panel"><summary class="panel-sum"><b>Про�
   '<h4 style="margin:12px 0 6px;font-size:.8rem;">Прототипы вне периметра сервиса (с обоснованием)</h4><ul>' + PROTO_OPEN.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></details>';
 
 /* ---------- Предложения по изменениям (tools/proposals.js) ---------- */
-const WAVE_TITLE = { R1: 'Приоритетные контуры', R2: 'Поперечные и надёжность', R3: 'Гигиена и развитие' };
+const WAVE_TITLE = { R1: 'Приоритетные контуры', R2: 'Поперечные и надёжность', R3: 'Гигиена и развитие', R4: 'По сравнению с рынком (ERP/MES/PLM/EAM)' };
+const WAVES = ['R1', 'R2', 'R3', 'R4'];
 function propCard(p) {
   const pc = p.prio === 'P1' ? 'high' : p.prio === 'P2' ? 'mid' : 'low';
   const mods = (p.modules || []).filter(Boolean).join(', ');
@@ -316,8 +317,8 @@ const propCounts = { P1: 0, P2: 0, P3: 0, done: 0 };
 PROPOSALS.forEach(p => { if (propCounts[p.prio] != null) propCounts[p.prio]++; if (p.status === 'done') propCounts.done++; });
 const proposalsBlock = '<details class="panel" open><summary class="panel-sum"><b>Предложения по изменениям</b> <span class="cnt">' + PROPOSALS.length + '</span> <span class="muted">· план по волнам R1–R3 — развернуть</span></summary>' +
   '<p class="note" style="margin:8px 0;">Рекомендации по итогам большого аудита, сведённые в план (волны). Полный план — <code>docs/ROADMAP.md</code>; источник — <code>tools/proposals.js</code>.</p>' +
-  '<div class="legend" style="margin-bottom:10px;"><span><b>R1</b> Приоритетные контуры · ' + PROPOSALS.filter(p => p.wave === 'R1').length + '</span><span><b>R2</b> Поперечные · ' + PROPOSALS.filter(p => p.wave === 'R2').length + '</span><span><b>R3</b> Гигиена/развитие · ' + PROPOSALS.filter(p => p.wave === 'R3').length + '</span><span>P1 · ' + propCounts.P1 + '</span><span>P2 · ' + propCounts.P2 + '</span><span>P3 · ' + propCounts.P3 + '</span><span>✅ ' + propCounts.done + '</span></div>' +
-  ['R1', 'R2', 'R3'].map(w => '<h4 style="margin:12px 0 6px;font-size:.85rem;">' + w + ' — ' + (WAVE_TITLE[w] || '') + ' <span class="muted" style="font-weight:400">· ' + PROPOSALS.filter(p => p.wave === w).length + '</span></h4>' + PROPOSALS.filter(p => p.wave === w).map(propCard).join('')).join('') +
+  '<div class="legend" style="margin-bottom:10px;">' + WAVES.map(w => '<span><b>' + w + '</b> ' + (WAVE_TITLE[w] || '') + ' · ' + PROPOSALS.filter(p => p.wave === w).length + '</span>').join('') + '<span>P1 · ' + propCounts.P1 + '</span><span>P2 · ' + propCounts.P2 + '</span><span>P3 · ' + propCounts.P3 + '</span><span>✅ ' + propCounts.done + '</span></div>' +
+  WAVES.map(w => '<h4 style="margin:12px 0 6px;font-size:.85rem;">' + w + ' — ' + (WAVE_TITLE[w] || '') + ' <span class="muted" style="font-weight:400">· ' + PROPOSALS.filter(p => p.wave === w).length + '</span></h4>' + PROPOSALS.filter(p => p.wave === w).map(propCard).join('')).join('') +
   '</details>';
 
 
