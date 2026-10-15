@@ -44,6 +44,7 @@ jobs:
           pwsh -NoProfile -File tools/ux-check.ps1
           pwsh -NoProfile -File tools/api-surface.ps1
           pwsh -NoProfile -File tools/trace-matrix.ps1
+          node tools/rpc-check.js
 
       - name: Gate (красный при Critical/Major находках)
         shell: pwsh
