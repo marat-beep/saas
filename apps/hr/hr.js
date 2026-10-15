@@ -312,10 +312,60 @@
   });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
+  /* R4·PROP-21: расчёт зарплаты и подбор персонала */
+  var hrlPr = [], hrlVac = [], hrlCand = [];
+  var CST = { new: 'Новый', interview: 'Интервью', offer: 'Оффер', hired: 'Принят', rejected: 'Отказ' };
+  function rub(v) { return (Number(v) || 0).toLocaleString('ru-RU', { maximumFractionDigits: 0 }) + ' ₽'; }
+  function loadHrl() {
+    return Promise.all([
+      rpc('app_payroll_list', { p_token: token }).catch(function () { return []; }),
+      rpc('app_vacancy_list', { p_token: token }).catch(function () { return []; }),
+      rpc('app_candidate_list', { p_token: token, p_vacancy: null }).catch(function () { return []; })
+    ]).then(function (r) { hrlPr = r[0] || []; hrlVac = r[1] || []; hrlCand = r[2] || []; renderHrl(); });
+  }
+  function renderHrl() {
+    var host = $('#hrl'); if (!host) return;
+    var fund = hrlPr.reduce(function (s, p) { return s + (Number(p.total) || 0); }, 0);
+    var pay = '<div class="card"><h2>Расчёт зарплаты</h2>' +
+      '<div class="kpi-row"><div class="kpi"><small>Ведомостей</small><b>' + hrlPr.length + '</b></div><div class="kpi"><small>Фонд (итог)</small><b>' + rub(fund) + '</b></div></div>' +
+      '<div class="grid3"><div class="field"><label>Период</label><input type="date" id="prPer"></div><div class="field"><label>Сотрудник *</label><input type="text" id="prEmp"></div><div class="field"><label>Оклад, ₽</label><input type="text" id="prBase" inputmode="decimal"></div></div>' +
+      '<div class="grid3"><div class="field"><label>Премия, ₽</label><input type="text" id="prBon" inputmode="decimal"></div><div class="field"><label>Удержание, ₽</label><input type="text" id="prDed" inputmode="decimal"></div><div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="prAdd" style="width:auto;">Добавить</button></div></div>' +
+      (hrlPr.length ? '<div class="tbl-wrap mt"><table class="tbl"><thead><tr><th>Период</th><th>Сотрудник</th><th class="num">Оклад</th><th class="num">Премия</th><th class="num">Удерж.</th><th class="num">Итог</th><th></th></tr></thead><tbody>' +
+        hrlPr.map(function (p) { return '<tr><td>' + esc(p.period) + '</td><td><b>' + esc(p.employee) + '</b></td><td class="num">' + rub(p.base) + '</td><td class="num">' + rub(p.bonus) + '</td><td class="num">' + rub(p.deduction) + '</td><td class="num"><b>' + rub(p.total) + '</b></td><td><button class="act danger" data-prdel="' + p.id + '" aria-label="Удалить" title="Удалить">✕</button></td></tr>'; }).join('') + '</tbody></table></div>'
+        : '<span class="note">Ведомостей нет.</span>') + '</div>';
+    var vac = '<div class="card"><h2>Подбор персонала</h2>' +
+      '<div class="grid3"><div class="field"><label>Вакансия *</label><input type="text" id="vcTitle"></div><div class="field"><label>Отдел</label><input type="text" id="vcDept"></div><div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="vcAdd" style="width:auto;">Открыть вакансию</button></div></div>' +
+      (hrlVac.length ? '<div class="tbl-wrap mt"><table class="tbl"><thead><tr><th>Вакансия</th><th>Отдел</th><th>Статус</th><th class="num">Канд.</th></tr></thead><tbody>' + hrlVac.map(function (v) { return '<tr><td><b>' + esc(v.title) + '</b></td><td>' + esc(v.dept || '—') + '</td><td>' + (v.status === 'open' ? 'открыта' : 'закрыта') + '</td><td class="num">' + num(v.candidates) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<span class="note">Вакансий нет.</span>') +
+      '<h3 style="margin:10px 0 4px;font-size:.82rem;">Кандидаты</h3>' +
+      '<div class="grid3"><div class="field"><label>Вакансия</label><select id="cdVac"><option value="">— без привязки —</option>' + hrlVac.map(function (v) { return '<option value="' + v.id + '">' + esc(v.title) + '</option>'; }).join('') + '</select></div><div class="field"><label>Имя *</label><input type="text" id="cdName"></div><div class="field" style="display:flex;align-items:flex-end;"><button class="btn" id="cdAdd" style="width:auto;">Добавить кандидата</button></div></div>' +
+      (hrlCand.length ? '<div class="tbl-wrap mt"><table class="tbl"><thead><tr><th>Кандидат</th><th>Вакансия</th><th>Этап</th><th></th></tr></thead><tbody>' +
+        hrlCand.map(function (c) { var v = hrlVac.filter(function (x) { return x.id === c.vacancy_id; })[0]; var nx = c.stage === 'new' ? 'interview' : c.stage === 'interview' ? 'offer' : c.stage === 'offer' ? 'hired' : null;
+          return '<tr><td><b>' + esc(c.name) + '</b></td><td>' + esc(v ? v.title : '—') + '</td><td>' + esc(CST[c.stage] || c.stage) + '</td>' +
+            '<td style="white-space:nowrap;">' + (nx ? '<button class="act" data-cdadv="' + c.id + '" data-next="' + nx + '">→ ' + CST[nx] + '</button>' : '') + '<button class="act danger" data-cdrej="' + c.id + '" title="Отказ">✕</button></td></tr>'; }).join('') + '</tbody></table></div>'
+        : '<span class="note">Кандидатов нет.</span>') + '</div>';
+    host.innerHTML = '<div class="cols2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;">' + pay + vac + '</div>';
+    $('#prAdd').addEventListener('click', function () {
+      rpc('app_payroll_save', { p_token: token, p_id: null, p_period: $('#prPer').value || null, p_employee: $('#prEmp').value.trim(), p_base: parseFloat($('#prBase').value.replace(',', '.')) || 0, p_bonus: parseFloat($('#prBon').value.replace(',', '.')) || 0, p_deduction: parseFloat($('#prDed').value.replace(',', '.')) || 0, p_note: null })
+        .then(function (r) { var x = r && r[0]; ui.toast(x ? x.message : ''); if (x && x.ok) loadHrl(); }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+    });
+    ui.qsa('#hrl [data-prdel]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_payroll_delete', { p_token: token, p_id: b.dataset.prdel }).then(loadHrl); }); });
+    $('#vcAdd').addEventListener('click', function () {
+      rpc('app_vacancy_save', { p_token: token, p_id: null, p_title: $('#vcTitle').value.trim(), p_dept: $('#vcDept').value.trim() || null, p_status: 'open' })
+        .then(function (r) { var x = r && r[0]; ui.toast(x ? x.message : ''); if (x && x.ok) loadHrl(); }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+    });
+    $('#cdAdd').addEventListener('click', function () {
+      rpc('app_candidate_save', { p_token: token, p_id: null, p_vacancy: $('#cdVac').value || null, p_name: $('#cdName').value.trim(), p_stage: 'new', p_note: null })
+        .then(function (r) { var x = r && r[0]; ui.toast(x ? x.message : ''); if (x && x.ok) loadHrl(); }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+    });
+    ui.qsa('#hrl [data-cdadv]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_candidate_set_stage', { p_token: token, p_id: b.dataset.cdadv, p_stage: b.dataset.next }).then(loadHrl); }); });
+    ui.qsa('#hrl [data-cdrej]').forEach(function (b) { b.addEventListener('click', function () { if (!confirm('Отклонить кандидата?')) return; rpc('app_candidate_set_stage', { p_token: token, p_id: b.dataset.cdrej, p_stage: 'rejected' }).then(loadHrl); }); });
+  }
+
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
     me = s; token = s.token; applyCaps();
+    loadHrl();
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#m', 'Supabase не подключён.', 'err'); return; }
     $('#scFrom').value = isoToday(); $('#scTo').value = addDays(isoToday(), 14);

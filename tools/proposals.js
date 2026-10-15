@@ -210,13 +210,13 @@ const ITEMS = [
     evidence: 'supabase/migrations/0263_assets.sql, apps/accounting (v387)'
   },
   {
-    id: 'PROP-21', wave: 'R4', prio: 'P2', area: 'Персонал', status: 'open', effort: 'M',
+    id: 'PROP-21', wave: 'R4', prio: 'P2', area: 'Персонал', status: 'done', effort: 'M',
     business: [BIZ.common], modules: ['hr', 'staff', 'kedo'],
     title: 'Расчёт зарплаты и подбор персонала',
-    problem: 'ERP-контур HR включает payroll и recruiting; у нас есть кадры/смены/КЭДО, но нет расчёта зарплаты и подбора.',
-    action: 'Добавить расчёт зарплаты (оклады/сдельно по нарядам, удержания, ведомость) и модуль подбора (вакансии, кандидаты, этапы).',
-    dod: 'Зарплатная ведомость считается по периодам; подбор ведёт воронку кандидатов.',
-    evidence: 'ref: Wikipedia ERP (Human resources — payroll, recruiting)'
+    problem: 'Не было расчёта зарплаты (payroll) и подбора (recruiting).',
+    action: 'Миграция 0269: `app_payroll` (период/сотрудник/оклад/премия/удержание/итог) + `app_vacancies`/`app_candidates` (воронка кандидатов) + RPC list/save/delete; в «Кадрах» — панели **«Расчёт зарплаты»** (фонд) и **«Подбор персонала»** (вакансии, кандидаты, этапы).',
+    dod: 'Зарплатная ведомость считается (итог = оклад+премия−удержание); кандидаты ведутся по этапам. Реализовано (apply_all 260).',
+    evidence: 'supabase/migrations/0269_hr_payroll.sql, apps/hr (v393)'
   },
   {
     id: 'PROP-22', wave: 'R4', prio: 'P2', area: 'Продажи', status: 'done', effort: 'M',
