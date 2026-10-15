@@ -298,8 +298,8 @@ const protoBlock = '<details class="panel"><summary class="panel-sum"><b>Про�
   '<h4 style="margin:12px 0 6px;font-size:.8rem;">Прототипы вне периметра сервиса (с обоснованием)</h4><ul>' + PROTO_OPEN.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></details>';
 
 /* ---------- Предложения по изменениям (tools/proposals.js) ---------- */
-const WAVE_TITLE = { R1: 'Приоритетные контуры', R2: 'Поперечные и надёжность', R3: 'Гигиена и развитие', R4: 'По сравнению с рынком (ERP/MES/PLM/EAM)' };
-const WAVES = ['R1', 'R2', 'R3', 'R4'];
+const WAVE_TITLE = { R1: 'Приоритетные контуры', R2: 'Поперечные и надёжность', R3: 'Гигиена и развитие', R4: 'По сравнению с рынком (ERP/MES/PLM/EAM)', R5: 'CRM, BPM и справочники' };
+const WAVES = ['R1', 'R2', 'R3', 'R4', 'R5'];
 function propCard(p) {
   const pc = p.prio === 'P1' ? 'high' : p.prio === 'P2' ? 'mid' : 'low';
   const mods = (p.modules || []).filter(Boolean).join(', ');

@@ -65,7 +65,41 @@ _Исследование по открытым источникам (октяб
 9. **CRM: маркетинг/кампании и контакт-центр** — обработка обращений/кампаний отсутствует. → PROP-28.
 10. **Экономика: ABC-костинг и консолидация группы** — есть план-факт и holding, нет activity-based costing и полной консолидации. → PROP-29.
 
-## 4. Что оставить как есть (осознанно вне периметра)
+## 4. CRM (углублённо)
+
+Типовые функции CRM (по Wikipedia): **операционный CRM** (автоматизация продаж, маркетинга, сервиса), **аналитический** (хранилище данных, аналитика, единый профиль клиента), **коллаборативный** (омниканальность, соцсети, контакт-центр), **стратегический**, **CDP**. Компоненты: управление возможностями/сделками, кампании, call/contact-center, автоматизация продаж (SFA), customer success, предиктивная аналитика/ИИ, единое представление клиента.
+
+| Функция CRM | У нас | Пробел |
+|---|---|---|
+| Лиды → воронка → сделки | crm (воронка, стадии) | ◐ нет явных **лидов** и конверсии/квалификации |
+| Компании/контакты | crm, client | ✅ |
+| Активности/напоминания | crm (звонок/встреча/e-mail/Telegram/SMS) | ✅ |
+| Маркетинг/кампании | — | ❌ (см. PROP-28) |
+| Сервис/обращения, контакт-центр, SLA | service, issues, support | ◐ нет омниканального контакт-центра |
+| Единый профиль клиента (360°) | client | ◐ разрознено (заказы/сервис/деньги) |
+| Аналитика/прогноз продаж | bi, forecast | ◐ нет воронки в деньгах/прогноза по стадиям |
+| Комиссии | partners | ◐ |
+| Омниканальность | crm (каналы) | ◐ нет единого inbox |
+
+## 5. BPM / бизнес-процессы (углублённо)
+
+BPM (Wikipedia): дисциплина «моделирование → исполнение → мониторинг → оптимизация». Жизненный цикл: **Design** (поток, алерты/уведомления, **эскалации**, SOP, **SLA**, передача задач), **Modeling** (what-if), **Execution** (автоматизация; human+system; **BPMS/iBPMS/low-code**; **RPA** на уровне представления; **бизнес-правила**), **Monitoring** (**BAM**, **process mining**, предиктивный мониторинг), **Optimization**, **Re-engineering**. Инструменты: SIPOC, RACI, CTQ.
+
+BPMN 2.0 (ISO 19510): элементы — **события** (start/intermediate/end; catching/throwing), **действия** (task, sub-process, transaction, call activity), **шлюзы** (exclusive, event-based, parallel, inclusive, complex), **связи** (sequence/message/association), **дорожки** (pool/lane), **артефакты** (data object, group, annotation). Суб-модели: private / abstract (public) / collaboration. Смежные стандарты: **CMMN** (кейсы), **DMN** (решения).
+
+| Возможность BPM | У нас | Пробел |
+|---|---|---|
+| Конструктор процессов/задач/форм | workflow (low-code: процессы, задачи этапов, правила, формы) | ◐ нет графической **BPMN-схемы** и экспорта BPMN |
+| Шлюзы/условия/маршрутизация | workflow (правила-триггеры) | ◐ нет явных шлюзов (parallel/inclusive) |
+| SLA/таймеры/эскалации | support (SLA), tasks | ◐ нет таймеров/эскалаций в процессах |
+| Мониторинг/BAM/process mining | bi, reports | ❌ нет process mining и BAM по процессам |
+| Реестр процессов (BPMN-диаграммы) | — | ❌ (см. PROP-32) |
+| Кейсы (CMMN) и решения (DMN) | — | ❌ (вне/частично) |
+
+## 6. Справочники (reference data)
+Полный предлагаемый реестр и что завести в БД — в **`docs/REFERENCE_DATA.md`**. Базовый сид реализован: `supabase/migrations/0259_reference_dicts.sql` (`app_seed_reference_dicts`), кнопка «Загрузить базовые» в «Справочниках».
+
+## 7. Что оставить как есть (осознанно вне периметра)
 - **CAD/CAE/CAM** (проектирование геометрии), **LIMS-лабораторные испытания**, **SCADA/PLC/уровень 0-1** — вне периметра сервиса (интеграция через IIoT/API).
 - Двухуровневая ERP (two-tier) и межорганизационная консолидация — частично закрыты `holding`.
 
@@ -74,5 +108,9 @@ _Исследование по открытым источникам (октяб
 - Wikipedia: [Manufacturing execution system](https://en.wikipedia.org/wiki/Manufacturing_execution_system) (функции MES, ISA-95, OPC-UA/MQTT, связи с LIMS/WMS/CMMS).
 - Wikipedia: [Product lifecycle](https://en.wikipedia.org/wiki/Product_lifecycle) (PLM: PPM/CAx/MPM/PDM, фазы, compliance).
 - Wikipedia: [Enterprise asset management](https://en.wikipedia.org/wiki/Enterprise_asset_management) (EAM/CMMS, ППР, гарантия, мобильный EAM).
+- Wikipedia: [Customer relationship management](https://en.wikipedia.org/wiki/Customer_relationship_management) (типы CRM, SFA, маркетинг/сервис, контакт-центр, единый профиль).
+- Wikipedia: [Business process management](https://en.wikipedia.org/wiki/Business_process_management) (жизненный цикл, SLA/эскалации, BPMS/low-code, RPA, BAM, process mining).
+- Wikipedia: [Business Process Model and Notation](https://en.wikipedia.org/wiki/Business_Process_Model_and_Notation) (BPMN 2.0, ISO 19510; CMMN/DMN).
+- Wikipedia: [G-code](https://en.wikipedia.org/wiki/G-code) (RS-274 / ISO 6983, стойки FANUC/Sinumerik/Heidenhain/Mazak/Okuma/Haas, canned cycles, DNC).
 
 _Методика: открытые энциклопедические источники (стабильные), сопоставление — с `docs/MODULES_CATALOG.md` и `assets/js/catalog.js`._

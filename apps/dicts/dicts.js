@@ -49,6 +49,13 @@
   }
 
   $('#q').addEventListener('input', function () { q = this.value; renderDicts(); });
+  if ($('#seedBtn')) $('#seedBtn').addEventListener('click', function () {
+    var b = this; b.disabled = true; msg('#dMsg', 'Загрузка базовых справочников…', 'ok');
+    rpc('app_seed_reference_dicts', { p_token: token })
+      .then(function (n) { msg('#dMsg', 'Готово: создано словарей ' + (n || 0) + ' (элементы добавлены/обновлены).', 'ok'); load(); })
+      .catch(function (e) { msg('#dMsg', 'Ошибка: ' + e.message, 'err'); })
+      .then(function () { b.disabled = false; });
+  });
   $('#dSave').addEventListener('click', function () {
     rpc('app_dict_save', { p_token: token, p_id: null, p_code: $('#dCode').value, p_name: $('#dName').value, p_description: null, p_active: true })
       .then(function (r) { var x = r && r[0]; msg('#dMsg', x ? x.message : 'Ошибка', x ? 'ok' : 'err'); $('#dCode').value = ''; $('#dName').value = ''; load(); })
