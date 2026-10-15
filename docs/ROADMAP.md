@@ -2,7 +2,7 @@
 
 _Автогенерация `tools/gen-roadmap.js` из `tools/proposals.js` — единый источник правды. Не редактировать вручную._
 
-Дата: 2026-10-15. Всего пунктов: **35** (выполнено: 34).
+Дата: 2026-10-15. Всего пунктов: **35** (выполнено: 35).
 
 ## Принципы и порядок
 
@@ -289,15 +289,15 @@ _Автогенерация `tools/gen-roadmap.js` из `tools/proposals.js` —
 - **DoD:** Сертификаты ведутся со сроками и алертами. Реализовано (apply_all 255).
 - **Обоснование:** supabase/migrations/0264_quality_docs.sql, apps/quality (v388)
 
-### PROP-27 · MQTT/Sparkplug и edge-профиль
+### PROP-27 · MQTT/Sparkplug и edge-профиль ✅
 
 - **Приоритет:** P3 (низкий) · **Область:** IIoT · **Оценка:** M (средняя)
 - **Контуры:** Заказы и производство
 - **Модули:** iiot, integrations, mes
-- **Проблема:** Современный IIoT использует MQTT/Sparkplug и буферизацию на edge; у нас подключены OPC-UA/MTConnect/Modbus.
-- **Что сделать:** Добавить коннектор MQTT (Sparkplug B), edge-буфер (store-and-forward) на случай обрыва сети, дедупликацию и метки времени источника.
-- **DoD:** Телеметрия принимается по MQTT; при обрыве данные буферизуются на edge и доставляются после восстановления.
-- **Обоснование:** ref: Wikipedia MES (MQTT/Sparkplug, edge/hybrid)
+- **Проблема:** Не было MQTT/Sparkplug-контура и edge-буферизации (store-and-forward) при обрыве сети.
+- **Что сделать:** Миграция 0271: таблица `app_iiot_edge` (store-and-forward: machine/metric/value/source/delivered) + RPC list/push/ack/flush + запись в базу знаний. В «IIoT» — панель **«MQTT/Edge-буфер»** (буфер, сброс, тест-сообщение). Реальный MQTT-приём выполняет edge-воркер (Sparkplug B).
+- **DoD:** Буфер edge работает (push/ack/flush), описан MQTT-контур. Реализовано (apply_all 262).
+- **Обоснование:** supabase/migrations/0271_iiot_edge.sql, apps/iiot (v395)
 
 ### PROP-28 · Кампании и контакт-центр ✅
 

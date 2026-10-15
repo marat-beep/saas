@@ -264,13 +264,13 @@ const ITEMS = [
     evidence: 'supabase/migrations/0264_quality_docs.sql, apps/quality (v388)'
   },
   {
-    id: 'PROP-27', wave: 'R4', prio: 'P3', area: 'IIoT', status: 'open', effort: 'M',
+    id: 'PROP-27', wave: 'R4', prio: 'P3', area: 'IIoT', status: 'done', effort: 'M',
     business: [BIZ.prod], modules: ['iiot', 'integrations', 'mes'],
     title: 'MQTT/Sparkplug и edge-профиль',
-    problem: 'Современный IIoT использует MQTT/Sparkplug и буферизацию на edge; у нас подключены OPC-UA/MTConnect/Modbus.',
-    action: 'Добавить коннектор MQTT (Sparkplug B), edge-буфер (store-and-forward) на случай обрыва сети, дедупликацию и метки времени источника.',
-    dod: 'Телеметрия принимается по MQTT; при обрыве данные буферизуются на edge и доставляются после восстановления.',
-    evidence: 'ref: Wikipedia MES (MQTT/Sparkplug, edge/hybrid)'
+    problem: 'Не было MQTT/Sparkplug-контура и edge-буферизации (store-and-forward) при обрыве сети.',
+    action: 'Миграция 0271: таблица `app_iiot_edge` (store-and-forward: machine/metric/value/source/delivered) + RPC list/push/ack/flush + запись в базу знаний. В «IIoT» — панель **«MQTT/Edge-буфер»** (буфер, сброс, тест-сообщение). Реальный MQTT-приём выполняет edge-воркер (Sparkplug B).',
+    dod: 'Буфер edge работает (push/ack/flush), описан MQTT-контур. Реализовано (apply_all 262).',
+    evidence: 'supabase/migrations/0271_iiot_edge.sql, apps/iiot (v395)'
   },
   {
     id: 'PROP-28', wave: 'R4', prio: 'P3', area: 'CRM', status: 'done', effort: 'S',

@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa, SB = window.SB;
-  var token = null, jobs = [], conns = [], q = '', lastReadings = [];
+  var token = null, jobs = [], conns = [], q = '', lastReadings = [], edge = [];
 
   var MET = { state: 'Состояние', count: 'Счётчик', speed: 'Обороты', power: 'Мощность', temp: 'Температура', vibration: 'Вибрация', runtime_min: 'Наработка, мин', other: 'Прочее' };
   var DS = { queued: ['В очереди', 'normal'], sent: ['Отправлено', 'new'], running: ['Выполняется', 'in_progress'], done: ['Готово', 'done'], failed: ['Ошибка', 'cancelled'] };
@@ -169,10 +169,29 @@
   $('#wearBtn').addEventListener('click', loadWear);
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
+  /* R4·PROP-27: MQTT/Edge-буфер (store-and-forward) */
+  function loadEdge() {
+    return rpc('app_iiot_edge_list', { p_token: token, p_undelivered: false }).then(function (r) { edge = r || []; renderEdge(); }).catch(function () {});
+  }
+  function renderEdge() {
+    var host = $('#edge'); if (!host) return;
+    var und = edge.filter(function (e) { return !e.delivered; }).length;
+    host.innerHTML = '<div class="card"><h2>MQTT/Edge-буфер (store-and-forward)</h2>' +
+      '<div class="kpi-row"><div class="kpi"><small>В буфере</small><b' + (und ? ' style="color:#b45309"' : '') + '>' + und + '</b></div><div class="kpi"><small>Всего сообщений</small><b>' + edge.length + '</b></div></div>' +
+      '<div class="btn-row"><button class="btn secondary" id="edgeFlush">Сбросить буфер (отметить доставленными)</button><button class="btn secondary" id="edgePush">+ Тест-сообщение</button></div>' +
+      (edge.length ? '<div class="tbl-wrap mt"><table class="tbl"><thead><tr><th>Время</th><th>Станок</th><th>Метрика</th><th class="num">Значение</th><th>Источник</th><th>Статус</th><th></th></tr></thead><tbody>' +
+        edge.slice(0, 100).map(function (e) { return '<tr><td>' + esc(new Date(e.ts).toLocaleString('ru-RU')) + '</td><td>' + esc(e.machine || '—') + '</td><td>' + esc(e.metric || '—') + '</td><td class="num">' + (Number(e.value) || 0) + '</td><td>' + esc(e.source) + '</td><td>' + (e.delivered ? 'доставлено' : 'в буфере') + '</td><td>' + (!e.delivered ? '<button class="act" data-eack="' + e.id + '">доставлено</button>' : '') + '</td></tr>'; }).join('') + '</tbody></table></div>'
+        : '<span class="note">Буфер пуст. Реальный приём выполняет edge-воркер (MQTT/Sparkplug B, OPC-UA/MTConnect/Modbus).</span>') + '</div>';
+    $('#edgeFlush').addEventListener('click', function () { rpc('app_iiot_edge_flush', { p_token: token }).then(function (r) { var x = r && r[0]; ui.toast((x && x.message ? x.message : 'Готово') + ' ' + (x && x.count ? x.count : '')); loadEdge(); }); });
+    $('#edgePush').addEventListener('click', function () { rpc('app_iiot_edge_push', { p_token: token, p_machine: 'Тест', p_metric: 'rpm', p_value: 1000, p_source: 'mqtt', p_payload: null }).then(function () { loadEdge(); }); });
+    $$('#edge [data-eack]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_iiot_edge_ack', { p_token: token, p_id: b.dataset.eack }).then(loadEdge); }); });
+  }
+
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
     token = s.token;
+    loadEdge();
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#iMsg', 'Supabase не подключён.', 'err'); return; }
     load();

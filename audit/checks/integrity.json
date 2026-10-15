@@ -1,8 +1,8 @@
 {
     "tool":  "integrity",
-    "at":  "2026-10-15T13:03:32",
-    "migrations":  261,
-    "max":  270,
+    "at":  "2026-10-15T13:05:18",
+    "migrations":  262,
+    "max":  271,
     "findings":  [
 
                  ]
