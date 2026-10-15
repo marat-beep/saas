@@ -1,16 +1,16 @@
 # Матрица трассируемости (3DMP Service)
 
-Сформировано: 2026-10-13T14:57:56 · tools/trace-matrix.ps1
+Сформировано: 2026-10-15T10:07:53 · tools/trace-matrix.ps1
 
 ## Сводка
-- Модулей в каталоге: 99
-- Приложений на диске: 98
+- Модулей в каталоге: 100
+- Приложений на диске: 99
 - Сироты каталога (нет index.html): 0
 - apps без каталога: 0
-- RPC вызывается в UI: 897
-- RPC определено в миграциях: 1069
+- RPC вызывается в UI: 964
+- RPC определено в миграциях: 1120
 - UI→RPC без определения: 0
-- RPC без UI-вызова (backend): 172
+- RPC без UI-вызова (backend): 156
 
 ## UI→RPC без определения
 | RPC | Вызвано из |
@@ -20,17 +20,10 @@
 | RPC |
 |---|
 | app_ai_job_update |
-| app_announcement_read |
-| app_announcements_active |
 | app_announcements_scan |
 | app_api_log_write |
 | app_aps_build |
-| app_attach_add |
 | app_attach_list |
-| app_attachment_add |
-| app_attachment_delete |
-| app_attachment_get |
-| app_attachment_list |
 | app_audit_write |
 | app_base32_decode |
 | app_base32_encode |
@@ -51,6 +44,7 @@
 | app_can_view |
 | app_capacity_list |
 | app_cert_save |
+| app_changeover_minutes |
 | app_claim_delete |
 | app_config_option_delete |
 | app_cost_fact |
@@ -58,22 +52,16 @@
 | app_daily_job_set_status |
 | app_dealer_request_set_status |
 | app_demo_reset |
-| app_demo_seed |
 | app_dept_ok |
 | app_dept_scope_apply |
 | app_dict_delete |
 | app_doc_delete |
 | app_doc_folder_list |
 | app_doc_folder_save |
-| app_doc_formula_eval |
 | app_doc_print_template_save |
 | app_doc_resolution_set_sla |
 | app_doc_route_act |
 | app_doc_route_start |
-| app_document_route_start |
-| app_document_routes |
-| app_document_sign |
-| app_document_signatures |
 | app_employee_link_user |
 | app_ext_install |
 | app_ext_installs_list |
@@ -81,7 +69,6 @@
 | app_ext_uninstall |
 | app_file_url |
 | app_forecast_slots |
-| app_global_search |
 | app_guard |
 | app_health_ping |
 | app_help_stats |
@@ -95,9 +82,6 @@
 | app_link_add |
 | app_link_delete |
 | app_links_list |
-| app_log_event |
-| app_login |
-| app_logout |
 | app_lot_genealogy_by_passport |
 | app_lot_trace_add |
 | app_mes_alerts |
@@ -110,18 +94,18 @@
 | app_my_tenant |
 | app_naryad_op_tools |
 | app_norms_list |
-| app_notif_mark_read |
 | app_notif_roles |
 | app_notif_roles_t |
 | app_notif_send |
 | app_offline_list |
-| app_offline_log |
+| app_order_audit_list |
 | app_order_create_invoice |
 | app_order_create_quote |
 | app_order_flow_list |
 | app_order_kpi_ext |
 | app_order_routes_cost |
 | app_order_update |
+| app_orders_audit |
 | app_orders_quota_trg |
 | app_org_role_coverage |
 | app_partner_deal_commission |
@@ -136,7 +120,7 @@
 | app_ppe_issue |
 | app_process_get |
 | app_production_allowed |
-| app_purchase_request_save |
+| app_public_request_add |
 | app_purchase_request_set_status |
 | app_qc_measures_list |
 | app_quota_check |
@@ -172,7 +156,6 @@
 | app_session_touch |
 | app_session_user |
 | app_setting_get |
-| app_setup_step_set |
 | app_setup_steps_list |
 | app_staff_roles |
 | app_stock_low |
@@ -183,11 +166,12 @@
 | app_task_delete |
 | app_tasks_list |
 | app_tenant_modules |
-| app_tenant_settings_get |
-| app_tenant_settings_set |
 | app_teo_total |
 | app_test_attempts_list |
+| app_tkp_link_deal |
+| app_tkp_to_doc |
+| app_tkp_to_order |
+| app_tkp_to_quote |
 | app_totp_code |
 | app_totp_verify |
 | app_vibro_limit_save |
-| app_whitelabel_resolve |

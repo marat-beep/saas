@@ -19,14 +19,18 @@ $catIds = New-Object System.Collections.Generic.List[string]
 foreach ($k in $catMap.Keys) { [void]$catIds.Add($k) }
 $appsDirs = @(Get-ChildItem (Join-Path $Root 'apps') -Directory | Select-Object -ExpandProperty Name)
 
-# RPC вызовы из UI
+# RPC вызовы из UI (apps + assets/js — общие движки тоже вызывают RPC)
 $uiRpc = @{}
-foreach ($f in Get-ChildItem (Join-Path $Root 'apps') -Recurse -Include *.js) {
-  $t = Get-Content $f.FullName -Raw
-  foreach ($m in [regex]::Matches($t, "rpc\(\s*'(app_[a-z0-9_]+)'")) {
-    $n = $m.Groups[1].Value
-    if (-not $uiRpc.ContainsKey($n)) { $uiRpc[$n] = New-Object System.Collections.Generic.HashSet[string] }
-    [void]$uiRpc[$n].Add(($f.FullName -replace [regex]::Escape($Root), ''))
+foreach ($d in @('apps', 'assets\js')) {
+  $dir = Join-Path $Root $d
+  if (-not (Test-Path $dir)) { continue }
+  foreach ($f in Get-ChildItem $dir -Recurse -Include *.js) {
+    $t = Get-Content $f.FullName -Raw
+    foreach ($m in [regex]::Matches($t, "rpc\(\s*'(app_[a-z0-9_]+)'")) {
+      $n = $m.Groups[1].Value
+      if (-not $uiRpc.ContainsKey($n)) { $uiRpc[$n] = New-Object System.Collections.Generic.HashSet[string] }
+      [void]$uiRpc[$n].Add(($f.FullName -replace [regex]::Escape($Root), ''))
+    }
   }
 }
 
@@ -48,7 +52,7 @@ foreach ($n in $calledNotDef) { Add-F 'C' 'Critical' "RPC '$n' вызывает�
 
 # RPC определён, но не вызывается из UI (info, backend/api)
 $defNotCalled = @($defRpc | Where-Object { -not $uiRpc.ContainsKey($_) })
-if ($defNotCalled.Count) { Add-F 'A' 'Info' "RPC только на backend (нет вызова из UI): $($defNotCalled.Count)" 'Кандидаты на проверку/документирование API.' 'supabase/migrations' 3 1 }
+if ($defNotCalled.Count) { Add-F 'A' 'Info' "RPC только на backend (нет вызова из UI): $($defNotCalled.Count)" 'Классификация — docs/API_SURFACE.md (PROP-05).' 'supabase/migrations' 3 1 }
 
 # Отчёт
 $sb = New-Object System.Text.StringBuilder

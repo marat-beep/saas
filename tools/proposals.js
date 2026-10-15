@@ -78,13 +78,13 @@ const ITEMS = [
 
   /* ============ R2 — поперечные / надёжность ============ */
   {
-    id: 'PROP-05', wave: 'R2', prio: 'P2', area: 'API', status: 'open', effort: 'M',
+    id: 'PROP-05', wave: 'R2', prio: 'P2', area: 'API', status: 'done', effort: 'M',
     business: [BIZ.common], modules: ['api', 'integrations'],
     title: 'Разобрать RPC без вызова из UI',
-    problem: '≈172 функции объявлены в БД и не вызываются из клиента — риск «мёртвой» поверхности и неясных контрактов.',
-    action: 'Классифицировать: backend/helper → API_SURFACE.md; лишнее → закрыть grant/удалить; недостающее UI → добавить вызов.',
-    dod: 'API_SURFACE.md отражает фактическую поверхность; счётчик «RPC без UI» снижен или объяснён.',
-    evidence: 'audit/checks/trace.json (F-0002)'
+    problem: 'RPC без UI-вызова считались неточно: trace не учитывал вызовы из assets/js (общие движки), а api-surface сопоставлял по подстроке.',
+    action: 'trace-matrix теперь сканирует apps+assets/js; api-surface классифицирует backend/API по категориям (права/аналитика/служебные/триггеры/офлайн/утилиты/внешний API) с точным сопоставлением по границам слова; docs/API_SURFACE.md содержит сводку и пояснение.',
+    dod: 'API_SURFACE.md отражает фактическую поверхность и объясняет backend-функции; счётчики согласованы (trace 156, api-surface 124). Реализовано.',
+    evidence: 'tools/api-surface.ps1, tools/trace-matrix.ps1, docs/API_SURFACE.md (v363)'
   },
   {
     id: 'PROP-03', wave: 'R2', prio: 'P2', area: 'Безопасность', status: 'open', effort: 'M',

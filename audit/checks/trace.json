@@ -1,12 +1,12 @@
 {
     "tool":  "trace",
-    "at":  "2026-10-13T14:57:56",
+    "at":  "2026-10-15T10:07:53",
     "findings":  [
                      {
                          "area":  "A",
                          "sev":  "Info",
-                         "title":  "RPC только на backend (нет вызова из UI): 172",
-                         "detail":  "Кандидаты на проверку/документирование API.",
+                         "title":  "RPC только на backend (нет вызова из UI): 156",
+                         "detail":  "Классификация — docs/API_SURFACE.md (PROP-05).",
                          "evidence":  "supabase/migrations",
                          "method":  "trace",
                          "effort":  3,
