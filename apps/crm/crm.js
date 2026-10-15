@@ -27,7 +27,7 @@
       $('#fCust').innerHTML = '<option value="">— выберите —</option>' + customers.map(function (c) { return '<option value="' + c.id + '">' + esc(c.name) + '</option>'; }).join('');
       $('#kpis').innerHTML = cell('Сделок', num(k.deals_total)) + cell('Открытых', num(k.open_deals)) +
         cell('Воронка (взвеш.)', money(k.pipeline)) + cell('Выиграно', money(k.won_sum), '#15803d') + cell('Конверсия', num(k.conversion) + '%');
-      render(); renderCustomers(); loadReminders(); renderFunnel(); renderForecast(); renderMkt();
+      render(); renderCustomers(); loadReminders(); renderFunnel(); renderForecast(); renderMkt(); renderCredit();
     }).catch(function (e) { msg('#fMsg', 'Ошибка: ' + e.message, 'err'); });
   }
   /* R5·PROP-30: воронка и конверсия лид→сделка (по стадиям и источникам) */
@@ -122,6 +122,28 @@
       (order.length ? '<div class="legend" style="margin:6px 0;"><span>Прогноз всего: <b>' + money(total) + '</b></span></div>' +
         order.map(function (k) { return '<div class="kvr"><b style="min-width:110px;">' + k + '</b><span class="note">' + months[k].n + ' сд.</span><span class="badge" style="margin-left:auto;">' + money(months[k].w) + '</span></div>'; }).join('')
         : '<span class="note">Открытых сделок нет.</span>') + '</div>';
+  }
+  /* R4·PROP-22: кредитный лимит клиента (CPQ/ATP — конфигуратор + остатки) */
+  function renderCredit() {
+    var host = $('#credit'); if (!host) return;
+    host.innerHTML = '<div class="card"><h2>Кредитный лимит и доступность</h2>' +
+      '<div class="grid3"><div class="field"><label>Заказчик</label><select id="crCust"><option value="">— выберите —</option>' + customers.map(function (c) { return '<option value="' + c.id + '">' + esc(c.name) + '</option>'; }).join('') + '</select></div>' +
+      '<div class="field"><label>Лимит, ₽</label><input type="text" id="crLimit" inputmode="decimal"></div>' +
+      '<div class="field" style="display:flex;align-items:flex-end;gap:6px;"><button class="btn secondary" id="crSet" style="width:auto;">Сохранить лимит</button><button class="btn secondary" id="crCheck" style="width:auto;">Проверить</button></div></div>' +
+      '<div id="crRes" class="mt"></div>' +
+      '<p class="note" style="margin-top:6px;">ATP (доступность) = остаток материала — «Справочники → Материалы» и «Склад»; CPQ (конфигурация предложения) — модули «Конфигуратор» и «ТКП».</p></div>';
+    var ss = $('#crSet'); if (ss) ss.addEventListener('click', function () {
+      rpc('app_customer_set_credit', { p_token: token, p_customer_id: $('#crCust').value || null, p_limit: parseFloat($('#crLimit').value.replace(',', '.')) || 0 })
+        .then(function (r) { var x = r && r[0]; ui.toast(x ? x.message : ''); }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+    });
+    var cc = $('#crCheck'); if (cc) cc.addEventListener('click', function () {
+      if (!$('#crCust').value) { $('#crRes').innerHTML = '<span class="note">Выберите заказчика.</span>'; return; }
+      rpc('app_customer_credit', { p_token: token, p_customer_id: $('#crCust').value }).then(function (r) {
+        r = r || [];
+        $('#crRes').innerHTML = r.length ? '<div class="kpi-row">' + cell('Лимит', money(r[0].credit_limit)) + cell('Долг', money(r[0].debt)) + cell('Доступно', money(r[0].available)) + cell('Статус', r[0].ok ? 'в пределах лимита' : 'превышение') + '</div>'
+          : '<span class="note">Нет данных.</span>';
+      }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+    });
   }
   /* R4·PROP-28: маркетинг (кампании) + контакт-центр (обращения) */
   function renderMkt() {

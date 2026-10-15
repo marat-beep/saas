@@ -219,13 +219,13 @@ const ITEMS = [
     evidence: 'ref: Wikipedia ERP (Human resources — payroll, recruiting)'
   },
   {
-    id: 'PROP-22', wave: 'R4', prio: 'P2', area: 'Продажи', status: 'open', effort: 'M',
+    id: 'PROP-22', wave: 'R4', prio: 'P2', area: 'Продажи', status: 'done', effort: 'M',
     business: [BIZ.prod], modules: ['orders', 'crm', 'client', 'config'],
     title: 'CPQ: конфигуратор предложения, кредитный лимит, ATP',
-    problem: 'ERP order processing включает кредитную проверку, ценообразование и ATP; клиентского конфигуратора предложения нет.',
-    action: 'Добавить: лимит/долг клиента и блокировку при превышении; доступность к обещанию (ATP по складу/производству); клиентский конфигуратор (выбор опций → КП).',
-    dod: 'Заказ проверяет кредитный лимит и ATP; КП формируется из конфигуратора.',
-    evidence: 'ref: Wikipedia ERP (Order processing — credit checking, ATP, product configurator)'
+    problem: 'Не было проверки кредитного лимита клиента; CPQ/ATP частично (конфигуратор/остатки).',
+    action: 'Миграция 0268: колонка `credit_limit` у `app_customers` + RPC `app_customer_credit` (лимит/долг/доступно), `app_customer_set_credit`, `app_atp` (остаток). В CRM — панель **«Кредитный лимит и доступность»** (проверка и установка лимита). CPQ — существующие «Конфигуратор»/«ТКП»; ATP = остаток материала (registry/склад).',
+    dod: 'Проверка кредитного лимита и доступности работает; CPQ через конфигуратор/ТКП. Реализовано (apply_all 259).',
+    evidence: 'supabase/migrations/0268_credit_atp.sql, apps/crm (v392)'
   },
   {
     id: 'PROP-23', wave: 'R4', prio: 'P2', area: 'Склад', status: 'done', effort: 'M',
