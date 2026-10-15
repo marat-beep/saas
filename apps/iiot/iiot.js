@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa, SB = window.SB;
-  var token = null, jobs = [], conns = [], q = '';
+  var token = null, jobs = [], conns = [], q = '', lastReadings = [];
 
   var MET = { state: 'Состояние', count: 'Счётчик', speed: 'Обороты', power: 'Мощность', temp: 'Температура', vibration: 'Вибрация', runtime_min: 'Наработка, мин', other: 'Прочее' };
   var DS = { queued: ['В очереди', 'normal'], sent: ['Отправлено', 'new'], running: ['Выполняется', 'in_progress'], done: ['Готово', 'done'], failed: ['Ошибка', 'cancelled'] };
@@ -35,8 +35,33 @@
       $('#kpis').innerHTML = cell('Показаний сегодня', k.readings_today || 0) + cell('Станков', k.machines || 0) + cell('DNC-заданий', (r[2] || []).length);
       $('#readings').innerHTML = (r[1] && r[1].length) ? '<table class="mini"><thead><tr><th>Время</th><th>Станок</th><th>Метрика</th><th class="num">Значение</th><th>Источник</th></tr></thead><tbody>' +
         r[1].map(function (x) { return '<tr><td>' + new Date(x.ts).toLocaleString('ru-RU') + '</td><td>' + esc(x.machine) + '</td><td>' + esc(MET[x.metric] || x.metric) + '</td><td class="num">' + x.value + '</td><td>' + esc(x.source || '') + '</td></tr>'; }).join('') + '</tbody></table>' : '<span class="note">Нет показаний.</span>';
-      jobs = r[2] || []; renderDnc();
+      lastReadings = r[1] || [];
+      jobs = r[2] || []; renderDnc(); sparkline(lastReadings);
     }).catch(function (e) { msg('#iMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
+
+  /* P19: тренды по метрикам (sparkline) и экспорт показаний CSV */
+  function sparkline(rows) {
+    var host = document.getElementById('spark'); if (!host) return;
+    if (!rows || !rows.length) { host.innerHTML = ''; return; }
+    var byM = {};
+    rows.forEach(function (x) { if (x.value == null || x.value === '') return; (byM[x.metric] = byM[x.metric] || []).push(Number(x.value)); });
+    host.innerHTML = Object.keys(byM).slice(0, 3).map(function (m) {
+      var arr = byM[m].slice(0, 40).reverse();
+      if (!arr.length) return '';
+      var min = Math.min.apply(null, arr), max = Math.max.apply(null, arr), rng = (max - min) || 1, W = 260, H = 40, n = arr.length;
+      var pts = arr.map(function (v, i) { return (n > 1 ? i / (n - 1) * W : 0).toFixed(1) + ',' + (H - (v - min) / rng * H).toFixed(1); }).join(' ');
+      return '<div class="kvr" style="align-items:center;"><b style="min-width:120px;">' + esc(MET[m] || m) + '</b>' +
+        '<svg width="' + W + '" height="' + H + '" style="flex:0 0 auto;"><polyline points="' + pts + '" fill="none" stroke="#10b981" stroke-width="2"/></svg>' +
+        '<span class="note" style="margin-left:auto;">мин ' + min + ' · макс ' + max + '</span></div>';
+    }).join('');
+  }
+  function exportCsv() {
+    if (!lastReadings.length) { msg('#iMsg', 'Нет показаний для экспорта', 'err'); return; }
+    var head = 'Время;Станок;Метрика;Значение;Источник\n';
+    var body = lastReadings.map(function (x) { return [new Date(x.ts).toLocaleString('ru-RU'), x.machine || '', (MET[x.metric] || x.metric), x.value, x.source || ''].join(';'); }).join('\n');
+    var blob = new Blob(['\ufeff' + head + body], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'iiot-readings.csv'; a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
   }
 
   function renderDnc() {
@@ -138,6 +163,7 @@
       .catch(function (e) { msg('#dMsg', 'Ошибка: ' + e.message, 'err'); });
   });
   $('#q').addEventListener('input', function () { q = this.value; load(); });
+  if ($('#readCsv')) $('#readCsv').addEventListener('click', exportCsv);
   $('#cNew').addEventListener('click', function () { openConn(null); });
   $('#oeeBtn').addEventListener('click', loadOee);
   $('#wearBtn').addEventListener('click', loadWear);

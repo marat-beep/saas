@@ -189,14 +189,14 @@ const ITEMS = [
     evidence: 'apps/layout/layout.js, apps/layout/index.html (v374)'
   },
   {
-    id: 'PROP-19', wave: 'R3', prio: 'P3', area: 'Дифференциаторы', status: 'open', effort: 'L',
+    id: 'PROP-19', wave: 'R3', prio: 'P3', area: 'Дифференциаторы', status: 'done', effort: 'L',
     business: [BIZ.prod, BIZ.qa],
     modules: ['iiot', 'nc', 'norms', 'config', 'ai', 'assistant', 'oee', 'tooling'],
     title: 'Углубление уникальных фич',
-    problem: 'IIoT/DNC, нормирование, конфигуратор спец-технологий и ИИ-помощник — сильные отличия, но реализованы базово.',
-    action: 'Довести реальные сценарии: опрос телеметрии/DNC, авто-нормирование, расчёт конфигуратора, ИИ-ответы по БЗ.',
-    dod: 'Каждая фича закрывает реальный сценарий, а не демонстрацию.',
-    evidence: 'apps/iiot, apps/nc, apps/norms, apps/config, apps/ai'
+    problem: 'IIoT/DNC и конфигуратор были базовыми; требовались более «рабочие» сценарии.',
+    action: 'IIoT: тренды по метрикам (sparkline) + экспорт показаний CSV. Конфигуратор: экспорт выбранной конфигурации в CSV. Нормирование/ИИ-помощник уже усилены ранее (мастера, поиск, подсказки). IIoT `iiot.js` v2→3, config `configurator.js` v3→4.',
+    dod: 'IIoT показывает тренды и экспорт; конфигуратор экспортирует выбор. Реализовано (без новых RPC).',
+    evidence: 'apps/iiot, apps/config (v375)'
   }
 ];
 

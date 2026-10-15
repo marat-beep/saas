@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa, SB = window.SB;
-  var token = null, groups = [], options = [], curGroup = '', selected = {};
+  var token = null, groups = [], options = [], curGroup = '', selected = {}, selData = {};
 
   function esc(v) { return ui.esc(v); }
   function msg(id, t, k) { var e = $(id); e.className = 'msg show ' + (k || 'info'); e.textContent = t; if (!t) e.className = 'msg'; }
@@ -39,7 +39,9 @@
         '<span class="num">+' + money(o.price_delta) + '</span></label>';
     }).join('') : '<span class="note">В группе нет опций.</span>';
     $$('#options [data-opt]').forEach(function (c) { c.addEventListener('change', function () {
-      if (this.checked) selected[this.dataset.opt] = true; else delete selected[this.dataset.opt];
+      var o = options.filter(function (x) { return x.id === c.dataset.opt; })[0];
+      if (this.checked) { selected[this.dataset.opt] = true; if (o) selData[o.id] = { name: o.name, group: curGroup, price: o.price_delta }; }
+      else { delete selected[this.dataset.opt]; delete selData[this.dataset.opt]; }
       recalc();
     }); });
     recalc();
@@ -55,7 +57,18 @@
     }).catch(function () { $('#cTotal').textContent = money(0); });
   }
 
-  $('#cReset').addEventListener('click', function () { selected = {}; renderOptions(); });
+  $('#cReset').addEventListener('click', function () { selected = {}; selData = {}; renderOptions(); });
+  /* P19: экспорт выбранной конфигурации в CSV */
+  if ($('#cExport')) $('#cExport').addEventListener('click', function () {
+    var ids = Object.keys(selData);
+    if (!ids.length) { toast('Конфигурация пуста — выберите опции', 'err'); return; }
+    var head = 'Группа;Опция;Наценка, ₽\n';
+    var body = ids.map(function (k) { var d = selData[k]; return [d.group || '', d.name || '', d.price || 0].join(';'); }).join('\n');
+    var total = ids.reduce(function (s, k) { return s + (Number(selData[k].price) || 0); }, 0);
+    body += '\n;;;;Итого;' + total;
+    var blob = new Blob(['\ufeff' + head + body], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'config.csv'; a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  });
   function loadPresets() {
     return rpc('app_config_preset_list', { p_token: token }).then(function (rows) {
       rows = rows || [];
