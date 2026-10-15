@@ -233,13 +233,30 @@
     var pad = 400, vw = Math.max(maxx - minx + pad * 2, 100), vh = Math.max(maxy - miny + pad * 2, 100);
     return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + (minx - pad).toFixed(0) + ' ' + (miny - pad).toFixed(0) + ' ' + vw.toFixed(0) + ' ' + vh.toFixed(0) + '" style="width:100%;height:60vh;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px">' + body + '</svg>';
   }
+  function iso3dSvgPng(svg, name) {
+    var vb = (svg.match(/viewBox="([^"]+)"/) || [])[1]; if (!vb) return;
+    var p = vb.trim().split(/\s+/).map(Number), W = Math.max(200, Math.round(p[2])), H = Math.max(150, Math.round(p[3]));
+    var svg2 = svg.replace('<svg ', '<svg width="' + W + '" height="' + H + '" ');
+    var blob = new Blob([svg2], { type: 'image/svg+xml;charset=utf-8' });
+    var url = URL.createObjectURL(blob), img = new Image();
+    img.onload = function () {
+      var c = document.createElement('canvas'); c.width = W; c.height = H;
+      var ctx = c.getContext('2d'); ctx.fillStyle = '#f8fafc'; ctx.fillRect(0, 0, W, H); ctx.drawImage(img, 0, 0, W, H);
+      URL.revokeObjectURL(url);
+      c.toBlob(function (b) { var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name; a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000); });
+    };
+    img.onerror = function () { toast('Не удалось сохранить PNG', 'err'); };
+    img.src = url;
+  }
   function open3d() {
-    var ang = 55, ext = 1;
     ui.dialog({ title: '3D-превью (изометрия)', html: true, cancelText: 'Закрыть', body:
-      '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:8px"><label>Угол обзора</label><input type="range" id="v3ang" min="0" max="360" value="55" style="flex:1;min-width:160px"><label>Высота</label><input type="range" id="v3ext" min="30" max="220" value="100"></div><div id="v3host">' + iso3d(55, 1) + '</div>' });
+      '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:8px"><label>Угол обзора</label><input type="range" id="v3ang" min="0" max="360" value="55" style="flex:1;min-width:160px"><label>Высота</label><input type="range" id="v3ext" min="30" max="220" value="100"><button class="btn secondary" id="v3png" style="width:auto">Скачать PNG</button></div><div id="v3host">' + iso3d(55, 1) + '</div>' });
     var host = document.getElementById('v3host'), ra = document.getElementById('v3ang'), re = document.getElementById('v3ext');
-    function upd() { host.innerHTML = iso3d(Number(ra.value), Number(re.value) / 100); }
+    function cur() { return iso3d(Number(ra.value), Number(re.value) / 100); }
+    function upd() { host.innerHTML = cur(); }
     if (ra) ra.oninput = upd; if (re) re.oninput = upd;
+    var pb = document.getElementById('v3png');
+    if (pb) pb.onclick = function () { iso3dSvgPng(cur(), ($('#proj').value || 'layout') + '-3d.png'); };
   }
 
   /* ---------- история ---------- */
@@ -289,6 +306,24 @@
             /* маркер поворота */
             '<line x1="' + (it.w / 2) + '" y1="0" x2="' + (it.w / 2) + '" y2="' + (-GRID * 3.4) + '" stroke="#10b981" stroke-width="' + (GRID / 6) + '"/>' +
             '<circle class="rh" data-h="rot" cx="' + (it.w / 2) + '" cy="' + (-GRID * 3.8) + '" r="' + (GRID * 0.7) + '" fill="#10b981" stroke="#fff" stroke-width="' + (GRID / 5) + '" style="cursor:grab"/>';
+          /* L-P10: размеры «от стены» (ближайшая стена-объект слева/сверху, иначе край плана) */
+          (function () {
+            if (it.type === 'wall' || it.type === 'zone' || it.type === 'aisle') return;
+            var dL = it.x, dT = it.y;
+            S.items.forEach(function (o) {
+              if (o.type !== 'wall' || o === it) return;
+              var right = o.x + o.w; if (right <= it.x && (it.x - right) < dL) dL = it.x - right;
+              var bot = o.y + o.h; if (bot <= it.y && (it.y - bot) < dT) dT = it.y - bot;
+            });
+            if (dL > 0) {
+              s += '<line x1="' + (-dL) + '" y1="' + (it.h / 2) + '" x2="0" y2="' + (it.h / 2) + '" stroke="#64748b" stroke-dasharray="' + (GRID) + '"/>' +
+                '<text x="' + (-dL / 2) + '" y="' + (it.h / 2 - GRID * 0.4) + '" text-anchor="middle" font-size="' + t + '" fill="#64748b">' + Math.round(dL) + '</text>';
+            }
+            if (dT > 0) {
+              s += '<line x1="' + (it.w / 2) + '" y1="' + (-dT) + '" x2="' + (it.w / 2) + '" y2="0" stroke="#64748b" stroke-dasharray="' + (GRID) + '"/>' +
+                '<text x="' + (it.w / 2 + GRID * 0.5) + '" y="' + (-dT / 2) + '" font-size="' + t + '" fill="#64748b">' + Math.round(dT) + '</text>';
+            }
+          })();
           s += ['nw', 'ne', 'sw', 'se'].map(function (d) {
             var cx = d.indexOf('e') >= 0 ? it.w : 0, cy = d.indexOf('s') >= 0 ? it.h : 0;
             return '<rect class="rz" data-h="' + d + '" x="' + (cx - R) + '" y="' + (cy - R) + '" width="' + (R * 2) + '" height="' + (R * 2) + '" rx="' + (R / 2) + '" fill="#10b981" stroke="#fff" stroke-width="' + (GRID / 5) + '" style="cursor:' + (d === 'nw' || d === 'se' ? 'nwse-resize' : 'nesw-resize') + '"/>';
@@ -345,10 +380,29 @@
         function mv(ev) {
           moved = 1; var nx = snapv(ox + (ev.clientX - sx) * sc), ny = snapv(oy + (ev.clientY - sy) * sc);
           if ($('#snapChk') && $('#snapChk').checked) {
+            var TH = GRID * 3;
+            /* L-P10: магниты к краям плана */
+            if (Math.abs(nx) < TH) nx = 0;
+            if (Math.abs(ny) < TH) ny = 0;
+            if (Math.abs((nx + it.w) - S.w) < TH) nx = S.w - it.w;
+            if (Math.abs((ny + it.h) - S.h) < TH) ny = S.h - it.h;
+            /* магниты к стенам/зонам/оборудованию по рёбрам */
             S.items.forEach(function (o) {
               if (o === it) return;
-              if (Math.abs(nx - (o.x + o.w)) < GRID * 3 && Math.abs((ny + it.h / 2) - (o.y + o.h / 2)) < GRID * 3) { nx = o.x + o.w; ny = o.y + o.h / 2 - it.h / 2; }
-              else if (Math.abs((nx + it.w) - o.x) < GRID * 3 && Math.abs((ny + it.h / 2) - (o.y + o.h / 2)) < GRID * 3) { nx = o.x - it.w; ny = o.y + o.h / 2 - it.h / 2; }
+              var vcClose = Math.abs((ny + it.h / 2) - (o.y + o.h / 2)) < TH;
+              var hcClose = Math.abs((nx + it.w / 2) - (o.x + o.w / 2)) < TH;
+              if (vcClose) {
+                if (Math.abs(nx - (o.x + o.w)) < TH) nx = o.x + o.w;
+                else if (Math.abs((nx + it.w) - o.x) < TH) nx = o.x - it.w;
+                else if (Math.abs(nx - o.x) < TH) nx = o.x;
+                else if (Math.abs((nx + it.w) - (o.x + o.w)) < TH) nx = o.x + o.w - it.w;
+              }
+              if (hcClose) {
+                if (Math.abs(ny - (o.y + o.h)) < TH) ny = o.y + o.h;
+                else if (Math.abs((ny + it.h) - o.y) < TH) ny = o.y - it.h;
+                else if (Math.abs(ny - o.y) < TH) ny = o.y;
+                else if (Math.abs((ny + it.h) - (o.y + o.h)) < TH) ny = o.y + o.h - it.h;
+              }
             });
           }
           it.x = nx; it.y = ny; draw();
@@ -720,6 +774,36 @@
   };
   if ($('#bgBtn')) $('#bgBtn').onclick = function () { var f = $('#bgFile'); if (f) f.click(); };
   if ($('#view3d')) $('#view3d').onclick = open3d;
+  /* L-P10: шаблоны участков */
+  function tplItem(type, name, x, y, w, h) { return { id: uid(), type: type, name: name, x: snapv(x), y: snapv(y), w: w, h: h, stage: 'new', rot: 0 }; }
+  function buildTemplate(key, x0, y0) {
+    if (key === 'machining') return [
+      tplItem('mill', 'Фрезерный ОЦ', x0, y0, 2600, 2200), tplItem('lathe', 'Токарный', x0 + 3200, y0, 2600, 1800),
+      tplItem('mill', 'Фрезерный ОЦ 2', x0, y0 + 2800, 2600, 2200), tplItem('bench', 'Верстак', x0 + 3200, y0 + 2200, 1800, 900),
+      tplItem('rack', 'Стеллаж', x0 + 6000, y0, 1200, 2400)];
+    if (key === 'assembly') return [
+      tplItem('conv', 'Конвейер 1', x0, y0 + 1200, 6000, 800), tplItem('conv', 'Конвейер 2', x0, y0 + 2200, 6000, 800),
+      tplItem('bench', 'Сборка 1', x0 + 300, y0, 1800, 900), tplItem('bench', 'Сборка 2', x0 + 2400, y0, 1800, 900),
+      tplItem('cabinet', 'Шкаф инструмента', x0 + 4500, y0, 1200, 1800)];
+    if (key === 'warehouse') return [
+      tplItem('rack', 'Стеллаж A', x0, y0, 1200, 6000), tplItem('rack', 'Стеллаж B', x0 + 4000, y0, 1200, 6000),
+      tplItem('pallet', 'Паллета', x0 + 1800, y0 + 800, 1200, 1000), tplItem('agv', 'AGV', x0 + 1800, y0 + 3000, 1200, 1200),
+      tplItem('zone', 'Зона приёмки', x0 + 1800, y0 + 4500, 1800, 1200)];
+    return null;
+  }
+  function openTemplates() {
+    ui.formDialog({ title: 'Шаблоны участков', okText: 'Добавить', fields: [
+      { name: 'tpl', label: 'Шаблон', type: 'select', options: [{ value: 'machining', label: 'Участок мехобработки' }, { value: 'assembly', label: 'Линия сборки' }, { value: 'warehouse', label: 'Склад-стеллажи' }] },
+      { name: 'mode', label: 'Размещение', type: 'select', options: [{ value: 'add', label: 'Добавить к текущим' }, { value: 'replace', label: 'Заменить содержимое' }] }
+    ] }).then(function (v) {
+      if (!v) return;
+      var r = buildTemplate(v.tpl, 1000, 1000); if (!r) return;
+      snapshot();
+      if (v.mode === 'replace') S.items = r; else S.items = S.items.concat(r);
+      sel = null; draw(); prop(); renderLists(); toast('Шаблон добавлен: объектов ' + r.length);
+    });
+  }
+  if ($('#tplBtn')) $('#tplBtn').onclick = openTemplates;
   if ($('#bgFile')) $('#bgFile').onchange = function () {
     var file = this.files[0]; this.value = ''; if (!file) return;
     var isDxf = /\.dxf$/i.test(file.name);
@@ -739,7 +823,8 @@
       '<p><b>Демонстрация:</b> режим «Демонстрация» показывает движение по маршруту (▶/◀, скорость в настройках).</p>' +
       '<p><b>Экспорт/печать:</b> JSON/SVG/PNG/HTML и «Печать/PDF». История версий — 🕘.</p>' +
       '<p><b>Подложка:</b> «Подложка» — растровый план (PNG/JPG) или чертёж **DXF** (LINE/LWPOLYLINE/POLYLINE/CIRCLE/ARC). Калибровка (X/Y/Ш/В, мм) и прозрачность — в ⚙ Настройках.</p>' +
-      '<p><b>3D-превью:</b> кнопка «3D» — изометрический вид: узлы вытягиваются по высоте; ползунки меняют угол обзора и высоту.</p>' });
+      '<p><b>3D-превью:</b> кнопка «3D» — изометрический вид: узлы вытягиваются по высоте; ползунки меняют угол обзора и высоту; «Скачать PNG» сохраняет 3D-вид.</p>' +
+      '<p><b>Привязки и шаблоны:</b> включённая «Привязка» магнитит узлы к рёбрам стен/зон/оборудования и краям плана; у выбранного узла показываются размеры «от стены». Кнопка «Шаблоны» вставляет типовой участок (мехобработка/сборка/склад).</p>' });
   };
   $('#logout').onclick = function () { window.Auth.logout(); location.href = '../../index.html'; };
 
