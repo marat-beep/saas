@@ -6,6 +6,7 @@
   var ui = window.AppUI, $ = ui.qs, $$ = ui.qsa, SB = window.SB;
   var token = null, pfs = [], projects = [], curPf = null;
   function esc(v) { return ui.esc(v); }
+  function num(v) { return Number(v) || 0; }
   function msg(t, k) { var e = $('#m'); e.className = 'msg show ' + (k || 'info'); e.textContent = t; if (!t) e.className = 'msg'; }
   function rpc(n, a) { return SB.rpc(n, a).then(function (r) { if (r.error) throw new Error(r.error.message); return r.data; }); }
   function cell(l, v) { return '<div class="kpi"><small>' + l + '</small><b>' + v + '</b></div>'; }
@@ -76,6 +77,40 @@
     token = s.token;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('Supabase не подключён.', 'err'); return; }
-    loadProjects().then(function () { loadKpi(); loadPf(); });
+    loadProjects().then(function () { loadKpi(); loadPf(); loadWbs(); });
   });
+  /* R4·PROP-25: WBS (иерархия работ) и учёт времени (табели) */
+  var wbs = [], ts = [], wtProj = '';
+  function loadWT() {
+    var host = $('#wt'); if (!host) return;
+    host.innerHTML = '<div class="card"><h2>WBS и учёт времени</h2>' +
+      '<div class="grid3"><div class="field"><label>Проект</label><select id="wtProjSel">' + projOpts().map(function (o) { return '<option value="' + o.value + '"' + (o.value === wtProj ? ' selected' : '') + '>' + esc(o.label) + '</option>'; }).join('') + '</select></div>' +
+      '<div class="field"><label>Работа WBS *</label><input type="text" id="wtName" placeholder="Проектирование / Изготовление"></div><div class="field"><label>План, ч</label><input type="number" id="wtPlan" step="0.5"></div></div>' +
+      '<div class="btn-row"><button class="btn" id="wtAddWbs">Добавить работу</button></div>' +
+      (wbs.length ? tbl('<th>Работа</th><th class="num">План, ч</th><th class="num">Факт, ч</th><th></th>', wbs.map(function (w) { return '<tr><td><b>' + esc(w.name) + '</b></td><td class="num">' + num(w.planned_hours) + '</td><td class="num">' + num(w.fact_hours) + '</td><td><button class="act danger" data-wdel="' + w.id + '" aria-label="Удалить" title="Удалить">✕</button></td></tr>'; }).join('')) : '<span class="note">Работы не заданы.</span>') +
+      '<h3 style="margin:12px 0 4px;font-size:.82rem;">Учёт времени</h3>' +
+      '<div class="grid3"><div class="field"><label>Работа WBS</label><select id="tsWbs"><option value="">— без привязки —</option>' + wbs.map(function (w) { return '<option value="' + w.id + '">' + esc(w.name) + '</option>'; }).join('') + '</select></div>' +
+      '<div class="field"><label>Сотрудник</label><input type="text" id="tsEmp"></div><div class="field"><label>Дата</label><input type="date" id="tsDate"></div></div>' +
+      '<div class="grid3"><div class="field"><label>Часы *</label><input type="number" id="tsHours" step="0.5"></div><div class="field" style="grid-column:span 2;"><label>Примечание</label><input type="text" id="tsNote"></div></div>' +
+      '<div class="btn-row"><button class="btn" id="tsAdd">Добавить запись времени</button></div>' +
+      (ts.length ? tbl('<th>Дата</th><th>Работа</th><th>Сотрудник</th><th class="num">Часы</th><th></th>', ts.map(function (t) { return '<tr><td>' + esc(t.work_date) + '</td><td>' + esc(t.wbs_name || '—') + '</td><td>' + esc(t.employee || '—') + '</td><td class="num">' + num(t.hours) + '</td><td><button class="act danger" data-tdel="' + t.id + '" aria-label="Удалить" title="Удалить">✕</button></td></tr>'; }).join('')) : '<span class="note">Записей нет.</span>') +
+      '</div>';
+    $('#wtProjSel').addEventListener('change', function () { wtProj = this.value; loadWbs(); });
+    var aw = $('#wtAddWbs'); if (aw) aw.addEventListener('click', function () {
+      rpc('app_wbs_save', { p_token: token, p_id: null, p_project: wtProj || null, p_parent: null, p_name: $('#wtName').value.trim(), p_ord: 100, p_planned: parseFloat($('#wtPlan').value.replace(',', '.')) || 0 })
+        .then(function (r) { var x = r && r[0]; ui.toast(x ? x.message : ''); if (x && x.ok) loadWbs(); }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+    });
+    var at = $('#tsAdd'); if (at) at.addEventListener('click', function () {
+      rpc('app_timesheet_save', { p_token: token, p_id: null, p_project: wtProj || null, p_wbs: $('#tsWbs').value || null, p_employee: $('#tsEmp').value.trim() || null, p_date: $('#tsDate').value || null, p_hours: parseFloat($('#tsHours').value.replace(',', '.')) || 0, p_note: $('#tsNote').value.trim() || null })
+        .then(function (r) { var x = r && r[0]; ui.toast(x ? x.message : ''); if (x && x.ok) loadWbs(); }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+    });
+    $$('#wt [data-wdel]').forEach(function (b) { b.addEventListener('click', function () { if (!confirm('Удалить работу (и её записи времени)?')) return; rpc('app_wbs_delete', { p_token: token, p_id: b.dataset.wdel }).then(loadWbs); }); });
+    $$('#wt [data-tdel]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_timesheet_delete', { p_token: token, p_id: b.dataset.tdel }).then(loadWbs); }); });
+  }
+  function loadWbs() {
+    return Promise.all([
+      rpc('app_wbs_list', { p_token: token, p_project: wtProj || null }),
+      rpc('app_timesheet_list', { p_token: token, p_project: wtProj || null })
+    ]).then(function (r) { wbs = r[0] || []; ts = r[1] || []; loadWT(); });
+  }
 })();

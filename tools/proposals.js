@@ -246,13 +246,13 @@ const ITEMS = [
     evidence: 'ref: Wikipedia ERP (SRM, purchasing)'
   },
   {
-    id: 'PROP-25', wave: 'R4', prio: 'P2', area: 'Проекты', status: 'open', effort: 'M',
+    id: 'PROP-25', wave: 'R4', prio: 'P2', area: 'Проекты', status: 'done', effort: 'M',
     business: [BIZ.prod, BIZ.econ], modules: ['pmo', 'tasks', 'projbudget'],
     title: 'WBS и учёт времени (timesheets)',
-    problem: 'В ERP-проектах есть WBS и time&expense; у нас проекты/вехи/задачи есть, иерархии работ и табелей времени нет.',
-    action: 'Добавить WBS (иерархия работ проекта) и учёт времени по задачам (табель, стоимость по ставке), связь с себестоимостью проекта.',
-    dod: 'Проект имеет WBS; время учитывается по задачам и попадает в проектную себестоимость.',
-    evidence: 'ref: Wikipedia ERP (Project management — WBS, time and expense)'
+    problem: 'Не было иерархии работ проекта (WBS) и табелей времени.',
+    action: 'Миграция 0265: таблицы `app_wbs` (работы проекта) и `app_timesheets` (часы по работе/сотруднику/дате) + RPC list/save/delete; сводка план/факт часов по работам. В PMO — панель **«WBS и учёт времени»** (проект → работы → план/факт; добавление времени).',
+    dod: 'Проект имеет WBS; время учитывается по работам и суммируется (план/факт). Реализовано (apply_all 256).',
+    evidence: 'supabase/migrations/0265_worktime.sql, apps/pmo (v389)'
   },
   {
     id: 'PROP-26', wave: 'R4', prio: 'P3', area: 'Качество', status: 'done', effort: 'M',
