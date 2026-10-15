@@ -25,7 +25,7 @@
       $('#fCust').innerHTML = '<option value="">— выберите —</option>' + customers.map(function (c) { return '<option value="' + c.id + '">' + esc(c.name) + '</option>'; }).join('');
       $('#kpis').innerHTML = cell('Сделок', num(k.deals_total)) + cell('Открытых', num(k.open_deals)) +
         cell('Воронка (взвеш.)', money(k.pipeline)) + cell('Выиграно', money(k.won_sum), '#15803d') + cell('Конверсия', num(k.conversion) + '%');
-      render(); renderCustomers(); loadReminders(); renderFunnel();
+      render(); renderCustomers(); loadReminders(); renderFunnel(); renderForecast();
     }).catch(function (e) { msg('#fMsg', 'Ошибка: ' + e.message, 'err'); });
   }
   /* R5·PROP-30: воронка и конверсия лид→сделка (по стадиям и источникам) */
@@ -82,8 +82,44 @@
   }
   function renderCustomers() {
     $('#customers').innerHTML = customers.length ? customers.map(function (c) {
-      return '<div class="kvr"><b>' + esc(c.name) + '</b><span class="note">' + (c.inn ? 'ИНН ' + esc(c.inn) + ' · ' : '') + (c.contact_person ? esc(c.contact_person) + ' · ' : '') + (c.phone || '') + (c.email ? ' · ' + esc(c.email) : '') + '</span></div>';
+      return '<div class="kvr"><b>' + esc(c.name) + '</b><span class="note">' + (c.inn ? 'ИНН ' + esc(c.inn) + ' · ' : '') + (c.contact_person ? esc(c.contact_person) + ' · ' : '') + (c.phone || '') + (c.email ? ' · ' + esc(c.email) : '') + '</span>' +
+        '<button class="btn secondary" data-prof="' + c.id + '" style="width:auto;padding:2px 8px;font-size:.72rem;margin-left:auto;" aria-label="Профиль клиента" title="Профиль клиента 360°">👁 профиль</button></div>';
     }).join('') : '<span class="note">Заказчиков нет.</span>';
+    $$('#customers [data-prof]').forEach(function (b) { b.addEventListener('click', function () { openProfile(b.dataset.prof); }); });
+  }
+  /* R5·PROP-31: профиль клиента 360° + прогноз продаж */
+  function openProfile(id) {
+    rpc('app_customer_card', { p_token: token, p_customer_id: id }).then(function (r) {
+      var c = (r && r[0]) || null; if (!c) { ui.toast('Нет данных'); return; }
+      var my = deals.filter(function (d) { return d.customer_id === id || (c.name && d.customer === c.name); });
+      var pipe = my.reduce(function (s, d) { var w = num(d.weighted); if (!w) w = num(d.amount) * num(d.probability) / 100; return s + w; }, 0);
+      ui.dialog({ title: 'Профиль клиента 360°', html: true, cancelText: 'Закрыть', body:
+        '<div class="kvr"><b>' + esc(c.name) + '</b><span class="note">' + (c.inn ? 'ИНН ' + esc(c.inn) : '') + (c.phone ? ' · ' + esc(c.phone) : '') + '</span></div>' +
+        '<div class="kpi-row">' + cell('Заявок', num(c.requests)) + cell('Открытых', num(c.open_requests)) + cell('Выполнено', num(c.done_requests)) +
+        cell('Сумма заявок', money(c.cost_sum)) + cell('Оборудование', num(c.equipment_count)) + cell('Активных гарантий', num(c.active_warranties)) +
+        cell('Договоров', num(c.contracts)) + cell('Сделок / воронка', my.length + ' / ' + money(pipe)) + '</div>' +
+        '<h3 style="margin:8px 0 4px;font-size:.82rem;">Сделки клиента</h3>' +
+        (my.length ? my.map(function (d) { return '<div class="kvr"><b>' + esc(d.title) + '</b><span class="note">' + (SNAME[d.stage] || d.stage) + ' · ' + money(d.amount) + '</span><span class="badge" style="margin-left:auto;">' + num(d.probability) + '%</span></div>'; }).join('') : '<span class="note">Сделок нет.</span>') +
+        '<p class="note" style="margin-top:8px;">Заявки/сервис/гарантии — в модулях «Заявки», «Сервис», «Качество».</p>' });
+    }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+  }
+  function renderForecast() {
+    var host = $('#forecast'); if (!host) return;
+    var months = {}, order = [], now = new Date();
+    deals.forEach(function (d) {
+      if (d.stage === 'won' || d.stage === 'lost') return;
+      var w = num(d.weighted); if (!w) w = num(d.amount) * num(d.probability) / 100;
+      var base = d.due_date ? new Date(d.due_date) : now;
+      var k = base.getFullYear() + '-' + String(base.getMonth() + 1).padStart(2, '0');
+      if (!months[k]) { months[k] = { w: 0, n: 0 }; order.push(k); }
+      months[k].w += w; months[k].n++;
+    });
+    order.sort();
+    var total = order.reduce(function (s, k) { return s + months[k].w; }, 0);
+    host.innerHTML = '<div class="card"><h2>Прогноз продаж (взвешенная воронка)</h2>' +
+      (order.length ? '<div class="legend" style="margin:6px 0;"><span>Прогноз всего: <b>' + money(total) + '</b></span></div>' +
+        order.map(function (k) { return '<div class="kvr"><b style="min-width:110px;">' + k + '</b><span class="note">' + months[k].n + ' сд.</span><span class="badge" style="margin-left:auto;">' + money(months[k].w) + '</span></div>'; }).join('')
+        : '<span class="note">Открытых сделок нет.</span>') + '</div>';
   }
 
   /* ---------- R1: напоминания ---------- */
