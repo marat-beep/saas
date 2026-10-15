@@ -237,13 +237,13 @@ const ITEMS = [
     evidence: 'ref: Wikipedia ERP (SCM — warehousing: picking, packing)'
   },
   {
-    id: 'PROP-24', wave: 'R4', prio: 'P2', area: 'Закупки', status: 'open', effort: 'M',
+    id: 'PROP-24', wave: 'R4', prio: 'P2', area: 'Закупки', status: 'done', effort: 'M',
     business: [BIZ.prod, BIZ.econ], modules: ['procurement', 'suppliers', 'finance'],
     title: 'Планирование закупок, скоринг поставщиков, 3-way match',
-    problem: 'SRM-контур рынка включает планирование закупок и сопоставление «заказ–приёмка–счёт»; у нас этого нет.',
-    action: 'Добавить план закупок под потребность (MRP-lite), скоринг поставщиков (сроки/качество/цена) и 3-way match (PO–GRN–invoice) с автопроверкой расхождений.',
-    dod: 'Потребность формирует предложения закупки; поставщик имеет рейтинг; расхождения PO/приёмка/счёт выявляются.',
-    evidence: 'ref: Wikipedia ERP (SRM, purchasing)'
+    problem: 'Не было плана закупок (MRP), периодического скоринга поставщиков и сверки «заказано↔получено↔счёт».',
+    action: 'Миграция 0266: `app_supplier_scores` (сроки/качество/цена → итог) + RPC list/save/delete; `app_three_way_match` (сверка заявка↔приход по материалу). В «Закупках» — панель **«План закупок и сверка»** (MRP-скан `app_reorder_scan` + заявки + сверка); в «Поставщиках» — панель **«Периодический скоринг»**. Счётная сторона 3-way — в «Финансах» (2 из 3 сторон реализовано).',
+    dod: 'Есть план закупок (MRP) и заявки; скоринг ведётся с итогом; сверка «заказано↔получено» выявляет расхождения. Реализовано (apply_all 257).',
+    evidence: 'supabase/migrations/0266_procurement.sql, apps/procurement, apps/suppliers (v390)'
   },
   {
     id: 'PROP-25', wave: 'R4', prio: 'P2', area: 'Проекты', status: 'done', effort: 'M',

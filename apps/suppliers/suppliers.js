@@ -75,10 +75,35 @@
   });
   $('#logout').addEventListener('click', function () { window.Auth.logout(); location.href = '../../index.html'; });
 
+  /* R4·PROP-24: периодический скоринг поставщиков */
+  function loadScores() {
+    var host = $('#score'); if (!host) return;
+    Promise.all([
+      rpc('app_suppliers_list', { p_token: token }).catch(function () { return []; }),
+      rpc('app_supplier_score_list', { p_token: token, p_supplier: null }).catch(function () { return []; })
+    ]).then(function (r) {
+      var sups = r[0] || [], sc = r[1] || [];
+      host.innerHTML = '<div class="card"><h2>Периодический скоринг поставщиков</h2>' +
+        '<div class="grid3"><div class="field"><label>Поставщик</label><select id="scSup"><option value="">— выберите —</option>' + sups.map(function (s) { return '<option value="' + s.id + '">' + esc(s.name) + '</option>'; }).join('') + '</select></div>' +
+        '<div class="field"><label>Период</label><input type="date" id="scPer"></div><div class="field"></div></div>' +
+        '<div class="grid3"><div class="field"><label>Сроки (0–5)</label><input type="number" id="scD" min="0" max="5" step="0.5"></div><div class="field"><label>Качество (0–5)</label><input type="number" id="scQ" min="0" max="5" step="0.5"></div><div class="field"><label>Цена (0–5)</label><input type="number" id="scP" min="0" max="5" step="0.5"></div></div>' +
+        '<div class="btn-row"><button class="btn" id="scSave">Сохранить скоринг</button></div>' +
+        (sc.length ? '<div class="tbl-wrap mt"><table class="tbl"><thead><tr><th>Поставщик</th><th>Период</th><th class="num">Сроки</th><th class="num">Кач-во</th><th class="num">Цена</th><th class="num">Итог</th><th></th></tr></thead><tbody>' +
+          sc.map(function (x) { var s = sups.filter(function (y) { return y.id === x.supplier_id; })[0]; return '<tr><td><b>' + esc(s ? s.name : (x.supplier_id || '—')) + '</b></td><td>' + esc(x.period) + '</td><td class="num">' + x.delivery + '</td><td class="num">' + x.quality + '</td><td class="num">' + x.price + '</td><td class="num"><b>' + x.score + '</b></td><td><button class="act danger" data-scdel="' + x.id + '" aria-label="Удалить" title="Удалить">✕</button></td></tr>'; }).join('') + '</tbody></table></div>'
+          : '<span class="note">Оценок нет — добавьте скоринг выше.</span>') + '</div>';
+      var sv = $('#scSave'); if (sv) sv.addEventListener('click', function () {
+        rpc('app_supplier_score_save', { p_token: token, p_id: null, p_supplier: $('#scSup').value || null, p_period: $('#scPer').value || null, p_delivery: parseFloat($('#scD').value) || 0, p_quality: parseFloat($('#scQ').value) || 0, p_price: parseFloat($('#scP').value) || 0, p_note: null })
+          .then(function (r) { var x = r && r[0]; ui.toast(x ? x.message : ''); if (x && x.ok) loadScores(); }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+      });
+      $$('#score [data-scdel]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_supplier_score_delete', { p_token: token, p_id: b.dataset.scdel }).then(loadScores); }); });
+    });
+  }
+
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
     token = s.token;
+    loadScores();
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#fMsg', 'Supabase не подключён.', 'err'); return; }
     load(); loadCatDict();

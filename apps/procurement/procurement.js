@@ -171,10 +171,37 @@
     }).catch(function (e) { msg('#dMsg', 'Ошибка: ' + e.message, 'err'); });
   });
 
+  /* R4·PROP-24: план закупок (MRP) и сверка «заказано ↔ получено» */
+  function loadPlan() {
+    var host = $('#plan'); if (!host) return;
+    rpc('app_purchase_request_list', { p_token: token, p_status: null }).catch(function () { return []; }).then(function (pr) {
+      pr = pr || [];
+      host.innerHTML = '<div class="card"><h2>План закупок и сверка</h2>' +
+        '<div class="btn-row"><button class="btn secondary" id="mrpBtn">Сканировать потребность (MRP)</button><button class="btn secondary" id="twBtn2">Сверка «заказано ↔ получено»</button></div>' +
+        (pr.length ? '<div class="tbl-wrap mt"><table class="tbl"><thead><tr><th>Источник</th><th>Позиция</th><th class="num">Кол-во</th><th>Ед.</th><th>Статус</th></tr></thead><tbody>' +
+          pr.map(function (p) { return '<tr><td>' + esc(p.source || '') + '</td><td><b>' + esc(p.title || '') + '</b></td><td class="num">' + (Number(p.qty) || 0) + '</td><td>' + esc(p.unit || '') + '</td><td>' + esc(p.status || '') + '</td></tr>'; }).join('') + '</tbody></table></div>'
+          : '<span class="note">Заявок закупки нет — нажмите «Сканировать потребность».</span>') +
+        '<div id="twRes" class="mt"></div><p class="note" style="margin-top:6px;">Сверка охватывает 2 стороны из 3: «заказано» (заявки) и «получено» (приход на склад); счётная сторона — в «Финансах».</p></div>';
+      var mb = $('#mrpBtn'); if (mb) mb.addEventListener('click', function () {
+        mb.disabled = true;
+        rpc('app_reorder_scan', { p_token: token }).then(function (r) { var x = r && r[0]; ui.toast(x ? x.message : ''); loadPlan(); }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); mb.disabled = false; });
+      });
+      var tb = $('#twBtn2'); if (tb) tb.addEventListener('click', function () {
+        rpc('app_three_way_match', { p_token: token }).then(function (rows) {
+          rows = rows || [];
+          $('#twRes').innerHTML = rows.length ? '<h3 style="margin:10px 0 4px;font-size:.82rem;">Сверка по материалам</h3><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Материал</th><th class="num">Заказано</th><th class="num">Получено</th><th class="num">Расхождение</th><th>Итог</th></tr></thead><tbody>' +
+            rows.map(function (x) { return '<tr><td><b>' + esc(x.material || '—') + '</b></td><td class="num">' + (Number(x.ordered) || 0) + '</td><td class="num">' + (Number(x.received) || 0) + '</td><td class="num">' + (Number(x.diff) || 0) + '</td><td>' + (x.ok ? '✔' : '⚠ расхождение') + '</td></tr>'; }).join('') + '</tbody></table></div>'
+            : '<span class="note">Нет заявок для сверки.</span>';
+        }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+      });
+    });
+  }
+
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
     me = s; token = s.token; applyCaps();
+    loadPlan();
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#listMsg', 'Supabase не подключён.', 'err'); return; }
     load();
