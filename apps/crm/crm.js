@@ -25,8 +25,35 @@
       $('#fCust').innerHTML = '<option value="">— выберите —</option>' + customers.map(function (c) { return '<option value="' + c.id + '">' + esc(c.name) + '</option>'; }).join('');
       $('#kpis').innerHTML = cell('Сделок', num(k.deals_total)) + cell('Открытых', num(k.open_deals)) +
         cell('Воронка (взвеш.)', money(k.pipeline)) + cell('Выиграно', money(k.won_sum), '#15803d') + cell('Конверсия', num(k.conversion) + '%');
-      render(); renderCustomers(); loadReminders();
+      render(); renderCustomers(); loadReminders(); renderFunnel();
     }).catch(function (e) { msg('#fMsg', 'Ошибка: ' + e.message, 'err'); });
+  }
+  /* R5·PROP-30: воронка и конверсия лид→сделка (по стадиям и источникам) */
+  function renderFunnel() {
+    var host = $('#funnel'); if (!host) return;
+    if (!deals.length) { host.innerHTML = '<div class="card"><h2>Воронка и конверсия</h2><span class="note">Нет данных — добавьте лиды/сделки выше.</span></div>'; return; }
+    var cnt = {}, sum = {};
+    STAGES.forEach(function (s) { cnt[s[0]] = 0; sum[s[0]] = 0; });
+    deals.forEach(function (d) { cnt[d.stage] = (cnt[d.stage] || 0) + 1; sum[d.stage] = (sum[d.stage] || 0) + num(d.amount); });
+    var total = deals.length, won = cnt.won || 0, lost = cnt.lost || 0;
+    var conv = total ? Math.round(won / total * 100) : 0;
+    var reach = {}, cum = 0;
+    ['won', 'negotiation', 'proposal', 'qualified', 'lead'].forEach(function (st) { cum += cnt[st] || 0; reach[st] = cum; });
+    var base = reach.lead || 0;
+    var rows = ['lead', 'qualified', 'proposal', 'negotiation', 'won'].map(function (st) {
+      var pct = base ? Math.round((reach[st] || 0) / base * 100) : 0;
+      return '<div class="kvr"><b style="min-width:140px;">' + SNAME[st] + '</b><span class="note">' + (cnt[st] || 0) + ' шт · ' + money(sum[st] || 0) + '</span><span class="badge" style="margin-left:auto;">' + pct + '%</span></div>';
+    }).join('');
+    var bySrc = {};
+    deals.forEach(function (d) { var s = d.source || '(без источника)'; bySrc[s] = bySrc[s] || { all: 0, won: 0 }; bySrc[s].all++; if (d.stage === 'won') bySrc[s].won++; });
+    var srcRows = Object.keys(bySrc).sort(function (a, b) { return bySrc[b].all - bySrc[a].all; }).slice(0, 8).map(function (s) {
+      var o = bySrc[s], c = o.all ? Math.round(o.won / o.all * 100) : 0;
+      return '<div class="kvr"><b style="min-width:140px;">' + esc(s) + '</b><span class="note">' + o.all + ' сд. · ' + o.won + ' выигр.</span><span class="badge" style="margin-left:auto;">' + c + '%</span></div>';
+    }).join('');
+    host.innerHTML = '<div class="card"><h2>Воронка и конверсия</h2>' +
+      '<div class="legend" style="margin:6px 0;"><span>Всего сделок: <b>' + total + '</b></span><span>Выиграно: <b>' + won + '</b></span><span>Проиграно: <b>' + lost + '</b></span><span>Конверсия в выигрыш: <b>' + conv + '%</b></span></div>' +
+      '<div class="cols"><div><h3 style="margin:6px 0;font-size:.82rem;">По стадиям (накопительно)</h3>' + rows + '</div>' +
+      '<div><h3 style="margin:6px 0;font-size:.82rem;">По источникам</h3>' + (srcRows || '<span class="note">Источники не заполнены.</span>') + '</div></div></div>';
   }
   function cell(l, v, c) { return '<div class="kpi"><small>' + l + '</small><b' + (c ? ' style="color:' + c + '"' : '') + '>' + v + '</b></div>'; }
 
