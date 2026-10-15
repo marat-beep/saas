@@ -41,6 +41,35 @@
     });
   }
 
+  /* R4·PROP-20: основные средства и амортизация */
+  var fa = [];
+  function loadFa() {
+    return rpc('app_fa_list', { p_token: token }).then(function (r) {
+      fa = r || [];
+      var cost = fa.reduce(function (s, a) { return s + (Number(a.cost) || 0); }, 0);
+      var acc = fa.reduce(function (s, a) { return s + (Number(a.accumulated) || 0); }, 0);
+      var res = fa.reduce(function (s, a) { return s + (Number(a.residual) || 0); }, 0);
+      var host = $('#assets'); if (!host) return;
+      host.innerHTML = '<div class="card"><h2>Основные средства и амортизация</h2>' +
+        '<div class="kpi-row">' + cell('ОС (шт)', fa.length) + cell('Первонач. стоимость', money(cost)) + cell('Накопл. амортизация', money(acc)) + cell('Остаточная', money(res)) + '</div>' +
+        '<div class="grid3"><div class="field"><label>Код</label><input type="text" id="faCode"></div><div class="field"><label>Наименование *</label><input type="text" id="faName"></div><div class="field"><label>Группа</label><input type="text" id="faGrp"></div></div>' +
+        '<div class="grid3"><div class="field"><label>Стоимость, ₽</label><input type="text" id="faCost" inputmode="decimal"></div><div class="field"><label>Ликвидационная, ₽</label><input type="text" id="faSalv" inputmode="decimal"></div><div class="field"><label>Срок, мес</label><input type="number" id="faLife" value="36"></div></div>' +
+        '<div class="grid3"><div class="field"><label>Дата ввода</label><input type="date" id="faIn"></div></div>' +
+        '<div class="btn-row"><button class="btn" id="faSave">Добавить ОС</button><button class="btn secondary" id="faAmort">Начислить амортизацию за месяц</button></div>' +
+        (fa.length ? tbl('<th>Код</th><th>Наименование</th><th>Группа</th><th class="num">Перв.</th><th class="num">Накопл.</th><th class="num">Остаточная</th><th>Статус</th><th></th>',
+          fa.map(function (a) { return '<tr><td>' + esc(a.code || '—') + '</td><td><b>' + esc(a.name) + '</b></td><td>' + esc(a.grp || '—') + '</td><td class="num">' + money(a.cost) + '</td><td class="num">' + money(a.accumulated) + '</td><td class="num">' + money(a.residual) + '</td><td>' + (a.status === 'written_off' ? 'списано' : 'в работе') + '</td><td><button class="act danger" data-fadel="' + a.id + '" aria-label="Удалить" title="Удалить">✕</button></td></tr>'; }).join(''))
+          : '<span class="note">ОС не заведены — добавьте в форме выше.</span>') + '</div>';
+      var sf = $('#faSave'); if (sf) sf.addEventListener('click', function () {
+        rpc('app_fa_save', { p_token: token, p_id: null, p_code: $('#faCode').value.trim() || null, p_name: $('#faName').value.trim(), p_grp: $('#faGrp').value.trim() || null, p_cost: parseFloat($('#faCost').value.replace(',', '.')) || 0, p_salvage: parseFloat($('#faSalv').value.replace(',', '.')) || 0, p_life_months: parseInt($('#faLife').value, 10) || 36, p_in_date: $('#faIn').value || null })
+          .then(function (r) { var x = r && r[0]; ui.toast(x ? x.message : ''); if (x && x.ok) loadFa(); }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+      });
+      var ab = $('#faAmort'); if (ab) ab.addEventListener('click', function () {
+        rpc('app_fa_amortize', { p_token: token, p_period: null }).then(function (r) { var x = r && r[0]; ui.toast('Начислено: ' + money(x ? x.charged : 0) + ' ₽'); loadFa(); }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+      });
+      $$('#assets [data-fadel]').forEach(function (b) { b.addEventListener('click', function () { if (!confirm('Удалить ОС?')) return; rpc('app_fa_delete', { p_token: token, p_id: b.dataset.fadel }).then(loadFa); }); });
+    }).catch(function (e) { var h = $('#assets'); if (h) h.innerHTML = '<div class="card"><span class="note">Ошибка: ' + esc(e.message) + '</span></div>'; });
+  }
+
   $('#addAc').addEventListener('click', acForm);
   $('#addPo').addEventListener('click', poForm);
   $('#osvBtn').addEventListener('click', loadOsv);
@@ -52,6 +81,6 @@
     token = s.token;
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('Supabase не подключён.', 'err'); return; }
-    loadKpi(); loadAc();
+    loadKpi(); loadAc(); loadFa();
   });
 })();

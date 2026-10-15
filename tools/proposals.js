@@ -201,13 +201,13 @@ const ITEMS = [
 
   /* ============ R4 — по сравнению с рынком (ERP/MES/PLM/EAM) ============ */
   {
-    id: 'PROP-20', wave: 'R4', prio: 'P2', area: 'Финансы', status: 'open', effort: 'M',
+    id: 'PROP-20', wave: 'R4', prio: 'P2', area: 'Финансы', status: 'done', effort: 'M',
     business: [BIZ.econ], modules: ['accounting', 'finance', 'economics'],
     title: 'Основные средства и амортизация',
-    problem: 'В ERP финансовый модуль обязательно ведёт основные средства и амортизацию; у нас `accounting` — задел без ОС.',
-    action: 'Добавить учёт ОС (карточка, группа, срок, норма), начисление амортизации (линейная/уменьшаемый остаток), выбытие; проводки в GL.',
-    dod: 'ОС заводится, амортизация начисляется периодом, формируются проводки и ведомость ОС.',
-    evidence: 'ref: Wikipedia ERP (Financial accounting — fixed assets)'
+    problem: 'В ERP финансовый контур ведёт ОС и амортизацию; у нас `accounting` был заделом без ОС.',
+    action: 'Миграция 0263: таблица `app_fixed_assets` + RPC list/save/delete и `app_fa_amortize` (линейная месячная амортизация, авто-списание). В «Бухгалтерии» — панель **«Основные средства и амортизация»** (KPI: перв./накопл./остаточная, добавление, начисление за месяц).',
+    dod: 'ОС заводится, амортизация начисляется периодом, видна остаточная стоимость. Реализовано (apply_all 254).',
+    evidence: 'supabase/migrations/0263_assets.sql, apps/accounting (v387)'
   },
   {
     id: 'PROP-21', wave: 'R4', prio: 'P2', area: 'Персонал', status: 'open', effort: 'M',
