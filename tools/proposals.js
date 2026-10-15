@@ -228,13 +228,13 @@ const ITEMS = [
     evidence: 'ref: Wikipedia ERP (Order processing — credit checking, ATP, product configurator)'
   },
   {
-    id: 'PROP-23', wave: 'R4', prio: 'P2', area: 'Склад', status: 'open', effort: 'M',
+    id: 'PROP-23', wave: 'R4', prio: 'P2', area: 'Склад', status: 'done', effort: 'M',
     business: [BIZ.prod], modules: ['warehouse', 'logistics', 'orders'],
     title: 'Отгрузочные задания: сборка, упаковка, отгрузка',
-    problem: 'ERP warehousing включает receiving/putaway/picking/packing; у нас адресное хранение есть, а сборка/упаковка заказа — нет.',
-    action: 'Добавить отгрузочное задание по заказу: резерв, маршрут сборки по ячейкам, упаковка, ТТН/накладная, статусы.',
-    dod: 'По заказу формируется задание сборки и упаковки, списываются лоты, печатается накладная.',
-    evidence: 'ref: Wikipedia ERP (SCM — warehousing: picking, packing)'
+    problem: 'Не было заданий на отгрузку по заказу (сборка/упаковка/отгрузка) со статусами.',
+    action: 'Миграция 0267: таблица `app_shipments` (номер авто, заказ, заказчик, позиции, статус new→picking→packed→shipped, исполнитель) + RPC list/save/set_status/delete. В «Складе» — панель **«Отгрузочные задания»** (создание + продвижение статуса).',
+    dod: 'Задание на отгрузку создаётся и проходит сборку→упаковку→отгрузку. Реализовано (apply_all 258).',
+    evidence: 'supabase/migrations/0267_shipping.sql, apps/warehouse (v391)'
   },
   {
     id: 'PROP-24', wave: 'R4', prio: 'P2', area: 'Закупки', status: 'done', effort: 'M',

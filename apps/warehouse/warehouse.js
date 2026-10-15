@@ -279,10 +279,38 @@
       .catch(function (e) { msg('#mvMsg', 'Ошибка: ' + e.message, 'err'); });
   });
 
+  /* R4·PROP-23: отгрузочные задания (сборка → упаковка → отгрузка) */
+  var ships = [];
+  var SHST = { new: 'Новое', picking: 'Сборка', packed: 'Упаковано', shipped: 'Отгружено' };
+  function loadShip() {
+    return rpc('app_shipment_list', { p_token: token }).then(function (r) { ships = r || []; renderShip(); })
+      .catch(function () { var h = $('#ship'); if (h) h.innerHTML = ''; });
+  }
+  function renderShip() {
+    var host = $('#ship'); if (!host) return;
+    host.innerHTML = '<div class="card"><h2>Отгрузочные задания</h2>' +
+      '<div class="grid3"><div class="field"><label>Заказ/ссылка</label><input type="text" id="shRef" placeholder="№ заказа"></div>' +
+      '<div class="field"><label>Заказчик</label><input type="text" id="shCust"></div>' +
+      '<div class="field"><label>Позиций</label><input type="number" id="shItems" placeholder="1"></div></div>' +
+      '<div class="grid3"><div class="field"><label>Исполнитель</label><input type="text" id="shAss"></div><div class="field" style="grid-column:span 2;"><label>Примечание</label><input type="text" id="shNote"></div></div>' +
+      '<div class="btn-row"><button class="btn" id="shAdd">Создать задание</button></div>' +
+      (ships.length ? '<div class="tbl-wrap mt"><table class="tbl"><thead><tr><th>№</th><th>Заказ</th><th>Заказчик</th><th class="num">Поз.</th><th>Статус</th><th>Исполн.</th><th></th></tr></thead><tbody>' +
+        ships.map(function (s) { var nx = s.status === 'new' ? 'picking' : s.status === 'picking' ? 'packed' : s.status === 'packed' ? 'shipped' : null; return '<tr><td><b>' + esc(s.number || '') + '</b></td><td>' + esc(s.order_ref || '—') + '</td><td>' + esc(s.customer || '—') + '</td><td class="num">' + num(s.items_count) + '</td><td>' + esc(SHST[s.status] || s.status) + '</td><td>' + esc(s.assignee || '—') + '</td>' +
+          '<td style="white-space:nowrap;">' + (nx ? '<button class="act" data-shadv="' + s.id + '" data-next="' + nx + '">→ ' + SHST[nx] + '</button>' : '<span class="note">готово</span>') + '<button class="act danger" data-shdel="' + s.id + '" aria-label="Удалить" title="Удалить">✕</button></td></tr>'; }).join('') + '</tbody></table></div>'
+        : '<span class="note">Заданий нет — создайте в форме выше.</span>') + '</div>';
+    var a = $('#shAdd'); if (a) a.addEventListener('click', function () {
+      rpc('app_shipment_save', { p_token: token, p_id: null, p_order_ref: $('#shRef').value.trim() || null, p_customer: $('#shCust').value.trim() || null, p_items: parseInt($('#shItems').value, 10) || 0, p_assignee: $('#shAss').value.trim() || null, p_note: $('#shNote').value.trim() || null })
+        .then(function (r) { var x = r && r[0]; ui.toast(x ? x.message : ''); if (x && x.ok) loadShip(); }).catch(function (e) { ui.toast('Ошибка: ' + e.message, 'err'); });
+    });
+    $$('#ship [data-shadv]').forEach(function (b) { b.addEventListener('click', function () { rpc('app_shipment_set_status', { p_token: token, p_id: b.dataset.shadv, p_status: b.dataset.next }).then(loadShip); }); });
+    $$('#ship [data-shdel]').forEach(function (b) { b.addEventListener('click', function () { if (!confirm('Удалить задание?')) return; rpc('app_shipment_delete', { p_token: token, p_id: b.dataset.shdel }).then(loadShip); }); });
+  }
+
   window.Auth.guard('../auth/index.html').then(function (s) {
     if (!s) return;
     if (!window.Auth.isStaff(s.role)) { location.href = '../dashboard/index.html'; return; }
     me = s; token = s.token; applyCaps();
+    loadShip();
     $('#who').textContent = s.login + (s.full_name ? ' · ' + s.full_name : '') + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     if (!SB) { msg('#listMsg', 'Supabase не подключён.', 'err'); return; }
     load();
