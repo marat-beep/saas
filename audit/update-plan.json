@@ -1,5 +1,5 @@
 {
-    "generated_at":  "2026-10-13T14:59:23",
+    "generated_at":  "2026-10-15T16:43:45",
     "capacity":  20,
     "open":  2,
     "waves":  [
@@ -9,7 +9,7 @@
                                     {
                                         "area":  "H",
                                         "sev":  "Info",
-                                        "title":  "Много RPC-функций: 1223",
+                                        "title":  "Много RPC-функций: 1338",
                                         "detail":  "Проверять пагинацию/индексы горячих списков.",
                                         "evidence":  "supabase/migrations",
                                         "method":  "perf",
@@ -23,8 +23,8 @@
                                     {
                                         "area":  "A",
                                         "sev":  "Info",
-                                        "title":  "RPC только на backend (нет вызова из UI): 172",
-                                        "detail":  "Кандидаты на проверку/документирование API.",
+                                        "title":  "RPC только на backend (нет вызова из UI): 159",
+                                        "detail":  "Классификация — docs/API_SURFACE.md (PROP-05).",
                                         "evidence":  "supabase/migrations",
                                         "method":  "trace",
                                         "effort":  3,

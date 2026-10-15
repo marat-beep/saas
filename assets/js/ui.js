@@ -175,8 +175,8 @@
     });
   }
   (function () {
-    function init() { try { autoSearch(); } catch (e) {} }
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+    function initSearch() { try { autoSearch(); } catch (e) {} }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initSearch); else initSearch();
   })();
   // Подсказки из настраиваемого справочника: привязывает <datalist> к текстовому полю.
   // Значения подтягиваются из app_dict_items_by_code (кэш на страницу). Свободный ввод сохраняется.

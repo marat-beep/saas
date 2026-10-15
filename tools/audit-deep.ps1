@@ -57,7 +57,7 @@ foreach ($f in Get-ChildItem (Join-Path $Root 'assets\js') -Filter '*.js') {
 }
 
 # --- big files ---
-foreach ($f in Get-ChildItem (Join-Path $Root 'apps\*\*.js') + (Get-ChildItem (Join-Path $Root 'assets\js\*.js')) ) {
+foreach ($f in (@(Get-ChildItem -Path (Join-Path $Root 'apps\*\*.js')) + @(Get-ChildItem -Path (Join-Path $Root 'assets\js\*.js')))) {
   if ($f.Length -gt 150KB) { Add-F 'A' 'Minor' "Большой файл: $($f.Name)" ("$([math]::Round($f.Length/1KB)) КБ") ($f.FullName -replace [regex]::Escape($Root),'') 3 1 }
 }
 

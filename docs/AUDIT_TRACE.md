@@ -1,16 +1,16 @@
 # Матрица трассируемости (3DMP Service)
 
-Сформировано: 2026-10-15T10:07:53 · tools/trace-matrix.ps1
+Сформировано: 2026-10-15T16:41:41 · tools/trace-matrix.ps1
 
 ## Сводка
-- Модулей в каталоге: 100
-- Приложений на диске: 99
+- Модулей в каталоге: 101
+- Приложений на диске: 100
 - Сироты каталога (нет index.html): 0
 - apps без каталога: 0
-- RPC вызывается в UI: 964
-- RPC определено в миграциях: 1120
+- RPC вызывается в UI: 1013
+- RPC определено в миграциях: 1172
 - UI→RPC без определения: 0
-- RPC без UI-вызова (backend): 156
+- RPC без UI-вызова (backend): 159
 
 ## UI→RPC без определения
 | RPC | Вызвано из |
@@ -23,6 +23,7 @@
 | app_announcements_scan |
 | app_api_log_write |
 | app_aps_build |
+| app_atp |
 | app_attach_list |
 | app_audit_write |
 | app_base32_decode |
@@ -63,6 +64,8 @@
 | app_doc_route_act |
 | app_doc_route_start |
 | app_employee_link_user |
+| app_equipment_catalog_list |
+| app_equipment_catalog_save |
 | app_ext_install |
 | app_ext_installs_list |
 | app_ext_toggle |
