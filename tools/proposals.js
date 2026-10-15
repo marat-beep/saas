@@ -311,13 +311,13 @@ const ITEMS = [
     evidence: 'apps/crm, app_customer_card (v382)'
   },
   {
-    id: 'PROP-32', wave: 'R5', prio: 'P2', area: 'BPM', status: 'open', effort: 'M',
+    id: 'PROP-32', wave: 'R5', prio: 'P2', area: 'BPM', status: 'done', effort: 'M',
     business: [BIZ.common], modules: ['workflow', 'tasks'],
     title: 'BPMN-схемы процессов и экспорт',
-    problem: 'Процессы задаются правилами/этапами, но нет графической BPMN-модели и стандартного обмена (BPMN 2.0 XML).',
-    action: 'Добавить визуальное моделирование процессов (события/действия/шлюзы/дорожки) с экспортом/импортом BPMN 2.0 XML (ISO 19510).',
-    dod: 'Процесс рисуется в BPMN-нотации и экспортируется в BPMN XML.',
-    evidence: 'ref: Wikipedia BPMN 2.0 (элементы, ISO 19510)'
+    problem: 'Процессы задавались этапами/правилами, но не было графической BPMN-модели и стандартного обмена (BPMN 2.0 XML).',
+    action: 'В workflow к каждому процессу добавлена кнопка **«Схема BPMN»**: рисуется диаграмма (старт → userTask по этапам с ролью/SLA → финиш) и генерируется **BPMN 2.0 XML** (ISO 19510) с кнопкой «Скачать .bpmn». UI-only (`workflow.js` v1→2).',
+    dod: 'Процесс отображается диаграммой и экспортируется в BPMN XML. Реализовано.',
+    evidence: 'apps/workflow (v383)'
   },
   {
     id: 'PROP-33', wave: 'R5', prio: 'P2', area: 'BPM', status: 'open', effort: 'M',

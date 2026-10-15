@@ -32,15 +32,73 @@
         defs.map(function (d) {
           var st = (d.steps || []).map(function (s) { return '<span class="chip">' + esc(s.name || s.role || '') + (s.sla_hours ? ' · ' + s.sla_hours + 'ч' : '') + '</span>'; }).join('');
           return '<tr><td><b>' + esc(d.name) + '</b></td><td class="muted">' + esc(d.code || '') + '</td><td>' + esc(d.doc_type || '') + '</td><td>' + (st || '—') + '</td><td>' + (d.active ? 'да' : 'нет') + '</td>' +
-            '<td style="white-space:nowrap;"><button class="act" data-start="' + d.id + '">Запустить</button><button class="act" data-edit="' + d.id + '">Изменить</button><button class="act danger" data-del="' + d.id + '">Удалить</button></td></tr>';
+            '<td style="white-space:nowrap;"><button class="act" data-start="' + d.id + '">Запустить</button><button class="act" data-bpmn="' + d.id + '">Схема BPMN</button><button class="act" data-edit="' + d.id + '">Изменить</button><button class="act danger" data-del="' + d.id + '">Удалить</button></td></tr>';
         }).join('') + '</tbody></table></div>' : '<span class="note">Процессов нет.</span>';
       $$('#defs [data-start]').forEach(function (b) { b.addEventListener('click', function () { start(defs.filter(function (x) { return x.id === b.dataset.start; })[0]); }); });
       $$('#defs [data-edit]').forEach(function (b) { b.addEventListener('click', function () { defForm(defs.filter(function (x) { return x.id === b.dataset.edit; })[0]); }); });
+      $$('#defs [data-bpmn]').forEach(function (b) { b.addEventListener('click', function () { openBpmn(defs.filter(function (x) { return x.id === b.dataset.bpmn; })[0]); }); });
       $$('#defs [data-del]').forEach(function (b) { b.addEventListener('click', function () { if (!confirm('Удалить процесс?')) return; rpc('app_process_def_delete', { p_token: token, p_id: b.dataset.del }).then(function (r) { var x = r && r[0]; msg('#dMsg', x ? x.message : '', x && x.ok ? 'ok' : 'err'); loadDefs(); }); }); });
     }).catch(function (e) { msg('#dMsg', 'Ошибка: ' + e.message, 'err'); });
   }
-  function defForm(d) {
-    d = d || {};
+  /* R5·PROP-32: BPMN-схема процесса (SVG) + экспорт BPMN 2.0 XML */
+  function wfSteps(d) { return (d.steps || []).slice().sort(function (a, b) { return (a.ord || 0) - (b.ord || 0); }); }
+  function bpmnSvg(d) {
+    var steps = wfSteps(d), W = 170, H = 60, y = 40, gap = 44, cy = y + H / 2;
+    var s = '', arrows = '', cx = 26, prevX = cx + 16;
+    s += '<circle cx="' + cx + '" cy="' + cy + '" r="16" fill="#fff" stroke="#0ea5e9" stroke-width="2"/>' +
+      '<text x="' + cx + '" y="' + (cy + 4) + '" text-anchor="middle" font-size="10" fill="#0ea5e9">▶</text>';
+    steps.forEach(function (stp, i) {
+      var tx = prevX + gap, label = esc(stp.name || stp.role || ('Этап ' + (i + 1)));
+      var meta = (stp.role ? esc(stp.role) : '') + (stp.sla_hours ? (stp.role ? ' · ' : '') + 'SLA ' + stp.sla_hours + ' ч' : '');
+      s += '<rect x="' + tx + '" y="' + y + '" width="' + W + '" height="' + H + '" rx="12" fill="#e8f5ee" stroke="#10b981" stroke-width="2"/>' +
+        '<text x="' + (tx + W / 2) + '" y="' + (y + 25) + '" text-anchor="middle" font-size="12" fill="#0f172a">' + label + '</text>' +
+        '<text x="' + (tx + W / 2) + '" y="' + (y + 43) + '" text-anchor="middle" font-size="10" fill="#64748b">' + meta + '</text>';
+      arrows += '<line x1="' + prevX + '" y1="' + cy + '" x2="' + tx + '" y2="' + cy + '" stroke="#94a3b8" stroke-width="2" marker-end="url(#wfArrow)"/>';
+      prevX = tx + W;
+    });
+    var ex = prevX + gap;
+    s += '<circle cx="' + ex + '" cy="' + cy + '" r="16" fill="#fff" stroke="#0f172a" stroke-width="3"/>';
+    arrows += '<line x1="' + prevX + '" y1="' + cy + '" x2="' + (ex - 16) + '" y2="' + cy + '" stroke="#94a3b8" stroke-width="2" marker-end="url(#wfArrow)"/>';
+    var width = ex + 40, height = y + H + 40;
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="' + width + '" height="' + height + '" viewBox="0 0 ' + width + ' ' + height + '" style="width:100%;height:auto;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px">' +
+      '<defs><marker id="wfArrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#94a3b8"/></marker></defs>' + s + arrows + '</svg>';
+  }
+  function bpmnXml(d) {
+    var steps = wfSteps(d);
+    var esc2 = function (v) { return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
+    var id = String(d.id || 'process').replace(/-/g, '');
+    var x = '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      '<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="Definitions_' + id + '" targetNamespace="http://3dmp.ru/bpmn">\n' +
+      '  <bpmn:process id="Process_' + id + '" name="' + esc2(d.name) + '" isExecutable="false">\n' +
+      '    <bpmn:startEvent id="Start_1" name="Старт"/>\n';
+    var prev = 'Start_1';
+    steps.forEach(function (stp, i) {
+      var tid = 'Task_' + (i + 1);
+      x += '    <bpmn:userTask id="' + tid + '" name="' + esc2(stp.name || stp.role || ('Этап ' + (i + 1))) + '"/>\n';
+      x += '    <bpmn:sequenceFlow id="Flow_' + (i + 1) + '" sourceRef="' + prev + '" targetRef="' + tid + '"/>\n';
+      prev = tid;
+    });
+    x += '    <bpmn:endEvent id="End_1" name="Завершено"/>\n' +
+      '    <bpmn:sequenceFlow id="Flow_' + (steps.length + 1) + '" sourceRef="' + prev + '" targetRef="End_1"/>\n' +
+      '  </bpmn:process>\n</bpmn:definitions>\n';
+    return x;
+  }
+  function openBpmn(d) {
+    if (!d) return;
+    var xml = bpmnXml(d);
+    ui.dialog({ title: 'BPMN-схема: ' + d.name, html: true, cancelText: 'Закрыть', body:
+      '<div>' + bpmnSvg(d) + '</div>' +
+      '<label style="margin-top:8px;">BPMN 2.0 XML</label>' +
+      '<textarea rows="10" readonly style="width:100%;font-family:ui-monospace,Consolas,monospace;font-size:.72rem;">' + ui.esc(xml) + '</textarea>' +
+      '<div class="btn-row mt"><button class="btn secondary" id="bpmnDl" style="width:auto;">Скачать .bpmn</button><span class="note" style="margin-left:auto;">Экспорт BPMN 2.0 (ISO 19510).</span></div>' });
+    var b = document.getElementById('bpmnDl');
+    if (b) b.onclick = function () {
+      var blob = new Blob([xml], { type: 'application/xml' });
+      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = (d.code || 'process') + '.bpmn'; a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    };
+  }
+  function defForm(d) {    d = d || {};
     ui.formDialog({
       title: d.id ? 'Процесс' : 'Новый процесс', okText: 'Сохранить', size: 'lg', fields: [
         { name: 'name', label: 'Название', type: 'text', required: true },
