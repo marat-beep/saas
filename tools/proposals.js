@@ -143,13 +143,13 @@ const ITEMS = [
     evidence: 'docs/archive/, docs/BACKLOG.md (v369)'
   },
   {
-    id: 'PROP-07', wave: 'R3', prio: 'P3', area: 'Документация', status: 'open', effort: 'S',
+    id: 'PROP-07', wave: 'R3', prio: 'P3', area: 'Документация', status: 'done', effort: 'S',
     business: [BIZ.common], modules: [],
     title: 'Разгрузить журнал BACKLOG',
-    problem: 'docs/BACKLOG.md ≈249 КБ — журнал §5 содержит сотни записей.',
-    action: 'Вынести записи старше N версий в docs/BACKLOG_ARCHIVE.md, оставить последние ~40–50.',
-    dod: 'BACKLOG обозрим; архив доступен и связан ссылкой.',
-    evidence: 'docs/BACKLOG.md'
+    problem: 'docs/BACKLOG.md разросся (≈264 КБ), §5 содержал 204 записи журнала — поиск и чтение замедлены.',
+    action: 'Записи §5 старше v309 (144 шт.) вынесены в `docs/BACKLOG_ARCHIVE.md`; в BACKLOG оставлены последние 60 и указатель. Размер BACKLOG 264→151 КБ.',
+    dod: 'BACKLOG обозрим (60 записей §5), архив доступен и связан указателем. Реализовано.',
+    evidence: 'docs/BACKLOG.md, docs/BACKLOG_ARCHIVE.md (v370)'
   },
   {
     id: 'PROP-12', wave: 'R3', prio: 'P3', area: 'CI', status: 'open', effort: 'S',
