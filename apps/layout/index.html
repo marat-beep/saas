@@ -10,9 +10,9 @@
   main.layout-app{max-width:none;padding:10px 14px 90px}
   .mob-bar,.mob-fab{display:none !important}
   /* ---------- редактор: тема строго внутри окна ---------- */
-  .editor{--ebg:#eef2f7;--esurf:#ffffff;--ehead:#f8fafc;--etext:#0f172a;--emuted:#64748b;--eborder:#e2e8f0;--egl:#e4eaf2;--eln:#334155;
+  .editor{--ebg:#eef2f7;--esurf:#ffffff;--ehead:#f8fafc;--etext:#0f172a;--emuted:#64748b;--eborder:#e2e8f0;--egl:#b9c6d8;--egl2:#e6ecf5;--eln:#334155;
     background:var(--ebg);color:var(--etext);border:1px solid var(--eborder);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px;position:relative;z-index:1}
-  .editor.theme-dark{--ebg:#0e1420;--esurf:#151d2a;--ehead:#1b2432;--etext:#e6edf5;--emuted:#93a1b3;--eborder:#26303f;--egl:#1b2432;--eln:#cbd5e1}
+  .editor.theme-dark{--ebg:#0e1420;--esurf:#151d2a;--ehead:#1b2432;--etext:#e6edf5;--emuted:#93a1b3;--eborder:#26303f;--egl:#33475f;--egl2:#1e2836;--eln:#cbd5e1}
   .etop{display:flex;gap:6px;flex-wrap:wrap;align-items:center;background:var(--ehead);border:1px solid var(--eborder);border-radius:10px;padding:6px 8px}
   .etop button,.etop select,.etop input,.etop label.btn{width:auto;min-height:36px;padding:7px 11px;border:1px solid var(--eborder);border-radius:9px;background:var(--esurf);color:var(--etext);cursor:pointer}
   .etop .seg{display:inline-flex;border:1px solid var(--eborder);border-radius:9px;overflow:hidden}
@@ -28,7 +28,7 @@
   .ecanvas{display:flex;flex-direction:column;gap:6px;min-width:0}
   #cvWrap{overflow:auto;border:1px solid var(--eborder);border-radius:12px;background:var(--esurf);height:calc(100vh - 210px);min-height:480px}
   #cv{display:block;background:var(--esurf);touch-action:none}
-  #cv .gl{stroke:var(--egl)} #cv .ln{fill:var(--eln)} #cv .li{cursor:move}
+  #cv .gl{stroke:var(--egl)} #cv .glm{stroke:var(--egl2)} #cv .fr{stroke:var(--emuted);opacity:.5} #cv .ln{fill:var(--eln)} #cv .li{cursor:move}
   #cv .lk{stroke:#0ea5e9;stroke-width:40;stroke-dasharray:120 80;opacity:.85} #cv .rt{fill:none;stroke:#2563eb;stroke-width:50;stroke-linejoin:round;opacity:.9}
   .estatus{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:.72rem;color:var(--emuted);background:var(--ehead);border:1px solid var(--eborder);border-radius:9px;padding:5px 9px}
   .ehint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;color:var(--emuted);font-size:.86rem;pointer-events:none}
@@ -62,6 +62,7 @@
   .grip{width:12px;cursor:col-resize;position:absolute;top:0;bottom:0;right:-6px;z-index:5}
   .grip.left{left:-6px;right:auto} .grip:hover{background:linear-gradient(90deg,transparent,rgba(16,185,129,.18),transparent)}
   .hintbar{font-size:.72rem;color:var(--emuted)}
+  .toolhint{font-size:.74rem;color:var(--etext);background:rgba(16,185,129,.10);border:1px solid var(--accent);border-radius:9px;padding:6px 9px;line-height:1.35}
   @media(max-width:1080px){.ebody{grid-template-columns:1fr}}
   @media print{.topbar,.etop,.epal,.eprops,.hero,#plansCard{display:none}.ebody{grid-template-columns:1fr}#cvWrap{height:auto;border:0}.editor{border:0;background:#fff}}
 </style>
@@ -89,6 +90,7 @@
           <button data-tool="route" title="Маршрут">〰</button>
           <button data-tool="link" title="Связь">🔗</button>
         </span>
+        <button class="btn" id="finishBtn" style="display:none;background:var(--accent);color:#fff;border-color:var(--accent)" title="Завершить текущий инструмент (Enter)">✔ Завершить</button>
         <button class="btn secondary" id="zo" title="Отдалить">−</button>
         <button class="btn secondary" id="zPlan" title="Подогнать по содержимому (по экрану)">По экрану</button>
         <button class="btn secondary" id="zi" title="Приблизить">＋</button>
@@ -137,6 +139,7 @@
         <button class="btn secondary" id="tplBtn" title="Шаблоны участков (мехобработка, сборка, склад)">Шаблоны</button>
         <input type="file" id="bgFile" accept="image/*,.dxf" style="display:none">
       </div>
+      <div class="toolhint" id="toolHint" style="display:none"></div>
 
       <div class="ebody" id="ebody">
         <aside class="epal"><h2 style="font-size:.82rem;margin:0 0 6px;">Палитра</h2><div id="palette"></div><div class="grip" id="gripPal" title="Тяните, чтобы изменить ширину"></div></aside>
@@ -189,7 +192,7 @@
   <script src="../../assets/js/nav.js?v=109"></script>
   <script src="../../assets/js/shell.js?v=76"></script>
   <script src="../../assets/js/module-report.js?v=3"></script>
-  <script src="layout.js?v=19"></script>
+  <script src="layout.js?v=20"></script>
   <script src="../../assets/js/realtime.js?v=2"></script>
   <script src="../../assets/js/module-info.js?v=2"></script>
 </body>

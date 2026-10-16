@@ -123,6 +123,17 @@
     return s;
   }
   function snapv(v) { return $('#snapChk') && $('#snapChk').checked ? Math.round(v / GRID) * GRID : Math.round(v); }
+  /* Держим узел внутри плана, чтобы его нельзя было «утащить» в недостижимую область */
+  function clampItem(it) {
+    it.w = Math.max(GRID * 3, Math.min(it.w || GRID * 3, S.w));
+    it.h = Math.max(GRID * 3, Math.min(it.h || GRID * 3, S.h));
+    it.x = Math.max(0, Math.min(S.w - it.w, it.x || 0));
+    it.y = Math.max(0, Math.min(S.h - it.h, it.y || 0));
+  }
+  function normalizeScene() {
+    (S.items || []).forEach(clampItem);
+    (S.notes || []).forEach(function (n) { n.x = Math.max(0, Math.min(S.w, n.x)); n.y = Math.max(0, Math.min(S.h, n.y)); });
+  }
 
   /* ---------- L3: подложка (растр/вектор DXF) ---------- */
   function bgRect() { var b = S.bg || {}; return { x: b.x != null ? b.x : 0, y: b.y != null ? b.y : 0, w: b.w != null ? b.w : S.w, h: b.h != null ? b.h : S.h }; }
@@ -275,9 +286,15 @@
     var g = '<defs><marker id="ah" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 z" fill="#0ea5e9"/></marker><marker id="ahr" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 z" fill="#2563eb"/></marker></defs>';
     g += bgLayer();
     if ($('#gridChk') && $('#gridChk').checked) {
-      for (var x = 0; x <= S.w; x += GRID * 5) g += '<line x1="' + x + '" y1="0" x2="' + x + '" y2="' + S.h + '" class="gl" stroke-width="' + (GRID / 12) + '"/>';
-      for (var y = 0; y <= S.h; y += GRID * 5) g += '<line x1="0" y1="' + y + '" x2="' + S.w + '" y2="' + y + '" class="gl" stroke-width="' + (GRID / 12) + '"/>';
+      if (zoom >= 0.12) {
+        for (var mx = 0; mx <= S.w; mx += GRID) g += '<line x1="' + mx + '" y1="0" x2="' + mx + '" y2="' + S.h + '" class="glm" stroke-width="' + (GRID / 16) + '"/>';
+        for (var my = 0; my <= S.h; my += GRID) g += '<line x1="0" y1="' + my + '" x2="' + S.w + '" y2="' + my + '" class="glm" stroke-width="' + (GRID / 16) + '"/>';
+      }
+      for (var x = 0; x <= S.w; x += GRID * 5) g += '<line x1="' + x + '" y1="0" x2="' + x + '" y2="' + S.h + '" class="gl" stroke-width="' + (GRID / 7) + '"/>';
+      for (var y = 0; y <= S.h; y += GRID * 5) g += '<line x1="0" y1="' + y + '" x2="' + S.w + '" y2="' + y + '" class="gl" stroke-width="' + (GRID / 7) + '"/>';
     }
+    /* рамка рабочего поля плана — чтобы границы области были видны */
+    g += '<rect class="fr" x="0" y="0" width="' + S.w + '" height="' + S.h + '" fill="none" stroke-width="' + (GRID / 5) + '"/>';
     g += (layers.links ? S.links : []).map(function (l) { var a = byId(l.a), b = byId(l.b); if (!a || !b) return ''; return '<line class="lk" x1="' + (a.x + a.w) + '" y1="' + (a.y + a.h / 2) + '" x2="' + b.x + '" y2="' + (b.y + b.h / 2) + '" marker-end="url(#ah)" data-lk="' + l.id + '"/>'; }).join('');
     g += (layers.routes ? S.routes : []).map(function (r) { return '<polyline class="rt" marker-end="url(#ahr)" data-rt="' + r.id + '" points="' + r.pts.map(function (p) { return p[0] + ',' + p[1]; }).join(' ') + '"/>'; }).join('');
     g += (layers.utils ? (S.utils || []) : []).map(function (u) { var kk = UTILS.filter(function (x) { return x.k === u.kind; })[0] || { c: '#888' }; return '<polyline data-ut="' + u.id + '" fill="none" stroke="' + kk.c + '" stroke-width="' + (GRID * 0.45) + '" stroke-dasharray="' + (GRID * 2) + ' ' + (GRID) + '" stroke-linejoin="round" points="' + u.pts.map(function (p) { return p[0] + ',' + p[1]; }).join(' ') + '"/>'; }).join('');
@@ -370,8 +387,8 @@
         if (tool === 'route') { var p = stagePct(e); routePts.push(p); previewRoute(); e.preventDefault(); return; }
         if (tool === 'util') { utilPts.push(stagePct(e)); draw(); e.preventDefault(); return; }
         if (tool === 'link') {
-          if (linkFrom && linkFrom !== id) { snapshot(); S.links.push({ id: uid('l'), a: linkFrom, b: id, kind: 'conveyor' }); renderLists(); linkFrom = null; draw(); }
-          else linkFrom = id; toast(linkFrom ? 'Выберите второй элемент для связи' : 'Готово');
+          if (linkFrom && linkFrom !== id) { snapshot(); S.links.push({ id: uid('l'), a: linkFrom, b: id, kind: 'conveyor' }); renderLists(); linkFrom = null; draw(); updateToolUI(); }
+          else { linkFrom = id; updateToolUI(); toast(linkFrom ? 'Выберите второй элемент для связи' : 'Готово'); }
           e.stopPropagation(); return;
         }
         if (mode === 'demo') return;
@@ -406,7 +423,7 @@
               }
             });
           }
-          it.x = nx; it.y = ny; draw();
+          it.x = Math.max(0, Math.min(S.w - it.w, nx)); it.y = Math.max(0, Math.min(S.h - it.h, ny)); draw();
         }
         function up() { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); if (moved) { snapshot(); } }
         document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up); e.preventDefault();
@@ -424,8 +441,8 @@
           if (dir.indexOf('w') >= 0) { nw = ow - dx; nx = ox + dx; }
           if (dir.indexOf('s') >= 0) nh = oh + dy;
           if (dir.indexOf('n') >= 0) { nh = oh - dy; ny = oy + dy; }
-          it.w = Math.max(GRID * 3, snapv(nw)); it.h = Math.max(GRID * 3, snapv(nh));
-          it.x = snapv(nx); it.y = snapv(ny);
+          it.w = Math.max(GRID * 3, Math.min(S.w, snapv(nw))); it.h = Math.max(GRID * 3, Math.min(S.h, snapv(nh)));
+          it.x = Math.max(0, Math.min(S.w - it.w, snapv(nx))); it.y = Math.max(0, Math.min(S.h - it.h, snapv(ny)));
           draw();
         }
         function up() { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); snapshot(); }
@@ -466,7 +483,7 @@
       '<div class="btn-row mt"><button class="btn secondary" id="pDup">⧉ Копия</button><button class="btn secondary" id="pDel">✕ Удалить</button></div>';
     $('#pName').oninput = function () { it.name = this.value; draw(); };
     $('#pStage').onchange = function () { it.stage = this.value; draw(); };
-    ['pX:x', 'pY:y', 'pW:w', 'pH:h'].forEach(function (pp) { var id = pp.split(':')[0], k = pp.split(':')[1]; $('#' + id).onchange = function () { it[k] = Number(this.value) || 0; draw(); }; });
+    ['pX:x', 'pY:y', 'pW:w', 'pH:h'].forEach(function (pp) { var id = pp.split(':')[0], k = pp.split(':')[1]; $('#' + id).onchange = function () { it[k] = Number(this.value) || 0; clampItem(it); draw(); prop(); }; });
     $('#pRot90').onclick = function () { it.rot = ((it.rot || 0) + 90) % 360; draw(); prop(); };
     $('#pRot').onchange = function () { it.rot = ((Math.round(Number(this.value) || 0) % 360) + 360) % 360; draw(); };
     $('#pDup').onclick = function () { snapshot(); var c = deep(it); c.id = uid(); c.x += GRID * 3; c.y += GRID * 3; S.items.push(c); sel = c.id; draw(); prop(); };
@@ -488,7 +505,7 @@
     host.innerHTML = UTILS.map(function (x) {
       return '<div class="utrow"><span class="utsw" style="background:' + x.c + '"></span><span>' + x.l + '</span><b>' + ((by[x.k] || 0) / 1000).toFixed(2) + ' м</b><button class="act" data-util="' + x.k + '">Проложить</button></div>';
     }).join('');
-    $$('#utilsList [data-util]').forEach(function (b) { b.onclick = function () { utilKind = b.dataset.util; utilPts = []; tool = 'util'; toast('Кликайте точки коммуникации; «Завершить» — сохранить'); }; });
+    $$('#utilsList [data-util]').forEach(function (b) { b.onclick = function () { utilKind = b.dataset.util; utilPts = []; setTool('util'); toast('Кликайте точки коммуникации; «✔ Завершить» (Enter) — сохранить'); }; });
   }
 
   /* ---------- L1: слои и легенда ---------- */
@@ -521,7 +538,7 @@
   function addType(t) { snapshot(); var d = typeDef(t); var it = { id: uid(), type: t, name: d.n, x: snapv(S.w / 2 - d.w / 2), y: snapv(S.h / 2 - d.h / 2), w: d.w, h: d.h, rot: 0, stage: stage }; S.items.push(it); sel = it.id; draw(); prop(); }
 
   /* ---------- проекты ---------- */
-  function applyData(d) { S = { w: d.w || W, h: d.h || H, items: d.items || [], notes: d.notes || [], links: d.links || [], routes: d.routes || [], utils: d.utils || [], bg: d.bg || null }; sel = null; history = []; redo = []; syncHist(); draw(); prop(); renderLists(); }
+  function applyData(d) { S = { w: d.w || W, h: d.h || H, items: d.items || [], notes: d.notes || [], links: d.links || [], routes: d.routes || [], utils: d.utils || [], bg: d.bg || null }; sel = null; history = []; redo = []; normalizeScene(); syncHist(); draw(); prop(); renderLists(); }
   function loadList() {
     return rpc('app_layout_plan_list', { p_token: token }).then(function (rows) {
       rows = rows || [];
@@ -562,11 +579,12 @@
     S.routes = [{ id: uid('r'), pts: list.map(function (it) { return [it.x + it.w / 2, it.y + it.h / 2]; }) }];
     renderLists(); draw(); toast('Маршрут построен (' + list.length + ' тчк)');
   }
-  function addRoute() { tool = 'route'; routePts = []; toast('Кликайте точки маршрута; «Завершить» — сохранить'); }
+  function addRoute() { routePts = []; setTool('route'); toast('Кликайте точки маршрута; «✔ Завершить» (Enter) — сохранить'); }
   function finishRoute() {
-    if (tool === 'util') { if (utilPts.length >= 2) { snapshot(); S.utils.push({ id: uid('u'), kind: utilKind, pts: utilPts.slice() }); } utilPts = []; utilKind = null; tool = 'sel'; renderLists(); draw(); return; }
-    if (routePts.length < 2) { routePts = []; tool = 'sel'; return; }
-    snapshot(); S.routes.push({ id: uid('r'), pts: routePts.slice() }); routePts = []; tool = 'sel'; renderLists(); draw();
+    if (tool === 'util') { if (utilPts.length >= 2) { snapshot(); S.utils.push({ id: uid('u'), kind: utilKind, pts: utilPts.slice() }); toast('Коммуникация сохранена'); } else { toast('Нужно ≥2 точек', 'err'); } utilPts = []; utilKind = null; setTool('sel'); renderLists(); draw(); return; }
+    if (tool === 'link') { linkFrom = null; setTool('sel'); updateToolUI(); return; }
+    if (routePts.length < 2) { routePts = []; setTool('sel'); return; }
+    snapshot(); S.routes.push({ id: uid('r'), pts: routePts.slice() }); routePts = []; setTool('sel'); renderLists(); draw(); toast('Маршрут сохранён');
   }
   function animTick() { if (!flow.playing) return; flow.t += 0.06 * (flow.spd / 1800); draw(); anim = requestAnimationFrame(animTick); }
   function togglePlay() { flow.playing = !flow.playing; var b = $('#playBtn'); if (b) b.textContent = flow.playing ? '⏸ Пауза' : '▶ Пуск'; if (flow.playing && !anim) anim = requestAnimationFrame(animTick); if (!flow.playing && anim) { cancelAnimationFrame(anim); anim = null; } }
@@ -579,10 +597,27 @@
   function toggleTheme() { var ed = $('#editor'); setTheme((ed && ed.classList.contains('theme-dark')) ? 'light' : 'dark'); }
 
   /* ---------- события ---------- */
-  function setTool(t) { tool = t; $$('[data-tool]').forEach(function (b) { b.classList.toggle('active', b.dataset.tool === t); }); }
+  function setTool(t) {
+    tool = t;
+    $$('[data-tool]').forEach(function (b) { b.classList.toggle('active', b.dataset.tool === t); });
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    updateToolUI();
+  }
+  function toolHintText() {
+    if (tool === 'route') return 'Маршрут: кликайте точки на плане. Завершить — Enter или кнопка «✔ Завершить». Отмена — Esc.';
+    if (tool === 'util') { var u = UTILS.filter(function (x) { return x.k === utilKind; })[0]; return 'Коммуникация «' + ((u && u.l) || '') + '»: кликайте точки на плане. Завершить — Enter или кнопка «✔ Завершить». Отмена — Esc.'; }
+    if (tool === 'link') return linkFrom ? 'Связь: выберите второй элемент. Отмена — Esc.' : 'Связь: выберите первый элемент. Отмена — Esc.';
+    if (tool === 'note') return 'Метка: кликните место на плане, затем введите текст. Отмена — Esc.';
+    return '';
+  }
+  function updateToolUI() {
+    var b = $('#finishBtn'); if (b) b.style.display = (tool === 'route' || tool === 'util' || tool === 'link') ? '' : 'none';
+    var h = $('#toolHint'); if (h) { var m = toolHintText(); h.style.display = m ? '' : 'none'; h.textContent = m; }
+  }
   function setMode(m) { mode = m; $('#mEdit').classList.toggle('active', m === 'edit'); $('#mDemo').classList.toggle('active', m === 'demo'); $('#playBtn').style.display = m === 'demo' ? '' : 'none'; if (m === 'edit' && flow.playing) togglePlay(); }
   $('#palette').onclick = function () {};
   $$('[data-tool]').forEach(function (b) { b.onclick = function () { setTool(b.dataset.tool); }; });
+  if ($('#finishBtn')) $('#finishBtn').onclick = function () { if (tool === 'link') { linkFrom = null; toast('Связь сброшена'); } else { finishRoute(); } updateToolUI(); };
   $('#mEdit').onclick = function () { setMode('edit'); };
   $('#mDemo').onclick = function () { setMode('demo'); draw(); };
   $('#undoBtn').onclick = undo; $('#redoBtn').onclick = redoFn;
@@ -626,11 +661,11 @@
     if (e.ctrlKey && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); }
     if (e.ctrlKey && e.key.toLowerCase() === 'y') { e.preventDefault(); redoFn(); }
     if (e.ctrlKey && e.key.toLowerCase() === 's') { e.preventDefault(); save(); }
-    if (e.key === 'Enter' && tool === 'route') finishRoute();
+    if (e.key === 'Enter' && (tool === 'route' || tool === 'util' || tool === 'link')) { e.preventDefault(); finishRoute(); return; }
     if (e.key === 'Escape') {
       var ed = $('#editor');
       if (ed && ed.classList.contains('expanded')) { ed.classList.remove('expanded'); document.body.classList.remove('ed-expanded'); var fb = $('#fsBtn'); if (fb) fb.textContent = '⤢ Развернуть'; setTimeout(function () { fitZoom(); draw(); centerView(); }, 60); }
-      routePts = []; utilPts = []; utilKind = null; tool = 'sel'; setTool('sel'); draw();
+      routePts = []; utilPts = []; utilKind = null; linkFrom = null; setTool('sel'); draw();
     }
     if (e.key.toLowerCase() === 'v') setTool('sel'); if (e.key.toLowerCase() === 'h') setTool('pan'); if (e.key.toLowerCase() === 'c') setTool('note');
   };
@@ -854,8 +889,10 @@
   if ($('#helpBtn')) $('#helpBtn').onclick = function () {
     ui.dialog({ title: 'Как работает редактор', html: true, cancelText: 'Понятно', body:
       '<p><b>Инструменты:</b> ↖ выделение (V), ✋ рука (H), 💬 метка (C), 〰 маршрут, 🔗 связь.</p>' +
-      '<p><b>Маршрут:</b> включите инструмент, кликайте точки (можно по оборудованию), «Завершить» (Enter). <b>Связь:</b> выберите два элемента.</p>' +
-      '<p><b>Коммуникации:</b> вкладка «Связи» → вид (Питание/Воздух/Вода/Газ/Сеть) → «Проложить» → кликайте точки → «Завершить».</p>' +
+      '<p><b>Как завершить инструмент:</b> при активном рисовании сверху появляется кнопка <b>«✔ Завершить»</b> и строка-подсказка с шагами. Завершить также можно клавишей <b>Enter</b>, отменить — <b>Esc</b>. Enter во время рисования не сбрасывает начатую линию.</p>' +
+      '<p><b>Маршрут:</b> инструмент 〰, кликайте точки (можно по оборудованию), «✔ Завершить» (Enter). <b>Связь:</b> инструмент 🔗 — выберите два элемента (сначала первый, затем второй); «✔ Завершить»/Esc — сброс выбора.</p>' +
+      '<p><b>Коммуникации:</b> вкладка «Связи» → вид (Питание/Воздух/Вода/Газ/Сеть) → «Проложить» → кликайте точки → «✔ Завершить» (Enter). Нужно не менее 2 точек.</p>' +
+      '<p><b>Сохранение:</b> кнопка «💾 Сохранить» на панели проекта сохраняет планировку в базу; «История» 🕘 — версии. Узлы нельзя потерять: они удерживаются в границах поля плана.</p>' +
       '<p><b>Узлы:</b> включите «Размеры» — показываются габариты (мм). У выбранного узла — размерные линии и маркер поворота (зелёный круг сверху): тяните для поворота (привязка 15°), либо задайте угол в свойствах.</p>' +
       '<p><b>Демонстрация:</b> режим «Демонстрация» показывает движение по маршруту (▶/◀, скорость в настройках).</p>' +
       '<p><b>Экспорт/печать:</b> JSON/SVG/PNG/HTML и «Печать/PDF». История версий — 🕘.</p>' +
@@ -869,7 +906,7 @@
     if (!s) return;
     token = s.token; $('#who').textContent = s.login + ' · ' + (window.Auth.roleLabel(s.role) || s.role);
     setTheme(localStorage.getItem('layout-theme') || 'dark');
-    palette(); fitZoom(); draw(); centerView(); prop(); renderLists(); renderLayers(); loadList().catch(function () {}); baseline = deep(S);
+    palette(); fitZoom(); draw(); centerView(); prop(); renderLists(); renderLayers(); updateToolUI(); loadList().catch(function () {}); baseline = deep(S);
     logEvent('Проект загружен');
     window.addEventListener('resize', function () { fitZoom(); draw(); centerView(); });
   });
