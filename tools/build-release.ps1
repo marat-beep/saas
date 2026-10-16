@@ -8,7 +8,7 @@
 param([string]$OutDir = "dist")
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot          # SAAS\
-$deploy = @("index.html", "apps", "assets", "eco", "web.config", "manifest.webmanifest", "sw.js")
+$deploy = @("index.html", "apps", "assets", "eco", "site", "web.config", "manifest.webmanifest", "sw.js")
 $stamp = Get-Date -Format "yyyyMMdd-HHmm"
 $stage = Join-Path $root (Join-Path $OutDir "saas")
 $zip = Join-Path $root (Join-Path $OutDir ("saas-" + $stamp + ".zip"))

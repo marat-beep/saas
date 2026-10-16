@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Производство — 3DMP Service</title>
+<meta name="description" content="Модуль «Производство»: наряды и операции с планом/фактом, таймер работ, брак и переделки, закрытие наряда, диспетчерская (MES) с канбаном цеха.">
+<link rel="stylesheet" href="promo.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="index.html"><span class="lg">⚙</span> 3DMP Service</a>
+    <nav class="nav-links">
+      <a href="index.html#modules">Модули</a>
+      <a href="#features">Возможности</a>
+      <a href="#screen">Интерфейс</a>
+      <a href="#mes">Диспетчерская</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn ghost sm" href="index.html">← Все модули</a>
+      <a class="btn sm" href="#demo">Запросить демо</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="crumbs"><a href="index.html">Главная</a> / <a href="index.html#modules">Модули</a> / Производство</nav>
+  <div class="mhead">
+    <span class="mh-ic">🏭</span>
+    <div>
+      <h1>Производство</h1>
+      <div class="mh-sub">Исполнение заказов в цехе: наряды по рабочим центрам, операции с планом и фактом, таймер работ, брак и закрытие наряда — с оперативной картиной в диспетчерской (MES).</div>
+    </div>
+  </div>
+  <div class="meta-row">
+    <span class="tag">Контур: Производство</span>
+    <span class="tag grey">Роли: мастер, начальник цеха, оператор</span>
+    <span class="tag grey">Связи: заявки, MES, планирование, ОТК, экономика</span>
+  </div>
+</div>
+
+<!-- ================= ВОЗМОЖНОСТИ ================= -->
+<section class="band" id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Возможности</div>
+      <h2>Что умеет модуль</h2>
+      <p>Наряды формируются из маршрута техпроцесса, операции ведутся с планом и фактом, а отклонения видны сразу — до того, как они сорвут сроки.</p>
+    </div>
+    <div class="grid3">
+      <div class="card"><div class="ic">🧾</div><h3>Наряды</h3>
+        <ul class="ticks">
+          <li>Наряд по заявке, рабочий центр, исполнитель, срок</li>
+          <li>Автогенерация наряда из маршрута (операции + нормо-часы)</li>
+          <li>Статусы и закрытие наряда</li>
+        </ul>
+      </div>
+      <div class="card"><div class="ic">⏱</div><h3>Операции и факт</h3>
+        <ul class="ticks">
+          <li>Операции с планом часов</li>
+          <li>Таймер операции (пуск/пауза, авторасчёт факта)</li>
+          <li>Отметка выполнения, факт часов</li>
+        </ul>
+      </div>
+      <div class="card"><div class="ic">⚠️</div><h3>Брак и переделки</h3>
+        <ul class="ticks">
+          <li>Фиксация брака: причина, виновник, стоимость</li>
+          <li>KPI по браку и переделкам</li>
+          <li>Связь с ОТК и качеством</li>
+        </ul>
+      </div>
+      <div class="card"><div class="ic">🖨</div><h3>Документы цеха</h3>
+        <ul class="ticks">
+          <li>Сменно-суточное задание (ССЗ)</li>
+          <li>Маршрутная карта — печать</li>
+          <li>Отчёт по производству (PDF)</li>
+        </ul>
+      </div>
+      <div class="card"><div class="ic">📉</div><h3>Узкие места и риски</h3>
+        <ul class="ticks">
+          <li>Наряды с перерасходом часов</li>
+          <li>Близкий или просроченный срок</li>
+          <li>Подсветка отклонений прямо в списке</li>
+        </ul>
+      </div>
+      <div class="card"><div class="ic">🔗</div><h3>Связи</h3>
+        <ul class="ticks">
+          <li>Заявки и маршруты</li>
+          <li>Диспетчерская MES и терминал</li>
+          <li>Себестоимость и OEE</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ИНТЕРФЕЙС ================= -->
+<section class="band alt" id="screen">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Интерфейс</div>
+      <h2>Наряды и операции</h2>
+      <p>Список нарядов с прогрессом исполнения и карточка наряда с операциями: план/факт часов, отклонение и срок.</p>
+    </div>
+
+    <div class="mock">
+      <div class="top"><span class="mlg">⚙</span> 3DMP Service <span class="msearch">Поиск по системе…</span><span class="mright">🔔 · <span class="mava">М</span> master</span></div>
+      <div class="sub"><span>Хаб</span> › <span>Производство</span> › <span class="tb on">Наряды</span><span class="tb">MES</span><span class="tb">Планирование</span><span class="tb">Терминал</span></div>
+      <div class="mh"><span class="mi">🏭</span><span><b>Производство</b><small>Наряды и операции: план, факт, закрытие; наряд из маршрута.</small></span></div>
+      <div class="bar">
+        <span class="find">Поиск по нарядам…</span>
+        <span class="pill on">Все</span><span class="pill">В работе</span><span class="pill">Риск срока</span><span class="pill">Закрытые</span>
+        <span class="abtn pri">＋ Наряд</span><span class="abtn">ССЗ</span><span class="abtn">Отчёт</span>
+      </div>
+      <div class="body">
+        <div class="kpis">
+          <div class="kpi"><small>Нарядов в работе</small><b>18</b></div>
+          <div class="kpi"><small>План, ч</small><b>312</b></div>
+          <div class="kpi"><small>Факт, ч</small><b>268</b></div>
+          <div class="kpi"><small>Брак, ₽</small><b style="color:#b91c1c">46 500</b></div>
+        </div>
+
+        <table>
+          <tr><th>Наряд</th><th>Заявка</th><th>РЦ</th><th>Исполнитель</th><th>Срок</th><th>Прогресс</th><th>Статус</th></tr>
+          <tr><td><b>Н-2081</b></td><td>З-1042</td><td>Фрезерный-1</td><td>Иванов</td><td>22.10</td><td><span class="prog"><i style="width:72%"></i></span> 72%</td><td><span class="st work">В работе</span></td></tr>
+          <tr><td><b>Н-2080</b></td><td>З-1040</td><td>Токарный-2</td><td>Петров</td><td>19.10</td><td><span class="prog"><i style="width:100%"></i></span> 100%</td><td><span class="st ok">Готов</span></td></tr>
+          <tr><td><b>Н-2079</b></td><td>З-1039</td><td>Шлифовальный</td><td>Сидоров</td><td>до 15.10</td><td><span class="prog"><i style="width:35%;background:#ef4444"></i></span> 35%</td><td><span class="st late">Риск срока</span></td></tr>
+          <tr><td><b>Н-2078</b></td><td>З-1041</td><td>Электроэрозия</td><td>Кузнецов</td><td>21.10</td><td><span class="prog"><i style="width:48%"></i></span> 48%</td><td><span class="st work">В работе</span></td></tr>
+        </table>
+
+        <div class="detail" style="margin-top:12px">
+          <div class="dpanel">
+            <h4>Наряд Н-2081 · Фрезерный-1</h4>
+            <div class="drow"><span>Прогресс (операции)</span><b>72% · 3 из 5</b></div>
+            <div class="drow"><span>План / факт, ч</span><b>86 / 52 ч</b></div>
+            <div class="drow"><span>Отклонение</span><b style="color:var(--accent-700)">−34 ч</b></div>
+            <div class="drow"><span>Срок (SLA)</span><b>22.10</b></div>
+          </div>
+          <div class="dpanel">
+            <h4>Операции</h4>
+            <div class="drow"><span>Фрезерная ЧПУ</span><b>100%</b></div>
+            <div class="pbar"><i style="width:100%"></i></div>
+            <div class="drow"><span>Сверлильная</span><b>60%</b></div>
+            <div class="pbar"><i style="width:60%"></i></div>
+            <div class="drow"><span>Слесарная</span><b>20%</b></div>
+            <div class="pbar"><i style="width:20%"></i></div>
+            <div class="drow"><span>Контроль (ОТК)</span><b>—</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">Нефункциональный макет — реальные экраны доступны после входа в сервис.</div>
+  </div>
+</section>
+
+<!-- ================= MES ================= -->
+<section class="band" id="mes">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Диспетчерская (MES)</div>
+      <h2>Цех в реальном времени</h2>
+      <p>Живая доска по рабочим центрам: что в очереди, что запущено, что на паузе и что готово. Обновляется без перезагрузки — можно переназначать центры и приоритеты.</p>
+    </div>
+    <div class="mock">
+      <div class="sub"><span>Хаб</span> › <span>Производство</span> › <span class="tb on">MES</span><span class="tb">Наряды</span></div>
+      <div class="body">
+        <div class="kb">
+          <div class="kcol"><h4>Очередь <span>4</span></h4>
+            <div class="kcard"><b>Н-2084</b><small>Фрезерный-1 · З-1043</small><div class="p"><span class="prog"><i style="width:0%"></i></span></div></div>
+            <div class="kcard"><b>Н-2085</b><small>Токарный-2 · З-1044</small><div class="p"><span class="prog"><i style="width:0%"></i></span></div></div>
+          </div>
+          <div class="kcol"><h4>В работе <span>3</span></h4>
+            <div class="kcard"><b>Н-2081</b><small>Фрезерный-1 · Иванов</small><div class="p"><span class="prog"><i style="width:72%"></i></span></div></div>
+            <div class="kcard"><b>Н-2078</b><small>Электроэрозия · Кузнецов</small><div class="p"><span class="prog"><i style="width:48%"></i></span></div></div>
+          </div>
+          <div class="kcol"><h4>Пауза <span>1</span></h4>
+            <div class="kcard"><b>Н-2077</b><small>Шлифовальный · нет материала</small><div class="p"><span class="prog"><i style="width:30%;background:#f59e0b"></i></span></div></div>
+          </div>
+          <div class="kcol"><h4>Готово <span>2</span></h4>
+            <div class="kcard"><b>Н-2080</b><small>Токарный-2 · Петров</small><div class="p"><span class="prog"><i style="width:100%"></i></span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">Нефункциональный макет диспетчерской — канбан цеха.</div>
+  </div>
+</section>
+
+<section class="band alt" id="demo">
+  <div class="wrap">
+    <div class="cta">
+      <div><h2>Настроим производство под ваш цех</h2><p>Рабочие центры, маршруты, нормы и наряды — покажем на реальном маршруте детали.</p></div>
+      <div class="nav-cta">
+        <a class="btn" href="index.html#demo">Запросить демо</a>
+        <a class="btn ghost" href="../index.html">Открыть сервис</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <div>3DMP Service · Модуль «Производство»</div>
+    <div><a href="index.html">Главная</a> · <a href="orders.html">Заявки</a> · <a href="layout.html">Планировки</a></div>
+  </div>
+</footer>
+
+</body>
+</html>

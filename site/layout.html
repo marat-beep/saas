@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Планировки цеха — 3DMP Service</title>
+<meta name="description" content="Модуль «Планировки»: конструктор расстановки оборудования цеха — станки, роботы, конвейеры, хранение и зоны; сетка, привязка, стадии, маршруты потока, коммуникации, экспорт и печать.">
+<link rel="stylesheet" href="promo.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="index.html"><span class="lg">⚙</span> 3DMP Service</a>
+    <nav class="nav-links">
+      <a href="index.html#modules">Модули</a>
+      <a href="#features">Возможности</a>
+      <a href="#screen">Интерфейс</a>
+      <a href="#flow">Маршруты и связи</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn ghost sm" href="index.html">← Все модули</a>
+      <a class="btn sm" href="#demo">Запросить демо</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="crumbs"><a href="index.html">Главная</a> / <a href="index.html#modules">Модули</a> / Планировки</nav>
+  <div class="mhead">
+    <span class="mh-ic">🗺</span>
+    <div>
+      <h1>Планировки цеха</h1>
+      <div class="mh-sub">Конструктор расстановки оборудования: станки, роботы и манипуляторы, конвейеры, хранение, инфраструктура и зоны — со стадиями, сеткой и привязкой, маршрутами потока и экспортом.</div>
+    </div>
+  </div>
+  <div class="meta-row">
+    <span class="tag">Контур: Производство</span>
+    <span class="tag grey">Роли: технолог, начальник цеха, проектировщик</span>
+    <span class="tag grey">Связи: производство, планирование, оборудование</span>
+  </div>
+</div>
+
+<!-- ================= ВОЗМОЖНОСТИ ================= -->
+<section class="band" id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Возможности</div>
+      <h2>Что умеет модуль</h2>
+      <p>Наглядная схема участка с реальными габаритами оборудования: удобно и спроектировать новую линию, и объяснить перепланировку руководству.</p>
+    </div>
+    <div class="grid3">
+      <div class="card"><div class="ic">🧰</div><h3>Палитра элементов</h3>
+        <ul class="ticks">
+          <li>Станки и обработка, роботы и манипуляторы</li>
+          <li>Конвейеры и транспорт, хранение и оснастка</li>
+          <li>Офис и инфраструктура, зоны и перегородки</li>
+        </ul>
+      </div>
+      <div class="card"><div class="ic">📐</div><h3>Точная расстановка</h3>
+        <ul class="ticks">
+          <li>Габариты в мм, сетка и привязка к рёбрам</li>
+          <li>Перемещение, размер, поворот (шаг 15°)</li>
+          <li>Размеры «от стены» у выбранного узла</li>
+        </ul>
+      </div>
+      <div class="card"><div class="ic">🎨</div><h3>Стадии и слои</h3>
+        <ul class="ticks">
+          <li>Действующее / новое / будущее</li>
+          <li>Слои: оборудование, маршруты, коммуникации, метки</li>
+          <li>Легенда и видимость слоёв</li>
+        </ul>
+      </div>
+      <div class="card"><div class="ic">➡️</div><h3>Маршруты потока</h3>
+        <ul class="ticks">
+          <li>Маршрут по точкам (в т.ч. по оборудованию)</li>
+          <li>Авто-маршрут по порядку элементов</li>
+          <li>Демонстрация движения и отчёт по потоку</li>
+        </ul>
+      </div>
+      <div class="card"><div class="ic">🔌</div><h3>Коммуникации и связи</h3>
+        <ul class="ticks">
+          <li>Питание, воздух, вода, газ, сеть — с длиной в метрах</li>
+          <li>Логические связи между элементами</li>
+          <li>Экспорт связей</li>
+        </ul>
+      </div>
+      <div class="card"><div class="ic">🖼</div><h3>Подложка и экспорт</h3>
+        <ul class="ticks">
+          <li>Подложка: план PNG/JPG или чертёж DXF</li>
+          <li>Экспорт PNG/SVG/HTML и JSON, печать/PDF</li>
+          <li>3D-превью (изометрия) и шаблоны участков</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ИНТЕРФЕЙС ================= -->
+<section class="band alt" id="screen">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Интерфейс</div>
+      <h2>Как это выглядит</h2>
+      <p>Слева — палитра элементов, по центру — план участка на сетке, справа — свойства выбранного оборудования.</p>
+    </div>
+
+    <div class="mock">
+      <div class="top"><span class="mlg">⚙</span> 3DMP Service <span class="msearch">Поиск по системе…</span><span class="mright">🔔 · <span class="mava">Т</span> technolog</span></div>
+      <div class="sub"><span>Хаб</span> › <span>Производство</span> › <span class="tb on">Планировки</span><span class="tb">Планирование</span></div>
+      <div class="mh"><span class="mi">🗺</span><span><b>Планировки и расстановка</b><small>Конструктор цеха/офиса/компрессорной/линии</small></span></div>
+      <div class="body">
+        <div class="ed-tools">
+          <span class="sg on">Редактор</span><span class="sg">Демонстрация</span>
+          <span class="sg on">↖</span><span class="sg">✋</span><span class="sg">💬</span><span class="sg">〰</span><span class="sg">🔗</span>
+          <span>− По экрану ＋ 100% ⤢</span>
+          <span>☑ Сетка ☑ Привязка ☐ Размеры</span>
+        </div>
+        <div class="ed">
+          <div class="ed-side">
+            <div class="pal-g">Станки</div>
+            <div class="ed-pal">
+              <button><span>⚙</span>ОЦ фрез.</button>
+              <button><span>⚙</span>ОЦ ток.</button>
+              <button><span>✂</span>Ленточнопила</button>
+              <button><span>🔩</span>Пресс</button>
+            </div>
+            <div class="pal-g">Роботы</div>
+            <div class="ed-pal">
+              <button><span>🦾</span>Робот</button>
+              <button><span>📦</span>Паллетизатор</button>
+            </div>
+            <div class="pal-g">Транспорт</div>
+            <div class="ed-pal">
+              <button><span>➡️</span>Конвейер</button>
+              <button><span>🚚</span>AGV</button>
+            </div>
+          </div>
+
+          <div class="ed-cv">
+            <div class="grid"></div>
+            <svg class="route" viewBox="0 0 600 340" preserveAspectRatio="none" aria-hidden="true">
+              <polyline points="120,90 300,90 300,210 470,210 470,120" fill="none" stroke="#2563eb" stroke-width="4" stroke-dasharray="10 7" stroke-linejoin="round"/>
+            </svg>
+            <div class="eq" style="left:9%;top:20%;width:22%;height:20%">ОЦ фрезерный<br>3200×2600</div>
+            <div class="eq exist" style="left:9%;top:58%;width:22%;height:20%">ОЦ токарный<br>2800×1800</div>
+            <div class="eq" style="left:40%;top:20%;width:18%;height:26%">Робот 6-осевой<br>2300×2300</div>
+            <div class="eq" style="left:40%;top:58%;width:26%;height:14%">Конвейер<br>6000×800</div>
+            <div class="eq future" style="left:70%;top:22%;width:20%;height:24%">Зона сборки<br>будущее</div>
+            <div class="eq exist" style="left:70%;top:62%;width:20%;height:20%">Стеллаж<br>1200×2400</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">Нефункциональный макет редактора планировок — реальные экраны доступны после входа в сервис.</div>
+  </div>
+</section>
+
+<!-- ================= МАРШРУТЫ ================= -->
+<section class="band" id="flow">
+  <div class="wrap">
+    <div class="grid2">
+      <div>
+        <div class="eyebrow">Маршруты, связи, коммуникации</div>
+        <h2 style="margin:8px 0 10px">Поток материалов и связи на одном плане</h2>
+        <p class="muted">Проложите маршрут обработки, добавьте коммуникации и логические связи — система посчитает длину и покажет поток в движении.</p>
+        <ul class="ticks">
+          <li><b>Маршрут потока</b> — точки по оборудованию, авто-маршрут, отчёт по длине и числу точек</li>
+          <li><b>Коммуникации</b> — питание, воздух, вода, газ, сеть с длиной в метрах по каждому виду</li>
+          <li><b>Демонстрация</b> — режим показа с движущейся меткой по маршруту (удобно на защите проекта)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="ic">🎯</div>
+        <h3>Кому полезно</h3>
+        <ul class="ticks">
+          <li>Технологу — расстановка и маршруты обработки</li>
+          <li>Начальнику цеха — перепланировка участка</li>
+          <li>Проектировщику — новая линия и подложка из чертежа</li>
+          <li>Руководству — наглядная схема «как есть / как будет»</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note-sand">Совет: планировки удобно готовить на подложке из чертежа DXF или плана участка — контуры совмещаются с оборудованием по масштабу.</div>
+  </div>
+</section>
+
+<section class="band alt" id="demo">
+  <div class="wrap">
+    <div class="cta">
+      <div><h2>Нарисуем ваш участок</h2><p>Покажем редактор планировок на примере вашего цеха — от расстановки до маршрута потока.</p></div>
+      <div class="nav-cta">
+        <a class="btn" href="index.html#demo">Запросить демо</a>
+        <a class="btn ghost" href="../index.html">Открыть сервис</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <div>3DMP Service · Модуль «Планировки»</div>
+    <div><a href="index.html">Главная</a> · <a href="orders.html">Заявки</a> · <a href="production.html">Производство</a></div>
+  </div>
+</footer>
+
+</body>
+</html>
