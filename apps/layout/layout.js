@@ -664,12 +664,27 @@
     w.scrollTop += (py * zoom) - (cy - r2.top);
   }
   (function () {
-    var w = $('#cvWrap'); if (!w) return;
-    w.addEventListener('wheel', function (e) {
+    var wrap = $('#cvWrap'), svg = $('#cv'); if (!wrap) return;
+    function inCanvas(e) {
+      var r = wrap.getBoundingClientRect();
+      return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    }
+    function onWheel(e) {
+      if (!inCanvas(e)) return;                 // колесо над панелями — обычная прокрутка
       e.preventDefault();
-      var f = e.deltaY < 0 ? 1.12 : 1 / 1.12;
-      zoomAtPoint(e.clientX, e.clientY, f);
-    }, { passive: false });
+      var dy = e.deltaY || 0;
+      if (e.deltaMode === 1) dy *= 16; else if (e.deltaMode === 2) dy *= 100;
+      if (!dy) return;
+      zoomAtPoint(e.clientX, e.clientY, Math.exp(-dy * 0.0015));
+    }
+    wrap.addEventListener('wheel', onWheel, { passive: false });
+    if (svg) svg.addEventListener('wheel', onWheel, { passive: false });
+    document.addEventListener('keydown', function (e) {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      if (e.key === '+' || e.key === '=') { e.preventDefault(); zoom = Math.min(ZMAX, zoom * 1.2); draw(); }
+      else if (e.key === '-' || e.key === '_') { e.preventDefault(); zoom = Math.max(ZMIN, zoom / 1.2); draw(); }
+      else if (e.key === '0') { e.preventDefault(); zoom = 1; draw(); }
+    });
   })();
   $('#zFit').onclick = function () { zoom = 1; draw(); };
   $('#clearBtn').onclick = function () { snapshot(); S.items = []; S.notes = []; S.links = []; S.routes = []; sel = null; draw(); prop(); renderLists(); logEvent('Схема очищена'); };
