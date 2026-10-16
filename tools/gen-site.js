@@ -23,7 +23,7 @@ function loadCatalog() {
   return fn({});
 }
 const C = loadCatalog();
-const ALL = (C.apps || []).filter(a => a.audience !== 'developer');
+const ALL = (C.apps || []);
 const TITLE = {}; ALL.forEach(a => { TITLE[a.id] = a.title; });
 const FEATURED = D.FEATURED;
 
