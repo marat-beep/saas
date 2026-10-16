@@ -252,3 +252,24 @@ section.band.alt{background:#fff;border-top:1px solid var(--line);border-bottom:
 
 .lead2{font-size:1.04rem;color:var(--muted);max-width:760px}
 .pill-row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+
+/* ============================================================
+   Контакты и реквизиты
+   ============================================================ */
+.contact-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+@media(max-width:860px){.contact-grid{grid-template-columns:1fr}}
+.cinfo{display:flex;gap:12px;align-items:flex-start;padding:14px 0;border-top:1px solid var(--line)}
+.cinfo:first-child{border-top:0}
+.cinfo .ci{width:40px;height:40px;border-radius:11px;background:var(--accent-100);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex:0 0 auto}
+.cinfo b{display:block;font-size:.95rem;margin-bottom:2px}
+.cinfo .sub{color:var(--muted);font-size:.84rem}
+.cinfo a{color:var(--accent-700);font-weight:700}
+.map-ph{height:240px;border-radius:14px;border:1px solid var(--line);background:repeating-linear-gradient(45deg,#f1f5f9,#f1f5f9 12px,#e9eef5 12px,#e9eef5 24px);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.86rem;text-align:center;padding:16px}
+.form-ph{display:grid;gap:10px}
+.form-ph label{font-size:.84rem;font-weight:600}
+.form-ph input,.form-ph textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:.88rem;background:#fff;color:var(--ink)}
+.form-ph textarea{min-height:110px;resize:vertical}
+.req{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--line);font-size:.86rem}
+.req:first-child{border-top:0}
+.req span{color:var(--muted)}
+.req b{text-align:right}

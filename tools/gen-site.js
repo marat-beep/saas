@@ -62,19 +62,19 @@ function nav(base, active) {
     '<nav class="nav-links">' +
     '<a href="' + base + 'modules.html"' + on('modules') + '>Модули</a>' +
     '<a href="' + base + 'for-managers.html"' + on('managers') + '>Руководителю</a>' +
-    '<a href="' + base + 'index.html#contours">Контуры</a>' +
-    '<a href="' + base + 'index.html#preview">Интерфейс</a>' +
-    '</nav><div class="nav-cta"><a class="btn ghost sm" href="' + base + '../index.html">Войти в сервис</a><a class="btn sm" href="' + base + 'index.html#demo">Запросить демо</a></div>' +
+    '<a href="' + base + 'about.html">О компании</a>' +
+    '<a href="' + base + 'contacts.html">Контакты</a>' +
+    '</nav><div class="nav-cta"><a class="btn ghost sm" href="' + base + '../index.html">Войти в сервис</a><a class="btn sm" href="' + base + 'contacts.html">Связаться</a></div>' +
     '</div></header>\n';
 }
 function foot(base, note) {
-  return '<footer class="foot"><div class="wrap foot-in"><div>3DMP Service · ' + esc(note) + '</div>' +
-    '<div><a href="' + base + 'index.html">Главная</a> · <a href="' + base + 'modules.html">Модули</a> · <a href="' + base + 'for-managers.html">Руководителю</a> · <a href="' + base + '../index.html">Рабочий сервис</a></div></div></footer>\n</body>\n</html>\n';
+  return '<footer class="foot"><div class="wrap foot-in"><div>3DMP Service · ООО «3Д Металлообработка Пресс» · <a href="tel:+74991977881">+7 499 197 78 81</a> · <a href="mailto:info@3dmp.ru">info@3dmp.ru</a></div>' +
+    '<div>3DMP Service · ' + esc(note) + ' · <a href="' + base + 'about.html">О компании</a> · <a href="' + base + 'contacts.html">Контакты</a> · <a href="' + base + '../index.html">Рабочий сервис</a></div></div></footer>\n</body>\n</html>\n';
 }
 function cta(base, title, text) {
   return '<section class="band alt" id="demo"><div class="wrap"><div class="cta">' +
     '<div><h2>' + esc(title) + '</h2><p>' + esc(text) + '</p></div>' +
-    '<div class="nav-cta"><a class="btn" href="' + base + 'index.html#demo">Запросить демо</a><a class="btn ghost" href="' + base + '../index.html">Открыть сервис</a></div>' +
+    '<div class="nav-cta"><a class="btn" href="' + base + 'contacts.html">Связаться</a><a class="btn ghost" href="' + base + '../index.html">Открыть сервис</a></div>' +
     '</div></div></section>\n';
 }
 
