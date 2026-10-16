@@ -16,6 +16,7 @@
   function uid(p) { return (p || 'i') + Date.now().toString(36) + Math.floor(Math.random() * 1000); }
 
   var token = null, planId = null, zoom = 1, tool = 'sel', mode = 'edit', sel = null, anim = null, baseline = null, collHighlight = [];
+  var ZMIN = 0.05, ZMAX = 8;   // диапазон масштаба: 5% … 800%
   var W = 12000, H = 8000, GRID = 100, phase = 0;
   var history = [], redo = [];
   var stage = 'new';
@@ -585,7 +586,7 @@
   $('#mEdit').onclick = function () { setMode('edit'); };
   $('#mDemo').onclick = function () { setMode('demo'); draw(); };
   $('#undoBtn').onclick = undo; $('#redoBtn').onclick = redoFn;
-  $('#zi').onclick = function () { zoom = Math.min(4, zoom * 1.2); draw(); }; $('#zo').onclick = function () { zoom = Math.max(0.2, zoom / 1.2); draw(); };
+  $('#zi').onclick = function () { zoom = Math.min(ZMAX, zoom * 1.25); draw(); }; $('#zo').onclick = function () { zoom = Math.max(ZMIN, zoom / 1.25); draw(); };
   $('#zFit').onclick = function () { zoom = 1; draw(); };
   $('#gridChk').onchange = draw; $('#snapChk').onchange = draw; if ($('#dimChk')) $('#dimChk').onchange = draw;
   $('#palBtn').onclick = function () { $('#editor').classList.toggle('no-pal'); };
@@ -639,7 +640,7 @@
     var x1 = Math.max.apply(null, list.map(function (i) { return i.x + i.w; })), y1 = Math.max.apply(null, list.map(function (i) { return i.y + i.h; }));
     return { x: x0, y: y0, w: Math.max(x1 - x0, 800), h: Math.max(y1 - y0, 600) };
   }
-  function fitZoom() { var w = $('#cvWrap'); if (!w) return; var b = contentBox(); var z = Math.min((w.clientWidth - 40) / b.w, (w.clientHeight - 40) / b.h); zoom = Math.max(0.1, Math.min(3, z || 1)); }
+  function fitZoom() { var w = $('#cvWrap'); if (!w) return; var b = contentBox(); var z = Math.min((w.clientWidth - 40) / b.w, (w.clientHeight - 40) / b.h); zoom = Math.max(ZMIN, Math.min(ZMAX, z || 1)); }
   function centerView() { var w = $('#cvWrap'); if (!w) return; var b = contentBox(); w.scrollLeft = Math.max(0, (b.x + b.w / 2) * zoom - w.clientWidth / 2); w.scrollTop = Math.max(0, (b.y + b.h / 2) * zoom - w.clientHeight / 2); }
   function showReport() {
     var len = 0; S.routes.forEach(function (r) { for (var i = 1; i < r.pts.length; i++) len += Math.sqrt(Math.pow(r.pts[i][0] - r.pts[i - 1][0], 2) + Math.pow(r.pts[i][1] - r.pts[i - 1][1], 2)); });
@@ -655,7 +656,7 @@
     var r = $('#cv').getBoundingClientRect();
     var px = (cx - r.left) / zoom, py = (cy - r.top) / zoom;   // координаты плана под курсором
     var old = zoom;
-    zoom = Math.max(0.05, Math.min(5, zoom * factor));
+    zoom = Math.max(ZMIN, Math.min(ZMAX, zoom * factor));
     if (Math.abs(zoom - old) < 1e-6) return;
     draw();
     var r2 = $('#cv').getBoundingClientRect();
@@ -702,7 +703,7 @@
   if ($('#navR')) $('#navR').onclick = function () { pan(1, 0); };
   if ($('#navU')) $('#navU').onclick = function () { pan(0, -1); };
   if ($('#navD')) $('#navD').onclick = function () { pan(0, 1); };
-  if ($('#zSlider')) $('#zSlider').oninput = function () { zoom = Math.max(0.2, Math.min(3, (Number(this.value) || 100) / 100)); draw(); };
+    if ($('#zSlider')) $('#zSlider').oninput = function () { zoom = Math.max(ZMIN, Math.min(ZMAX, (Number(this.value) || 100) / 100)); draw(); };
   if ($('#zStage')) $('#zStage').onclick = function () { zoomToBBox(S.items.filter(function (i) { return i.stage === 'new'; })); };
   if ($('#fsBtn')) $('#fsBtn').onclick = function () {
     var ed = $('#editor'); var on = ed.classList.toggle('expanded'); document.body.classList.toggle('ed-expanded', on);
