@@ -649,6 +649,27 @@
       '<p>Длина маршрутов: <b>' + (len / 1000).toFixed(1) + ' м</b></p><p>Меток: <b>' + S.notes.length + '</b></p>' });
   }
   $('#zPlan').onclick = function () { fitZoom(); draw(); centerView(); };
+  /* Масштаб колёсиком мыши (зум к курсору) */
+  function zoomAtPoint(cx, cy, factor) {
+    var w = $('#cvWrap'); if (!w) return;
+    var r = $('#cv').getBoundingClientRect();
+    var px = (cx - r.left) / zoom, py = (cy - r.top) / zoom;   // координаты плана под курсором
+    var old = zoom;
+    zoom = Math.max(0.05, Math.min(5, zoom * factor));
+    if (Math.abs(zoom - old) < 1e-6) return;
+    draw();
+    var r2 = $('#cv').getBoundingClientRect();
+    w.scrollLeft += (px * zoom) - (cx - r2.left);
+    w.scrollTop += (py * zoom) - (cy - r2.top);
+  }
+  (function () {
+    var w = $('#cvWrap'); if (!w) return;
+    w.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      var f = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+      zoomAtPoint(e.clientX, e.clientY, f);
+    }, { passive: false });
+  })();
   $('#zFit').onclick = function () { zoom = 1; draw(); };
   $('#clearBtn').onclick = function () { snapshot(); S.items = []; S.notes = []; S.links = []; S.routes = []; sel = null; draw(); prop(); renderLists(); logEvent('Схема очищена'); };
   $('#resetBtn').onclick = function () { snapshot(); planId = null; $('#proj').value = 'Новая планировка'; applyData({}); fitZoom(); draw(); logEvent('Полный сброс'); };
