@@ -345,9 +345,65 @@ const ITEMS = [
     action: 'Миграция 0261: таблицы **app_ref_cnc** (производитель, модель, система ЧПУ, оси, обороты, постпроцессор) и **app_ref_tool** (тип, название, материал, Ø, радиус, стойкость, переточки) + RPC list/save/delete; новый модуль **«Отраслевые справочники»** (`apps/refdata`) с подсказками из справочников. Каталог v10.54, CATALOG_V 130.',
     dod: 'Стойки ЧПУ и инструмент ведутся с атрибутами; модуль доступен. Реализовано (apply_all 252).',
     evidence: 'supabase/migrations/0261_refdata.sql, apps/refdata (v385)'
+  },
+
+  /* ============ R6 — BPM 2.0, договоры и финансы (по остаточным пробелам COMPARISON.md) ============ */
+  {
+    id: 'PROP-36', wave: 'R6', prio: 'P2', area: 'BPM', status: 'done', effort: 'S',
+    business: [BIZ.common], modules: ['workflow'],
+    title: 'BPMN: шлюзы (parallel/exclusive/inclusive) в схеме и экспорте',
+    problem: 'BPMN-схема процесса строилась линейно (start → userTask → end); не было шлюзов (parallel/inclusive) — пробел из docs/COMPARISON.md §5 «нет явных шлюзов».',
+    action: 'В apps/workflow шаг процесса с полем `gateway` (parallel|exclusive|inclusive) отображается ромбом на SVG-схеме; в BPMN 2.0 XML экспортируется как `<bpmn:parallelGateway>` / `exclusiveGateway` / `inclusiveGateway` (вместо userTask). Обновлена подсказка формы процесса. UI-only, без миграций.',
+    dod: 'Шлюзы видны на схеме и в BPMN XML; линейные процессы не меняются. Реализовано.',
+    evidence: 'apps/workflow/workflow.js, docs/COMPARISON.md §5'
+  },
+  {
+    id: 'PROP-37', wave: 'R6', prio: 'P3', area: 'BPM', status: 'open', effort: 'M',
+    business: [BIZ.common], modules: ['workflow', 'bi'],
+    title: 'Process mining по журналу процессов',
+    problem: 'Мониторинг BAM/SLA есть (PROP-33), но нет process mining — восстановления фактических вариантов прохождения процесса и узких мест по журналу.',
+    action: 'Собрать событийный журнал из `app_process_instances`/`app_process_tasks` (кейс, активность, время) и построить: частые варианты (вариант → доля), узкие места (медиана времени на этап), отклонения от эталонного маршрута. Панель «Process mining» в workflow; drill-down в BI.',
+    dod: 'Видны топ-варианты процессов и узкие места по этапам из фактических данных.',
+    evidence: 'docs/COMPARISON.md §5 «нет process mining», apps/workflow, apps/bi'
+  },
+  {
+    id: 'PROP-38', wave: 'R6', prio: 'P2', area: 'Документы', status: 'open', effort: 'M',
+    business: [BIZ.prod, BIZ.econ], modules: ['docs', 'edo', 'service'],
+    title: 'Управление договорами: реестр, вехи, алерты, ЭП',
+    problem: 'В ERP обязателен контур управления договорами (шаблоны, ЭП, алерты по вехам, поиск) — у нас договоры разрознены по заявкам/счетам, нет реестра с вехами и напоминаниями.',
+    action: 'Единый реестр договоров (контрагент, предмет, сумма, срок, статус, файл) с шаблонами; вехи/этапы договора (дата, ответственный, статус) и алерты за N дней; подписание через ЭП (reuse `app_signatures`, `edo`); связи заявка↔договор↔счёт↔акт. Поиск по реквизитам.',
+    dod: 'Договор ведётся с вехами и алертами; подпись и связи с заявкой/счётом/актом; поиск по реестру.',
+    evidence: 'docs/COMPARISON.md §1 «Управление договорами», apps/docs, apps/edo'
+  },
+  {
+    id: 'PROP-39', wave: 'R6', prio: 'P3', area: 'Продажи', status: 'open', effort: 'M',
+    business: [BIZ.prod, BIZ.econ], modules: ['partners', 'crm', 'finance'],
+    title: 'Комиссии продаж и агентские вознаграждения',
+    problem: 'В CRM/ERP комиссии агентов и партнёров считаются автоматически — у нас `partners` ведёт партнёров, но нет расчёта комиссий и их проводок.',
+    action: 'Правила комиссий по партнёру/каналу (процент/фикс, база — сумма сделки/маржи); расчёт комиссии при выигрыше сделки/оплате; реестр начислений и выплат; связь с `app_invoices`/платежами; отчёт «Комиссии».',
+    dod: 'Комиссии начисляются по правилам на закрытые сделки; виден реестр начислений/выплат.',
+    evidence: 'docs/COMPARISON.md §4 «Комиссии ◐», apps/partners, apps/crm'
+  },
+  {
+    id: 'PROP-40', wave: 'R6', prio: 'P2', area: 'Финансы', status: 'open', effort: 'M',
+    business: [BIZ.econ], modules: ['finance', 'economics', 'accounting'],
+    title: 'AR/AP: дебиторка/кредиторка и aging-анализ',
+    problem: 'Есть счета/платежи и платёжный календарь, но нет реестров дебиторки (AR) и кредиторки (AP) с aging-разбивкой (0–30/31–60/61–90/90+).',
+    action: 'Реестр дебиторки (счета клиентов: срок, просрочка, aging-бакеты, ожидаемое поступление) и кредиторки (счета поставщиков) с привязкой к договорам; рейтинг контрагентов по дисциплине оплат; дашборд AR/AP и DSO/DPO; напоминания о просрочке.',
+    dod: 'Видны AR/AP с aging-бакетами и сроками; есть дашборд и напоминания о просрочке.',
+    evidence: 'docs/COMPARISON.md §1 «дебиторка (AR), кредиторка (AP)», apps/finance'
+  },
+  {
+    id: 'PROP-41', wave: 'R6', prio: 'P3', area: 'BPM', status: 'open', effort: 'M',
+    business: [BIZ.common], modules: ['workflow'],
+    title: 'DMN: таблицы решений для маршрутизации',
+    problem: 'Правила workflow задавались триггерами (notify/audit/start), но нет декларативных таблиц решений (DMN) для выбора маршрута/исполнителя по условиям.',
+    action: 'Таблицы решений DMN (входы-условия → выходы: маршрут/роль/действие), исполнение при старте процесса и на этапе (выбор следующего шага/исполнителя); экспорт DMN 1.3 XML; связь с шлюзами BPMN (PROP-36).',
+    dod: 'Решение выбирается таблицей DMN по входным данным; таблица экспортируется в DMN XML.',
+    evidence: 'docs/COMPARISON.md §5 «DMN ❌», apps/workflow'
   }
 ];
 
 module.exports = ITEMS;
 module.exports.BIZ = BIZ;
-module.exports.META = { version: '1.0', waves: { R1: 'Приоритетные контуры', R2: 'Поперечные и надёжность', R3: 'Гигиена и развитие', R4: 'По сравнению с рынком (ERP/MES/PLM/EAM)', R5: 'CRM, BPM и справочники' } };
+module.exports.META = { version: '1.1', waves: { R1: 'Приоритетные контуры', R2: 'Поперечные и надёжность', R3: 'Гигиена и развитие', R4: 'По сравнению с рынком (ERP/MES/PLM/EAM)', R5: 'CRM, BPM и справочники', R6: 'BPM 2.0, договоры и финансы' } };

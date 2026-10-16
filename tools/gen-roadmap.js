@@ -13,8 +13,8 @@ const BIZ = ITEMS.BIZ || {};
 const META = ITEMS.META || { waves: {} };
 const OUT = path.join(root, 'docs', 'ROADMAP.md');
 
-const WAVE_TITLE = { R1: 'Приоритетные контуры', R2: 'Поперечные и надёжность', R3: 'Гигиена и развитие', R4: 'По сравнению с рынком (ERP/MES/PLM/EAM)', R5: 'CRM, BPM и справочники' };
-const WAVES = ['R1', 'R2', 'R3', 'R4', 'R5'];
+const WAVE_TITLE = { R1: 'Приоритетные контуры', R2: 'Поперечные и надёжность', R3: 'Гигиена и развитие', R4: 'По сравнению с рынком (ERP/MES/PLM/EAM)', R5: 'CRM, BPM и справочники', R6: 'BPM 2.0, договоры и финансы' };
+const WAVES = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6'];
 const PRIO_TITLE = { P1: 'высокий', P2: 'средний', P3: 'низкий' };
 const EFF = { S: 'S (малая)', M: 'M (средняя)', L: 'L (крупная)' };
 
@@ -35,13 +35,13 @@ md += '- Каждый пункт закрывается по DoD и отража
 
 md += '## Сводка\n\n';
 md += '| Волна | Пунктов | P1 | P2 | P3 |\n|---|---|---|---|---|\n';
-['R1', 'R2', 'R3', 'R4', 'R5'].forEach(w => {
+['R1', 'R2', 'R3', 'R4', 'R5', 'R6'].forEach(w => {
   const a = byWave(w);
   md += '| ' + w + ' — ' + (WAVE_TITLE[w] || '') + ' | ' + a.length + ' | ' + a.filter(x => x.prio === 'P1').length + ' | ' + a.filter(x => x.prio === 'P2').length + ' | ' + a.filter(x => x.prio === 'P3').length + ' |\n';
 });
 md += '\n';
 
-['R1', 'R2', 'R3', 'R4', 'R5'].forEach(w => {
+['R1', 'R2', 'R3', 'R4', 'R5', 'R6'].forEach(w => {
   const a = byWave(w);
   if (!a.length) return;
   md += '## ' + w + ' — ' + (WAVE_TITLE[w] || '') + '\n\n';

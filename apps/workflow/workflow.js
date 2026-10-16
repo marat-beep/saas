@@ -40,7 +40,9 @@
       $$('#defs [data-del]').forEach(function (b) { b.addEventListener('click', function () { if (!confirm('Удалить процесс?')) return; rpc('app_process_def_delete', { p_token: token, p_id: b.dataset.del }).then(function (r) { var x = r && r[0]; msg('#dMsg', x ? x.message : '', x && x.ok ? 'ok' : 'err'); loadDefs(); }); }); });
     }).catch(function (e) { msg('#dMsg', 'Ошибка: ' + e.message, 'err'); });
   }
-  /* R5·PROP-32: BPMN-схема процесса (SVG) + экспорт BPMN 2.0 XML */
+  /* R5·PROP-32 / R6·PROP-36: BPMN-схема процесса (SVG, со шлюзами) + экспорт BPMN 2.0 XML */
+  var GW = { parallel: { sym: '+', label: 'Параллельный' }, exclusive: { sym: '×', label: 'Исключающий' }, inclusive: { sym: '○', label: 'Включающий' } };
+  function gwKind(stp) { return (stp && stp.gateway && GW[stp.gateway]) ? stp.gateway : null; }
   function wfSteps(d) { return (d.steps || []).slice().sort(function (a, b) { return (a.ord || 0) - (b.ord || 0); }); }
   function bpmnSvg(d) {
     var steps = wfSteps(d), W = 170, H = 60, y = 40, gap = 44, cy = y + H / 2;
@@ -48,13 +50,21 @@
     s += '<circle cx="' + cx + '" cy="' + cy + '" r="16" fill="#fff" stroke="#0ea5e9" stroke-width="2"/>' +
       '<text x="' + cx + '" y="' + (cy + 4) + '" text-anchor="middle" font-size="10" fill="#0ea5e9">▶</text>';
     steps.forEach(function (stp, i) {
-      var tx = prevX + gap, label = esc(stp.name || stp.role || ('Этап ' + (i + 1)));
-      var meta = (stp.role ? esc(stp.role) : '') + (stp.sla_hours ? (stp.role ? ' · ' : '') + 'SLA ' + stp.sla_hours + ' ч' : '');
-      s += '<rect x="' + tx + '" y="' + y + '" width="' + W + '" height="' + H + '" rx="12" fill="#e8f5ee" stroke="#10b981" stroke-width="2"/>' +
-        '<text x="' + (tx + W / 2) + '" y="' + (y + 25) + '" text-anchor="middle" font-size="12" fill="#0f172a">' + label + '</text>' +
-        '<text x="' + (tx + W / 2) + '" y="' + (y + 43) + '" text-anchor="middle" font-size="10" fill="#64748b">' + meta + '</text>';
+      var gw = gwKind(stp), cw = gw ? H : W, tx = prevX + gap;
+      if (gw) {
+        var g = GW[gw], gcx = tx + cw / 2;
+        s += '<polygon points="' + gcx + ',' + y + ' ' + (tx + cw) + ',' + cy + ' ' + gcx + ',' + (y + H) + ' ' + tx + ',' + cy + '" fill="#fff7ed" stroke="#f59e0b" stroke-width="2"/>' +
+          '<text x="' + gcx + '" y="' + (cy + 6) + '" text-anchor="middle" font-size="18" fill="#b45309">' + g.sym + '</text>' +
+          '<text x="' + gcx + '" y="' + (y + H + 16) + '" text-anchor="middle" font-size="10" fill="#92400e">' + esc(g.label) + '</text>';
+      } else {
+        var label = esc(stp.name || stp.role || ('Этап ' + (i + 1)));
+        var meta = (stp.role ? esc(stp.role) : '') + (stp.sla_hours ? (stp.role ? ' · ' : '') + 'SLA ' + stp.sla_hours + ' ч' : '');
+        s += '<rect x="' + tx + '" y="' + y + '" width="' + cw + '" height="' + H + '" rx="12" fill="#e8f5ee" stroke="#10b981" stroke-width="2"/>' +
+          '<text x="' + (tx + cw / 2) + '" y="' + (y + 25) + '" text-anchor="middle" font-size="12" fill="#0f172a">' + label + '</text>' +
+          '<text x="' + (tx + cw / 2) + '" y="' + (y + 43) + '" text-anchor="middle" font-size="10" fill="#64748b">' + meta + '</text>';
+      }
       arrows += '<line x1="' + prevX + '" y1="' + cy + '" x2="' + tx + '" y2="' + cy + '" stroke="#94a3b8" stroke-width="2" marker-end="url(#wfArrow)"/>';
-      prevX = tx + W;
+      prevX = tx + cw;
     });
     var ex = prevX + gap;
     s += '<circle cx="' + ex + '" cy="' + cy + '" r="16" fill="#fff" stroke="#0f172a" stroke-width="3"/>';
@@ -73,8 +83,11 @@
       '    <bpmn:startEvent id="Start_1" name="Старт"/>\n';
     var prev = 'Start_1';
     steps.forEach(function (stp, i) {
-      var tid = 'Task_' + (i + 1);
-      x += '    <bpmn:userTask id="' + tid + '" name="' + esc2(stp.name || stp.role || ('Этап ' + (i + 1))) + '"/>\n';
+      var gw = gwKind(stp);
+      var tid = (gw ? 'Gateway_' : 'Task_') + (i + 1);
+      var tag = gw ? ('bpmn:' + gw + 'Gateway') : 'bpmn:userTask';
+      var nm = gw ? GW[gw].label : esc2(stp.name || stp.role || ('Этап ' + (i + 1)));
+      x += '    <' + tag + ' id="' + tid + '" name="' + nm + '"/>\n';
       x += '    <bpmn:sequenceFlow id="Flow_' + (i + 1) + '" sourceRef="' + prev + '" targetRef="' + tid + '"/>\n';
       prev = tid;
     });
@@ -105,7 +118,7 @@
         { name: 'code', label: 'Код', type: 'text' },
         { name: 'doc_type', label: 'Тип документа', type: 'text', placeholder: 'order' },
         { name: 'entity_type', label: 'Тип объекта', type: 'text', placeholder: 'order' },
-        { name: 'steps', label: 'Этапы (JSON)', type: 'textarea', rows: 5, hint: '[{"ord":1,"name":"Нач. цеха","role":"chief","sla_hours":24},{"ord":2,"name":"Директор","role":"director","sla_hours":48}]' },
+        { name: 'steps', label: 'Этапы (JSON)', type: 'textarea', rows: 5, hint: '[{"ord":1,"name":"Нач. цеха","role":"chief","sla_hours":24},{"ord":2,"gateway":"parallel"},{"ord":3,"name":"Директор","role":"director","sla_hours":48}]  — поле gateway: parallel|exclusive|inclusive рисует шлюз (ромб)' },
         { name: 'active', label: 'Активен', type: 'checkbox' }
       ],
       values: { name: d.name || '', code: d.code || '', doc_type: d.doc_type || '', entity_type: d.entity_type || '', steps: JSON.stringify(d.steps || [{ ord: 1, name: 'Начальник цеха', role: 'chief', sla_hours: 24 }], null, 2), active: d.active === false ? '' : 'да' }
