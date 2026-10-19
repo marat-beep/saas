@@ -219,6 +219,36 @@ function managersPage() {
   return head('Руководителю — 3DMP Service', 'Что даёт система руководителю: единая картина, контроль денег и сроков, меньше ручной работы.', base) + nav(base, 'managers') + body + foot(base, 'Руководителю');
 }
 
+/* ---------- модули на главной (все, каждая карточка — ссылка) ---------- */
+function homeModulesBlock() {
+  let out = '';
+  D.GROUP_ORDER.forEach(g => {
+    const items = MODELS.filter(m => m.group === g);
+    if (!items.length) return;
+    out += '<div class="grp-title">' + esc(D.GROUPS[g]) + ' · ' + items.length + '</div><div class="mcards">';
+    out += items.map(m => {
+      const href = m.featured ? m.id + '.html' : 'm/' + m.id + '.html';
+      return '<a class="mcard" href="' + href + '"><span class="mi">' + esc(m.icon) + '</span><span><b>' + esc(m.title) + '</b><small>' + esc(m.sub) + '</small></span><span class="go">→</span></a>';
+    }).join('');
+    out += '</div>';
+  });
+  const rest = MODELS.filter(m => D.GROUP_ORDER.indexOf(m.group) < 0);
+  if (rest.length) {
+    out += '<div class="grp-title">Прочее · ' + rest.length + '</div><div class="mcards">';
+    out += rest.map(m => '<a class="mcard" href="m/' + m.id + '.html"><span class="mi">' + esc(m.icon) + '</span><span><b>' + esc(m.title) + '</b><small>' + esc(m.sub) + '</small></span><span class="go">→</span></a>').join('');
+    out += '</div>';
+  }
+  return out;
+}
+function injectHome() {
+  const p = path.join(SITE, 'index.html');
+  if (!fs.existsSync(p)) return;
+  const s = fs.readFileSync(p, 'utf8');
+  const re = /<!-- MODULES:START -->[\s\S]*?<!-- MODULES:END -->/;
+  if (!re.test(s)) { console.warn('gen-site: в index.html нет маркеров MODULES'); return; }
+  fs.writeFileSync(p, s.replace(re, '<!-- MODULES:START -->\n' + homeModulesBlock() + '\n<!-- MODULES:END -->'), 'utf8');
+}
+
 /* ---------- запись ---------- */
 function main() {
   const mdir = path.join(SITE, 'm');
@@ -229,6 +259,7 @@ function main() {
   MODELS.forEach(m => { if (m.featured) return; fs.writeFileSync(path.join(mdir, m.id + '.html'), modulePage(m), 'utf8'); n++; });
   fs.writeFileSync(path.join(SITE, 'modules.html'), modulesPage(), 'utf8');
   fs.writeFileSync(path.join(SITE, 'for-managers.html'), managersPage(), 'utf8');
-  console.log('gen-site: модулей в каталоге ' + MODELS.length + ', сгенерировано страниц ' + n);
+  injectHome();
+  console.log('gen-site: модулей в каталоге ' + MODELS.length + ', сгенерировано страниц ' + n + ', главная обновлена');
 }
 main();
